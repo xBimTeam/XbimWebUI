@@ -1,0 +1,28 @@
+﻿body {
+}
+
+input{
+    width: 5em;
+}
+#xviewer-controls{
+    float:right;
+}
+
+
+#productId{
+    font-weight: bold;
+}
+
+.xviewer-control{
+    margin-top:10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid grey;
+}
+
+.xviewer-control:last-child {
+    border-bottom: none;
+}
+
+#main{
+    padding:20px;
+}

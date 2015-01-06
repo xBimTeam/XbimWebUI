@@ -1,0 +1,224 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>
+    </ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{C5942956-079A-4A0E-B0A8-EFF59C96B269}</ProjectGuid>
+    <ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Xbim.WeXplorer</RootNamespace>
+    <AssemblyName>Xbim.WeXplorer</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <UseIISExpress>true</UseIISExpress>
+    <IISExpressSSLPort />
+    <IISExpressAnonymousAuthentication />
+    <IISExpressWindowsAuthentication />
+    <IISExpressUseClassicPipelineMode />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Web.DynamicData" />
+    <Reference Include="System.Web.Entity" />
+    <Reference Include="System.Web.ApplicationServices" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Web.Services" />
+    <Reference Include="System.EnterpriseServices" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Build\xbim-viewer.debug.bundle.js" />
+    <Content Include="Build\xbim-viewer.min.bundle.js" />
+    <Content Include="Build\xbim-viewer.min.js" />
+    <Content Include="Resources\doctemplate\publish.js" />
+    <Content Include="Resources\doctemplate\static\1_Hello_building.live.html" />
+    <Content Include="Resources\doctemplate\static\3_Eventful_building.live.html" />
+    <Content Include="Resources\doctemplate\static\4_Building_seen_from_everywhere.live.html" />
+    <Content Include="Resources\doctemplate\static\fonts\OpenSans-Bold-webfont.svg" />
+    <Content Include="Resources\doctemplate\static\fonts\OpenSans-BoldItalic-webfont.svg" />
+    <Content Include="Resources\doctemplate\static\fonts\OpenSans-Italic-webfont.svg" />
+    <Content Include="Resources\doctemplate\static\fonts\OpenSans-Light-webfont.svg" />
+    <Content Include="Resources\doctemplate\static\fonts\OpenSans-LightItalic-webfont.svg" />
+    <Content Include="Resources\doctemplate\static\fonts\OpenSans-Regular-webfont.svg" />
+    <Content Include="Resources\doctemplate\static\scripts\linenumber.js" />
+    <Content Include="Resources\doctemplate\static\scripts\prettify\Apache-License-2.0.txt" />
+    <Content Include="Resources\doctemplate\static\scripts\prettify\lang-css.js" />
+    <Content Include="Resources\doctemplate\static\scripts\prettify\prettify.js" />
+    <Content Include="Resources\doctemplate\static\styles\jsdoc-default.css" />
+    <Content Include="Resources\doctemplate\static\styles\prettify-jsdoc.css" />
+    <Content Include="Resources\doctemplate\static\styles\prettify-tomorrow.css" />
+    <Content Include="Resources\doctemplate\static\styles\xviewer-styles.css" />
+    <Content Include="Tutorials\2_Safe_Hello_building.md" />
+    <Content Include="Tutorials\1_Hello_building.json" />
+    <Content Include="Resources\doctemplate\static\5_Colourful_building.live.html" />
+    <None Include="Tutorials\1_Hello_building.md" />
+    <Content Include="Resources\doctemplate\static\scripts\xbim-viewer.debug.bundle.js" />
+    <Content Include="Scripts\fragment_shader.c" />
+    <Content Include="Build\gl-matrix.min.js" />
+    <Content Include="Scripts\gl-matrix.js" />
+    <Content Include="Scripts\vertex_shader.c" />
+    <Content Include="Scripts\vertex_shader_noFPT.c" />
+    <Content Include="Scripts\webgl-utils.js" />
+    <Content Include="Build\webgl-utils.min.js" />
+    <Content Include="Scripts\xbim-binary-reader.debug.js" />
+    <Content Include="Scripts\xbim-disclaimer.txt" />
+    <Content Include="Scripts\xbim-model-geometry.debug.js" />
+    <Content Include="Scripts\xbim-model-handle.debug.js" />
+    <Content Include="Scripts\xbim-product-type.debug.js" />
+    <Content Include="Scripts\xbim-shaders.debug.js" />
+    <Content Include="Scripts\xbim-state.debug.js" />
+    <Content Include="Scripts\xbim-triangulated-shape.debug.js" />
+    <Content Include="Scripts\xbim-viewer.debug.js" />
+    <Content Include="tests\qunit-1.15.0.css" />
+    <Content Include="tests\qunit-1.15.0.js" />
+    <Content Include="tests\tests.html" />
+    <Content Include="tests\tests.js" />
+    <Content Include="Utilities\jsmin.exe" />
+    <Content Include="Utilities\NuGet.exe" />
+    <Content Include="Utilities\spacker.exe" />
+    <Content Include="index.html" />
+    <Content Include="Web.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="tests\data\data.dat" />
+    <Content Include="tests\data\FourWalls.ifc" />
+    <Content Include="tests\data\FourWalls.wexbim" />
+    <Content Include="tests\data\FourWallsDoorWindows.ifc" />
+    <Content Include="tests\data\FourWallsDoorWindows.wexbim" />
+    <Content Include="tests\data\FourWallsDoorWindowsRoof.ifc" />
+    <Content Include="tests\data\FourWallsDoorWindowsRoof.wexbim" />
+    <Content Include="tests\data\generate_wexbim.bat" />
+    <Content Include="tests\data\LakesideRestaurant.ifc" />
+    <Content Include="tests\data\LakesideRestaurant.wexbim" />
+    <Content Include="tests\data\OneWall.ifc" />
+    <Content Include="tests\data\OneWall.wexbim" />
+    <Content Include="tests\data\OneWallTwoWindows.ifc" />
+    <Content Include="tests\data\OneWallTwoWindows.wexbim" />
+    <Content Include="tests\data\TwoProxy.ifc" />
+    <Content Include="tests\data\TwoProxy.wexbim" />
+    <Content Include="tests\data\TwoWallsTwoColour.ifc" />
+    <Content Include="tests\data\TwoWallsTwoColour.wexbim" />
+    <Content Include="nuget\WeXplorer.0.1.0-Prerelease.nupkg" />
+    <Content Include="nuget\WeXplorer.0.1.0-Prerelease.nuspec" />
+    <Content Include="build.bat" />
+    <Content Include="Resources\README.md" />
+    <Content Include="Resources\doctemplate\README.md" />
+    <Content Include="Resources\doctemplate\static\fonts\OpenSans-Bold-webfont.eot" />
+    <Content Include="Resources\doctemplate\static\fonts\OpenSans-Bold-webfont.woff" />
+    <Content Include="Resources\doctemplate\static\fonts\OpenSans-BoldItalic-webfont.eot" />
+    <Content Include="Resources\doctemplate\static\fonts\OpenSans-BoldItalic-webfont.woff" />
+    <Content Include="Resources\doctemplate\static\fonts\OpenSans-Italic-webfont.eot" />
+    <Content Include="Resources\doctemplate\static\fonts\OpenSans-Italic-webfont.woff" />
+    <Content Include="Resources\doctemplate\static\fonts\OpenSans-Light-webfont.eot" />
+    <Content Include="Resources\doctemplate\static\fonts\OpenSans-Light-webfont.woff" />
+    <Content Include="Resources\doctemplate\static\fonts\OpenSans-LightItalic-webfont.eot" />
+    <Content Include="Resources\doctemplate\static\fonts\OpenSans-LightItalic-webfont.woff" />
+    <Content Include="Resources\doctemplate\static\fonts\OpenSans-Regular-webfont.eot" />
+    <Content Include="Resources\doctemplate\static\fonts\OpenSans-Regular-webfont.woff" />
+    <Content Include="Resources\doctemplate\tmpl\augments.tmpl" />
+    <Content Include="Resources\doctemplate\tmpl\container.tmpl" />
+    <Content Include="Resources\doctemplate\tmpl\details.tmpl" />
+    <Content Include="Resources\doctemplate\tmpl\example.tmpl" />
+    <Content Include="Resources\doctemplate\tmpl\examples.tmpl" />
+    <Content Include="Resources\doctemplate\tmpl\exceptions.tmpl" />
+    <Content Include="Resources\doctemplate\tmpl\layout.tmpl" />
+    <Content Include="Resources\doctemplate\tmpl\mainpage.tmpl" />
+    <Content Include="Resources\doctemplate\tmpl\members.tmpl" />
+    <Content Include="Resources\doctemplate\tmpl\method.tmpl" />
+    <Content Include="Resources\doctemplate\tmpl\params.tmpl" />
+    <Content Include="Resources\doctemplate\tmpl\properties.tmpl" />
+    <Content Include="Resources\doctemplate\tmpl\returns.tmpl" />
+    <Content Include="Resources\doctemplate\tmpl\source.tmpl" />
+    <Content Include="Resources\doctemplate\tmpl\tutorial.tmpl" />
+    <Content Include="Resources\doctemplate\tmpl\type.tmpl" />
+    <Content Include="Resources\doctemplate\static\data\OneWall.wexbim" />
+    <Content Include="Resources\doctemplate\static\data\SampleHouse.wexbim" />
+    <Content Include="Tutorials\2_Safe_Hello_building.json" />
+    <Content Include="Tutorials\3_Eventful_building.md" />
+    <Content Include="Tutorials\3_Eventful_building.json" />
+    <Content Include="Tutorials\4_Building_seen_from_everywhere.md" />
+    <Content Include="Tutorials\4_Building_seen_from_everywhere.json" />
+    <Content Include="Tutorials\5_Colourful_building.md" />
+    <Content Include="Tutorials\5_Colourful_building.json" />
+    <None Include="Web.Debug.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </None>
+    <None Include="Web.Release.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </None>
+  </ItemGroup>
+  <ItemGroup />
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
+        <WebProjectProperties>
+          <UseIIS>True</UseIIS>
+          <AutoAssignPort>True</AutoAssignPort>
+          <DevelopmentServerPort>5981</DevelopmentServerPort>
+          <DevelopmentServerVPath>/</DevelopmentServerVPath>
+          <IISUrl>http://localhost:5981/</IISUrl>
+          <NTLMAuthentication>False</NTLMAuthentication>
+          <UseCustomServer>False</UseCustomServer>
+          <CustomServerUrl>
+          </CustomServerUrl>
+          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
+        </WebProjectProperties>
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+  <PropertyGroup>
+    <PostBuildEvent>cd "$(ProjectDir)"
+build.bat</PostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

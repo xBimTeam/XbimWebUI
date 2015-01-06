@@ -1,0 +1,27 @@
+{
+   "opts":{
+      "tutorials":"Tutorials",
+      "destination":"Docs",
+      "template":"Resources/doctemplate"
+   },
+   "tags":{
+      "allowUnknownTags":true
+   },
+   "source":{
+      "include":[
+         "Scripts\\xbim-viewer.debug.js",
+         "Scripts\\xbim-state.debug.js",
+         "Scripts\\xbim-product-type.debug.js",
+         "Resources/README.md"
+      ],
+      "includePattern":".+\\.js(doc)?$",
+      "excludePattern":"(^|\\/|\\\\)_"
+   },
+   "plugins":[
+      "plugins/markdown"
+   ],
+   "templates":{
+      "cleverLinks":false,
+      "monospaceLinks":false
+   }
+}
