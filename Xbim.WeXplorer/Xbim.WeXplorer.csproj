@@ -57,9 +57,20 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Browser\xbim-attribute-dictionary.debug.js" />
+    <Content Include="Browser\xbim-browser.debug.js" />
+    <Content Include="Browser\xbim-cobie-utils.debug.js" />
+    <Content Include="Browser\xbim-visual-attribute.debug.js" />
+    <Content Include="Browser\xbim-visual-entity.debug.js" />
+    <Content Include="Browser\xbim-visual-model.debug.js" />
+    <Content Include="Browser\xbim-visual-property.debug.js" />
+    <Content Include="Browser\xbim-visual-templates.debug.js" />
     <Content Include="Build\xbim-viewer.debug.bundle.js" />
     <Content Include="Build\xbim-viewer.min.bundle.js" />
     <Content Include="Build\xbim-viewer.min.js" />
+    <Content Include="index.html" />
+    <Content Include="Libs\gl-matrix.min.js" />
+    <Content Include="Libs\webgl-utils.min.js" />
     <Content Include="Resources\doctemplate\publish.js" />
     <Content Include="Resources\doctemplate\static\1_Hello_building.live.html" />
     <Content Include="Resources\doctemplate\static\3_Eventful_building.live.html" />
@@ -78,27 +89,29 @@
     <Content Include="Resources\doctemplate\static\styles\prettify-jsdoc.css" />
     <Content Include="Resources\doctemplate\static\styles\prettify-tomorrow.css" />
     <Content Include="Resources\doctemplate\static\styles\xviewer-styles.css" />
+    <Content Include="semantics.html" />
     <Content Include="Tutorials\2_Safe_Hello_building.md" />
     <Content Include="Tutorials\1_Hello_building.json" />
     <Content Include="Resources\doctemplate\static\5_Colourful_building.live.html" />
+    <Content Include="tests\data\COBieFacility.json" />
     <None Include="Tutorials\1_Hello_building.md" />
     <Content Include="Resources\doctemplate\static\scripts\xbim-viewer.debug.bundle.js" />
-    <Content Include="Scripts\fragment_shader.c" />
+    <Content Include="Viewer\fragment_shader.c" />
     <Content Include="Build\gl-matrix.min.js" />
-    <Content Include="Scripts\gl-matrix.js" />
-    <Content Include="Scripts\vertex_shader.c" />
-    <Content Include="Scripts\vertex_shader_noFPT.c" />
-    <Content Include="Scripts\webgl-utils.js" />
+    <Content Include="Libs\gl-matrix.js" />
+    <Content Include="Viewer\vertex_shader.c" />
+    <Content Include="Viewer\vertex_shader_noFPT.c" />
+    <Content Include="Libs\webgl-utils.js" />
     <Content Include="Build\webgl-utils.min.js" />
-    <Content Include="Scripts\xbim-binary-reader.debug.js" />
-    <Content Include="Scripts\xbim-disclaimer.txt" />
-    <Content Include="Scripts\xbim-model-geometry.debug.js" />
-    <Content Include="Scripts\xbim-model-handle.debug.js" />
-    <Content Include="Scripts\xbim-product-type.debug.js" />
-    <Content Include="Scripts\xbim-shaders.debug.js" />
-    <Content Include="Scripts\xbim-state.debug.js" />
-    <Content Include="Scripts\xbim-triangulated-shape.debug.js" />
-    <Content Include="Scripts\xbim-viewer.debug.js" />
+    <Content Include="Viewer\xbim-binary-reader.debug.js" />
+    <Content Include="Resources\xbim-disclaimer.txt" />
+    <Content Include="Viewer\xbim-model-geometry.debug.js" />
+    <Content Include="Viewer\xbim-model-handle.debug.js" />
+    <Content Include="Viewer\xbim-product-type.debug.js" />
+    <Content Include="Viewer\xbim-shaders.debug.js" />
+    <Content Include="Viewer\xbim-state.debug.js" />
+    <Content Include="Viewer\xbim-triangulated-shape.debug.js" />
+    <Content Include="Viewer\xbim-viewer.debug.js" />
     <Content Include="tests\qunit-1.15.0.css" />
     <Content Include="tests\qunit-1.15.0.js" />
     <Content Include="tests\tests.html" />
@@ -106,10 +119,11 @@
     <Content Include="Utilities\jsmin.exe" />
     <Content Include="Utilities\NuGet.exe" />
     <Content Include="Utilities\spacker.exe" />
-    <Content Include="index.html" />
+    <Content Include="viewer3D.html" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Libs\cobielite_core.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
