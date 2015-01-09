@@ -2,6 +2,9 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <title>Semantic browser</title>
+    <link href="Libs/jquery-ui.css" rel="stylesheet" />
+    <link href="Resources/doctemplate/static/styles/xbrowser-styles.css" rel="stylesheet" />
+
     <script src="Browser/xbim-attribute-dictionary.debug.js"></script>
     <script src="Browser/xbim-browser.debug.js"></script>
     <script src="Browser/xbim-cobie-utils.debug.js"></script>
@@ -10,66 +13,41 @@
     <script src="Browser/xbim-visual-model.debug.js"></script>
     <script src="Browser/xbim-visual-property.debug.js"></script>
     <script src="Browser/xbim-visual-templates.debug.js"></script>
-    <script type="text/javascript">
-
-
-        // Simple JavaScript Templating
-        // John Resig - http://ejohn.org/ - MIT Licensed
-        //http://ejohn.org/blog/javascript-micro-templating/
-        (function () {
-            var cache = {};
-
-            this.tmpl = function tmpl(str, data) {
-                // Figure out if we're getting a template, or if we need to
-                // load the template - and be sure to cache the result.
-                var fn = !/\W/.test(str) ?
-                  cache[str] = cache[str] ||
-                    tmpl(document.getElementById(str).innerHTML) :
-
-                  // Generate a reusable function that will serve as a template
-                  // generator (and which will be cached).
-                  new Function("_data_",
-                    "var _p_=[];" +
-
-                    // Introduce the data as local variables using with(){}
-                    "with(_data_){_p_.push('" +
-
-                    // Convert the template into pure JavaScript
-                    str
-                      .replace(/[\r\t\n]/g, " ")
-                      .split("<%").join("\t")
-                      .replace(/((^|%>)[^\t]*)'/g, "$1\r")
-                      .replace(/\t=(.*?)%>/g, "',$1,'")
-                      .split("\t").join("');")
-                      .split("%>").join("_p_.push('")
-                      .split("\r").join("\\'")
-                  + "');}return _p_.join('');");
-
-                // Provide some basic currying to the user
-                return data ? fn(data) : fn;
-            };
-        })();
-    </script>
+    <script src="Libs/jquery.js"></script>
+    <script src="Libs/jquery-ui.js"></script>
 </head>
 <body>
-    <div style="position: fixed; top:10px; right: 20px; width: 600px;">
-        <div id="properties"></div>
-        <div id="attributes"></div>
+    <div id="body-container">
+        <div id="semantic-model-container">
+            <div id="semantic-model">
+                <h3>Spatial structure</h3>
+                <div class="no-overflow">
+                    <div id="structure"></div>
+                </div>
+                <h3>Asset types</h3>
+                <div class="no-overflow">
+                    <div id="assetTypes"></div>
+                </div>
+                <h3>Systems</h3>
+                <div class="no-overflow">
+                    <div id="systems"></div>
+                </div>
+                <h3>Zones</h3>
+                <div class="no-overflow">
+                    <div id="zones"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="semantic-descriptive-info-container" class="no-overflow-y">
+            <div id="semantic-descriptive-info" class="ui-widget ui-widget-content ui-corner-all">
+                <div>
+                    <div id="properties"></div>
+                    <div id="attributes"></div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div id="zones"></div>
-    <div id="systems"></div>
-    <div id="assetTypes"></div>
-    <div id="structure"></div>
-    <script type="text/template" id="propTemplate">
-        <table id="<%=settings.propertyTableId%>" class='<%=settings.propertyTableClass%>'>
-            <% for (var i in properties) { var prop = properties[i];%>
-            <tr>
-                <td><%=prop.name%></td>
-                <td><%=prop.value%></td>
-            </tr>
-            <%}%>
-        </table>
-    </script>
     <script type="text/javascript">
         var browser = new xBrowser();
         browser.on('loaded', function (args) {
@@ -77,31 +55,17 @@
             browser.renderSpatialStructure('structure');
             browser.renderSystems('systems');
             browser.renderZones('zones');
+
+            //init jquery tabs
+            $('#semantic-model').accordion({
+                heightStyle: 'fill'
+            });
         });
         browser.on('entityClick', function (args) {
             browser.renderProperties(args.entity, 'properties');
             browser.renderAttributes(args.entity, 'attributes');
         });
         browser.load('tests/data/COBieFacility.json');
-
-        function createDictionary(object) {
-            var dict = {};
-            var processObj = function (o) {
-                for (var a in o) {
-                    var val = o[a];
-                    if (typeof (val) == 'string' || typeof(val) == 'number  ') {
-                        if (typeof (dict[a]) == 'undefined') {
-                            dict[a] = a.replace(/([a-z0-9])([A-Z])/g, '$1 $2');
-                        }
-                    }
-                    else if (typeof (val) == 'object'){
-                        processObj(val);
-                    }
-                }
-            }
-            processObj(object);
-            return dict;
-        }
     </script>
 </body>
 </html>

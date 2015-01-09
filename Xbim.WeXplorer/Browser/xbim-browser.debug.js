@@ -21,7 +21,9 @@ function xBrowser() {
 }
 
 xBrowser.prototype._compileTemplate = function (str) {
-    //based on http://ejohn.org/blog/javascript-micro-templating/
+    // Based on Simple JavaScript Templating
+    // John Resig - http://ejohn.org/ - MIT Licensed
+    // http://ejohn.org/blog/javascript-micro-templating/
     return new Function("_data_",
                     "var _p_=[];" +
 
@@ -43,7 +45,7 @@ xBrowser.prototype._compileTemplate = function (str) {
 xBrowser.prototype.renderSpatialStructure = function (container){
     if (!this._model) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
     
-    this._renderTreeView(container, [this._model.spatialModel], this._templates.spatialElement);
+    this._renderTreeView(container, [this._model.facility], this._templates.spatialElement);
 };
 
 xBrowser.prototype.renderAssetTypes = function (container) {

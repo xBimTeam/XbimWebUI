@@ -36,12 +36,17 @@ xCobieUtils.prototype.getVisualModel = function (data) {
 
     var types = this.getAssetTypes(data);
     return new xVisualModel({
-        spatialModel: this.getSpatialStructure(data, types),
+        facility: this.getSpatialStructure(data, types),
         zones: this.getZones(data),
         systems: this.getSystems(data),
         assetTypes: types,
         contacts: []
     });
+};
+
+xCobieUtils.prototype.getSpatialStructure = function (data) {
+    if (!data) throw 'data must be defined';
+
 };
 
 xCobieUtils.prototype.getSpatialStructure = function (data, types) {

@@ -1,0 +1,38 @@
+﻿html, body{
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+#body-container{
+    position:absolute;
+    top: 1%;
+    height:97%;
+    left: 1%;
+    width: 97%;
+}
+
+#semantic-model-container{
+    width: 400px;
+    height: 100%;
+}
+
+#semantic-descriptive-info-container{
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 400px;
+    height: 100%;
+}
+
+#semantic-descriptive-info{
+}
+
+.no-overflow{
+    overflow:scroll;
+}
+
+.no-overflow-y{
+    overflow-y:auto;
+    height: 100%;
+}

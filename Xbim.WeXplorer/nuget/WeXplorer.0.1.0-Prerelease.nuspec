@@ -28,5 +28,7 @@ IOS and Android versions are under development.</description>
       <file src="..\Build\xbim-viewer.min.js" target="content\Scripts\xbim-viewer.min.js" />
       <file src="..\Build\xbim-viewer.debug.bundle.js" target="content\Scripts\xbim-viewer.debug.bundle.js" />
       <file src="..\Build\xbim-viewer.min.bundle.js" target="content\Scripts\xbim-viewer.min.bundle.js" />
+      <file src="..\Build\xbim-browser.min.js" target="content\Scripts\xbim-browser.min.js" />
+      <file src="..\Build\xbim-browser.js" target="content\Scripts\xbim-browser.js" />
     </files>
 </package>

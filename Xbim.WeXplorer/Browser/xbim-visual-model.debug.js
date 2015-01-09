@@ -1,5 +1,5 @@
 ﻿function xVisualModel(values) {
-    this.spatialModel = [];
+    this.facility = [];
     this.zones = [];
     this.systems = [];
     this.contacts = [];
