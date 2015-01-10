@@ -2,30 +2,56 @@
     margin: 0;
     padding: 0;
     height: 100%;
-}
-
-#body-container{
-    position:absolute;
-    top: 1%;
-    height:97%;
-    left: 1%;
-    width: 97%;
+    background-color: #e6e6e6;
+    overflow: hidden;
 }
 
 #semantic-model-container{
+    position: absolute;
     width: 400px;
-    height: 100%;
+    top: 5px;
+    left: 5px;
+    bottom: 5px;
 }
 
 #semantic-descriptive-info-container{
     position: absolute;
-    top: 0;
-    right: 0;
-    width: 400px;
-    height: 100%;
+    top: 5px;
+    right: 5px;
+    bottom: 5px;
+    width: 480px;
 }
 
 #semantic-descriptive-info{
+    margin: 15px;
+}
+
+#semantic-descriptive-info table {
+    word-break: break-all;
+    border-collapse: collapse;
+    width: 100%;
+    table-layout:fixed;
+}
+
+.semantic-model-tree ul {
+    margin:0;
+    padding-left: 0;
+}
+
+.semantic-model-tree li{
+    padding-left: 2em;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+.semantic-model-tree > ul > li { padding-left: 0; }
+
+#semantic-descriptive-info tr:not(:last-child){
+    border-bottom: 1px solid lightgray;
+}
+#semantic-descriptive-info td, #semantic-descriptive-info th{
+    vertical-align: middle;
+    text-align:left;
+    padding: 3px;
 }
 
 .no-overflow{
@@ -34,5 +60,22 @@
 
 .no-overflow-y{
     overflow-y:auto;
-    height: 100%;
+}
+
+.ui-selected{
+    background-color: lightgray;
+}
+
+.noselect {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* Overrides  */
+.ui-widget{
+    font-size: 0.9em;
 }

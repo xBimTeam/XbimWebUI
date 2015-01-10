@@ -42,16 +42,16 @@ xBrowser.prototype._compileTemplate = function (str) {
                   + "');}return _p_.join('');");
 };
 
-xBrowser.prototype.renderSpatialStructure = function (container){
+xBrowser.prototype.renderSpatialStructure = function (container, initTree){
     if (!this._model) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
     
-    this._renderTreeView(container, [this._model.facility], this._templates.spatialElement);
+    this._renderTreeView(container, [this._model.facility], initTree);
 };
 
-xBrowser.prototype.renderAssetTypes = function (container) {
+xBrowser.prototype.renderAssetTypes = function (container, initTree) {
     if (!this._model) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
 
-    this._renderTreeView(container, this._model.assetTypes);
+    this._renderTreeView(container, this._model.assetTypes, initTree);
 };
 
 xBrowser.prototype.renderSystems = function (container) {
@@ -66,12 +66,43 @@ xBrowser.prototype.renderZones = function (container) {
 
 xBrowser.prototype._registerEntityCallBacks = function (element, entity) {
     var self = this;
+    element.entity = entity; 
     //element.addEventListener('', function (e) { self._fire('', { entity: entity, event: e }); e.stopPropagation(); });
     element.addEventListener('click', function (e) { self._fire('entityClick', { entity: entity, event: e }); e.stopPropagation(); });
     element.addEventListener('mouseDown', function (e) { self._fire('entityMouseDown', { entity: entity, event: e }); e.stopPropagation(); });
     element.addEventListener('mouseUp', function (e) { self._fire('entityMouseUp', { entity: entity, event: e }); e.stopPropagation(); });
     element.addEventListener('mouseMove', function (e) { self._fire('entityMouseMove', { entity: entity, event: e }); e.stopPropagation(); });
     element.addEventListener('touch', function (e) { self._fire('entityTouch', { entity: entity, event: e }); e.stopPropagation(); });
+    element.addEventListener('dblclick', function (e) { self._fire('entityDblclick', { entity: entity, event: e }); e.stopPropagation(); });
+};
+
+xBrowser.prototype._uiTree = function (container) {
+    if (!container) return;
+    //this only works if jQuery UI is available
+    if (!jQuery.ui) return;
+
+    var elements = typeof (container) == 'string' ? $("#" + container + " li") : $(container).find('li');
+    elements
+        .on("click", function (e) {
+            e.stopPropagation();
+            $(this).children('ul').slideToggle();
+
+            //toggle icons between opened and closed state
+            var closed = $(this).children('span[class~="ui-icon-triangle-1-e"]');
+            var opened = $(this).children('span[class~="ui-icon-triangle-1-s"]');
+
+            if (closed.length > 0) closed.removeClass('ui-icon-triangle-1-e').addClass('ui-icon-triangle-1-s');
+            if (opened.length > 0) opened.removeClass('ui-icon-triangle-1-s').addClass('ui-icon-triangle-1-e');
+        })
+        .prepend(function () {
+            if ($(this).children('ul').length > 0)
+                return '<span class="ui-icon ui-icon-triangle-1-s" style="float: left;"></span>';
+            else
+                return '<span class="ui-icon ui-icon-document" style="float: left;"></span>';
+        })
+        .css('list-style-type', 'none')
+        .css('cursor', 'default')
+        .click();
 };
 
 xBrowser.prototype._renderListView = function (container, entities, entityTemplate) {
@@ -96,10 +127,11 @@ xBrowser.prototype._renderListView = function (container, entities, entityTempla
     }
 };
 
-xBrowser.prototype._renderTreeView = function (container, roots, entityTemplate) {
+xBrowser.prototype._renderTreeView = function (container, roots, initSimpleTree, entityTemplate) {
     var self = this;
     container = this._getContainer(container);
     entityTemplate = entityTemplate ? entityTemplate : self._templates.entity;  
+    initSimpleTree = initSimpleTree ? initSimpleTree : false;
 
     var renderEntities = function (entities, ul) {
         for (var i = 0; i < entities.length; i++) {
@@ -128,6 +160,7 @@ xBrowser.prototype._renderTreeView = function (container, roots, entityTemplate)
 
     
     renderEntities(roots);
+    if (initSimpleTree) this._uiTree(container);
 };
 
 xBrowser.prototype.renderAttributes = function (entity, container) {
@@ -145,6 +178,15 @@ xBrowser.prototype.renderProperties = function (entity, container) {
     var html = self._templates.property(entity);
     container.innerHTML = html;
 };
+
+xBrowser.prototype.renderProperties = function (entity, container) {
+    if (!entity) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
+    var self = this;
+    container = this._getContainer(container);
+    var html = self._templates.propertyattribute(entity);
+    container.innerHTML = html;
+};
+
 
 xBrowser.prototype._getContainer = function (container) {
     if (typeof (container) == 'object') return container;
