@@ -56,12 +56,12 @@ xBrowser.prototype.renderAssetTypes = function (container, initTree) {
 
 xBrowser.prototype.renderSystems = function (container) {
     if (!this._model) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
-    this._renderListView(container, this._model.systems);
+    this._renderListView(container, this._model.systems, null, 'wrench');
 };
 
 xBrowser.prototype.renderZones = function (container) {
     if (!this._model) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
-    this._renderListView(container, this._model.zones);
+    this._renderListView(container, this._model.zones, null, 'newwin');
 };
 
 xBrowser.prototype._registerEntityCallBacks = function (element, entity) {
