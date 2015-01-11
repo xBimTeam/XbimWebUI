@@ -71,6 +71,8 @@
             var entity = args.entity;
             var id = parseInt(entity.id);
             if (id && viewer) {
+                if (entity.type == 'space')
+                    viewer.setState();
                 viewer.zoomTo(id);
             }
         });
