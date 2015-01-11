@@ -27,7 +27,8 @@ xCobieUtils.prototype.getVisualEntity = function (entity, type) {
         description: description,
         attributes: this.getAttributes(entity),
         properties: this.getProperties(entity),
-        assignments: this.getAssignments(entity, type)
+        assignments: this.getAssignments(entity, type),
+        documents: this.getDocuments(entity, type)
     });
 };
 
@@ -238,6 +239,26 @@ xCobieUtils.prototype.getAssignments = function (entity, type) {
                     var vAssignment = this.getVisualEntity(assignment, name);
                     result.push(vAssignment);
                 }
+            }
+        }
+    }
+
+    return result;
+};
+
+xCobieUtils.prototype.getDocuments = function (entity, type) {
+    if (!entity || !type) throw 'entity and type must be defined';
+    var result = [];
+
+    for (var attr in entity) {
+        var r = new RegExp('^(' + type + ')(documents)$', 'i');
+        if (r.test(attr)) {
+            var documents = entity[attr].Document
+            if (!documents) continue;
+            for (var i = 0; i < documents.length; i++) {
+                var doc = documents[i]
+                var vDoc = this.getVisualEntity(doc, 'document')
+                result.push(vDoc);
             }
         }
     }

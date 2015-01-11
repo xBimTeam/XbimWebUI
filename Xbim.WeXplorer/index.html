@@ -30,6 +30,10 @@
             <div class="no-overflow">
                 <div id="zones" class="semantic-model-tree"></div>
             </div>
+            <h3>Documents</h3>
+            <div class="no-overflow">
+                <div id="facility-documents" class="semantic-model-tree"></div>
+            </div>
         </div>
     </div>
 
@@ -51,11 +55,13 @@
 
         var browser = new xBrowser();
         browser.on('loaded', function (args) {
+            var facility = args.model.facility;
             //render parts
             browser.renderSpatialStructure('structure', true);
             browser.renderAssetTypes('assetTypes', true);
             browser.renderSystems('systems');
             browser.renderZones('zones');
+            browser.renderDocuments(facility, 'facility-documents');
 
             //open facility node
             $("#structure > ul > li").click();
@@ -64,15 +70,29 @@
             visualSelection('assetTypes');
             visualSelection('systems');
             visualSelection('zones');
+            visualSelection('facility-documents');
 
         });
 
         browser.on('entityDblclick', function (args) {
             var entity = args.entity;
+            var allowedTypes = ['space', 'assettype', 'asset'];
+            if (allowedTypes.indexOf(entity.type) == -1) return;
+
             var id = parseInt(entity.id);
             if (id && viewer) {
-                if (entity.type == 'space')
-                    viewer.setState();
+                viewer.resetStates();
+                if (entity.type == 'assettype') {
+                    var ids = [];
+                    for (var i = 0; i < entity.children.length; i++) {
+                        id = parseInt(entity.children[i].id);
+                        ids.push(id);
+                    }
+                    viewer.setState(xState.HIGHLIGHTED, ids);
+                }
+                else {
+                    viewer.setState(xState.HIGHLIGHTED, [id]);
+                }
                 viewer.zoomTo(id);
             }
         });
@@ -89,7 +109,7 @@
         });
 
         browser.on('entityClick', function (args) {
-            browser.renderProperties(args.entity, 'attrprop');
+            browser.renderPropertiesAttributes(args.entity, 'attrprop');
         });
         browser.load('tests/data/COBieFacility.json');
 

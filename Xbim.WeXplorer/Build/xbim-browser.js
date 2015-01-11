@@ -190,7 +190,7 @@ xBrowser.prototype._registerEntityCallBacks = function (element, entity) {
 xBrowser.prototype._uiTree = function (container) {
     if (!container) return;
     //this only works if jQuery UI is available
-    if (!jQuery.ui) return;
+    if (!jQuery || !jQuery.ui) return;
 
     var elements = typeof (container) == 'string' ? $("#" + container + " li") : $(container).find('li');
     elements
@@ -216,7 +216,7 @@ xBrowser.prototype._uiTree = function (container) {
         .click();
 };
 
-xBrowser.prototype._renderListView = function (container, entities, entityTemplate) {
+xBrowser.prototype._renderListView = function (container, entities, entityTemplate, uiIcon) {
     var self = this;
     container = this._getContainer(container);
     entityTemplate = entityTemplate ? entityTemplate : self._templates.entity;
@@ -235,6 +235,10 @@ xBrowser.prototype._renderListView = function (container, entities, entityTempla
 
         td.innerHTML = html;
         this._registerEntityCallBacks(td, entity);
+
+        if (uiIcon && jQuery && jQuery.ui) {
+            $(td).prepend('<span class="ui-icon ui-icon-' + uiIcon + '" style="float: left;"></span>');
+        }
     }
 };
 
@@ -274,6 +278,16 @@ xBrowser.prototype._renderTreeView = function (container, roots, initSimpleTree,
     if (initSimpleTree) this._uiTree(container);
 };
 
+xBrowser.prototype.renderDocuments = function (entity, container) {
+    if (!entity) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
+    var self = this;
+    container = this._getContainer(container);
+    var docs = entity.documents;
+    if (docs) {
+        this._renderListView(container, docs, null, 'document');
+    }
+};
+
 xBrowser.prototype.renderAttributes = function (entity, container) {
     if (!entity) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
     var self = this;
@@ -290,7 +304,7 @@ xBrowser.prototype.renderProperties = function (entity, container) {
     container.innerHTML = html;
 };
 
-xBrowser.prototype.renderProperties = function (entity, container) {
+xBrowser.prototype.renderPropertiesAttributes = function (entity, container) {
     if (!entity) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
     var self = this;
     container = this._getContainer(container);
@@ -427,7 +441,8 @@ xCobieUtils.prototype.getVisualEntity = function (entity, type) {
         description: description,
         attributes: this.getAttributes(entity),
         properties: this.getProperties(entity),
-        assignments: this.getAssignments(entity, type)
+        assignments: this.getAssignments(entity, type),
+        documents: this.getDocuments(entity, type)
     });
 };
 
@@ -638,6 +653,26 @@ xCobieUtils.prototype.getAssignments = function (entity, type) {
                     var vAssignment = this.getVisualEntity(assignment, name);
                     result.push(vAssignment);
                 }
+            }
+        }
+    }
+
+    return result;
+};
+
+xCobieUtils.prototype.getDocuments = function (entity, type) {
+    if (!entity || !type) throw 'entity and type must be defined';
+    var result = [];
+
+    for (var attr in entity) {
+        var r = new RegExp('^(' + type + ')(documents)$', 'i');
+        if (r.test(attr)) {
+            var documents = entity[attr].Document
+            if (!documents) continue;
+            for (var i = 0; i < documents.length; i++) {
+                var doc = documents[i]
+                var vDoc = this.getVisualEntity(doc, 'document')
+                result.push(vDoc);
             }
         }
     }

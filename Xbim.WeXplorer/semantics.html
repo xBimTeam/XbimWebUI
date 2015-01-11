@@ -36,6 +36,10 @@
                 <div class="no-overflow">
                     <div id="zones" class="semantic-model-tree"></div>
                 </div>
+                <h3>Documents</h3>
+                <div class="no-overflow">
+                    <div id="facility-documents" class="semantic-model-tree"></div>
+                </div>
             </div>
         </div>
 
@@ -57,11 +61,14 @@
 
         var browser = new xBrowser();
         browser.on('loaded', function (args) {
+            var facility = args.model.facility;
+
             //render parts
             browser.renderSpatialStructure('structure', true);
             browser.renderAssetTypes('assetTypes', true);
             browser.renderSystems('systems');
             browser.renderZones('zones');
+            browser.renderDocuments(facility, 'facility-documents');
 
             //open facility node
             $("#structure > ul > li").click();
@@ -70,6 +77,7 @@
             visualSelection('assetTypes');
             visualSelection('systems');
             visualSelection('zones');
+            visualSelection('facility-documents');
 
         });
 
@@ -85,7 +93,7 @@
         });
 
         browser.on('entityClick', function (args) {
-            browser.renderProperties(args.entity, 'attrprop');
+            browser.renderPropertiesAttributes(args.entity, 'attrprop');
         });
         browser.load('tests/data/COBieFacility.json');
     </script>

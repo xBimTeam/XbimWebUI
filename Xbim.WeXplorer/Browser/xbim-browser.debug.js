@@ -79,7 +79,7 @@ xBrowser.prototype._registerEntityCallBacks = function (element, entity) {
 xBrowser.prototype._uiTree = function (container) {
     if (!container) return;
     //this only works if jQuery UI is available
-    if (!jQuery.ui) return;
+    if (!jQuery || !jQuery.ui) return;
 
     var elements = typeof (container) == 'string' ? $("#" + container + " li") : $(container).find('li');
     elements
@@ -105,7 +105,7 @@ xBrowser.prototype._uiTree = function (container) {
         .click();
 };
 
-xBrowser.prototype._renderListView = function (container, entities, entityTemplate) {
+xBrowser.prototype._renderListView = function (container, entities, entityTemplate, uiIcon) {
     var self = this;
     container = this._getContainer(container);
     entityTemplate = entityTemplate ? entityTemplate : self._templates.entity;
@@ -124,6 +124,10 @@ xBrowser.prototype._renderListView = function (container, entities, entityTempla
 
         td.innerHTML = html;
         this._registerEntityCallBacks(td, entity);
+
+        if (uiIcon && jQuery && jQuery.ui) {
+            $(td).prepend('<span class="ui-icon ui-icon-' + uiIcon + '" style="float: left;"></span>');
+        }
     }
 };
 
@@ -163,6 +167,16 @@ xBrowser.prototype._renderTreeView = function (container, roots, initSimpleTree,
     if (initSimpleTree) this._uiTree(container);
 };
 
+xBrowser.prototype.renderDocuments = function (entity, container) {
+    if (!entity) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
+    var self = this;
+    container = this._getContainer(container);
+    var docs = entity.documents;
+    if (docs) {
+        this._renderListView(container, docs, null, 'document');
+    }
+};
+
 xBrowser.prototype.renderAttributes = function (entity, container) {
     if (!entity) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
     var self = this;
@@ -179,7 +193,7 @@ xBrowser.prototype.renderProperties = function (entity, container) {
     container.innerHTML = html;
 };
 
-xBrowser.prototype.renderProperties = function (entity, container) {
+xBrowser.prototype.renderPropertiesAttributes = function (entity, container) {
     if (!entity) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
     var self = this;
     container = this._getContainer(container);
