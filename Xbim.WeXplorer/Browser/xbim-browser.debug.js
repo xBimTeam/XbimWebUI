@@ -93,23 +93,27 @@ xBrowser.prototype._uiTree = function (container) {
     if ($container.hasClass('xbim-tree')) return;
     $container.addClass('xbim-tree');
 
+    var iconOpen = "ui-icon-triangle-1-s";
+    var iconClosed = "ui-icon-triangle-1-e";
+    var iconLeaf = "ui-icon-document";
+
     elements
         .on("click", function (e) {
             e.stopPropagation();
             $(this).children('ul').slideToggle();
 
             //toggle icons between opened and closed state
-            var closed = $(this).children('span[class~="ui-icon-triangle-1-e"]');
-            var opened = $(this).children('span[class~="ui-icon-triangle-1-s"]');
+            var closed = $(this).children('span[class~="'+iconClosed+'"]');
+            var opened = $(this).children('span[class~="'+iconOpen+'"]');
 
-            if (closed.length > 0) closed.removeClass('ui-icon-triangle-1-e').addClass('ui-icon-triangle-1-s');
-            if (opened.length > 0) opened.removeClass('ui-icon-triangle-1-s').addClass('ui-icon-triangle-1-e');
+            if (closed.length > 0) closed.removeClass(iconClosed).addClass(iconOpen);
+            if (opened.length > 0) opened.removeClass(iconOpen).addClass(iconClosed);
         })
         .prepend(function () {
             if ($(this).children('ul').length > 0)
-                return '<span class="ui-icon ui-icon-triangle-1-s" style="float: left;"></span>';
+                return '<span class="ui-icon '+iconOpen+'" style="float: left;"></span>';
             else
-                return '<span class="ui-icon ui-icon-document" style="float: left;"></span>';
+                return '<span class="ui-icon '+iconLeaf+'" style="float: left;"></span>';
         })
         .css('list-style-type', 'none')
         .css('cursor', 'default')

@@ -72,9 +72,9 @@
 #viewer-container {
     position: absolute;
     top: 5px;
-    bottom: 0;
-    left: 405px;
-    right: 405px;
+    bottom: 5px;
+    left: 410px;
+    right: 410px;
 }
 
 #viewer{

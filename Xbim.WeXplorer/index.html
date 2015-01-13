@@ -99,7 +99,7 @@
 
     <div id="semantic-descriptive-info-container">
         <div id="semantic-descriptive-info" >
-            <h3>Properties and attributes</h3>
+            <h3 id="attrprop-header">Properties and attributes</h3>
             <div class="no-overflow-y">
                 <div id="attrprop"></div>
             </div>
@@ -107,7 +107,7 @@
             <div class="no-overflow">
                 <div id="documents"></div>
             </div>
-            <h3>Issues</h3>
+            <h3>Tasks</h3>
             <div class="no-overflow">
                 <div id="issues"></div>
             </div>
@@ -175,8 +175,11 @@
         function initBrowser(browser) {
             browser.on('entityClick', function (args) {
                 browser.renderPropertiesAttributes(args.entity, 'attrprop');
+                var objectTypes = ['document', 'issue'];
                 if (args.entity.type != 'document') browser.renderDocuments(args.entity, 'documents');
-                browser.renderIssues(args.entity, 'issues');
+                if (args.entity.type != 'issue') browser.renderIssues(args.entity, 'issues');
+                if (objectTypes.indexOf(args.entity.type) != -1) $('#attrprop-header').click();
+
 
                 var span = $(args.element).children("span.xbim-entity");
                 if (document._lastSelection)
