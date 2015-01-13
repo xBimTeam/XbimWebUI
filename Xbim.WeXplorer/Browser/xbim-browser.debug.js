@@ -98,26 +98,25 @@ xBrowser.prototype._uiTree = function (container) {
     var iconLeaf = "ui-icon-document";
 
     elements
-        .on("click", function (e) {
-            e.stopPropagation();
-            $(this).children('ul').slideToggle();
-
-            //toggle icons between opened and closed state
-            var closed = $(this).children('span[class~="'+iconClosed+'"]');
-            var opened = $(this).children('span[class~="'+iconOpen+'"]');
-
-            if (closed.length > 0) closed.removeClass(iconClosed).addClass(iconOpen);
-            if (opened.length > 0) opened.removeClass(iconOpen).addClass(iconClosed);
-        })
         .prepend(function () {
             if ($(this).children('ul').length > 0)
-                return '<span class="ui-icon '+iconOpen+'" style="float: left;"></span>';
+                return '<span class="ui-icon '+iconClosed+'" style="float: left;"></span>';
             else
                 return '<span class="ui-icon '+iconLeaf+'" style="float: left;"></span>';
         })
         .css('list-style-type', 'none')
         .css('cursor', 'default')
-        .click();
+    .children('ul').hide();
+
+    elements.find('span.' + iconClosed).on("click", function (e) {
+        e.stopPropagation();
+        $(this).parent().children('ul').slideToggle();
+
+        if ($(this).hasClass(iconClosed))
+            $(this).removeClass(iconClosed).addClass(iconOpen);
+        else
+            $(this).removeClass(iconOpen).addClass(iconClosed);
+    });
 };
 
 xBrowser.prototype._renderListView = function (container, entities, entityTemplate, uiIcon) {
