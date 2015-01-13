@@ -28,7 +28,8 @@ xCobieUtils.prototype.getVisualEntity = function (entity, type) {
         attributes: this.getAttributes(entity),
         properties: this.getProperties(entity),
         assignments: this.getAssignments(entity, type),
-        documents: this.getDocuments(entity, type)
+        documents: this.getDocuments(entity, type),
+        issues: this.getIssues(entity)
     });
 };
 
@@ -43,11 +44,6 @@ xCobieUtils.prototype.getVisualModel = function (data) {
         assetTypes: types,
         contacts: []
     });
-};
-
-xCobieUtils.prototype.getSpatialStructure = function (data) {
-    if (!data) throw 'data must be defined';
-
 };
 
 xCobieUtils.prototype.getSpatialStructure = function (data, types) {
@@ -259,6 +255,24 @@ xCobieUtils.prototype.getDocuments = function (entity, type) {
                 var doc = documents[i]
                 var vDoc = this.getVisualEntity(doc, 'document')
                 result.push(vDoc);
+            }
+        }
+    }
+
+    return result;
+};
+
+xCobieUtils.prototype.getIssues = function (entity) {
+    if (!entity) throw 'entity and type must be defined';
+    var result = [];
+
+    for (var attr in entity) {
+        if (entity[attr].Issue) {
+            var issues = entity[attr].Issue
+            for (var i = 0; i < issues.length; i++) {
+                var issue = issues[i]
+                var vIssue = this.getVisualEntity(doc, 'issue')
+                result.push(vIssue);
             }
         }
     }

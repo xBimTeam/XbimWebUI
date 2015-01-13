@@ -7,51 +7,144 @@
 
     <script src="Libs/jquery.js"></script>
     <script src="Libs/jquery-ui.js"></script>
-    <script src="Build/xbim-browser.js"></script>
-    <script src="Build/xbim-viewer.debug.bundle.js"></script>
+    <script src="Libs/webgl-utils.js"></script>
+    <script src="Libs/gl-matrix.js"></script>
+    <!--<script src="Build/xbim-browser.js"></script>
+    <script src="Build/xbim-viewer.debug.bundle.js"></script>-->
+    <script src="Viewer/xbim-binary-reader.debug.js"></script>
+    <script src="Viewer/xbim-model-geometry.debug.js"></script>
+    <script src="Viewer/xbim-model-handle.debug.js"></script>
+    <script src="Viewer/xbim-product-type.debug.js"></script>
+    <script src="Viewer/xbim-shaders.debug.js"></script>
+    <script src="Viewer/xbim-state.debug.js"></script>
+    <script src="Viewer/xbim-triangulated-shape.debug.js"></script>
+    <script src="Viewer/xbim-viewer.debug.js"></script>
+    <script src="Browser/xbim-attribute-dictionary.debug.js"></script>
+    <script src="Browser/xbim-browser.debug.js"></script>
+    <script src="Browser/xbim-cobie-utils.debug.js"></script>
+    <script src="Browser/xbim-visual-attribute.debug.js"></script>
+    <script src="Browser/xbim-visual-entity.debug.js"></script>
+    <script src="Browser/xbim-visual-model.debug.js"></script>
+    <script src="Browser/xbim-visual-property.debug.js"></script>
+    <script src="Browser/xbim-visual-templates.debug.js"></script>
 </head>
 <body>
-    <canvas id="viewer"></canvas>
+    <div id="viewer-container">
+        <canvas id="viewer"></canvas>
+    </div> 
     <div id="semantic-model-container" class="noselect">
-        <div id="semantic-model">
-            <h3>Spatial structure</h3>
-            <div class="no-overflow">
-                <div id="structure" class="semantic-model-tree"></div>
+        <div id="semantic-tabs">
+            <ul>
+                <li><a href="#requirements-tab">Required</a></li>
+                <li><a href="#semantic-model-tab">Delivered</a></li>
+            </ul>
+            <div id="requirements-tab">
+                <div id="requirements">
+                    <h3>Spatial structure</h3>
+                    <div class="no-overflow">
+                        <div id="r-structure" class="semantic-model-tree"></div>
+                    </div>
+                    <h3>Asset types</h3>
+                    <div class="no-overflow">
+                        <div id="r-assetTypes" class="semantic-model-tree"></div>
+                    </div>
+                    <h3>Systems</h3>
+                    <div class="no-overflow">
+                        <div id="r-systems" class="semantic-model-tree"></div>
+                    </div>
+                    <h3>Zones</h3>
+                    <div class="no-overflow">
+                        <div id="r-zones" class="semantic-model-tree"></div>
+                    </div>
+                    <h3>Contacts</h3>
+                    <div class="no-overflow">
+                        <div id="r-contacts" class="semantic-model-tree"></div>
+                    </div>
+                    <h3>Documents</h3>
+                    <div class="no-overflow">
+                        <div id="r-facility-documents" class="semantic-model-tree"></div>
+                    </div>
+                </div>
             </div>
-            <h3>Asset types</h3>
-            <div class="no-overflow">
-                <div id="assetTypes" class="semantic-model-tree"></div>
-            </div>
-            <h3>Systems</h3>
-            <div class="no-overflow">
-                <div id="systems" class="semantic-model-tree"></div>
-            </div>
-            <h3>Zones</h3>
-            <div class="no-overflow">
-                <div id="zones" class="semantic-model-tree"></div>
-            </div>
-            <h3>Documents</h3>
-            <div class="no-overflow">
-                <div id="facility-documents" class="semantic-model-tree"></div>
+            <div id="semantic-model-tab">
+                <div id="semantic-model">
+                    <h3>Spatial structure</h3>
+                    <div class="no-overflow">
+                        <div id="structure" class="semantic-model-tree"></div>
+                    </div>
+                    <h3>Asset types</h3>
+                    <div class="no-overflow">
+                        <div id="assetTypes" class="semantic-model-tree"></div>
+                    </div>
+                    <h3>Systems</h3>
+                    <div class="no-overflow">
+                        <div id="systems" class="semantic-model-tree"></div>
+                    </div>
+                    <h3>Zones</h3>
+                    <div class="no-overflow">
+                        <div id="zones" class="semantic-model-tree"></div>
+                    </div>
+                    <h3>Contacts</h3>
+                    <div class="no-overflow">
+                        <div id="contacts" class="semantic-model-tree"></div>
+                    </div>
+                    <h3>Documents</h3>
+                    <div class="no-overflow">
+                        <div id="facility-documents" class="semantic-model-tree"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div id="semantic-descriptive-info-container" class="no-overflow-y ui-widget ui-widget-content ui-corner-all">
-        <div id="semantic-descriptive-info" class="">
-            <div>
-                <h3>Properties and attributes</h3>
+    <div id="semantic-descriptive-info-container">
+        <div id="semantic-descriptive-info" >
+            <h3>Properties and attributes</h3>
+            <div class="no-overflow-y">
                 <div id="attrprop"></div>
+            </div>
+            <h3>Documents</h3>
+            <div class="no-overflow">
+                <div id="documents"></div>
+            </div>
+            <h3>Issues</h3>
+            <div class="no-overflow">
+                <div id="issues"></div>
             </div>
         </div>
     </div>
     <script type="text/javascript">
-        function visualSelection(container) {
-            $("#" + container + " span[title]").on('click', function (e) {
-                $("#" + container + " span[title]").removeClass('ui-selected');
-                $(this).addClass('ui-selected')
-            }).css({ cursor: 'default', padding: '3px' });
+        function initControls() {
+            
+            $('#semantic-descriptive-info').accordion({
+                heightStyle: 'fill'
+            });
+            
+            $('#semantic-tabs').tabs({
+                activate: function (event, ui) {
+                    reinitControls();
+                },
+                create: function (event, ui) {
+                    $('#semantic-model').accordion({
+                        heightStyle: 'fill'
+                    });
+                    $('#requirements').accordion({
+                        heightStyle: 'fill'
+                    });
+                }
+            });
+            
         }
+        function reinitControls() {
+            $('#semantic-model').accordion('refresh');
+            $('#semantic-descriptive-info').accordion('refresh');
+            $('#requirements').accordion('refresh');
+        }
+        initControls();
+        $(window).resize(function () {
+            reinitControls();
+        });
+
 
         var browser = new xBrowser();
         browser.on('loaded', function (args) {
@@ -66,14 +159,18 @@
             //open facility node
             $("#structure > ul > li").click();
 
-            visualSelection('structure');
-            visualSelection('assetTypes');
-            visualSelection('systems');
-            visualSelection('zones');
-            visualSelection('facility-documents');
-
         });
+        browser.on('entityClick', function (args) {
+            browser.renderPropertiesAttributes(args.entity, 'attrprop');
+            if (args.entity.type != 'document') browser.renderDocuments(args.entity, 'documents');
+            browser.renderIssues(args.entity, 'issues');
 
+            var span = $(args.element).children("span.xbim-entity");
+            if (document._lastSelection)
+                document._lastSelection.removeClass('ui-selected');
+            span.addClass('ui-selected')
+            document._lastSelection = span;
+        });
         browser.on('entityDblclick', function (args) {
             var entity = args.entity;
             var allowedTypes = ['space', 'assettype', 'asset'];
@@ -97,37 +194,23 @@
             }
         });
 
-        $('#semantic-model').accordion({
-            heightStyle: 'fill'
-        });
+        
 
-        $(window).resize(function () {
-            $('#semantic-model').accordion('destroy').accordion({
-                heightStyle: 'fill'
-            });
 
-        });
 
-        browser.on('entityClick', function (args) {
-            browser.renderPropertiesAttributes(args.entity, 'attrprop');
-        });
         browser.load('tests/data/COBieFacility.json');
 
         //viewer set up
         var check = xViewer.check();
         var viewer = null;
         if (check.noErrors) {
-            var width = $(window).width();
-            var height = $(window).height();
             var canvas = document.getElementById('viewer');
-            canvas.width = width;
-            canvas.height = height;
-
             viewer = new xViewer(canvas);
             viewer.on('mouseDown', function (args) {
                 viewer.setCameraTarget(args.id);
             });
-            viewer.load('tests/data/LakesideRestaurant.wexbim');
+            viewer.load('tests/data/LakesideRestaurant.wexbim'); 
+            viewer.background = [249,249,249];
             viewer.start();
         }
         else {

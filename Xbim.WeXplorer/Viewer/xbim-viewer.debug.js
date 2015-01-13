@@ -144,8 +144,8 @@ function xViewer(canvas) {
 
     //cache canvas width and height and change it only when size change
     // it is better to cache this value because it is used frequently and it takes a time to get a value from HTML
-    this._width = this._canvas.width;
-    this._height = this._canvas.height;
+    this._width = this._canvas.width = this._canvas.offsetWidth;
+    this._height = this._canvas.height = this._canvas.offsetHeight;
 
     this._geometryLoaded = false;
 
@@ -508,6 +508,7 @@ xViewer.prototype.load = function (model) {
         var dist = Math.sqrt(viewer._distance * viewer._distance / 3.0);
         viewer.setCameraPosition([region.centre[0] + dist * -1.0, region.centre[1] + dist * -1.0, region.centre[2] + dist]);
 
+
         /**
         * Occurs when geometry model is loaded into the viewer. This event has empty object.
         *
@@ -807,13 +808,9 @@ xViewer.prototype._initMouseEvents = function () {
     var elementHeight = viewer.height;
     var elementWidth = viewer.width;
     setInterval(function () {
-        if (viewer._canvas.height !== elementHeight || viewer._canvas.width !== elementWidth) {
-            elementHeight = viewer._canvas.height;
-            elementWidth = viewer._canvas.width;
-
-            viewer._width = viewer._canvas.width;
-            viewer._height = viewer._canvas.height;
-
+        if (viewer._canvas.offsetHeight !== elementHeight || viewer._canvas.offsetWidth !== elementWidth) {
+            elementHeight = viewer._height = viewer._canvas.height = viewer._canvas.offsetHeight;
+            elementWidth = viewer._width = viewer._canvas.width = viewer._canvas.offsetWidth;
         }
     }, 500);
 

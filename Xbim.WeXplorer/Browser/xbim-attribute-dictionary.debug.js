@@ -47,8 +47,8 @@
                 ZoneDescription: "Zone Description",
                 ZoneName: "Zone Name",
                 externalID: "External ID",
-                externalIDReference: "external IDReference",
-                propertySetName: "property Set Name",
+                externalIDReference: "External ID Reference",
+                propertySetName: "Property Set",
                 True: "True",
                 False: "False"
             }

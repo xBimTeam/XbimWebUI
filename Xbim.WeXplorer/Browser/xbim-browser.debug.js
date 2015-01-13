@@ -67,13 +67,13 @@ xBrowser.prototype.renderZones = function (container) {
 xBrowser.prototype._registerEntityCallBacks = function (element, entity) {
     var self = this;
     element.entity = entity; 
-    //element.addEventListener('', function (e) { self._fire('', { entity: entity, event: e }); e.stopPropagation(); });
-    element.addEventListener('click', function (e) { self._fire('entityClick', { entity: entity, event: e }); e.stopPropagation(); });
-    element.addEventListener('mouseDown', function (e) { self._fire('entityMouseDown', { entity: entity, event: e }); e.stopPropagation(); });
-    element.addEventListener('mouseUp', function (e) { self._fire('entityMouseUp', { entity: entity, event: e }); e.stopPropagation(); });
-    element.addEventListener('mouseMove', function (e) { self._fire('entityMouseMove', { entity: entity, event: e }); e.stopPropagation(); });
-    element.addEventListener('touch', function (e) { self._fire('entityTouch', { entity: entity, event: e }); e.stopPropagation(); });
-    element.addEventListener('dblclick', function (e) { self._fire('entityDblclick', { entity: entity, event: e }); e.stopPropagation(); });
+    //element.addEventListener('', function (e) { self._fire('', { entity: entity, event: e , element: element}); e.stopPropagation(); });
+    element.addEventListener('click', function (e) { self._fire('entityClick', { entity: entity, event: e, element: element }); e.stopPropagation(); });
+    element.addEventListener('mouseDown', function (e) { self._fire('entityMouseDown', { entity: entity, event: e, element: element }); e.stopPropagation(); });
+    element.addEventListener('mouseUp', function (e) { self._fire('entityMouseUp', { entity: entity, event: e, element: element }); e.stopPropagation(); });
+    element.addEventListener('mouseMove', function (e) { self._fire('entityMouseMove', { entity: entity, event: e, element: element }); e.stopPropagation(); });
+    element.addEventListener('touch', function (e) { self._fire('entityTouch', { entity: entity, event: e, element: element }); e.stopPropagation(); });
+    element.addEventListener('dblclick', function (e) { self._fire('entityDblclick', { entity: entity, event: e, element: element }); e.stopPropagation(); });
 };
 
 xBrowser.prototype._uiTree = function (container) {
@@ -111,6 +111,7 @@ xBrowser.prototype._renderListView = function (container, entities, entityTempla
     entityTemplate = entityTemplate ? entityTemplate : self._templates.entity;
 
     var table = document.createElement('table');
+    container.innerHTML = "";
     container.appendChild(table);
 
     for (var i = 0; i < entities.length; i++) {
@@ -174,6 +175,16 @@ xBrowser.prototype.renderDocuments = function (entity, container) {
     var docs = entity.documents;
     if (docs) {
         this._renderListView(container, docs, null, 'document');
+    }
+};
+
+xBrowser.prototype.renderIssues = function (entity, container) {
+    if (!entity) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
+    var self = this;
+    container = this._getContainer(container);
+    var issues = entity.issues;
+    if (issues) {
+        this._renderListView(container, issues, null, 'clipboard');
     }
 };
 

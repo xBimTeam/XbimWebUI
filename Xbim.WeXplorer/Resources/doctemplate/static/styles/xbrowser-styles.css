@@ -2,7 +2,7 @@
     margin: 0;
     padding: 0;
     height: 100%;
-    background-color: #e6e6e6;
+    background-color: #f9f9f9;
     overflow: hidden;
 }
 
@@ -19,11 +19,7 @@
     top: 5px;
     right: 5px;
     bottom: 5px;
-    width: 480px;
-}
-
-#semantic-descriptive-info{
-    margin: 15px;
+    width: 400px;
 }
 
 #semantic-descriptive-info table {
@@ -43,7 +39,9 @@
     padding-top: 5px;
     padding-bottom: 5px;
 }
-.semantic-model-tree > ul > li { padding-left: 0; }
+.semantic-model-tree > ul > li {
+     padding-left: 0; 
+}
 
 #semantic-descriptive-info tr:not(:last-child){
     border-bottom: 1px solid lightgray;
@@ -54,6 +52,41 @@
     padding: 3px;
 }
 
+#semantic-tabs{
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+#semantic-tabs.ui-tabs .ui-tabs-panel{
+    padding: 0;
+    position: absolute;
+    top: 50px;
+    right: 5px;
+    bottom: 5px;
+    left: 5px;
+}
+
+#viewer-container {
+    position: absolute;
+    top: 5px;
+    bottom: 5px;
+    left: 405px;
+    right: 405px;
+}
+
+#viewer{
+    width: 100%;
+    height: 100%;
+}
+
+.xbim-entity{ 
+    cursor: default; 
+    padding: 3px
+
+}
 .no-overflow{
     overflow:scroll;
 }
@@ -77,5 +110,9 @@
 
 /* Overrides  */
 .ui-widget{
-    font-size: 0.9em;
+    font-size: 0.8em;
+}
+
+.ui-accordion .ui-accordion-content{
+      padding: 1em 1.5em;
 }

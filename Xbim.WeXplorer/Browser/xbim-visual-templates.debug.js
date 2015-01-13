@@ -55,6 +55,6 @@ if (attributes && attributes.length > 0) {\
     <%}}%>\
 </table>\
 <%}%>',
-        entity: '<span title="<%=description%>"> <%=name%> </span>',
+        entity: '<span class="xbim-entity" title="<%=description%>"> <%=name%> </span>',
     }
 };
