@@ -156,7 +156,8 @@
             browser.renderZones('zones');
             browser.renderContacts('contacts');
             browser.renderDocuments(facility, 'facility-documents');
-            //open facility node
+
+            //open and selectfacility node
             $("#structure > ul > li").click();
         });
         rBrowser.on('loaded', function (args) {

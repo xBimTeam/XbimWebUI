@@ -287,7 +287,7 @@ xCobieUtils.prototype.getIssues = function (entity) {
             var issues = entity[attr].Issue
             for (var i = 0; i < issues.length; i++) {
                 var issue = issues[i]
-                var vIssue = this.getVisualEntity(doc, 'issue')
+                var vIssue = this.getVisualEntity(issue, 'issue')
                 result.push(vIssue);
             }
         }

@@ -117,6 +117,10 @@ xBrowser.prototype._uiTree = function (container) {
         else
             $(this).removeClass(iconOpen).addClass(iconClosed);
     });
+
+    //open first level if there is only one element
+    var firstLevel = $container.children('ul').children('li');
+    if (firstLevel.length == 1) firstLevel.children('span.' + iconClosed).click();
 };
 
 xBrowser.prototype._renderListView = function (container, entities, entityTemplate, uiIcon) {

@@ -12468,5 +12468,14 @@
                 "ContactFamilyName": "Benghi"
             }
         ]
+    },
+    "FacilityIssues": {
+        "Issue": [
+            {
+                "IssueName": "Define spatial layout",
+                "IssueCategory": "Employer Requirement",
+                "IssueDescription": "Architect should define spatial layout based on required areas of spaces."
+            }
+        ]
     }
 }
