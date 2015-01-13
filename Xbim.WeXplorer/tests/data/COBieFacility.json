@@ -12434,10 +12434,38 @@
                 "DocumentCategory": "Submited"
             },
             {
-                "DocumentName": "SurveyPoints.xls" ,
+                "DocumentName": "SurveyPoints.xls",
                 "DocumentDescription": "List of all survey points",
                 "DocumentURI": "https://www.northumbria.ac.uk/Docs/download?id=E0C8F7F8-C452-4BF6-9B19-81D2918D3D64",
                 "DocumentCategory": "Submited"
+            }
+        ]
+    },
+    "Contacts": {
+        "Contact": [
+            {
+                "ContactEmail": "martin.cerny@northumbria.ac.uk",
+                "ContactCategory": "developer",
+                "ContactCompany": "Northumbria University",
+                "ContactPhoneNumber": "+420 721 910 190",
+                "ContactGivenName": "Martin",
+                "ContactFamilyName": "Cerny"
+            },
+            {
+                "ContactEmail": "steve.lockley@northumbria.ac.uk",
+                "ContactCategory": "developer",
+                "ContactCompany": "Northumbria University",
+                "ContactPhoneNumber": "+44 987 910 897",
+                "ContactGivenName": "Steve",
+                "ContactFamilyName": "Lockley"
+            },
+            {
+                "ContactEmail": "claudio.benghi@northumbria.ac.uk",
+                "ContactCategory": "developer",
+                "ContactCompany": "Northumbria University",
+                "ContactPhoneNumber": "+44 654 789 321",
+                "ContactGivenName": "Claudio",
+                "ContactFamilyName": "Benghi"
             }
         ]
     }

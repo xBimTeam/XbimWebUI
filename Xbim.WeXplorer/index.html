@@ -35,8 +35,8 @@
     <div id="semantic-model-container" class="noselect">
         <div id="semantic-tabs">
             <ul>
-                <li><a href="#requirements-tab">Required</a></li>
                 <li><a href="#semantic-model-tab">Delivered</a></li>
+                <li><a href="#requirements-tab">Required</a></li>
             </ul>
             <div id="requirements-tab">
                 <div id="requirements">
@@ -145,7 +145,7 @@
             reinitControls();
         });
 
-
+        var rBrowser = new xBrowser('cs', 'cz');
         var browser = new xBrowser();
         browser.on('loaded', function (args) {
             var facility = args.model.facility;
@@ -154,51 +154,66 @@
             browser.renderAssetTypes('assetTypes', true);
             browser.renderSystems('systems');
             browser.renderZones('zones');
+            browser.renderContacts('contacts');
             browser.renderDocuments(facility, 'facility-documents');
-
             //open facility node
             $("#structure > ul > li").click();
+        });
+        rBrowser.on('loaded', function (args) {
+            var facility = args.model.facility;
+            //render parts
+            rBrowser.renderSpatialStructure('r-structure', true);
+            rBrowser.renderAssetTypes('r-assetTypes', true);
+            rBrowser.renderSystems('r-systems');
+            rBrowser.renderZones('r-zones');
+            rBrowser.renderContacts('r-contacts');
+            rBrowser.renderDocuments(facility, 'r-facility-documents');
 
         });
-        browser.on('entityClick', function (args) {
-            browser.renderPropertiesAttributes(args.entity, 'attrprop');
-            if (args.entity.type != 'document') browser.renderDocuments(args.entity, 'documents');
-            browser.renderIssues(args.entity, 'issues');
-
-            var span = $(args.element).children("span.xbim-entity");
-            if (document._lastSelection)
-                document._lastSelection.removeClass('ui-selected');
-            span.addClass('ui-selected')
-            document._lastSelection = span;
-        });
-        browser.on('entityDblclick', function (args) {
-            var entity = args.entity;
-            var allowedTypes = ['space', 'assettype', 'asset'];
-            if (allowedTypes.indexOf(entity.type) == -1) return;
-
-            var id = parseInt(entity.id);
-            if (id && viewer) {
-                viewer.resetStates();
-                if (entity.type == 'assettype') {
-                    var ids = [];
-                    for (var i = 0; i < entity.children.length; i++) {
-                        id = parseInt(entity.children[i].id);
-                        ids.push(id);
-                    }
-                    viewer.setState(xState.HIGHLIGHTED, ids);
-                }
-                else {
-                    viewer.setState(xState.HIGHLIGHTED, [id]);
-                }
-                viewer.zoomTo(id);
-            }
-        });
-
         
 
+        function initBrowser(browser) {
+            browser.on('entityClick', function (args) {
+                browser.renderPropertiesAttributes(args.entity, 'attrprop');
+                if (args.entity.type != 'document') browser.renderDocuments(args.entity, 'documents');
+                browser.renderIssues(args.entity, 'issues');
 
+                var span = $(args.element).children("span.xbim-entity");
+                if (document._lastSelection)
+                    document._lastSelection.removeClass('ui-selected');
+                span.addClass('ui-selected')
+                document._lastSelection = span;
+            });
+            browser.on('entityDblclick', function (args) {
+                var entity = args.entity;
+                var allowedTypes = ['space', 'assettype', 'asset'];
+                if (allowedTypes.indexOf(entity.type) == -1) return;
 
+                var id = parseInt(entity.id);
+                if (id && viewer) {
+                    viewer.resetStates();
+                    if (entity.type == 'assettype') {
+                        var ids = [];
+                        for (var i = 0; i < entity.children.length; i++) {
+                            id = parseInt(entity.children[i].id);
+                            ids.push(id);
+                        }
+                        viewer.setState(xState.HIGHLIGHTED, ids);
+                    }
+                    else {
+                        viewer.setState(xState.HIGHLIGHTED, [id]);
+                    }
+                    viewer.zoomTo(id);
+                }
+            });
+        }
+
+        initBrowser(browser);
         browser.load('tests/data/COBieFacility.json');
+
+        initBrowser(rBrowser);
+        rBrowser.load('tests/data/COBieFacility.json');
+
 
         //viewer set up
         var check = xViewer.check();

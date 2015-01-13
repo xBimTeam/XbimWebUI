@@ -1,6 +1,59 @@
 ﻿function xAttributeDictionary(lang, culture) {
     var dictionaries = [
         {
+            lang: 'cs',
+            culture: 'cz',
+            terms: {
+                AssetDescription: "Popis",
+                AssetInstallationDate: "Datum instalace",
+                AssetName: "Název",
+                AssetSerialNumber: "Sériové číslo",
+                AssetTypeCategory: "Kategorie",
+                AssetTypeColorCode: "Kód barvy",
+                AssetTypeDescription: "Popis",
+                AssetTypeFeaturesDescription: "Popis vlastností",
+                AssetTypeGradeDescription: "Popis kvality",
+                AssetTypeMaterialDescription: "Popis materiálu",
+                AssetTypeName: "Název",
+                AssetTypeShapeDescription: "Popis tvaru",
+                AssetTypeSizeDescription: "Popis velikosti",
+                AssetWarrantyStartDate: "Začátek záruky",
+                AttributeCategory: "Kategorie",
+                AttributeDescription: "Popis",
+                AttributeName: "Název",
+                FacilityCategory: "Kategorie",
+                FacilityDefaultAreaUnit: "Předdefinovaná jednotka plochy",
+                FacilityDefaultLinearUnit: "Předdefinovaná jednotka délky",
+                FacilityDefaultVolumeUnit: "Předdefinovaná jednotka objemu",
+                FacilityDeliverablePhaseName: "Název fáze výsledku",
+                FacilityDescription: "Popis nemovitosti",
+                FacilityName: "Název",
+                FloorCategory: "Kategorie",
+                FloorDescription: "Popis",
+                FloorName: "Název",
+                ProjectDescription: "Popis projektu",
+                ProjectName: "Název projektu",
+                SiteDescription: "Popis stavby",
+                SpaceCategory: "Kategorie místnosti",
+                SpaceDescription: "Popis místnosti",
+                SpaceName: "Název místnosti",
+                SpaceSignageName: "Space Signage Name",
+                StringValue: "String Value",
+                SystemCategory: "System Category",
+                SystemDescription: "System Description",
+                SystemName: "System Name",
+                UnitName: "Unit Name",
+                ZoneCategory: "Zone Category",
+                ZoneDescription: "Zone Description",
+                ZoneName: "Zone Name",
+                externalID: "External ID",
+                externalIDReference: "External ID Reference",
+                propertySetName: "Property Set",
+                True: "Ano",
+                False: "Ne"
+            }
+        },
+        {
             lang: 'en',
             culture: 'uk',
             terms: {
@@ -54,15 +107,7 @@
             }
         }
     ];
-    //define search function for every dictionary
-    for (var i in dictionaries) {
-        var terms = dictionaries[i].terms;
-        terms.get = function (term) {
-            return terms[term] ? terms[term] : term;
-        };
-    }
-
-
+   
     var def = dictionaries.filter(function (e) { return e.lang == 'en' && e.culture == 'uk'; })[0].terms;
     if (typeof (lang) == 'undefined' && typeof (culture) == 'undefined')
         return def;

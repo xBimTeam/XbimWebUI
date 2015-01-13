@@ -5,11 +5,11 @@
 * @constructor
 * @classdesc This is the main class you need to use to render semantic structure of the building model
 */
-function xBrowser() {
+function xBrowser(lang, culture) {
     this._data = null;
     this._model = new xVisualModel();
     this._events = [];
-    this._utils = new xCobieUtils();
+    this._utils = new xCobieUtils(lang, culture);
     this._templates = {};
 
     //compile templates
@@ -54,6 +54,11 @@ xBrowser.prototype.renderAssetTypes = function (container, initTree) {
     this._renderTreeView(container, this._model.assetTypes, initTree);
 };
 
+xBrowser.prototype.renderContacts = function (container) {
+    if (!this._model) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
+    this._renderListView(container, this._model.contacts, this._templates.contact, 'person');
+};
+
 xBrowser.prototype.renderSystems = function (container) {
     if (!this._model) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
     this._renderListView(container, this._model.systems, null, 'wrench');
@@ -81,7 +86,13 @@ xBrowser.prototype._uiTree = function (container) {
     //this only works if jQuery UI is available
     if (!jQuery || !jQuery.ui) return;
 
+    var $container = typeof (container) == 'string' ? $("#" + container) : $(container);
     var elements = typeof (container) == 'string' ? $("#" + container + " li") : $(container).find('li');
+
+    //return if tree has been initialized already
+    if ($container.hasClass('xbim-tree')) return;
+    $container.addClass('xbim-tree');
+
     elements
         .on("click", function (e) {
             e.stopPropagation();

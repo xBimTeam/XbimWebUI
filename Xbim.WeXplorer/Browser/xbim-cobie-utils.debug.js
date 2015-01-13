@@ -1,5 +1,5 @@
-﻿function xCobieUtils() {
-    this._dictionary = new xAttributeDictionary();
+﻿function xCobieUtils(lang, culture) {
+    this._dictionary = new xAttributeDictionary(lang, culture);
 };
 
 xCobieUtils.prototype.settings = {
@@ -42,8 +42,25 @@ xCobieUtils.prototype.getVisualModel = function (data) {
         zones: this.getZones(data),
         systems: this.getSystems(data),
         assetTypes: types,
-        contacts: []
+        contacts: this.getContacts(data)
     });
+};
+
+xCobieUtils.prototype.getContacts = function (data) {
+    if (!data) throw 'data must be defined';
+    var result = [];
+
+    var contacts = data.Contacts;
+    if (contacts) contacts = contacts.Contact;
+    if (!contacts) return result;
+
+    for (var i = 0; i < contacts.length; i++) {
+        var contact = contacts[i];
+        var vContact = this.getVisualEntity(contact, 'contact');
+        result.push(vContact);
+    }
+
+    return result;
 };
 
 xCobieUtils.prototype.getSpatialStructure = function (data, types) {
@@ -195,7 +212,6 @@ xCobieUtils.prototype.getProperties = function (entity) {
 xCobieUtils.prototype.getAttributes = function (entity) {
     if (!entity) throw 'entity must be defined';
 
-    var di = this.getTranslator();
     var result = [];
     var attributes = null;
     for (var a in entity) {
@@ -305,5 +321,8 @@ xCobieUtils.prototype.getValueString = function (value) {
 };
 
 xCobieUtils.prototype.getTranslator = function () {
-    return this._dictionary.get;
+    var self = this;
+    return function (term) {
+        return self._dictionary[term] ? self._dictionary[term] : term.replace(/([a-z0-9])([A-Z])/g, '$1 $2');
+    };
 };
