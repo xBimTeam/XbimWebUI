@@ -28,6 +28,59 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 ﻿function xAttributeDictionary(lang, culture) {
     var dictionaries = [
         {
+            lang: 'cs',
+            culture: 'cz',
+            terms: {
+                AssetDescription: "Popis",
+                AssetInstallationDate: "Datum instalace",
+                AssetName: "Název",
+                AssetSerialNumber: "Sériové číslo",
+                AssetTypeCategory: "Kategorie",
+                AssetTypeColorCode: "Kód barvy",
+                AssetTypeDescription: "Popis",
+                AssetTypeFeaturesDescription: "Popis vlastností",
+                AssetTypeGradeDescription: "Popis kvality",
+                AssetTypeMaterialDescription: "Popis materiálu",
+                AssetTypeName: "Název",
+                AssetTypeShapeDescription: "Popis tvaru",
+                AssetTypeSizeDescription: "Popis velikosti",
+                AssetWarrantyStartDate: "Začátek záruky",
+                AttributeCategory: "Kategorie",
+                AttributeDescription: "Popis",
+                AttributeName: "Název",
+                FacilityCategory: "Kategorie",
+                FacilityDefaultAreaUnit: "Předdefinovaná jednotka plochy",
+                FacilityDefaultLinearUnit: "Předdefinovaná jednotka délky",
+                FacilityDefaultVolumeUnit: "Předdefinovaná jednotka objemu",
+                FacilityDeliverablePhaseName: "Název fáze výsledku",
+                FacilityDescription: "Popis nemovitosti",
+                FacilityName: "Název",
+                FloorCategory: "Kategorie",
+                FloorDescription: "Popis",
+                FloorName: "Název",
+                ProjectDescription: "Popis projektu",
+                ProjectName: "Název projektu",
+                SiteDescription: "Popis stavby",
+                SpaceCategory: "Kategorie místnosti",
+                SpaceDescription: "Popis místnosti",
+                SpaceName: "Název místnosti",
+                SpaceSignageName: "Space Signage Name",
+                StringValue: "String Value",
+                SystemCategory: "System Category",
+                SystemDescription: "System Description",
+                SystemName: "System Name",
+                UnitName: "Unit Name",
+                ZoneCategory: "Zone Category",
+                ZoneDescription: "Zone Description",
+                ZoneName: "Zone Name",
+                externalID: "External ID",
+                externalIDReference: "External ID Reference",
+                propertySetName: "Property Set",
+                True: "Ano",
+                False: "Ne"
+            }
+        },
+        {
             lang: 'en',
             culture: 'uk',
             terms: {
@@ -81,15 +134,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
             }
         }
     ];
-    //define search function for every dictionary
-    for (var i in dictionaries) {
-        var terms = dictionaries[i].terms;
-        terms.get = function (term) {
-            return terms[term] ? terms[term] : term;
-        };
-    }
-
-
+   
     var def = dictionaries.filter(function (e) { return e.lang == 'en' && e.culture == 'uk'; })[0].terms;
     if (typeof (lang) == 'undefined' && typeof (culture) == 'undefined')
         return def;
@@ -116,11 +161,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 * @constructor
 * @classdesc This is the main class you need to use to render semantic structure of the building model
 */
-function xBrowser() {
+function xBrowser(lang, culture) {
     this._data = null;
     this._model = new xVisualModel();
     this._events = [];
-    this._utils = new xCobieUtils();
+    this._utils = new xCobieUtils(lang, culture);
     this._templates = {};
 
     //compile templates
@@ -165,6 +210,11 @@ xBrowser.prototype.renderAssetTypes = function (container, initTree) {
     this._renderTreeView(container, this._model.assetTypes, initTree);
 };
 
+xBrowser.prototype.renderContacts = function (container) {
+    if (!this._model) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
+    this._renderListView(container, this._model.contacts, this._templates.contact, 'person');
+};
+
 xBrowser.prototype.renderSystems = function (container) {
     if (!this._model) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
     this._renderListView(container, this._model.systems, null, 'wrench');
@@ -178,13 +228,13 @@ xBrowser.prototype.renderZones = function (container) {
 xBrowser.prototype._registerEntityCallBacks = function (element, entity) {
     var self = this;
     element.entity = entity; 
-    //element.addEventListener('', function (e) { self._fire('', { entity: entity, event: e }); e.stopPropagation(); });
-    element.addEventListener('click', function (e) { self._fire('entityClick', { entity: entity, event: e }); e.stopPropagation(); });
-    element.addEventListener('mouseDown', function (e) { self._fire('entityMouseDown', { entity: entity, event: e }); e.stopPropagation(); });
-    element.addEventListener('mouseUp', function (e) { self._fire('entityMouseUp', { entity: entity, event: e }); e.stopPropagation(); });
-    element.addEventListener('mouseMove', function (e) { self._fire('entityMouseMove', { entity: entity, event: e }); e.stopPropagation(); });
-    element.addEventListener('touch', function (e) { self._fire('entityTouch', { entity: entity, event: e }); e.stopPropagation(); });
-    element.addEventListener('dblclick', function (e) { self._fire('entityDblclick', { entity: entity, event: e }); e.stopPropagation(); });
+    //element.addEventListener('', function (e) { self._fire('', { entity: entity, event: e , element: element}); e.stopPropagation(); });
+    element.addEventListener('click', function (e) { self._fire('entityClick', { entity: entity, event: e, element: element }); e.stopPropagation(); });
+    element.addEventListener('mouseDown', function (e) { self._fire('entityMouseDown', { entity: entity, event: e, element: element }); e.stopPropagation(); });
+    element.addEventListener('mouseUp', function (e) { self._fire('entityMouseUp', { entity: entity, event: e, element: element }); e.stopPropagation(); });
+    element.addEventListener('mouseMove', function (e) { self._fire('entityMouseMove', { entity: entity, event: e, element: element }); e.stopPropagation(); });
+    element.addEventListener('touch', function (e) { self._fire('entityTouch', { entity: entity, event: e, element: element }); e.stopPropagation(); });
+    element.addEventListener('dblclick', function (e) { self._fire('entityDblclick', { entity: entity, event: e, element: element }); e.stopPropagation(); });
 };
 
 xBrowser.prototype._uiTree = function (container) {
@@ -192,28 +242,41 @@ xBrowser.prototype._uiTree = function (container) {
     //this only works if jQuery UI is available
     if (!jQuery || !jQuery.ui) return;
 
+    var $container = typeof (container) == 'string' ? $("#" + container) : $(container);
     var elements = typeof (container) == 'string' ? $("#" + container + " li") : $(container).find('li');
+
+    //return if tree has been initialized already
+    if ($container.hasClass('xbim-tree')) return;
+    $container.addClass('xbim-tree');
+
+    var iconOpen = "ui-icon-triangle-1-s";
+    var iconClosed = "ui-icon-triangle-1-e";
+    var iconLeaf = "ui-icon-document";
+
     elements
-        .on("click", function (e) {
-            e.stopPropagation();
-            $(this).children('ul').slideToggle();
-
-            //toggle icons between opened and closed state
-            var closed = $(this).children('span[class~="ui-icon-triangle-1-e"]');
-            var opened = $(this).children('span[class~="ui-icon-triangle-1-s"]');
-
-            if (closed.length > 0) closed.removeClass('ui-icon-triangle-1-e').addClass('ui-icon-triangle-1-s');
-            if (opened.length > 0) opened.removeClass('ui-icon-triangle-1-s').addClass('ui-icon-triangle-1-e');
-        })
         .prepend(function () {
             if ($(this).children('ul').length > 0)
-                return '<span class="ui-icon ui-icon-triangle-1-s" style="float: left;"></span>';
+                return '<span class="ui-icon '+iconClosed+'" style="float: left;"></span>';
             else
-                return '<span class="ui-icon ui-icon-document" style="float: left;"></span>';
+                return '<span class="ui-icon '+iconLeaf+'" style="float: left;"></span>';
         })
         .css('list-style-type', 'none')
         .css('cursor', 'default')
-        .click();
+    .children('ul').hide();
+
+    elements.find('span.' + iconClosed).on("click", function (e) {
+        e.stopPropagation();
+        $(this).parent().children('ul').slideToggle();
+
+        if ($(this).hasClass(iconClosed))
+            $(this).removeClass(iconClosed).addClass(iconOpen);
+        else
+            $(this).removeClass(iconOpen).addClass(iconClosed);
+    });
+
+    //open first level if there is only one element
+    var firstLevel = $container.children('ul').children('li');
+    if (firstLevel.length == 1) firstLevel.children('span.' + iconClosed).click();
 };
 
 xBrowser.prototype._renderListView = function (container, entities, entityTemplate, uiIcon) {
@@ -222,6 +285,7 @@ xBrowser.prototype._renderListView = function (container, entities, entityTempla
     entityTemplate = entityTemplate ? entityTemplate : self._templates.entity;
 
     var table = document.createElement('table');
+    container.innerHTML = "";
     container.appendChild(table);
 
     for (var i = 0; i < entities.length; i++) {
@@ -422,8 +486,8 @@ xBrowser.prototype._fire = function (eventName, args) {
     for (var i in handlers) {
         handlers[i](args);
     }
-};﻿function xCobieUtils() {
-    this._dictionary = new xAttributeDictionary();
+};﻿function xCobieUtils(lang, culture) {
+    this._dictionary = new xAttributeDictionary(lang, culture);
 };
 
 xCobieUtils.prototype.settings = {
@@ -466,8 +530,25 @@ xCobieUtils.prototype.getVisualModel = function (data) {
         zones: this.getZones(data),
         systems: this.getSystems(data),
         assetTypes: types,
-        contacts: []
+        contacts: this.getContacts(data)
     });
+};
+
+xCobieUtils.prototype.getContacts = function (data) {
+    if (!data) throw 'data must be defined';
+    var result = [];
+
+    var contacts = data.Contacts;
+    if (contacts) contacts = contacts.Contact;
+    if (!contacts) return result;
+
+    for (var i = 0; i < contacts.length; i++) {
+        var contact = contacts[i];
+        var vContact = this.getVisualEntity(contact, 'contact');
+        result.push(vContact);
+    }
+
+    return result;
 };
 
 xCobieUtils.prototype.getSpatialStructure = function (data, types) {
@@ -619,7 +700,6 @@ xCobieUtils.prototype.getProperties = function (entity) {
 xCobieUtils.prototype.getAttributes = function (entity) {
     if (!entity) throw 'entity must be defined';
 
-    var di = this.getTranslator();
     var result = [];
     var attributes = null;
     for (var a in entity) {
@@ -687,7 +767,7 @@ xCobieUtils.prototype.getDocuments = function (entity, type) {
 };
 
 xCobieUtils.prototype.getIssues = function (entity) {
-    if (!entity || !type) throw 'entity and type must be defined';
+    if (!entity) throw 'entity and type must be defined';
     var result = [];
 
     for (var attr in entity) {
@@ -695,7 +775,7 @@ xCobieUtils.prototype.getIssues = function (entity) {
             var issues = entity[attr].Issue
             for (var i = 0; i < issues.length; i++) {
                 var issue = issues[i]
-                var vIssue = this.getVisualEntity(doc, 'issue')
+                var vIssue = this.getVisualEntity(issue, 'issue')
                 result.push(vIssue);
             }
         }
@@ -729,7 +809,10 @@ xCobieUtils.prototype.getValueString = function (value) {
 };
 
 xCobieUtils.prototype.getTranslator = function () {
-    return this._dictionary.get;
+    var self = this;
+    return function (term) {
+        return self._dictionary[term] ? self._dictionary[term] : term.replace(/([a-z0-9])([A-Z])/g, '$1 $2');
+    };
 };﻿function xVisualAttribute(values) {
 
     this.name = "";
@@ -846,6 +929,14 @@ if (attributes && attributes.length > 0) {\
     <%}}%>\
 </table>\
 <%}%>',
-        entity: '<span title="<%=description%>"> <%=name%> </span>',
+        entity: '<span class="xbim-entity" title="<%=description%>"> <%=name%> </span>',
+        contact:
+'<% var nameA = properties.filter(function(e){return e.id == "ContactGivenName";})[0]; \
+var surnameA = properties.filter(function(e){return e.id == "ContactFamilyName";})[0]; \
+var emailA = properties.filter(function(e){return e.id == "ContactEmail";})[0]; \
+var name = nameA ? nameA.value : "";\
+var surname = surnameA ? surnameA.value : "";\
+var email = emailA ? emailA.value : ""; %>\
+<span class="xbim-entity" title="<%=email%>"> <%=name%> <%=surname%> </span>'
     }
 };
