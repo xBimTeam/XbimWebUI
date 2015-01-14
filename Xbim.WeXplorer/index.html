@@ -1,245 +1,37 @@
 ﻿<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <title></title>
-    <link href="Libs/jquery-ui-styles/jquery-ui.min.css" rel="stylesheet" />
-    <link href="Resources/doctemplate/static/styles/xbrowser-styles.css" rel="stylesheet" />
+    <title>DPoW Demo</title>
+    <style>
+        html, body{
+            padding: 0;
+            margin: 0;
+            height: 100%;
+            background: #f0f0f0;
+        }
 
-    <script src="Libs/jquery.js"></script>
-    <script src="Libs/jquery-ui.js"></script>
-    <script src="Libs/webgl-utils.js"></script>
-    <script src="Libs/gl-matrix.js"></script>
-    <!--<script src="Build/xbim-browser.js"></script>
-    <script src="Build/xbim-viewer.debug.bundle.js"></script>-->
-    <script src="Viewer/xbim-binary-reader.debug.js"></script>
-    <script src="Viewer/xbim-model-geometry.debug.js"></script>
-    <script src="Viewer/xbim-model-handle.debug.js"></script>
-    <script src="Viewer/xbim-product-type.debug.js"></script>
-    <script src="Viewer/xbim-shaders.debug.js"></script>
-    <script src="Viewer/xbim-state.debug.js"></script>
-    <script src="Viewer/xbim-triangulated-shape.debug.js"></script>
-    <script src="Viewer/xbim-viewer.debug.js"></script>
-    <script src="Browser/xbim-attribute-dictionary.debug.js"></script>
-    <script src="Browser/xbim-browser.debug.js"></script>
-    <script src="Browser/xbim-cobie-utils.debug.js"></script>
-    <script src="Browser/xbim-visual-attribute.debug.js"></script>
-    <script src="Browser/xbim-visual-entity.debug.js"></script>
-    <script src="Browser/xbim-visual-model.debug.js"></script>
-    <script src="Browser/xbim-visual-property.debug.js"></script>
-    <script src="Browser/xbim-visual-templates.debug.js"></script>
+        body{
+            width: 800px;
+            margin-left:auto;
+            margin-right:auto;
+            box-shadow: #808080 0 0 5px;
+            background: white;
+        }
+        #content{
+            padding: 40px;
+            font-size: 16pt;
+            font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+        }
+    </style>
 </head>
 <body>
-    <div id="viewer-container">
-        <canvas id="viewer"></canvas>
-    </div> 
-    <div id="semantic-model-container" class="noselect">
-        <div id="semantic-tabs">
-            <ul>
-                <li><a href="#semantic-model-tab">Delivered</a></li>
-                <li><a href="#requirements-tab">Required</a></li>
-            </ul>
-            <div id="requirements-tab">
-                <div id="requirements">
-                    <h3>Spatial structure</h3>
-                    <div class="no-overflow">
-                        <div id="r-structure" class="semantic-model-tree"></div>
-                    </div>
-                    <h3>Asset types</h3>
-                    <div class="no-overflow">
-                        <div id="r-assetTypes" class="semantic-model-tree"></div>
-                    </div>
-                    <h3>Systems</h3>
-                    <div class="no-overflow">
-                        <div id="r-systems" class="semantic-model-tree"></div>
-                    </div>
-                    <h3>Zones</h3>
-                    <div class="no-overflow">
-                        <div id="r-zones" class="semantic-model-tree"></div>
-                    </div>
-                    <h3>Contacts</h3>
-                    <div class="no-overflow">
-                        <div id="r-contacts" class="semantic-model-tree"></div>
-                    </div>
-                    <h3>Documents</h3>
-                    <div class="no-overflow">
-                        <div id="r-facility-documents" class="semantic-model-tree"></div>
-                    </div>
-                </div>
-            </div>
-            <div id="semantic-model-tab">
-                <div id="semantic-model">
-                    <h3>Spatial structure</h3>
-                    <div class="no-overflow">
-                        <div id="structure" class="semantic-model-tree"></div>
-                    </div>
-                    <h3>Asset types</h3>
-                    <div class="no-overflow">
-                        <div id="assetTypes" class="semantic-model-tree"></div>
-                    </div>
-                    <h3>Systems</h3>
-                    <div class="no-overflow">
-                        <div id="systems" class="semantic-model-tree"></div>
-                    </div>
-                    <h3>Zones</h3>
-                    <div class="no-overflow">
-                        <div id="zones" class="semantic-model-tree"></div>
-                    </div>
-                    <h3>Contacts</h3>
-                    <div class="no-overflow">
-                        <div id="contacts" class="semantic-model-tree"></div>
-                    </div>
-                    <h3>Documents</h3>
-                    <div class="no-overflow">
-                        <div id="facility-documents" class="semantic-model-tree"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div id="content">
+
+        <h1>Models:</h1>
+        <ul>
+            <li><a href="browser.html?model=lakeside" target="_blank">Lakeside Restaurant</a></li>
+            <li><a href="browser.html?model=cobie" target="_blank">Purified COBie</a></li>
+        </ul>
     </div>
-
-    <div id="semantic-descriptive-info-container">
-        <div id="semantic-descriptive-info" >
-            <h3 id="attrprop-header">Properties and attributes</h3>
-            <div class="no-overflow-y">
-                <div id="attrprop"></div>
-            </div>
-            <h3>Documents</h3>
-            <div class="no-overflow">
-                <div id="documents"></div>
-            </div>
-            <h3>Tasks</h3>
-            <div class="no-overflow">
-                <div id="issues"></div>
-            </div>
-        </div>
-    </div>
-    <script type="text/javascript">
-        function initControls() {
-            
-            $('#semantic-descriptive-info').accordion({
-                heightStyle: 'fill'
-            });
-            
-            $('#semantic-tabs').tabs({
-                activate: function (event, ui) {
-                    reinitControls();
-                },
-                create: function (event, ui) {
-                    $('#semantic-model').accordion({
-                        heightStyle: 'fill'
-                    });
-                    $('#requirements').accordion({
-                        heightStyle: 'fill'
-                    });
-                }
-            });
-            
-        }
-        function reinitControls() {
-            $('#semantic-model').accordion('refresh');
-            $('#semantic-descriptive-info').accordion('refresh');
-            $('#requirements').accordion('refresh');
-        }
-        initControls();
-        $(window).resize(function () {
-            reinitControls();
-        });
-
-        var rBrowser = new xBrowser('cs', 'cz');
-        var browser = new xBrowser();
-        browser.on('loaded', function (args) {
-            var facility = args.model.facility;
-            //render parts
-            browser.renderSpatialStructure('structure', true);
-            browser.renderAssetTypes('assetTypes', true);
-            browser.renderSystems('systems');
-            browser.renderZones('zones');
-            browser.renderContacts('contacts');
-            browser.renderDocuments(facility, 'facility-documents');
-
-            //open and selectfacility node
-            $("#structure > ul > li").click();
-        });
-        rBrowser.on('loaded', function (args) {
-            var facility = args.model.facility;
-            //render parts
-            rBrowser.renderSpatialStructure('r-structure', true);
-            rBrowser.renderAssetTypes('r-assetTypes', true);
-            rBrowser.renderSystems('r-systems');
-            rBrowser.renderZones('r-zones');
-            rBrowser.renderContacts('r-contacts');
-            rBrowser.renderDocuments(facility, 'r-facility-documents');
-
-        });
-        
-
-        function initBrowser(browser) {
-            browser.on('entityClick', function (args) {
-                browser.renderPropertiesAttributes(args.entity, 'attrprop');
-                var objectTypes = ['document', 'issue'];
-                if (args.entity.type != 'document') browser.renderDocuments(args.entity, 'documents');
-                if (args.entity.type != 'issue') browser.renderIssues(args.entity, 'issues');
-                if (objectTypes.indexOf(args.entity.type) != -1) $('#attrprop-header').click();
-
-
-                var span = $(args.element).children("span.xbim-entity");
-                if (document._lastSelection)
-                    document._lastSelection.removeClass('ui-selected');
-                span.addClass('ui-selected')
-                document._lastSelection = span;
-            });
-            browser.on('entityDblclick', function (args) {
-                var entity = args.entity;
-                var allowedTypes = ['space', 'assettype', 'asset'];
-                if (allowedTypes.indexOf(entity.type) == -1) return;
-
-                var id = parseInt(entity.id);
-                if (id && viewer) {
-                    viewer.resetStates();
-                    if (entity.type == 'assettype') {
-                        var ids = [];
-                        for (var i = 0; i < entity.children.length; i++) {
-                            id = parseInt(entity.children[i].id);
-                            ids.push(id);
-                        }
-                        viewer.setState(xState.HIGHLIGHTED, ids);
-                    }
-                    else {
-                        viewer.setState(xState.HIGHLIGHTED, [id]);
-                    }
-                    viewer.zoomTo(id);
-                }
-            });
-        }
-
-        initBrowser(browser);
-        browser.load('tests/data/COBieFacility.json');
-
-        initBrowser(rBrowser);
-        rBrowser.load('tests/data/COBieFacility.json');
-
-
-        //viewer set up
-        var check = xViewer.check();
-        var viewer = null;
-        if (check.noErrors) {
-            var canvas = document.getElementById('viewer');
-            viewer = new xViewer(canvas);
-            viewer.on('mouseDown', function (args) {
-                viewer.setCameraTarget(args.id);
-            });
-            viewer.load('tests/data/LakesideRestaurant.wexbim'); 
-            viewer.background = [249,249,249];
-            viewer.start();
-        }
-        else {
-            var msg = document.getElementById('msg');
-            msg.innerHTML = '';
-            for (var i in check.errors) {
-                var error = check.errors[i];
-                msg.innerHTML += "<div style='color: red;'>" + error + "</div>";
-            }
-        }
-    </script>
 </body>
 </html>

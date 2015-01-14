@@ -70,6 +70,7 @@
     <Content Include="Build\xbim-viewer.debug.bundle.js" />
     <Content Include="Build\xbim-viewer.min.bundle.js" />
     <Content Include="Build\xbim-viewer.min.js" />
+    <Content Include="browser.html" />
     <Content Include="index.html" />
     <Content Include="Libs\gl-matrix.min.js" />
     <Content Include="Libs\jquery-ui-styles\images\ui-bg_flat_0_aaaaaa_40x100.png" />
@@ -140,6 +141,9 @@
     <Content Include="Tutorials\1_Hello_building.json" />
     <Content Include="Resources\doctemplate\static\5_Colourful_building.live.html" />
     <Content Include="tests\data\COBieFacility.json" />
+    <Content Include="Data\Duplex_MEP_20110907.json" />
+    <Content Include="Data\Duplex_MEP_20110907.wexbim" />
+    <Content Include="Data\Lakeside.json" />
     <None Include="Tutorials\1_Hello_building.md" />
     <Content Include="Resources\doctemplate\static\scripts\xbim-viewer.debug.bundle.js" />
     <Content Include="Viewer\fragment_shader.c" />

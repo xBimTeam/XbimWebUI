@@ -99,10 +99,14 @@ xBrowser.prototype._uiTree = function (container) {
 
     elements
         .prepend(function () {
-            if ($(this).children('ul').length > 0)
-                return '<span class="ui-icon '+iconClosed+'" style="float: left;"></span>';
-            else
-                return '<span class="ui-icon '+iconLeaf+'" style="float: left;"></span>';
+            if ($(this).children('ul').length > 0){
+                $(this).addClass('xbim-tree-node');
+                return '<span class="ui-icon ' + iconClosed + '" style="float: left;"></span>';
+            }
+            else {
+                $(this).addClass('xbim-tree-leaf');
+                return '<span class="ui-icon ' + iconLeaf + '" style="float: left;"></span>';
+            }
         })
         .css('list-style-type', 'none')
         .css('cursor', 'default')

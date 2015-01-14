@@ -335,7 +335,8 @@ xModelGeometry.prototype.parse = function (binReader) {
             }
 
             var styleItem = styleMap.filter(function (st) { return st.id == styleId }).pop();
-            if (!styleItem) throw 'Style index not found.';
+            if (!styleItem)
+                throw 'Style index not found.';
 
             shapeList.push({
                 pLabel: prodLabel,

@@ -255,10 +255,14 @@ xBrowser.prototype._uiTree = function (container) {
 
     elements
         .prepend(function () {
-            if ($(this).children('ul').length > 0)
-                return '<span class="ui-icon '+iconClosed+'" style="float: left;"></span>';
-            else
-                return '<span class="ui-icon '+iconLeaf+'" style="float: left;"></span>';
+            if ($(this).children('ul').length > 0){
+                $(this).addClass('xbim-tree-node');
+                return '<span class="ui-icon ' + iconClosed + '" style="float: left;"></span>';
+            }
+            else {
+                $(this).addClass('xbim-tree-leaf');
+                return '<span class="ui-icon ' + iconLeaf + '" style="float: left;"></span>';
+            }
         })
         .css('list-style-type', 'none')
         .css('cursor', 'default')
@@ -789,8 +793,9 @@ xCobieUtils.prototype.setLanguage = function (lang, culture) {
 };
 
 xCobieUtils.prototype.getValueString = function (value) {
-    var tr = this._dictionary.get;
-    if (!value) throw 'Object must be defined';
+    if (typeof(value) == 'undefined')
+        throw 'Object must be defined';
+    var tr = this.getTranslator();
 
     //this of for attributes
     if (value.Item) value = value.Item;
@@ -875,7 +880,8 @@ xCobieUtils.prototype.getTranslator = function () {
 ﻿function xVisualTemplates() {
     return {
         property:
-'<%if (properties && properties.length > 0) {%><table> \
+'<%if (properties && properties.length > 0) {%>\
+<table> \
     <% for (var p in properties) { var prop = properties[p];%> \
     <tr> \
         <td><%=prop.name%></td>\
@@ -929,7 +935,7 @@ if (attributes && attributes.length > 0) {\
     <%}}%>\
 </table>\
 <%}%>',
-        entity: '<span class="xbim-entity" title="<%=description%>"> <%=name%> </span>',
+        entity: '<span class="xbim-entity" title="<%=description%>"> <%= name? name: (function f() { return type.charAt(0).toUpperCase() + type.slice(1); })() %> </span>',
         contact:
 '<% var nameA = properties.filter(function(e){return e.id == "ContactGivenName";})[0]; \
 var surnameA = properties.filter(function(e){return e.id == "ContactFamilyName";})[0]; \

@@ -1,7 +1,8 @@
 ﻿function xVisualTemplates() {
     return {
         property:
-'<%if (properties && properties.length > 0) {%><table> \
+'<%if (properties && properties.length > 0) {%>\
+<table> \
     <% for (var p in properties) { var prop = properties[p];%> \
     <tr> \
         <td><%=prop.name%></td>\
@@ -55,7 +56,7 @@ if (attributes && attributes.length > 0) {\
     <%}}%>\
 </table>\
 <%}%>',
-        entity: '<span class="xbim-entity" title="<%=description%>"> <%=name%> </span>',
+        entity: '<span class="xbim-entity" title="<%=description%>"> <%= name? name: (function f() { return type.charAt(0).toUpperCase() + type.slice(1); })() %> </span>',
         contact:
 '<% var nameA = properties.filter(function(e){return e.id == "ContactGivenName";})[0]; \
 var surnameA = properties.filter(function(e){return e.id == "ContactFamilyName";})[0]; \

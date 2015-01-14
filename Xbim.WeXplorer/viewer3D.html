@@ -164,7 +164,8 @@
 			    }
 			});
 			var model = '';
-			if (typeof(QueryString.model) == 'undefined') model = 'tests/data/OneWall.wexbim';
+			if (typeof (QueryString.model) == 'undefined') model = 'Data/Duplex_MEP_20110907.wexbim';
+			//if (typeof(QueryString.model) == 'undefined') model = 'tests/data/OneWall.wexbim';
 			else model = 'tests/data/' + QueryString.model + '.wexbim';
 			viewer.show('back');
 			viewer.on('pick', function(arg){

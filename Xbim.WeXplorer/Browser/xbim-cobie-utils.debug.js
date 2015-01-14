@@ -301,8 +301,9 @@ xCobieUtils.prototype.setLanguage = function (lang, culture) {
 };
 
 xCobieUtils.prototype.getValueString = function (value) {
-    var tr = this._dictionary.get;
-    if (!value) throw 'Object must be defined';
+    if (typeof(value) == 'undefined')
+        throw 'Object must be defined';
+    var tr = this.getTranslator();
 
     //this of for attributes
     if (value.Item) value = value.Item;
