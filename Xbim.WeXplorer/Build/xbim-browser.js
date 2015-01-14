@@ -215,7 +215,7 @@ xBrowser.prototype._iconMap = {
 xBrowser.prototype.renderSpatialStructure = function (container, initTree){
     if (!this._model) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
     
-    this._renderTreeView(container, [this._model.facility], initTree);
+    this._renderTreeView(container, this._model.facility, initTree);
 };
 
 xBrowser.prototype.renderAssetTypes = function (container, initTree) {
@@ -229,26 +229,26 @@ xBrowser.prototype.renderContacts = function (container) {
     this._renderListView(container, this._model.contacts, this._templates.contact);
 };
 
-xBrowser.prototype.renderSystems = function (container) {
+xBrowser.prototype.renderSystems = function (container, initTree) {
     if (!this._model) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
-    this._renderListView(container, this._model.systems);
+    this._renderTreeView(container, this._model.systems, initTree);
 };
 
-xBrowser.prototype.renderZones = function (container) {
+xBrowser.prototype.renderZones = function (container, initTree) {
     if (!this._model) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
-    this._renderListView(container, this._model.zones);
+    this._renderTreeView(container, this._model.zones, initTree);
 };
 
 xBrowser.prototype._registerEntityCallBacks = function (element, entity) {
     var self = this;
     element.entity = entity; 
     //element.addEventListener('', function (e) { self._fire('', { entity: entity, event: e , element: element}); e.stopPropagation(); });
-    element.addEventListener('click', function (e) { self._fire('entityClick', { entity: entity, event: e, element: element }); e.stopPropagation(); });
+    element.addEventListener('click', function (e) { self._fire('entityClick', { entity: entity, event: e, element: element }); self._fire('entityActive', { entity: entity}); e.stopPropagation(); });
     element.addEventListener('mouseDown', function (e) { self._fire('entityMouseDown', { entity: entity, event: e, element: element }); e.stopPropagation(); });
     element.addEventListener('mouseUp', function (e) { self._fire('entityMouseUp', { entity: entity, event: e, element: element }); e.stopPropagation(); });
     element.addEventListener('mouseMove', function (e) { self._fire('entityMouseMove', { entity: entity, event: e, element: element }); e.stopPropagation(); });
     element.addEventListener('touch', function (e) { self._fire('entityTouch', { entity: entity, event: e, element: element }); e.stopPropagation(); });
-    element.addEventListener('dblclick', function (e) { self._fire('entityDblclick', { entity: entity, event: e, element: element }); e.stopPropagation(); });
+    element.addEventListener('dblclick', function (e) { self._fire('entityDblclick', { entity: entity, event: e, element: element }); self._fire('entityActive', { entity: entity }); e.stopPropagation(); });
 };
 
 xBrowser.prototype._uiTree = function (container) {
@@ -329,7 +329,7 @@ xBrowser.prototype._renderTreeView = function (container, roots, initSimpleTree,
     var self = this;
     container = this._getContainer(container);
     entityTemplate = entityTemplate ? entityTemplate : self._templates.entity;  
-    initSimpleTree = initSimpleTree ? initSimpleTree : false;
+    initSimpleTree = initSimpleTree ? initSimpleTree : true;
 
     var renderEntities = function (entities, ul) {
         for (var i = 0; i < entities.length; i++) {
@@ -410,6 +410,14 @@ xBrowser.prototype.renderPropertiesAttributes = function (entity, container) {
     container.innerHTML = html;
 };
 
+
+xBrowser.prototype.activateEntity = function (id) {
+    if (!this._model) return;
+    var entity = this._model.getEntity(id);
+    if (!entity) return;
+
+    this._fire('entityActive', { entity: entity });
+};
 
 xBrowser.prototype._getContainer = function (container) {
     if (typeof (container) == 'object') return container;
@@ -520,7 +528,7 @@ xCobieUtils.prototype.settings = {
 
 xCobieUtils.prototype.getVisualEntity = function (entity, type) {
     if (!entity || !type) throw 'entity must be defined';
-    var id = entity.externalID;
+    var id = entity.externalID || entity.externalIDReference;
     var name = "";
     var description = "";
     for (var a in entity) {
@@ -549,10 +557,11 @@ xCobieUtils.prototype.getVisualModel = function (data) {
     if (!data) throw 'data must be defined';
 
     var types = this.getAssetTypes(data);
+    var facility = this.getSpatialStructure(data, types);
     return new xVisualModel({
-        facility: this.getSpatialStructure(data, types),
-        zones: this.getZones(data),
-        systems: this.getSystems(data),
+        facility: facility,
+        zones: this.getZones(data, facility),
+        systems: this.getSystems(data, types),
         assetTypes: types,
         contacts: this.getContacts(data)
     });
@@ -633,10 +642,10 @@ xCobieUtils.prototype.getSpatialStructure = function (data, types) {
     }
 
     //facility is a root element of the tree spatial structure
-    return facility;
+    return [facility];
 };
 
-xCobieUtils.prototype.getZones = function (data) {
+xCobieUtils.prototype.getZones = function (data, facility) {
     if (!data) throw 'data must be defined';
     var result = [];
 
@@ -651,10 +660,26 @@ xCobieUtils.prototype.getZones = function (data) {
         result.push(vZone);
     }
 
+    //add spaces as a children of zones
+    for (var i = 0; i < facility.length; i++) { //facilities (always 1)
+        var f = facility[i];
+        for (var j = 0; j < f.children.length; j++) { //floors
+            var floor = f.children[j];
+            for (var k = 0; k < floor.children.length; k++) { //spaces
+                var space = floor.children[k];
+                var assignment = space.assignments.filter(function (e) { return e.type == 'zone'; })[0];
+                if (!assignment) continue;
+
+                var zone = result.filter(function (e) { return e.id == assignment.id; })[0];
+                if (zone) zone.children.push(space);
+            }
+        }
+    }
+
     return result;
 };
 
-xCobieUtils.prototype.getSystems = function (data) {
+xCobieUtils.prototype.getSystems = function (data, types) {
     if (!data) throw 'data must be defined';
     var result = [];
 
@@ -667,6 +692,23 @@ xCobieUtils.prototype.getSystems = function (data) {
         var system = systems[s];
         var vSystem = this.getVisualEntity(system, 'system');
         result.push(vSystem);
+    }
+
+    //add asset types and assets to spaces 
+    types = types ? types : this.getAssetTypes(data);
+    for (var t in types) {
+        var type = types[t];
+        for (var i in type.children) {
+            var instance = type.children[i];
+
+            //check assignments
+            var assignment = instance.assignments.filter(function (e) { return e.type == 'system' })[0];
+            if (!assignment) continue;
+
+            if (!assignment.id) continue;
+            var system = result.filter(function (e) { return e.id == assignment.id; })[0];
+            if (system) system.children.push(instance);
+        }
     }
 
     return result;
@@ -885,7 +927,28 @@ xCobieUtils.prototype.getTranslator = function () {
         }
     }
 };
-﻿function xVisualProperty(values) {
+
+xVisualModel.prototype.getEntity = function (id) {
+    if (typeof (id) == 'undefined') return null;
+    id = id.toString();
+
+    var get = function (collection, id) {
+        for (var i = 0; i < collection.length; i++) {
+            var entity = collection[i];
+            if (entity.id == id) return entity;
+            var result = get(entity.children, id);
+            if (result) return result;
+        }
+        return null;
+    };
+
+    for (var i in this) {
+        if (typeof (this[i]) == 'function') continue;
+        var result = get(this[i], id);
+        if (result) return result;
+    }
+    return null;
+};﻿function xVisualProperty(values) {
     this.name = "";
     this.value = "";
     this.id = "";

@@ -48,6 +48,10 @@
      padding-left: 0; 
 }
 
+.semantic-model-tree > ul > li.xbim-tree-leaf {
+     padding-left: 0; 
+}
+
 #semantic-descriptive-info tr:not(:last-child){
     border-bottom: 1px solid lightgray;
 }

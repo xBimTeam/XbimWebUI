@@ -178,7 +178,7 @@
             browser.renderSystems('systems');
             browser.renderZones('zones');
             browser.renderContacts('contacts');
-            browser.renderDocuments(facility, 'facility-documents');
+            browser.renderDocuments(facility[0], 'facility-documents');
 
             //open and selectfacility node
             $("#structure > ul > li").click();
@@ -191,25 +191,26 @@
             rBrowser.renderSystems('r-systems');
             rBrowser.renderZones('r-zones');
             rBrowser.renderContacts('r-contacts');
-            rBrowser.renderDocuments(facility, 'r-facility-documents');
+            rBrowser.renderDocuments(facility[0], 'r-facility-documents');
 
         });
         
 
         function initBrowser(browser) {
             browser.on('entityClick', function (args) {
-                browser.renderPropertiesAttributes(args.entity, 'attrprop');
-                var objectTypes = ['document', 'issue'];
-                if (args.entity.type != 'document') browser.renderDocuments(args.entity, 'documents');
-                if (args.entity.type != 'issue') browser.renderIssues(args.entity, 'issues');
-                if (objectTypes.indexOf(args.entity.type) != -1) $('#attrprop-header').click();
-
-
                 var span = $(args.element).children("span.xbim-entity");
                 if (document._lastSelection)
                     document._lastSelection.removeClass('ui-selected');
                 span.addClass('ui-selected')
                 document._lastSelection = span;
+            });
+            browser.on('entityActive', function (args) {
+                var objectTypes = ['document', 'issue'];
+                browser.renderPropertiesAttributes(args.entity, 'attrprop');
+                if (args.entity.type != 'document') browser.renderDocuments(args.entity, 'documents');
+                if (args.entity.type != 'issue') browser.renderIssues(args.entity, 'issues');
+                if (objectTypes.indexOf(args.entity.type) != -1) $('#attrprop-header').click();
+
             });
             browser.on('entityDblclick', function (args) {
                 var entity = args.entity;
@@ -263,6 +264,9 @@
             viewer.background = [249, 249, 249];
             viewer.on('mouseDown', function (args) {
                 viewer.setCameraTarget(args.id);
+            });
+            viewer.on('pick', function (args) {
+                browser.activateEntity(args.id);
             });
             //viewer.load('Data/Duplex_MEP_20110907_SRL.wexbim');
             viewer.load('tests/data/LakesideRestaurant.wexbim'); 
