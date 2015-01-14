@@ -198,6 +198,20 @@ xBrowser.prototype._compileTemplate = function (str) {
                   + "');}return _p_.join('');");
 };
 
+xBrowser.prototype._iconMap = {
+    default: 'ui-icon-document',
+    facility: 'ui-icon-home',
+    space: 'ui-icon-document-b',
+    floor: 'ui-icon-image',
+    assettype: 'ui-icon-copy',
+    asset: 'ui-icon-script',
+    document: 'ui-icon-document',
+    issue: 'ui-icon-clipboard',
+    contact: 'ui-icon-person',
+    system: 'ui-icon-wrench',
+    zone: 'ui-icon-newwin'
+};
+
 xBrowser.prototype.renderSpatialStructure = function (container, initTree){
     if (!this._model) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
     
@@ -212,17 +226,17 @@ xBrowser.prototype.renderAssetTypes = function (container, initTree) {
 
 xBrowser.prototype.renderContacts = function (container) {
     if (!this._model) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
-    this._renderListView(container, this._model.contacts, this._templates.contact, 'person');
+    this._renderListView(container, this._model.contacts, this._templates.contact);
 };
 
 xBrowser.prototype.renderSystems = function (container) {
     if (!this._model) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
-    this._renderListView(container, this._model.systems, null, 'wrench');
+    this._renderListView(container, this._model.systems);
 };
 
 xBrowser.prototype.renderZones = function (container) {
     if (!this._model) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
-    this._renderListView(container, this._model.zones, null, 'newwin');
+    this._renderListView(container, this._model.zones);
 };
 
 xBrowser.prototype._registerEntityCallBacks = function (element, entity) {
@@ -261,7 +275,7 @@ xBrowser.prototype._uiTree = function (container) {
             }
             else {
                 $(this).addClass('xbim-tree-leaf');
-                return '<span class="ui-icon ' + iconLeaf + '" style="float: left;"></span>';
+                return '';
             }
         })
         .css('list-style-type', 'none')
@@ -283,7 +297,7 @@ xBrowser.prototype._uiTree = function (container) {
     if (firstLevel.length == 1) firstLevel.children('span.' + iconClosed).click();
 };
 
-xBrowser.prototype._renderListView = function (container, entities, entityTemplate, uiIcon) {
+xBrowser.prototype._renderListView = function (container, entities, entityTemplate) {
     var self = this;
     container = this._getContainer(container);
     entityTemplate = entityTemplate ? entityTemplate : self._templates.entity;
@@ -304,8 +318,9 @@ xBrowser.prototype._renderListView = function (container, entities, entityTempla
         td.innerHTML = html;
         this._registerEntityCallBacks(td, entity);
 
-        if (uiIcon && jQuery && jQuery.ui) {
-            $(td).prepend('<span class="ui-icon ui-icon-' + uiIcon + '" style="float: left;"></span>');
+        if (jQuery && jQuery.ui) {
+            var icon = this._iconMap[entity.type] ? this._iconMap[entity.type] : this._iconMap['default'];
+            $(td).prepend('<span class="ui-icon ' + icon + '" style="float: left;"></span>');
         }
     }
 };
@@ -337,6 +352,11 @@ xBrowser.prototype._renderTreeView = function (container, roots, initSimpleTree,
                 var inUl = document.createElement('ul');
                 li.appendChild(inUl);
                 renderEntities(entity.children, inUl)
+            }
+
+            if (jQuery && jQuery.ui) {
+                var icon = self._iconMap[entity.type] ? self._iconMap[entity.type] : self._iconMap['default'];
+                $(li).prepend('<span class="ui-icon ' + icon + '" style="float: left;"></span>');
             }
         }
     };

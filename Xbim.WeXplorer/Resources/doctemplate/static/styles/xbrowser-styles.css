@@ -35,10 +35,15 @@
 }
 
 .semantic-model-tree li{
-    padding-left: 2em;
+    padding-left: 20px;
     padding-top: 5px;
     padding-bottom: 5px;
 }
+
+.semantic-model-tree li.xbim-tree-leaf{
+    padding-left: 36px;
+}
+
 .semantic-model-tree > ul > li {
      padding-left: 0; 
 }
