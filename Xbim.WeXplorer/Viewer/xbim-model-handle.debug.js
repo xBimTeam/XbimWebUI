@@ -12,6 +12,7 @@ function xModelHandle(gl, model, fpt) {
     this._gl = gl;
     this._model = model;
     this._fpt = fpt;
+    this._id = xModelHandle._instancesNum++;
 
     this.count = model.indices.length;
 
@@ -52,6 +53,9 @@ function xModelHandle(gl, model, fpt) {
     }
 }
 
+xModelHandle._instancesNum = 0;
+xModelHandle._activeInstance = -1;
+
 //this function sets this model as an active one
 //it needs an argument 'pointers' which contains pointers to
 //shader attributes and uniforms which are to be set.
@@ -73,6 +77,9 @@ function xModelHandle(gl, model, fpt) {
 //	styleTextureSizeUniform: null,
 //};
 xModelHandle.prototype.setActive = function (pointers) {
+    //check if this is not active already
+    if (xModelHandle._activeInstance == this._id) return;
+
     var gl = this._gl;
     //set predefined textures
     if (this.vertexTextureSize > 0) {
@@ -121,6 +128,7 @@ xModelHandle.prototype.setActive = function (pointers) {
     gl.uniform1i(pointers.matrixTextureSizeUniform, this.matrixTextureSize);
     gl.uniform1i(pointers.styleTextureSizeUniform, this.styleTextureSize);
 
+    xModelHandle._activeInstance = this._id;
 };
 
 //this function must be called AFTER 'setActive()' function which sets up active buffers and uniforms
