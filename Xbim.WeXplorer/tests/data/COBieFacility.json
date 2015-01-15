@@ -12466,6 +12466,9 @@
                 "ContactPhoneNumber": "+44 654 789 321",
                 "ContactGivenName": "Claudio",
                 "ContactFamilyName": "Benghi"
+            },
+            {
+                "ContactEmail": "claudio.benghi@northumbria.ac.uk"
             }
         ]
     },

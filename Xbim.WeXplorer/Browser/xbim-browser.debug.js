@@ -25,7 +25,7 @@ xBrowser.prototype._compileTemplate = function (str) {
     // John Resig - http://ejohn.org/ - MIT Licensed
     // http://ejohn.org/blog/javascript-micro-templating/
     return new Function("_data_",
-                    "var _p_=[];" +
+                    "var _p_=[],print=function(){_p_.push.apply(_p_,arguments);};" +
 
                     // Introduce the data as local variables using with(){}
                     "with(_data_){_p_.push('" +
@@ -83,16 +83,26 @@ xBrowser.prototype.renderZones = function (container, initTree) {
     this._renderTreeView(container, this._model.zones, initTree);
 };
 
+
 xBrowser.prototype._registerEntityCallBacks = function (element, entity) {
     var self = this;
     element.entity = entity; 
     //element.addEventListener('', function (e) { self._fire('', { entity: entity, event: e , element: element}); e.stopPropagation(); });
-    element.addEventListener('click', function (e) { self._fire('entityClick', { entity: entity, event: e, element: element }); self._fire('entityActive', { entity: entity}); e.stopPropagation(); });
+    element.addEventListener('click', function (e) {
+        self._fire('entityClick', { entity: entity, event: e, element: element });
+        self._fire('entityActive', { entity: entity, event: e, element: element });
+        e.stopPropagation();
+    });
+    element.addEventListener('dblclick', function (e) {
+        self._fire('entityDblclick', { entity: entity, event: e, element: element });
+        self._fire('entityActive', { entity: entity, event: e, element: element });
+        e.stopPropagation();
+    });
+
     element.addEventListener('mouseDown', function (e) { self._fire('entityMouseDown', { entity: entity, event: e, element: element }); e.stopPropagation(); });
     element.addEventListener('mouseUp', function (e) { self._fire('entityMouseUp', { entity: entity, event: e, element: element }); e.stopPropagation(); });
     element.addEventListener('mouseMove', function (e) { self._fire('entityMouseMove', { entity: entity, event: e, element: element }); e.stopPropagation(); });
     element.addEventListener('touch', function (e) { self._fire('entityTouch', { entity: entity, event: e, element: element }); e.stopPropagation(); });
-    element.addEventListener('dblclick', function (e) { self._fire('entityDblclick', { entity: entity, event: e, element: element }); self._fire('entityActive', { entity: entity }); e.stopPropagation(); });
 };
 
 xBrowser.prototype._uiTree = function (container) {
@@ -210,6 +220,34 @@ xBrowser.prototype._renderTreeView = function (container, roots, initSimpleTree,
     if (initSimpleTree) this._uiTree(container);
 };
 
+xBrowser.prototype.renderAssignments = function (entity, container) {
+    if (!this._model) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
+    container = this._getContainer(container);
+    container.innerHTML = "";
+
+    var sets = entity.assignments;
+    if (sets.length == 0) return;
+    for (var i = 0; i < sets.length; i++) {
+        var set = sets[i];
+        if (set.assignments.length == 0) continue;
+
+        var header = document.createElement('h3');
+        header.classList.add('xbim-assignment-header');
+        header.classList.add('ui-corner-all');
+        header.classList.add('ui-widget-header');
+        header.classList.add('ui-state-active');
+        header.innerHTML = set.name ? set.name : 'Undefined';
+        container.appendChild(header);
+
+        var data = document.createElement('div');
+        this._renderListView(data, set.assignments)
+        container.appendChild(data);
+    }
+
+
+};
+
+
 xBrowser.prototype.renderDocuments = function (entity, container) {
     if (!entity) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
     var self = this;
@@ -310,12 +348,6 @@ xBrowser.prototype.load = function (source) {
     xhr.send();
 };
 
-xBrowser.prototype._getPresentationModel = function () {
-    if (!this._data) throw 'No data to be converted to presentation model';
-
-    var result = {};
-
-};
 
 /**
 * Use this method to register to events of the browser. You can define arbitrary number

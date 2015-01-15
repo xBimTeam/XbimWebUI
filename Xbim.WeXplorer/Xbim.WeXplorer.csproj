@@ -60,6 +60,7 @@
     <Content Include="Browser\xbim-attribute-dictionary.debug.js" />
     <Content Include="Browser\xbim-browser.debug.js" />
     <Content Include="Browser\xbim-cobie-utils.debug.js" />
+    <Content Include="Browser\xbim-visual-assignment-set.debug.js" />
     <Content Include="Browser\xbim-visual-attribute.debug.js" />
     <Content Include="Browser\xbim-visual-entity.debug.js" />
     <Content Include="Browser\xbim-visual-model.debug.js" />
@@ -143,7 +144,8 @@
     <Content Include="tests\data\COBieFacility.json" />
     <Content Include="Data\Duplex_MEP_20110907.json" />
     <Content Include="Data\Duplex_MEP_20110907.wexbim" />
-    <Content Include="Data\Lakeside.json" />
+    <Content Include="Data\LakesideRestaurant.json" />
+    <Content Include="Data\LakesideRestaurant.wexbim" />
     <None Include="Tutorials\1_Hello_building.md" />
     <Content Include="Resources\doctemplate\static\scripts\xbim-viewer.debug.bundle.js" />
     <Content Include="Viewer\fragment_shader.c" />

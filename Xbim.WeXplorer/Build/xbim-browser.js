@@ -181,7 +181,7 @@ xBrowser.prototype._compileTemplate = function (str) {
     // John Resig - http://ejohn.org/ - MIT Licensed
     // http://ejohn.org/blog/javascript-micro-templating/
     return new Function("_data_",
-                    "var _p_=[];" +
+                    "var _p_=[],print=function(){_p_.push.apply(_p_,arguments);};" +
 
                     // Introduce the data as local variables using with(){}
                     "with(_data_){_p_.push('" +
@@ -621,11 +621,11 @@ xCobieUtils.prototype.getSpatialStructure = function (data, types) {
             var instance = type.children[i];
 
             //check assignments
-            var spaceAssignment = instance.assignments.filter(function (e) { return e.type == 'space' })[0];
-            if (!spaceAssignment) continue;
+            var assignment = instance.assignments.filter(function (e) { return e.type == 'space' })[0];
+            if (!assignment) continue;
 
-            var spaceProp = spaceAssignment.properties.filter(function (e) { return e.id == 'SpaceName' })[0];
-            var floorProp = spaceAssignment.properties.filter(function (e) { return e.id == 'FloorName' })[0];
+            var spaceProp = assignment.properties.filter(function (e) { return e.id == 'SpaceName' })[0];
+            var floorProp = assignment.properties.filter(function (e) { return e.id == 'FloorName' })[0];
             if (!floorProp || !spaceProp) continue;
 
             var spaceName = spaceProp.value;
@@ -638,6 +638,7 @@ xCobieUtils.prototype.getSpatialStructure = function (data, types) {
             if (!space) continue;
             
             space.children.push(instance);
+            instance.assignments[instance.assignments.indexOf(assignment)] = space;
         }
     }
 
@@ -671,7 +672,12 @@ xCobieUtils.prototype.getZones = function (data, facility) {
                 if (!assignment) continue;
 
                 var zone = result.filter(function (e) { return e.id == assignment.id; })[0];
-                if (zone) zone.children.push(space);
+                if (zone) {
+                    //add space to visual children
+                    zone.children.push(space);
+                    //replace key with actual object
+                    space.assignments[space.assignments.indexOf(assignment)] = zone;
+                }
             }
         }
     }
@@ -707,7 +713,12 @@ xCobieUtils.prototype.getSystems = function (data, types) {
 
             if (!assignment.id) continue;
             var system = result.filter(function (e) { return e.id == assignment.id; })[0];
-            if (system) system.children.push(instance);
+            if (system) {
+                //add instance to system's visual children
+                system.children.push(instance);
+                //replace key with actual object
+                instance.assignments[instance.assignments.indexOf(assignment)] = system;
+            }
         }
     }
 
@@ -1026,6 +1037,6 @@ var emailA = properties.filter(function(e){return e.id == "ContactEmail";})[0]; 
 var name = nameA ? nameA.value : "";\
 var surname = surnameA ? surnameA.value : "";\
 var email = emailA ? emailA.value : ""; %>\
-<span class="xbim-entity" title="<%=email%>"> <%=name%> <%=surname%> </span>'
+<span class="xbim-entity" title="<%=email%>"> <%=name%> <%=surname%> <% if (!name && !surname) print("No name"); %> </span>'
     }
 };

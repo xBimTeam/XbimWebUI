@@ -27,6 +27,7 @@
     <script src="Browser/xbim-visual-model.debug.js"></script>
     <script src="Browser/xbim-visual-property.debug.js"></script>
     <script src="Browser/xbim-visual-templates.debug.js"></script>
+    <script src="Browser/xbim-visual-assignment-set.debug.js"></script>
 </head>
 <body>
     <div id="viewer-container">
@@ -110,6 +111,10 @@
             <h3>Tasks</h3>
             <div class="no-overflow">
                 <div id="issues"></div>
+            </div>
+            <h3>Assignments</h3>
+            <div class="no-overflow">
+                <div id="assignments"></div>
             </div>
         </div>
     </div>
@@ -205,12 +210,19 @@
                 document._lastSelection = span;
             });
             browser.on('entityActive', function (args) {
-                var objectTypes = ['document', 'issue'];
-                browser.renderPropertiesAttributes(args.entity, 'attrprop');
-                if (args.entity.type != 'document') browser.renderDocuments(args.entity, 'documents');
-                if (args.entity.type != 'issue') browser.renderIssues(args.entity, 'issues');
-                if (objectTypes.indexOf(args.entity.type) != -1) $('#attrprop-header').click();
+                var isRightPanelClick = false;
+                if (args.element) {
+                    if ($(args.element).parents('#semantic-descriptive-info').length != 0)
+                        isRightPanelClick = true;
 
+                browser.renderPropertiesAttributes(args.entity, 'attrprop');
+                browser.renderAssignments(args.entity, 'assignments');
+                browser.renderDocuments(args.entity, 'documents');
+                browser.renderIssues(args.entity, 'issues');
+
+                if (isRightPanelClick)
+                    $('#attrprop-header').click();
+            }
             });
             browser.on('entityDblclick', function (args) {
                 var entity = args.entity;
@@ -242,7 +254,7 @@
         var model = queryString.model ? queryString.model : 'lakeside';
         switch (model) {
             case 'lakeside':
-                model = 'Data/Lakeside.json';
+                model = 'Data/LakesideRestaurant.json';
                 break;
             case 'cobie':
                 model = 'tests/data/COBieFacility.json';
@@ -269,7 +281,7 @@
                 browser.activateEntity(args.id);
             });
             //viewer.load('Data/Duplex_MEP_20110907_SRL.wexbim');
-            viewer.load('tests/data/LakesideRestaurant.wexbim'); 
+            viewer.load('Data/LakesideRestaurant.wexbim'); 
             viewer.start();
         }
         else {

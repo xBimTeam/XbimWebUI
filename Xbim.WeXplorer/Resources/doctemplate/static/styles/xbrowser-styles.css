@@ -117,7 +117,15 @@
     user-select: none;
 }
 
-/* Overrides  */
+.xbim-assignment-header{
+    padding: 5px;
+    margin: 15px 0 5px 0;
+}
+
+.xbim-assignment-header:first-child {
+    margin-top:0;
+}
+/* ************************ Overrides ************************ */
 .ui-widget{
     font-size: 0.8em;
 }

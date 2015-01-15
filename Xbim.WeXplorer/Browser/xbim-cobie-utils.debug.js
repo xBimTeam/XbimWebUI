@@ -101,11 +101,13 @@ xCobieUtils.prototype.getSpatialStructure = function (data, types) {
             var instance = type.children[i];
 
             //check assignments
-            var spaceAssignment = instance.assignments.filter(function (e) { return e.type == 'space' })[0];
-            if (!spaceAssignment) continue;
+            var assignment = instance.assignments.filter(function (e) { return e.id == 'Space' })[0];
+            if (!assignment) continue;
+            assignment = assignment.assignments[0];
+            if (!assignment) continue;
 
-            var spaceProp = spaceAssignment.properties.filter(function (e) { return e.id == 'SpaceName' })[0];
-            var floorProp = spaceAssignment.properties.filter(function (e) { return e.id == 'FloorName' })[0];
+            var spaceProp = assignment.properties.filter(function (e) { return e.id == 'SpaceName' })[0];
+            var floorProp = assignment.properties.filter(function (e) { return e.id == 'FloorName' })[0];
             if (!floorProp || !spaceProp) continue;
 
             var spaceName = spaceProp.value;
@@ -118,6 +120,7 @@ xCobieUtils.prototype.getSpatialStructure = function (data, types) {
             if (!space) continue;
             
             space.children.push(instance);
+            instance.assignments[instance.assignments.indexOf(assignment)] = space;
         }
     }
 
@@ -147,11 +150,18 @@ xCobieUtils.prototype.getZones = function (data, facility) {
             var floor = f.children[j];
             for (var k = 0; k < floor.children.length; k++) { //spaces
                 var space = floor.children[k];
-                var assignment = space.assignments.filter(function (e) { return e.type == 'zone'; })[0];
+                var assignment = space.assignments.filter(function (e) { return e.id == 'Zone'; })[0];
+                if (!assignment) continue;
+                assignment = assignment.assignments[0];
                 if (!assignment) continue;
 
                 var zone = result.filter(function (e) { return e.id == assignment.id; })[0];
-                if (zone) zone.children.push(space);
+                if (zone) {
+                    //add space to visual children
+                    zone.children.push(space);
+                    //replace key with actual object
+                    space.assignments[space.assignments.indexOf(assignment)] = zone;
+                }
             }
         }
     }
@@ -182,12 +192,19 @@ xCobieUtils.prototype.getSystems = function (data, types) {
             var instance = type.children[i];
 
             //check assignments
-            var assignment = instance.assignments.filter(function (e) { return e.type == 'system' })[0];
+            var assignment = instance.assignments.filter(function (e) { return e.id == 'System' })[0];
+            if (!assignment) continue;
+            assignment = assignment.assignments[0];
             if (!assignment) continue;
 
             if (!assignment.id) continue;
             var system = result.filter(function (e) { return e.id == assignment.id; })[0];
-            if (system) system.children.push(instance);
+            if (system) {
+                //add instance to system's visual children
+                system.children.push(instance);
+                //replace key with actual object
+                instance.assignments[instance.assignments.indexOf(assignment)] = system;
+            }
         }
     }
 
@@ -198,6 +215,7 @@ xCobieUtils.prototype.getSystems = function (data, types) {
 xCobieUtils.prototype.getAssetTypes = function (data) {
     if (!data) throw 'data must be defined';
     var result = [];
+    var tr = this.getTranslator();
 
     var types = data.AssetTypes;
     if (!types) return result;
@@ -218,6 +236,13 @@ xCobieUtils.prototype.getAssetTypes = function (data) {
             var instance = instances[i];
             var vInstance = this.getVisualEntity(instance, 'asset');
             vType.children.push(vInstance);
+
+            //add assignment to the type
+            var assignment = new xVisualAssignmentSet();
+            assignment.id = 'AssetType';
+            assignment.name = tr(assignment.id);
+            assignment.assignments.push(vType);
+            vInstance.assignments.push(assignment);
         }
     }
 
@@ -249,7 +274,7 @@ xCobieUtils.prototype.getAttributes = function (entity) {
     var result = [];
     var attributes = null;
     for (var a in entity) {
-        if (a.indexOf('Attributes') != -1 && entity[a].Attribute) {
+        if (entity[a].Attribute) {
             attributes = entity[a].Attribute;
             break;
         }
@@ -272,20 +297,38 @@ xCobieUtils.prototype.getAttributes = function (entity) {
 
 xCobieUtils.prototype.getAssignments = function (entity, type) {
     if (!entity || !type) throw 'entity and type must be defined';
+    var tr = this.getTranslator();
     var result = [];
 
     for (var attr in entity) {
-        var r = new RegExp('^(' + type + ').*(assignments)$', 'i');
+        var collection = new xVisualAssignmentSet();
+        //assignment collection
+        var r = new RegExp('^(' + type + ')(.*)(assignments)$', 'i');
         if (r.test(attr)) {
+            collection.id = attr.replace(r, '$2');
+            collection.name = tr(collection.id + 's');
             for (var a in entity[attr]) {
                 var assignmentSet = entity[attr][a]
                 var name = a.replace('Assignment', '').toLowerCase();
                 for (var a in assignmentSet) {
                     var assignment = assignmentSet[a];
                     var vAssignment = this.getVisualEntity(assignment, name);
-                    result.push(vAssignment);
+                    vAssignment.isKey = true;
+                    collection.assignments.push(vAssignment);
                 }
             }
+        }
+        //single assignment
+        r = new RegExp('(.*)(assignment)$', 'i');
+        if (r.test(attr)) {
+            collection.id = attr.replace(r, '$1');
+            collection.name = tr(collection.id);
+            var vEntity = this.getVisualEntity(entity[attr], collection.id.toLowerCase());
+            collection.assignments.push(vEntity);
+        }
+
+        if (collection.assignments.length != 0) {
+            result.push(collection);
         }
     }
 

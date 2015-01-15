@@ -56,7 +56,7 @@ if (attributes && attributes.length > 0) {\
     <%}}%>\
 </table>\
 <%}%>',
-        entity: '<span class="xbim-entity" title="<%=description%>"> <%= name? name: (function f() { return type.charAt(0).toUpperCase() + type.slice(1); })() %> </span>',
+        entity: '<span class="xbim-entity" title="<%=typeof(description) != "undefined" ? description : ""%>"> <%= name? name: (function f() { return type.charAt(0).toUpperCase() + type.slice(1); })() %> </span>',
         contact:
 '<% var nameA = properties.filter(function(e){return e.id == "ContactGivenName";})[0]; \
 var surnameA = properties.filter(function(e){return e.id == "ContactFamilyName";})[0]; \
@@ -64,6 +64,6 @@ var emailA = properties.filter(function(e){return e.id == "ContactEmail";})[0]; 
 var name = nameA ? nameA.value : "";\
 var surname = surnameA ? surnameA.value : "";\
 var email = emailA ? emailA.value : ""; %>\
-<span class="xbim-entity" title="<%=email%>"> <%=name%> <%=surname%> </span>'
+<span class="xbim-entity" title="<%=email%>"> <%=name%> <%=surname%> <% if (!name && !surname) print("No name"); %> </span>'
     }
 };
