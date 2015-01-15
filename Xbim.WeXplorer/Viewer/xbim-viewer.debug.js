@@ -406,6 +406,7 @@ xViewer.prototype.setCameraPosition = function (coordinates) {
 * if you call functions like {@link xViewer.show show()} or {@link xViewer#zoomTo zoomTo()}.
 * @function xViewer#setCameraTarget
 * @param {Number} prodId [optional] Product ID. You can get ID either from semantic structure of the model or from {@link xViewer#pick pick event}.
+* @return {Bool} True if the target exists and is set, False otherwise
 */
 xViewer.prototype.setCameraTarget = function (prodId) {
     var viewer = this;
@@ -430,7 +431,10 @@ xViewer.prototype.setCameraTarget = function (prodId) {
         if (bbox) {
             this._origin = [bbox[0] + bbox[3] / 2.0, bbox[1] + bbox[4] / 2.0, bbox[2] + bbox[5] / 2.0];
             setDistance(bbox);
+            return true;
         }
+        else
+            return false;
     }
         //set navigation origin and default distance to the most populated region from the first model
     else {
@@ -443,7 +447,7 @@ xViewer.prototype.setCameraTarget = function (prodId) {
                 setDistance(region.bbox);
             }
         }
-
+        return true;
     }
 };
 
@@ -898,11 +902,13 @@ xViewer.prototype.getCameraPosition = function () {
 * Use this method to zoom to specified element. If you don't specify a product ID it will zoom to full extent.
 * @function xViewer#zoomTo
 * @param {Number} [id] Product ID
+* @return {Bool} True if target exists and zoom was successfull, False otherwise
 */
 xViewer.prototype.zoomTo = function (id) {
-    this.setCameraTarget(id);
-    var eye = this.getCameraPosition();
+    var found = this.setCameraTarget(id);
+    if (!found)  return false;
 
+    var eye = this.getCameraPosition();
     var dir = vec3.create();
     vec3.subtract(dir, eye, this._origin);
     dir = vec3.normalize(vec3.create(), dir);
@@ -911,7 +917,8 @@ xViewer.prototype.zoomTo = function (id) {
     vec3.scale(translation, dir, this._distance);
     vec3.add(eye, translation, this._origin);
 
-    mat4.lookAt(this._mvMatrix, eye, this._origin, [0,0,1])
+    mat4.lookAt(this._mvMatrix, eye, this._origin, [0, 0, 1])
+    return true;
 };
 
 /**

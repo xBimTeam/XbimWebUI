@@ -26,29 +26,28 @@
     word-break: break-all;
     border-collapse: collapse;
     width: 100%;
-    table-layout:fixed;
 }
 
-.semantic-model-tree ul {
+.xbim-tree ul {
     margin:0;
     padding-left: 0;
 }
 
-.semantic-model-tree li{
+.xbim-tree li{
     padding-left: 20px;
     padding-top: 5px;
     padding-bottom: 5px;
 }
 
-.semantic-model-tree li.xbim-tree-leaf{
+.xbim-tree li.xbim-tree-leaf{
     padding-left: 36px;
 }
 
-.semantic-model-tree > ul > li {
+.xbim-tree > ul > li {
      padding-left: 0; 
 }
 
-.semantic-model-tree > ul > li.xbim-tree-leaf {
+.xbim-tree > ul > li.xbim-tree-leaf {
      padding-left: 0; 
 }
 
@@ -91,10 +90,20 @@
     height: 100%;
 }
 
+#btnLocate{
+    position: absolute;
+    right: 7px;
+    top: 10px;
+}
+
+#btnLocate .ui-button-text{
+    padding: 3px 10px;
+}
+
 .xbim-entity{ 
     cursor: default; 
-    padding: 3px
-
+    display: table-cell;
+    word-break: break-all;
 }
 .no-overflow{
     overflow:scroll;
@@ -119,11 +128,19 @@
 
 .xbim-assignment-header{
     padding: 5px;
-    margin: 15px 0 5px 0;
+    margin: 0;
 }
 
-.xbim-assignment-header:first-child {
-    margin-top:0;
+.xbim-assignment:not(:first-child){
+    margin-top: 15px;
+}
+
+.right{
+    float: right;
+}
+
+.left{
+    float: left;
 }
 /* ************************ Overrides ************************ */
 .ui-widget{

@@ -231,17 +231,26 @@ xBrowser.prototype.renderAssignments = function (entity, container) {
         var set = sets[i];
         if (set.assignments.length == 0) continue;
 
+        var div = document.createElement("div");
+        div.classList.add('xbim-assignment');
+        div.classList.add('ui-widget');
+        div.classList.add('ui-corner-all');
+        div.classList.add('ui-widget-content');
+
         var header = document.createElement('h3');
         header.classList.add('xbim-assignment-header');
         header.classList.add('ui-corner-all');
         header.classList.add('ui-widget-header');
-        header.classList.add('ui-state-active');
+        header.classList.add('ui-state-default');
         header.innerHTML = set.name ? set.name : 'Undefined';
-        container.appendChild(header);
+        div.appendChild(header);
 
         var data = document.createElement('div');
+        data.classList.add('xbim-assignment-content');
         this._renderListView(data, set.assignments)
-        container.appendChild(data);
+        div.appendChild(data);
+
+        container.appendChild(div);
     }
 
 
