@@ -161,9 +161,8 @@
     var check = xViewer.check();
     var viewer = null;
     if (check.noErrors) {
-        var canvas = document.getElementById('viewer');
-        viewer = new xViewer(canvas);
-        viewer.background = [249, 249, 249];
+        viewer = new xViewer('viewer-canvas');
+        viewer.background = [249, 249, 249, 255];
         viewer.on('mouseDown', function (args) {
             viewer.setCameraTarget(args.id);
         });

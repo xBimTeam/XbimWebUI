@@ -57,6 +57,7 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="browser.js" />
     <Content Include="Browser\xbim-attribute-dictionary.debug.js" />
     <Content Include="Browser\xbim-browser.debug.js" />
     <Content Include="Browser\xbim-cobie-utils.debug.js" />

@@ -26,6 +26,7 @@
     word-break: break-all;
     border-collapse: collapse;
     width: 100%;
+    table-layout: fixed;
 }
 
 .xbim-tree ul {
@@ -85,7 +86,7 @@
     right: 410px;
 }
 
-#viewer{
+#viewer-canvas{
     width: 100%;
     height: 100%;
 }
