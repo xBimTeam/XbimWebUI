@@ -239,16 +239,26 @@ xBrowser.prototype.renderZones = function (container, initTree) {
     this._renderTreeView(container, this._model.zones, initTree);
 };
 
+
 xBrowser.prototype._registerEntityCallBacks = function (element, entity) {
     var self = this;
     element.entity = entity; 
     //element.addEventListener('', function (e) { self._fire('', { entity: entity, event: e , element: element}); e.stopPropagation(); });
-    element.addEventListener('click', function (e) { self._fire('entityClick', { entity: entity, event: e, element: element }); self._fire('entityActive', { entity: entity}); e.stopPropagation(); });
+    element.addEventListener('click', function (e) {
+        self._fire('entityClick', { entity: entity, event: e, element: element });
+        self._fire('entityActive', { entity: entity, event: e, element: element });
+        e.stopPropagation();
+    });
+    element.addEventListener('dblclick', function (e) {
+        self._fire('entityDblclick', { entity: entity, event: e, element: element });
+        self._fire('entityActive', { entity: entity, event: e, element: element });
+        e.stopPropagation();
+    });
+
     element.addEventListener('mouseDown', function (e) { self._fire('entityMouseDown', { entity: entity, event: e, element: element }); e.stopPropagation(); });
     element.addEventListener('mouseUp', function (e) { self._fire('entityMouseUp', { entity: entity, event: e, element: element }); e.stopPropagation(); });
     element.addEventListener('mouseMove', function (e) { self._fire('entityMouseMove', { entity: entity, event: e, element: element }); e.stopPropagation(); });
     element.addEventListener('touch', function (e) { self._fire('entityTouch', { entity: entity, event: e, element: element }); e.stopPropagation(); });
-    element.addEventListener('dblclick', function (e) { self._fire('entityDblclick', { entity: entity, event: e, element: element }); self._fire('entityActive', { entity: entity }); e.stopPropagation(); });
 };
 
 xBrowser.prototype._uiTree = function (container) {
@@ -366,6 +376,34 @@ xBrowser.prototype._renderTreeView = function (container, roots, initSimpleTree,
     if (initSimpleTree) this._uiTree(container);
 };
 
+xBrowser.prototype.renderAssignments = function (entity, container) {
+    if (!this._model) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
+    container = this._getContainer(container);
+    container.innerHTML = "";
+
+    var sets = entity.assignments;
+    if (sets.length == 0) return;
+    for (var i = 0; i < sets.length; i++) {
+        var set = sets[i];
+        if (set.assignments.length == 0) continue;
+
+        var header = document.createElement('h3');
+        header.classList.add('xbim-assignment-header');
+        header.classList.add('ui-corner-all');
+        header.classList.add('ui-widget-header');
+        header.classList.add('ui-state-active');
+        header.innerHTML = set.name ? set.name : 'Undefined';
+        container.appendChild(header);
+
+        var data = document.createElement('div');
+        this._renderListView(data, set.assignments)
+        container.appendChild(data);
+    }
+
+
+};
+
+
 xBrowser.prototype.renderDocuments = function (entity, container) {
     if (!entity) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
     var self = this;
@@ -466,12 +504,6 @@ xBrowser.prototype.load = function (source) {
     xhr.send();
 };
 
-xBrowser.prototype._getPresentationModel = function () {
-    if (!this._data) throw 'No data to be converted to presentation model';
-
-    var result = {};
-
-};
 
 /**
 * Use this method to register to events of the browser. You can define arbitrary number
@@ -621,7 +653,9 @@ xCobieUtils.prototype.getSpatialStructure = function (data, types) {
             var instance = type.children[i];
 
             //check assignments
-            var assignment = instance.assignments.filter(function (e) { return e.type == 'space' })[0];
+            var assignment = instance.assignments.filter(function (e) { return e.id == 'Space' })[0];
+            if (!assignment) continue;
+            assignment = assignment.assignments[0];
             if (!assignment) continue;
 
             var spaceProp = assignment.properties.filter(function (e) { return e.id == 'SpaceName' })[0];
@@ -638,7 +672,7 @@ xCobieUtils.prototype.getSpatialStructure = function (data, types) {
             if (!space) continue;
             
             space.children.push(instance);
-            instance.assignments[instance.assignments.indexOf(assignment)] = space;
+            assignment.assignments[0] = space;
         }
     }
 
@@ -668,7 +702,9 @@ xCobieUtils.prototype.getZones = function (data, facility) {
             var floor = f.children[j];
             for (var k = 0; k < floor.children.length; k++) { //spaces
                 var space = floor.children[k];
-                var assignment = space.assignments.filter(function (e) { return e.type == 'zone'; })[0];
+                var assignment = space.assignments.filter(function (e) { return e.id == 'Zone'; })[0];
+                if (!assignment) continue;
+                assignment = assignment.assignments[0];
                 if (!assignment) continue;
 
                 var zone = result.filter(function (e) { return e.id == assignment.id; })[0];
@@ -676,7 +712,7 @@ xCobieUtils.prototype.getZones = function (data, facility) {
                     //add space to visual children
                     zone.children.push(space);
                     //replace key with actual object
-                    space.assignments[space.assignments.indexOf(assignment)] = zone;
+                    assignment.assignments[0] = zone;
                 }
             }
         }
@@ -708,7 +744,9 @@ xCobieUtils.prototype.getSystems = function (data, types) {
             var instance = type.children[i];
 
             //check assignments
-            var assignment = instance.assignments.filter(function (e) { return e.type == 'system' })[0];
+            var assignment = instance.assignments.filter(function (e) { return e.id == 'System' })[0];
+            if (!assignment) continue;
+            assignment = assignment.assignments[0];
             if (!assignment) continue;
 
             if (!assignment.id) continue;
@@ -717,7 +755,7 @@ xCobieUtils.prototype.getSystems = function (data, types) {
                 //add instance to system's visual children
                 system.children.push(instance);
                 //replace key with actual object
-                instance.assignments[instance.assignments.indexOf(assignment)] = system;
+                assignment.assignments[0] = system;
             }
         }
     }
@@ -729,6 +767,7 @@ xCobieUtils.prototype.getSystems = function (data, types) {
 xCobieUtils.prototype.getAssetTypes = function (data) {
     if (!data) throw 'data must be defined';
     var result = [];
+    var tr = this.getTranslator();
 
     var types = data.AssetTypes;
     if (!types) return result;
@@ -749,6 +788,13 @@ xCobieUtils.prototype.getAssetTypes = function (data) {
             var instance = instances[i];
             var vInstance = this.getVisualEntity(instance, 'asset');
             vType.children.push(vInstance);
+
+            //add assignment to the type
+            var assignment = new xVisualAssignmentSet();
+            assignment.id = 'AssetType';
+            assignment.name = tr(assignment.id);
+            assignment.assignments.push(vType);
+            vInstance.assignments.push(assignment);
         }
     }
 
@@ -780,7 +826,7 @@ xCobieUtils.prototype.getAttributes = function (entity) {
     var result = [];
     var attributes = null;
     for (var a in entity) {
-        if (a.indexOf('Attributes') != -1 && entity[a].Attribute) {
+        if (entity[a].Attribute) {
             attributes = entity[a].Attribute;
             break;
         }
@@ -803,20 +849,38 @@ xCobieUtils.prototype.getAttributes = function (entity) {
 
 xCobieUtils.prototype.getAssignments = function (entity, type) {
     if (!entity || !type) throw 'entity and type must be defined';
+    var tr = this.getTranslator();
     var result = [];
 
     for (var attr in entity) {
-        var r = new RegExp('^(' + type + ').*(assignments)$', 'i');
+        var collection = new xVisualAssignmentSet();
+        //assignment collection
+        var r = new RegExp('^(' + type + ')(.*)(assignments)$', 'i');
         if (r.test(attr)) {
+            collection.id = attr.replace(r, '$2');
+            collection.name = tr(collection.id + 's');
             for (var a in entity[attr]) {
                 var assignmentSet = entity[attr][a]
                 var name = a.replace('Assignment', '').toLowerCase();
                 for (var a in assignmentSet) {
                     var assignment = assignmentSet[a];
                     var vAssignment = this.getVisualEntity(assignment, name);
-                    result.push(vAssignment);
+                    vAssignment.isKey = true;
+                    collection.assignments.push(vAssignment);
                 }
             }
+        }
+        //single assignment
+        r = new RegExp('(.*)(assignment)$', 'i');
+        if (r.test(attr)) {
+            collection.id = attr.replace(r, '$1');
+            collection.name = tr(collection.id);
+            var vEntity = this.getVisualEntity(entity[attr], collection.id.toLowerCase());
+            collection.assignments.push(vEntity);
+        }
+
+        if (collection.assignments.length != 0) {
+            result.push(collection);
         }
     }
 
@@ -891,6 +955,10 @@ xCobieUtils.prototype.getTranslator = function () {
     return function (term) {
         return self._dictionary[term] ? self._dictionary[term] : term.replace(/([a-z0-9])([A-Z])/g, '$1 $2');
     };
+};﻿function xVisualAssignmentSet() {
+    this.name = "";
+    this.id = "";
+    this.assignments = [];
 };﻿function xVisualAttribute(values) {
 
     this.name = "";
@@ -918,6 +986,8 @@ xCobieUtils.prototype.getTranslator = function () {
     this.assignments = [];
     this.children = []; //for tree hierarchies only (spatial structure, asset types)
     this.warranties = []; //for asset type only
+
+    this.isKey = false; //indicates if this is only a key for the actual entity
 
     if (typeof (values) == 'object') {
         for (var a in values) {
@@ -1029,7 +1099,7 @@ if (attributes && attributes.length > 0) {\
     <%}}%>\
 </table>\
 <%}%>',
-        entity: '<span class="xbim-entity" title="<%=description%>"> <%= name? name: (function f() { return type.charAt(0).toUpperCase() + type.slice(1); })() %> </span>',
+        entity: '<span class="xbim-entity" title="<%=typeof(description) != "undefined" ? description : ""%>"> <%= name? name: (function f() { return type.charAt(0).toUpperCase() + type.slice(1); })() %> </span>',
         contact:
 '<% var nameA = properties.filter(function(e){return e.id == "ContactGivenName";})[0]; \
 var surnameA = properties.filter(function(e){return e.id == "ContactFamilyName";})[0]; \

@@ -101,13 +101,13 @@ xCobieUtils.prototype.getSpatialStructure = function (data, types) {
             var instance = type.children[i];
 
             //check assignments
-            var assignment = instance.assignments.filter(function (e) { return e.id == 'Space' })[0];
-            if (!assignment) continue;
-            assignment = assignment.assignments[0];
-            if (!assignment) continue;
+            var assignmentSet = instance.assignments.filter(function (e) { return e.id == 'Space' })[0];
+            if (!assignmentSet) continue;
+            key = assignmentSet.assignments[0];
+            if (!key) continue;
 
-            var spaceProp = assignment.properties.filter(function (e) { return e.id == 'SpaceName' })[0];
-            var floorProp = assignment.properties.filter(function (e) { return e.id == 'FloorName' })[0];
+            var spaceProp = key.properties.filter(function (e) { return e.id == 'SpaceName' })[0];
+            var floorProp = key.properties.filter(function (e) { return e.id == 'FloorName' })[0];
             if (!floorProp || !spaceProp) continue;
 
             var spaceName = spaceProp.value;
@@ -120,7 +120,7 @@ xCobieUtils.prototype.getSpatialStructure = function (data, types) {
             if (!space) continue;
             
             space.children.push(instance);
-            instance.assignments[instance.assignments.indexOf(assignment)] = space;
+            assignmentSet.assignments[0] = space;
         }
     }
 
@@ -150,17 +150,18 @@ xCobieUtils.prototype.getZones = function (data, facility) {
             var floor = f.children[j];
             for (var k = 0; k < floor.children.length; k++) { //spaces
                 var space = floor.children[k];
-                var assignment = space.assignments.filter(function (e) { return e.id == 'Zone'; })[0];
-                if (!assignment) continue;
-                assignment = assignment.assignments[0];
-                if (!assignment) continue;
+                var assignmentSet = space.assignments.filter(function (e) { return e.id == 'Zone'; })[0];
+                if (!assignmentSet) continue;
+                key = assignmentSet.assignments[0];
+                if (!key) continue;
+                if (!key.id) continue;
 
-                var zone = result.filter(function (e) { return e.id == assignment.id; })[0];
+                var zone = result.filter(function (e) { return e.id == key.id; })[0];
                 if (zone) {
                     //add space to visual children
                     zone.children.push(space);
                     //replace key with actual object
-                    space.assignments[space.assignments.indexOf(assignment)] = zone;
+                    assignmentSet.assignments[0] = zone;
                 }
             }
         }
@@ -192,18 +193,18 @@ xCobieUtils.prototype.getSystems = function (data, types) {
             var instance = type.children[i];
 
             //check assignments
-            var assignment = instance.assignments.filter(function (e) { return e.id == 'System' })[0];
-            if (!assignment) continue;
-            assignment = assignment.assignments[0];
-            if (!assignment) continue;
+            var assignmentSet = instance.assignments.filter(function (e) { return e.id == 'System' })[0];
+            if (!assignmentSet) continue;
+            key = assignmentSet.assignments[0];
+            if (!key) continue;
 
-            if (!assignment.id) continue;
-            var system = result.filter(function (e) { return e.id == assignment.id; })[0];
+            if (!key.id) continue;
+            var system = result.filter(function (e) { return e.id == key.id; })[0];
             if (system) {
                 //add instance to system's visual children
                 system.children.push(instance);
                 //replace key with actual object
-                instance.assignments[instance.assignments.indexOf(assignment)] = system;
+                assignmentSet.assignments[0] = system;
             }
         }
     }
