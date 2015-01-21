@@ -46,12 +46,16 @@
     <h1>﻿xBIM WeXplorer</h1><p>WeXplorer is the visualization part of xBIM toolkit that deals with visualization of IFC data on web using preprocessed wexBIM file. 
 It uses cutting edge web technologies like WebGL so it is not supposed to work in old browsers but should work very well with Chrome or 
 Mozzilla since 2011, IE11 and others with support for this technology. Use xBIM Essentials and xBIM Geometry to create optimized and 
-compressed wexBIM files for visualization.</p>
-<p>The main class which exposes all necessary API calls is <a href="xViewer.html">xViewer</a>. This is the only class you need to load and render IFC models in wexBIM format. 
-This viewer is part of xBIM toolkit which can be used to create wexBIM files from IFC, ifcZIP and ifcXML. WexBIM files are highly optimized for
+compressed wexBIM files for visualization. WeXplorer also contains <a href="xBrowser.html">xBrowser</a> for visualization of COBielight data from JSON.</p>
+<p>The main classes which exposes all necessary API calls are <a href="xViewer.html">xViewer</a> for 3D visualization and <a href="xBrowser.html">xBrowser</a> for
+visualization of semantic data from COBie. These are the only two class you need to load and render IFC models in wexBIM format and to browse
+related semantic data. If you have a WebGL enabled browser and you are looking at this documentation fron web, you should be able to see an
+example of 3D browser at the very bottom of this page.</p>
+<p>This viewer is part of xBIM toolkit which can be used to create wexBIM files from IFC, ifcZIP and ifcXML. WexBIM files are highly optimized for
 transmition over internet and rendering performance. Viewer uses WebGL technology for hardware accelerated 3D rendering and SVG for
-certain kinds of user interaction. This means that it won't work with obsolete and non-standard-compliant browsers like IE10 and less.</p>
-<h2>xBIM</h2><p><a href="http://xbim.codeplex.com">xBIM</a> is an <a href="http://www.openbim.org">Open Source Toolkit</a> for developing IFC based applications (BuildingSmart Data model). 
+certain kinds of user interaction. This means that it won't work with obsolete and non-standard-compliant browsers like IE10 and less.
+COBielight JSON files can also be created using <a href="https://github.com/xBimTeam/XbimExchange">xBIM</a>. </p>
+<h2>xBIM</h2><p><a href="https://github.com/xBimTeam">xBIM</a> is an <a href="http://www.openbim.org">Open Source Toolkit</a> for developing IFC based applications (BuildingSmart Data model). 
 It provides full support for reading and writing geometry, topology and data in accordance with the Ifc2x3 schema.
 xBIM reads and writes IFC, IfcXMl and IfcZip formats. The xBIM project provides packages to convert IFC models to COBie 
 spreadsheets in both UK and US cultures as well as a range of 3D viewing controls for use with Windows forms, WPF, WEBGL and OpenGL platforms.
@@ -124,13 +128,13 @@ IOS and Android versions are under development.</p>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="OrthogonalCamera.html">OrthogonalCamera</a></li><li><a href="PerspectiveCamera.html">PerspectiveCamera</a></li><li><a href="Prerequisities.html">Prerequisities</a></li><li><a href="xViewer.html">xViewer</a></li></ul><h3>Events</h3><ul><li><a href="xViewer.html#event:clipped">clipped</a></li><li><a href="xViewer.html#event:error">error</a></li><li><a href="xViewer.html#event:fps">fps</a></li><li><a href="xViewer.html#event:frame">frame</a></li><li><a href="xViewer.html#event:loaded">loaded</a></li><li><a href="xViewer.html#event:mouseDown">mouseDown</a></li><li><a href="xViewer.html#event:pick">pick</a></li><li><a href="xViewer.html#event:unclipped">unclipped</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-1_Hello_building.html">Hello building!</a></li><li><a href="tutorial-2_Safe_Hello_building.html">Safe 'Hello building!'</a></li><li><a href="tutorial-3_Eventful_building.html">Eventful building</a></li><li><a href="tutorial-4_Building_seen_from_everywhere.html">Building seen from everywhere ...</a></li><li><a href="tutorial-5_Colourful_building.html">Colourful building</a></li></ul><h3>Global</h3><ul><li><a href="global.html#xProductType">xProductType</a></li><li><a href="global.html#xState">xState</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="OrthogonalCamera.html">OrthogonalCamera</a></li><li><a href="PerspectiveCamera.html">PerspectiveCamera</a></li><li><a href="Prerequisities.html">Prerequisities</a></li><li><a href="xBrowser.html">xBrowser</a></li><li><a href="xViewer.html">xViewer</a></li><li><a href="xVisualAssignmentSet.html">xVisualAssignmentSet</a></li><li><a href="xVisualAttribute.html">xVisualAttribute</a></li><li><a href="xVisualEntity.html">xVisualEntity</a></li><li><a href="xVisualModel.html">xVisualModel</a></li><li><a href="xVisualProperty.html">xVisualProperty</a></li></ul><h3>Events</h3><ul><li><a href="xBrowser.html#event:entityActive">entityActive</a></li><li><a href="xBrowser.html#event:entityClick">entityClick</a></li><li><a href="xBrowser.html#event:entityDblclick">entityDblclick</a></li><li><a href="xBrowser.html#event:entityMouseDown">entityMouseDown</a></li><li><a href="xBrowser.html#event:entityMouseMove">entityMouseMove</a></li><li><a href="xBrowser.html#event:entityMouseUp">entityMouseUp</a></li><li><a href="xBrowser.html#event:entityTouch">entityTouch</a></li><li><a href="xBrowser.html#event:loaded">loaded</a></li><li><a href="xViewer.html#event:clipped">clipped</a></li><li><a href="xViewer.html#event:error">error</a></li><li><a href="xViewer.html#event:fps">fps</a></li><li><a href="xViewer.html#event:frame">frame</a></li><li><a href="xViewer.html#event:loaded">loaded</a></li><li><a href="xViewer.html#event:mouseDown">mouseDown</a></li><li><a href="xViewer.html#event:pick">pick</a></li><li><a href="xViewer.html#event:unclipped">unclipped</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-1_Hello_building.html">Hello building!</a></li><li><a href="tutorial-2_Safe_Hello_building.html">Safe 'Hello building!'</a></li><li><a href="tutorial-3_Eventful_building.html">Eventful building</a></li><li><a href="tutorial-4_Building_seen_from_everywhere.html">Building seen from everywhere ...</a></li><li><a href="tutorial-5_Colourful_building.html">Colourful building</a></li><li><a href="tutorial-6_Building_described.html">Building described</a></li></ul><h3>Global</h3><ul><li><a href="global.html#xProductType">xProductType</a></li><li><a href="global.html#xState">xState</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha11</a> on Tue Jan 06 2015 15:49:19 GMT+0100 (Central Europe Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha11</a> on Wed Jan 21 2015 17:53:15 GMT+0100 (Central Europe Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

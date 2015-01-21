@@ -71,10 +71,10 @@ xCobieUtils.prototype.getSpatialStructure = function (data, types) {
 
     var floors = data.Floors;
     if (!floors)
-        return facility;
+        return [facility];
     floors = floors.Floor;
     if (!floors || floors.length == 0)
-        return facility;
+        return [facility];
 
     for (var i in floors) {
         var floor = floors[i];

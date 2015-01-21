@@ -75,5 +75,5 @@ var xProductType = {
         IFCWALL: 452,
         IFCWALLSTANDARDCASE: 453,
         IFCWINDOW: 667,
-        IFCPROXY: 447,
+        IFCPROXY: 447
 };

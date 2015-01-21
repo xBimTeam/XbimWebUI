@@ -18,8 +18,9 @@ type Build\xbim-viewer.min.js > Build\xbim-viewer.min.bundle.js
 type Libs\webgl-utils.min.js >> Build\xbim-viewer.min.bundle.js
 type Libs\gl-matrix.min.js >> Build\xbim-viewer.min.bundle.js
 
-rem Copy all new built files to the sample project to make sure it's running the with the latest source
+rem Copy new built files to the sample project to make sure it's running the with the latest source
 xcopy /y Build\xbim-viewer.debug.bundle.js Resources\doctemplate\static\scripts
+xcopy /y Build\xbim-browser.js Resources\doctemplate\static\scripts
 
 rem Create build files for the browser
 type Resources\xbim-disclaimer.txt > Build\xbim-browser.js
@@ -28,6 +29,4 @@ type Resources\xbim-disclaimer.txt > Build\xbim-browser.min.js
 type Browser\*.debug.js | Utilities\jsmin.exe >> Build\xbim-browser.min.js
 
 rem Pack the NuGet package with the latest source
-cd nuget
-..\Utilities\NuGet.exe pack  WeXplorer.0.1.0-Prerelease.nuspec
-cd ..
+Utilities\NuGet.exe pack  WeXplorer.nuspec

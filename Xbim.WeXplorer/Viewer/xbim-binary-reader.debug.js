@@ -11,7 +11,7 @@ xBinaryReader.prototype.load = function (source) {
     var self = this;
 
     if (typeof (source) == 'undefined' || source == null) throw 'Source must be defined';
-    if (source.constructor.name == 'String') {
+    if (typeof (source) == 'string') {
         var xhr;
         xhr = new XMLHttpRequest();
         xhr.open("GET", source, true);
@@ -41,7 +41,7 @@ xBinaryReader.prototype.load = function (source) {
         xhr.responseType = 'blob';
         xhr.send();
     }
-    else if (source.constructor.name == 'Blob' || source.constructor.name == 'File') {
+    else if (source instanceof Blob || source instanceof File) {
         var fReader = new FileReader();
         fReader.onloadend = function () {
             if (fReader.result) {

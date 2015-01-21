@@ -208,7 +208,7 @@ xModelHandle.prototype._bufferTexture = function (pointer, data, arity) {
     if (data.length == 0) return 0;
 
     //detect floating point texture support and data type
-    var fp = this._fpt && data.constructor.name == 'Float32Array';
+    var fp = this._fpt && data instanceof Float32Array;
 
     //compute size of the image (length should be correct already)
     var size = 0;

@@ -106,6 +106,7 @@
     <Content Include="Resources\doctemplate\static\1_Hello_building.live.html" />
     <Content Include="Resources\doctemplate\static\3_Eventful_building.live.html" />
     <Content Include="Resources\doctemplate\static\4_Building_seen_from_everywhere.live.html" />
+    <Content Include="Resources\doctemplate\static\6_Building_described.live.html" />
     <Content Include="Resources\doctemplate\static\fonts\OpenSans-Bold-webfont.svg" />
     <Content Include="Resources\doctemplate\static\fonts\OpenSans-BoldItalic-webfont.svg" />
     <Content Include="Resources\doctemplate\static\fonts\OpenSans-Italic-webfont.svg" />
@@ -133,6 +134,7 @@
     <Content Include="Resources\doctemplate\static\scripts\prettify\Apache-License-2.0.txt" />
     <Content Include="Resources\doctemplate\static\scripts\prettify\lang-css.js" />
     <Content Include="Resources\doctemplate\static\scripts\prettify\prettify.js" />
+    <Content Include="Resources\doctemplate\static\scripts\xbim-browser.js" />
     <Content Include="Resources\doctemplate\static\styles\jsdoc-default.css" />
     <Content Include="Resources\doctemplate\static\styles\prettify-jsdoc.css" />
     <Content Include="Resources\doctemplate\static\styles\prettify-tomorrow.css" />
@@ -198,8 +200,7 @@
     <Content Include="tests\data\TwoProxy.wexbim" />
     <Content Include="tests\data\TwoWallsTwoColour.ifc" />
     <Content Include="tests\data\TwoWallsTwoColour.wexbim" />
-    <Content Include="nuget\WeXplorer.0.1.0-Prerelease.nupkg" />
-    <Content Include="nuget\WeXplorer.0.1.0-Prerelease.nuspec" />
+    <Content Include="WeXplorer.nuspec" />
     <Content Include="build.bat" />
     <Content Include="Resources\README.md" />
     <Content Include="Resources\doctemplate\README.md" />
@@ -231,7 +232,6 @@
     <Content Include="Resources\doctemplate\tmpl\source.tmpl" />
     <Content Include="Resources\doctemplate\tmpl\tutorial.tmpl" />
     <Content Include="Resources\doctemplate\tmpl\type.tmpl" />
-    <Content Include="Resources\doctemplate\static\data\OneWall.wexbim" />
     <Content Include="Resources\doctemplate\static\data\SampleHouse.wexbim" />
     <Content Include="Tutorials\2_Safe_Hello_building.json" />
     <Content Include="Tutorials\3_Eventful_building.md" />
@@ -240,6 +240,8 @@
     <Content Include="Tutorials\4_Building_seen_from_everywhere.json" />
     <Content Include="Tutorials\5_Colourful_building.md" />
     <Content Include="Tutorials\5_Colourful_building.json" />
+    <Content Include="Tutorials\6_Building_described.md" />
+    <Content Include="Tutorials\6_Building_described.json" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

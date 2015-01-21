@@ -161,6 +161,7 @@
     var check = xViewer.check();
     var viewer = null;
     if (check.noErrors) {
+        //alert('WebGL support is OK');
         viewer = new xViewer('viewer-canvas');
         viewer.background = [249, 249, 249, 255];
         viewer.on('mouseDown', function (args) {
@@ -174,6 +175,7 @@
         viewer.start();
     }
     else {
+        alert('WebGL support is unsufficient');
         var msg = document.getElementById('msg');
         msg.innerHTML = '';
         for (var i in check.errors) {

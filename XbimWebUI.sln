@@ -9,6 +9,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Utilities", "Utilities", "{
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShaderPacker", "Utilities\ShaderPacker\ShaderPacker.csproj", "{95B208E8-3DD5-48B9-A9A2-2B25B01947DD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xbim.WPF.WeXplorer", "Xbim.WPF.WeXplorer\Xbim.WPF.WeXplorer.csproj", "{D474180B-30F9-420C-815A-CBC41EB6EE8D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "nuget", "nuget", "{D4EFC046-47AB-4BB9-81CA-72BA25DBECCA}"
+	ProjectSection(SolutionItems) = preProject
+		Xbim.WeXplorer\WeXplorer.nuspec = Xbim.WeXplorer\WeXplorer.nuspec
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,6 +30,10 @@ Global
 		{95B208E8-3DD5-48B9-A9A2-2B25B01947DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{95B208E8-3DD5-48B9-A9A2-2B25B01947DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{95B208E8-3DD5-48B9-A9A2-2B25B01947DD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D474180B-30F9-420C-815A-CBC41EB6EE8D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D474180B-30F9-420C-815A-CBC41EB6EE8D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D474180B-30F9-420C-815A-CBC41EB6EE8D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D474180B-30F9-420C-815A-CBC41EB6EE8D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

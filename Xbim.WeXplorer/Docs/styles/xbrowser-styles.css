@@ -1,0 +1,153 @@
+﻿html, body{
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background-color: #f9f9f9;
+    overflow: hidden;
+}
+
+#semantic-model-container{
+    position: absolute;
+    width: 400px;
+    top: 5px;
+    left: 5px;
+    bottom: 5px;
+}
+
+#semantic-descriptive-info-container{
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    bottom: 5px;
+    width: 400px;
+}
+
+#semantic-descriptive-info table {
+    word-break: break-all;
+    border-collapse: collapse;
+    width: 100%;
+    table-layout: fixed;
+}
+
+.xbim-tree ul {
+    margin:0;
+    padding-left: 0;
+}
+
+.xbim-tree li{
+    padding-left: 20px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.xbim-tree li.xbim-tree-leaf{
+    padding-left: 36px;
+}
+
+.xbim-tree > ul > li {
+     padding-left: 0; 
+}
+
+.xbim-tree > ul > li.xbim-tree-leaf {
+     padding-left: 0; 
+}
+
+#semantic-descriptive-info tr:not(:last-child){
+    border-bottom: 1px solid lightgray;
+}
+#semantic-descriptive-info td, #semantic-descriptive-info th{
+    vertical-align: middle;
+    text-align:left;
+    padding: 3px;
+}
+
+#semantic-tabs{
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+#semantic-tabs.ui-tabs .ui-tabs-panel{
+    padding: 0;
+    position: absolute;
+    top: 50px;
+    right: 5px;
+    bottom: 5px;
+    left: 5px;
+}
+
+#viewer-container {
+    position: absolute;
+    top: 5px;
+    bottom: 5px;
+    left: 410px;
+    right: 410px;
+}
+
+#viewer-canvas{
+    width: 100%;
+    height: 100%;
+}
+
+#btnLocate{
+    position: absolute;
+    right: 7px;
+    top: 10px;
+}
+
+#btnLocate .ui-button-text{
+    padding: 3px 10px;
+}
+
+.xbim-entity{ 
+    cursor: default; 
+    display: table-cell;
+    word-break: break-all;
+}
+.no-overflow{
+    overflow:scroll;
+}
+
+.no-overflow-y{
+    overflow-y:auto;
+}
+
+.ui-selected{
+    background-color: lightgray;
+}
+
+.noselect {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.xbim-assignment-header{
+    padding: 5px;
+    margin: 0;
+}
+
+.xbim-assignment:not(:first-child){
+    margin-top: 15px;
+}
+
+.right{
+    float: right;
+}
+
+.left{
+    float: left;
+}
+/* ************************ Overrides ************************ */
+.ui-widget{
+    font-size: 0.8em;
+}
+
+.ui-accordion .ui-accordion-content{
+      padding: 1em 1.5em;
+}

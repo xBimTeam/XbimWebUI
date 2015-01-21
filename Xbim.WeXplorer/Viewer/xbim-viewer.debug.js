@@ -16,10 +16,10 @@ function xViewer(canvas) {
         throw 'Canvas has to be defined';
     }
     this._canvas = null;
-    if (canvas.constructor.name == 'HTMLCanvasElement' || canvas.constructor.name == '') { // '' is firefox fix
+    if (typeof(canvas.nodeName) != 'undefined' && canvas.nodeName == 'CANVAS') { 
         this._canvas = canvas;
     }
-    if (canvas.constructor.name == 'String') {
+    if (typeof (canvas) == 'string') {
         this._canvas = document.getElementById(canvas);
     }
     if (this._canvas == null) {
@@ -474,7 +474,8 @@ xViewer.prototype.set = function (settings) {
 */
 xViewer.prototype.load = function (model) {
     if (typeof (model) == 'undefined') throw 'You have to speficy model to load.';
-    if (model.constructor.name != 'String' && model.constructor.name != 'Blob' && model.constructor.name != 'File') throw 'Model has to be specified either as a URL to wexBIM file or Blob object representing the wexBIM file.';
+    if (typeof(model) != 'string' && !(model instanceof Blob) && !(model instanceof File))
+        throw 'Model has to be specified either as a URL to wexBIM file or Blob object representing the wexBIM file.';
     var gl = this._gl;
     var viewer = this;
 
@@ -586,15 +587,13 @@ xViewer.prototype._initAttributesAndUniforms = function () {
         stateAttrPointer: gl.getAttribLocation(this._shaderProgram, "aState"),
         styleAttrPointer: gl.getAttribLocation(this._shaderProgram, "aStyleIndex"),
         transformationAttrPointer: gl.getAttribLocation(this._shaderProgram, "aTransformationIndex"),
-
         vertexSamplerUniform: gl.getUniformLocation(this._shaderProgram, "uVertexSampler"),
         matrixSamplerUniform: gl.getUniformLocation(this._shaderProgram, "uMatrixSampler"),
         styleSamplerUniform: gl.getUniformLocation(this._shaderProgram, "uStyleSampler"),
         stateStyleSamplerUniform: gl.getUniformLocation(this._shaderProgram, "uStateStyleSampler"),
-
         vertexTextureSizeUniform: gl.getUniformLocation(this._shaderProgram, "uVertexTextureSize"),
         matrixTextureSizeUniform: gl.getUniformLocation(this._shaderProgram, "uMatrixTextureSize"),
-        styleTextureSizeUniform: gl.getUniformLocation(this._shaderProgram, "uStyleTextureSize"),
+        styleTextureSizeUniform: gl.getUniformLocation(this._shaderProgram, "uStyleTextureSize")
     };
 
     //enable vertex attributes arrays
@@ -745,8 +744,15 @@ xViewer.prototype._initMouseEvents = function () {
             event.stopPropagation();
             event.cancelBubble = true;
         }
+        function sign(x) {
+            x = +x // convert to a number
+            if (x === 0 || isNaN(x))
+                return x
+            return x > 0 ? 1 : -1
+        }
+
         //deltaX and deltaY have very different values in different web browsers so fixed value is used for constant functionality.
-        navigate('zoom', Math.sign(event.deltaX) * -1.0, Math.sign(event.deltaY) * -1.0);
+        navigate('zoom', sign(event.deltaX) * -1.0, sign(event.deltaY) * -1.0);
     }
 
     function navigate(type, deltaX, deltaY) {
