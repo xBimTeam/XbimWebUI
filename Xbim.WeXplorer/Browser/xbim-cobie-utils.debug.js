@@ -379,8 +379,8 @@ xCobieUtils.prototype.setLanguage = function (lang, culture) {
 };
 
 xCobieUtils.prototype.getValueString = function (value) {
-    if (typeof(value) == 'undefined')
-        throw 'Object must be defined';
+    if (typeof(value) == 'undefined' || value == null)
+        return '';
     var tr = this.getTranslator();
 
     //this of for attributes
@@ -396,7 +396,7 @@ xCobieUtils.prototype.getValueString = function (value) {
 
     if (value.UnitName) baseVal += ' ' + value.UnitName;
 
-    return baseVal.length > 0 ? baseVal : null;
+    return baseVal.length > 0 ? baseVal : '';
 };
 
 xCobieUtils.prototype.getTranslator = function () {

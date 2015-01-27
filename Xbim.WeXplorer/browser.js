@@ -149,6 +149,9 @@
         case 'cobie':
             model = 'tests/data/COBieFacility.json';
             break;
+        case 'dpow':
+            model = 'Data/NewtownHighSchool.COBieLite.json';
+            break;
         default:
 
     }
