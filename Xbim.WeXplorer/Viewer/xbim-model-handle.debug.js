@@ -133,9 +133,6 @@ xModelHandle.prototype.setActive = function (pointers) {
 
 //this function must be called AFTER 'setActive()' function which sets up active buffers and uniforms
 xModelHandle.prototype.draw = function () {
-    //this.drawElement(480949);
-    //return;
-
     var gl = this._gl;
     //draw image frame
     gl.drawArrays(gl.TRIANGLES, 0, this.count);

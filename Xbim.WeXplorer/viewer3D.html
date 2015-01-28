@@ -100,6 +100,9 @@
 				</button>
 				<button onclick="resetWalls()"> Reset walls
 				</button>
+                <button onclick="selectAllWalls()">
+                    Select
+                </button>
 			</div>
 			<div>
 				<button onclick="viewer.setState(states.HIDDEN, types.IFCSPACE)"> Hide spaces
@@ -129,6 +132,16 @@
                     Make all default
                 </button>
 			</div>
+            <div>
+                Rendering mode:
+                <br />
+                <label>
+                    <input type="radio" name="radioRenderingMode" value="normal" checked="checked" onchange="viewer.renderingMode = 'normal';"/> Normal
+                </label>
+                <label>
+                    <input type="radio" name="radioRenderingMode" value="xray" onchange="viewer.renderingMode = 'x-ray';" /> X-Ray
+                </label>
+            </div>
 		</div>
 		<canvas id="xBIM-viewer" width="600" height="500"></canvas>
 		<script type="text/javascript">
@@ -201,6 +214,11 @@
 				viewer.setStyle(0, types.IFCWALLSTANDARDCASE );
 				viewer.setStyle(0, types.IFCCURTAINWALL );
 				viewer.setStyle(0, types.IFCWALL );
+			}
+			var selectAllWalls = function () {
+			    viewer.setState(states.HIGHLIGHTED, types.IFCWALLSTANDARDCASE);
+			    viewer.setState(states.HIGHLIGHTED, types.IFCCURTAINWALL);
+			    viewer.setState(states.HIGHLIGHTED, types.IFCWALL);
 			}
 			var hideWalls = function(){
 				viewer.setState(states.HIDDEN, types.IFCWALLSTANDARDCASE );

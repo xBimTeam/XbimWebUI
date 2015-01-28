@@ -20,6 +20,9 @@ uniform float uMeter;
 //this is used for picking
 uniform bool uColorCoding;
 
+//used for 3 states in x-ray rendering (no x-ray, only highlighted, only non-highlighted as semitransparent)
+uniform int uRenderingMode;
+
 //sampler with vertices
 uniform highp sampler2D uVertexSampler;
 uniform int uVertexTextureSize;
@@ -78,18 +81,20 @@ vec2 getTextureCoordinates(int index, int size)
 
 
 vec4 getColor(){
+	if (uRenderingMode == 2){
+		return vec4(0.0, 0.0, 0.3, 0.5); //x-ray semitransparent light blue colour
+	}
+	
 	int restyle = int(floor(aState[1] + 0.5));
-	//return colour based on restyle
 	if (restyle > 224){
 		int index = int (floor(aStyleIndex + 0.5));
 		vec2 coords = getTextureCoordinates(index, uStyleTextureSize);
 		return texture2D(uStyleSampler, coords);
 	}
-	else{
-		vec2 coords = getTextureCoordinates(restyle, 15);
-		return texture2D(uStateStyleSampler, coords);
-	}
 	
+	//return colour based on restyle
+	vec2 coords = getTextureCoordinates(restyle, 15);
+	return texture2D(uStateStyleSampler, coords);
 }
 
 vec3 getVertexPosition(){
@@ -121,8 +126,9 @@ void main(void) {
 	vec3 vertex = getVertexPosition();
 	vec3 normal = getNormal();
 	int state = int(floor(aState[0] + 0.5));
-	
-	if (state == 254) //HIDDEN state
+	int restyle = int(floor(aState[1] + 0.5));
+	//HIDDEN state or first stage of xray rendering and no style state
+	if (state == 254 || (uRenderingMode == 1 && !(state == 253 || state == 252)) || (uRenderingMode == 2 && (state == 253 || state == 252)))
 	{
 		vDiscard = 1.0;
 		return;

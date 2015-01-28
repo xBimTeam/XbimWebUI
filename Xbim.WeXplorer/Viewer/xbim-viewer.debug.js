@@ -103,6 +103,14 @@ function xViewer(canvas) {
     */
     this.navigationMode = 'orbit';
 
+    /**
+    * Switch between different rendering modes. Allowed values: <strong> 'normal', 'x-ray'</strong>. Default value is <strong>'normal'</strong>;
+    * Only products with state set to state.HIGHLIGHTED or xState.XRAYVISIBLE will be rendered highlighted or in a normal colours. All other products
+    * will be rendered semitransparent and singlesided.
+    * @member {String} xViewer#renderingMode
+    */
+    this.renderingMode = 'normal';
+
     /** 
     * Clipping plane [a, b, c, d] defined as normal equation of the plane ax + by + cz + d = 0. [0,0,0,0] is for no clipping plane.
     * @member {Number[]} xViewer#_clippingPlane
@@ -161,6 +169,7 @@ function xViewer(canvas) {
     this._colorCodingUniformPointer = null;
     this._clippingPlaneUniformPointer = null;
     this._meterUniformPointer = null;
+    this._renderingModeUniformPointer = null;
 
     //transformation matrices
     this._mvMatrix = mat4.create(); 	//world matrix
@@ -579,6 +588,7 @@ xViewer.prototype._initAttributesAndUniforms = function () {
     this._colorCodingUniformPointer = gl.getUniformLocation(this._shaderProgram, "uColorCoding");
     this._clippingPlaneUniformPointer = gl.getUniformLocation(this._shaderProgram, "uClippingPlane");
     this._meterUniformPointer = gl.getUniformLocation(this._shaderProgram, "uMeter");
+    this._renderingModeUniformPointer = gl.getUniformLocation(this._shaderProgram, "uRenderingMode");
 
     this._pointers = {
         normalAttrPointer: gl.getAttribLocation(this._shaderProgram, "aNormal"),
@@ -875,11 +885,38 @@ xViewer.prototype.draw = function () {
     //use normal colour representation (1 would cause shader to use colour coding of IDs)
     gl.uniform1i(this._colorCodingUniformPointer, 0);
 
-    for (var i in this._handles) {
-        var handle = this._handles[i];
-        handle.setActive(this._pointers);
-        handle.draw();
+
+    //check for x-ray mode
+    if (this.renderingMode == 'x-ray')
+    {
+        //two passes - first one for non-transparent objects, second one for all the others
+        gl.uniform1i(this._renderingModeUniformPointer, 1);
+        for (var i in this._handles) {
+            var handle = this._handles[i];
+            handle.setActive(this._pointers);
+            handle.draw();
+        }
+
+        //transparent objects should have only one side so that they are even more transparent.
+        gl.uniform1i(this._renderingModeUniformPointer, 2);
+        gl.enable(gl.CULL_FACE);
+        for (var i in this._handles) {
+            var handle = this._handles[i];
+            handle.setActive(this._pointers);
+            handle.draw();
+        }
     }
+    else {
+        gl.uniform1i(this._renderingModeUniformPointer, 0);
+        gl.disable(gl.CULL_FACE);
+
+        for (var i in this._handles) {
+            var handle = this._handles[i];
+            handle.setActive(this._pointers);
+            handle.draw();
+        }
+    }
+    
     /**
      * Occurs after every frame in animation. Don't do anything heavy weighted in here as it will happen about 60 times in a second all the time.
      *
