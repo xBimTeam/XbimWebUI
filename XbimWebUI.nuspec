@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
   <metadata>
-    <id>WeXplorer</id>
+    <id>XbimWebUI</id>
     <version>0.1.1-Prerelease</version>
     <title>xBIM WeXplorer</title>
     <authors>xBIM team</authors>
@@ -25,12 +25,6 @@
     <tags>WebGL, BIM, IFC, IfcXml, IfcZip, COBie, .Net, C#, BuildingSmart</tags>
   </metadata>
   <files>
-    <file src="Build\gl-matrix.min.js" target="content\Scripts\gl-matrix.min.js" />
-    <file src="Build\webgl-utils.min.js" target="content\Scripts\webgl-utils.min.js" />
-    <file src="Build\xbim-viewer.min.js" target="content\Scripts\xbim-viewer.min.js" />
-    <file src="Build\xbim-viewer.debug.bundle.js" target="content\Scripts\xbim-viewer.debug.bundle.js" />
-    <file src="Build\xbim-viewer.min.bundle.js" target="content\Scripts\xbim-viewer.min.bundle.js" />
-    <file src="Build\xbim-browser.min.js" target="content\Scripts\xbim-browser.min.js" />
-    <file src="Build\xbim-browser.js" target="content\Scripts\xbim-browser.js" />
+    <file src="Xbim.WeXplorer\Build\*.js" target="content\Scripts" />
   </files>
 </package>

@@ -201,7 +201,6 @@
     <Content Include="tests\data\TwoProxy.wexbim" />
     <Content Include="tests\data\TwoWallsTwoColour.ifc" />
     <Content Include="tests\data\TwoWallsTwoColour.wexbim" />
-    <Content Include="WeXplorer.nuspec" />
     <Content Include="build.bat" />
     <Content Include="Resources\README.md" />
     <Content Include="Resources\doctemplate\README.md" />
