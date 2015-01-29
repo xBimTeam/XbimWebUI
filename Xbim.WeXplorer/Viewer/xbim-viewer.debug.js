@@ -506,7 +506,7 @@ xViewer.prototype.load = function (model) {
         var region = handle.region;
         var maxSize = Math.max(region.bbox[3], region.bbox[4], region.bbox[5]);
         viewer.perspectiveCamera.far = maxSize * 50;
-        viewer.perspectiveCamera.near = meter;
+        viewer.perspectiveCamera.near = meter/10.0;
 
         //set orthogonalCamera boundaries so that it makes a sense
         viewer.orthogonalCamera.far = viewer.perspectiveCamera.far;
@@ -840,6 +840,15 @@ xViewer.prototype._initMouseEvents = function () {
     this._canvas.addEventListener('wheel', handleMouseScroll, true);
     window.addEventListener('mouseup', handleMouseUp, true);
     window.addEventListener('mousemove', handleMouseMove, true);
+
+    /**
+    * Occurs when user double clicks on model.
+    *
+    * @event xViewer#dblclick
+    * @type {object}
+    * @param {Number} id - product ID of the element or null if there wasn't any product under mouse
+    */
+    this._canvas.addEventListener('dblclick', function () { viewer._fire('dblclick', { id: id }); }, true);
 };
 
 /**
@@ -891,6 +900,7 @@ xViewer.prototype.draw = function () {
     {
         //two passes - first one for non-transparent objects, second one for all the others
         gl.uniform1i(this._renderingModeUniformPointer, 1);
+        gl.disable(gl.CULL_FACE);
         for (var i in this._handles) {
             var handle = this._handles[i];
             handle.setActive(this._pointers);
@@ -905,6 +915,7 @@ xViewer.prototype.draw = function () {
             handle.setActive(this._pointers);
             handle.draw();
         }
+        gl.uniform1i(this._renderingModeUniformPointer, 0);
     }
     else {
         gl.uniform1i(this._renderingModeUniformPointer, 0);

@@ -152,10 +152,10 @@ void main(void) {
 		float lightWeighting = lightWeightA + lightWeightB + 0.4;
 		
 		//get base color or set highlighted colour
-		vec4 baseColor = state == 253 ? vec4(0.168, 0.839, 0.984, 1.0) : getColor();
+		vec4 baseColor = state == 253 ? vec4(1.0, 0.68, 0.13, 1.0) : getColor();
 		
 		//offset semitransparent triangles
-		if (baseColor.a < 1.0)
+		if (baseColor.a < 0.99 && uRenderingMode == 0)
 		{
 			mat4 transpose = mat4(1);
 			vec3 trans = -0.002 * uMeter * normalize(normal);

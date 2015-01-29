@@ -60,8 +60,9 @@
         reinitControls();
     });
 
-    var rBrowser = new xBrowser('cs', 'cz');
-    var browser = new xBrowser();
+    var keepTarget = false;
+    rBrowser = new xBrowser();
+    browser = new xBrowser();
     browser.on('loaded', function (args) {
         var facility = args.model.facility;
         //render parts
@@ -114,32 +115,35 @@
                 $('#attrprop-header').click();
 
         });
-        browser.on('entityDblclick', function (args) {
-            var entity = args.entity;
-            var allowedTypes = ['space', 'assettype', 'asset'];
-            if (allowedTypes.indexOf(entity.type) == -1) return;
-
-            var id = parseInt(entity.id);
-            if (id && viewer) {
-                viewer.resetStates();
-                if (entity.type == 'assettype') {
-                    var ids = [];
-                    for (var i = 0; i < entity.children.length; i++) {
-                        id = parseInt(entity.children[i].id);
-                        ids.push(id);
-                    }
-                    viewer.setState(xState.HIGHLIGHTED, ids);
-                }
-                else {
-                    viewer.setState(xState.HIGHLIGHTED, [id]);
-                }
-                viewer.zoomTo(id);
-            }
-        });
     }
 
     initBrowser(browser);
     initBrowser(rBrowser);
+
+    browser.on('entityDblclick', function (args) {
+        var entity = args.entity;
+        var allowedTypes = ['space', 'assettype', 'asset'];
+        if (allowedTypes.indexOf(entity.type) == -1) return;
+
+        var id = parseInt(entity.id);
+        if (id && viewer) {
+            viewer.resetStates();
+            viewer.renderingMode = 'x-ray';
+            if (entity.type == 'assettype') {
+                var ids = [];
+                for (var i = 0; i < entity.children.length; i++) {
+                    id = parseInt(entity.children[i].id);
+                    ids.push(id);
+                }
+                viewer.setState(xState.HIGHLIGHTED, ids);
+            }
+            else {
+                viewer.setState(xState.HIGHLIGHTED, [id]);
+            }
+            viewer.zoomTo(id);
+            keepTarget = true;
+        }
+    });
 
     var model = queryString.model ? queryString.model : 'lakeside';
     switch (model) {
@@ -157,21 +161,32 @@
     }
 
     browser.load(model);
-    rBrowser.load(model);
+    rBrowser.load('Data/NewtownHighSchool.COBieLite.json');
 
 
     //viewer set up
     var check = xViewer.check();
-    var viewer = null;
+    viewer = null;
     if (check.noErrors) {
         //alert('WebGL support is OK');
         viewer = new xViewer('viewer-canvas');
         viewer.background = [249, 249, 249, 255];
         viewer.on('mouseDown', function (args) {
-            viewer.setCameraTarget(args.id);
+            if (!keepTarget) viewer.setCameraTarget(args.id);
         });
         viewer.on('pick', function (args) {
             browser.activateEntity(args.id);
+            viewer.renderingMode = 'normal';
+            viewer.resetStates();
+            keepTarget = false;
+        });
+        viewer.on('dblclick', function (args) {
+            viewer.resetStates();
+            viewer.renderingMode = 'x-ray';
+            var id = args.id;
+            viewer.setState(xState.HIGHLIGHTED, [id]);
+            viewer.zoomTo(id);
+            keepTarget = true;
         });
         //viewer.load('Data/Duplex_MEP_20110907_SRL.wexbim');
         viewer.load('Data/LakesideRestaurant.wexbim');
