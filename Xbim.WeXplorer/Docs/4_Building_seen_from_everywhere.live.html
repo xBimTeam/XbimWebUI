@@ -93,6 +93,7 @@
                         <option value="noAction">No action</option>
                         <option value="hideProduct">Hide product</option>
                         <option value="hideType">Hide type</option>
+                        <option value="highlight">Highlight</option>
                     </select>
                     <button onclick="if (viewer) viewer.resetStates()">Show all</button>
                     <script type="text/javascript">
@@ -108,6 +109,9 @@
                                         var type = viewer.getProductType(args.id);
                                         viewer.setState(xState.HIDDEN, type);
                                         break;
+                                    case 'highlight':
+                                        viewer.setState(xState.HIGHLIGHTED, [args.id]);
+                                        break;
                                     default:
                                         break;
                                 }
@@ -115,7 +119,15 @@
                         };
                     </script>
                 </div>
-                
+                <div class="xviewer-control">
+                    Rendering mode
+                    <label>
+                        <input type="radio" name="rRenderingMode" checked="checked" onchange="if (viewer) viewer.renderingMode = 'normal';"/> Normal
+                    </label>
+                    <label>
+                        <input type="radio" name="rRenderingMode" onchange="if (viewer) viewer.renderingMode = 'x-ray';" /> X-Ray
+                    </label>
+                </div>
             </div>
             <canvas id="viewer" width="500" height="300"></canvas>
             <div>

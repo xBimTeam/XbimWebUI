@@ -121,6 +121,7 @@ are hidden by default unless you show them manualy.</p>
     &lt;option value=&quot;noAction&quot;>No action&lt;/option>
     &lt;option value=&quot;hideProduct&quot;>Hide product&lt;/option>
     &lt;option value=&quot;hideType&quot;>Hide type&lt;/option>
+    &lt;option value=&quot;highlight&quot;>Highlight&lt;/option>
 &lt;/select>
 &lt;button onclick=&quot;if (viewer) viewer.resetStates()&quot;>Show all&lt;/button>
 &lt;script type=&quot;text/javascript&quot;>
@@ -136,12 +137,32 @@ are hidden by default unless you show them manualy.</p>
                     var type = viewer.getProductType(args.id);
                     viewer.setState(xState.HIDDEN, type);
                     break;
+                case 'highlight':
+                    viewer.setState(xState.HIGHLIGHTED, [args.id]);
+                    break;
                 default:
                     break;
             }
         });
     };
-&lt;/script> </code></pre><p>And this is the end of this tutorial. I bet you have lots of ideas how to create slick user interface to
+&lt;/script> </code></pre><h3>X-Ray rendering mode</h3><p>You have probably noticed there is one more option and that is <em>Highlight</em>. Highlighting is built in core 
+of the engine and it is very useful if you need to visually highlight or isolate some objects in your model.
+It is particularly useful in combination with x-ray rendering mode where everything is rendered in semitransparent
+light blue except for the products which has a state <em>xState.HIGHLIGHTED</em> or <em>xState.XRAYVISIBLE</em>. To switch
+between normal and x-ray rendering mode just set <a href="xViewer.html#renderingMode">renderingMode</a> property of <a href="xViewer.html">xViewer</a>.</p>
+<pre class="prettyprint source"><code>&lt;div>
+    Rendering mode
+    &lt;label>
+        &lt;input type=&quot;radio&quot; name=&quot;rRenderingMode&quot; checked=&quot;checked&quot; 
+            onchange=&quot;if (viewer) viewer.renderingMode = 'normal';&quot;/> 
+        Normal
+    &lt;/label>
+    &lt;label>
+        &lt;input type=&quot;radio&quot; name=&quot;rRenderingMode&quot; 
+            onchange=&quot;if (viewer) viewer.renderingMode = 'x-ray';&quot; /> 
+        X-Ray
+    &lt;/label>
+&lt;/div></code></pre><p>And this is the end of this tutorial. I bet you have lots of ideas how to create slick user interface to
 make use of all these features. So, go on. If you still have a stamina to learn something more you can
 also have a look on the next tutorial called <a href="tutorial-5_Colourful_building.html">Colourful building</a> which will rescribe restyling 
 of the model which you can use to visualize results of the analyses as well as just for fun.</p>
@@ -152,13 +173,13 @@ of the model which you can use to visualize results of the analyses as well as j
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="OrthogonalCamera.html">OrthogonalCamera</a></li><li><a href="PerspectiveCamera.html">PerspectiveCamera</a></li><li><a href="Prerequisities.html">Prerequisities</a></li><li><a href="xBrowser.html">xBrowser</a></li><li><a href="xViewer.html">xViewer</a></li><li><a href="xVisualAssignmentSet.html">xVisualAssignmentSet</a></li><li><a href="xVisualAttribute.html">xVisualAttribute</a></li><li><a href="xVisualEntity.html">xVisualEntity</a></li><li><a href="xVisualModel.html">xVisualModel</a></li><li><a href="xVisualProperty.html">xVisualProperty</a></li></ul><h3>Events</h3><ul><li><a href="xBrowser.html#event:entityActive">entityActive</a></li><li><a href="xBrowser.html#event:entityClick">entityClick</a></li><li><a href="xBrowser.html#event:entityDblclick">entityDblclick</a></li><li><a href="xBrowser.html#event:entityMouseDown">entityMouseDown</a></li><li><a href="xBrowser.html#event:entityMouseMove">entityMouseMove</a></li><li><a href="xBrowser.html#event:entityMouseUp">entityMouseUp</a></li><li><a href="xBrowser.html#event:entityTouch">entityTouch</a></li><li><a href="xBrowser.html#event:loaded">loaded</a></li><li><a href="xViewer.html#event:clipped">clipped</a></li><li><a href="xViewer.html#event:error">error</a></li><li><a href="xViewer.html#event:fps">fps</a></li><li><a href="xViewer.html#event:frame">frame</a></li><li><a href="xViewer.html#event:loaded">loaded</a></li><li><a href="xViewer.html#event:mouseDown">mouseDown</a></li><li><a href="xViewer.html#event:pick">pick</a></li><li><a href="xViewer.html#event:unclipped">unclipped</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-1_Hello_building.html">Hello building!</a></li><li><a href="tutorial-2_Safe_Hello_building.html">Safe 'Hello building!'</a></li><li><a href="tutorial-3_Eventful_building.html">Eventful building</a></li><li><a href="tutorial-4_Building_seen_from_everywhere.html">Building seen from everywhere ...</a></li><li><a href="tutorial-5_Colourful_building.html">Colourful building</a></li><li><a href="tutorial-6_Building_described.html">Building described</a></li></ul><h3>Global</h3><ul><li><a href="global.html#xProductType">xProductType</a></li><li><a href="global.html#xState">xState</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="OrthogonalCamera.html">OrthogonalCamera</a></li><li><a href="PerspectiveCamera.html">PerspectiveCamera</a></li><li><a href="Prerequisities.html">Prerequisities</a></li><li><a href="xBrowser.html">xBrowser</a></li><li><a href="xViewer.html">xViewer</a></li><li><a href="xVisualAssignmentSet.html">xVisualAssignmentSet</a></li><li><a href="xVisualAttribute.html">xVisualAttribute</a></li><li><a href="xVisualEntity.html">xVisualEntity</a></li><li><a href="xVisualModel.html">xVisualModel</a></li><li><a href="xVisualProperty.html">xVisualProperty</a></li></ul><h3>Events</h3><ul><li><a href="xBrowser.html#event:entityActive">entityActive</a></li><li><a href="xBrowser.html#event:entityClick">entityClick</a></li><li><a href="xBrowser.html#event:entityDblclick">entityDblclick</a></li><li><a href="xBrowser.html#event:entityMouseDown">entityMouseDown</a></li><li><a href="xBrowser.html#event:entityMouseMove">entityMouseMove</a></li><li><a href="xBrowser.html#event:entityMouseUp">entityMouseUp</a></li><li><a href="xBrowser.html#event:entityTouch">entityTouch</a></li><li><a href="xBrowser.html#event:loaded">loaded</a></li><li><a href="xViewer.html#event:clipped">clipped</a></li><li><a href="xViewer.html#event:dblclick">dblclick</a></li><li><a href="xViewer.html#event:error">error</a></li><li><a href="xViewer.html#event:fps">fps</a></li><li><a href="xViewer.html#event:frame">frame</a></li><li><a href="xViewer.html#event:loaded">loaded</a></li><li><a href="xViewer.html#event:mouseDown">mouseDown</a></li><li><a href="xViewer.html#event:pick">pick</a></li><li><a href="xViewer.html#event:unclipped">unclipped</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-1_Hello_building.html">Hello building!</a></li><li><a href="tutorial-2_Safe_Hello_building.html">Safe 'Hello building!'</a></li><li><a href="tutorial-3_Eventful_building.html">Eventful building</a></li><li><a href="tutorial-4_Building_seen_from_everywhere.html">Building seen from everywhere ...</a></li><li><a href="tutorial-5_Colourful_building.html">Colourful building</a></li><li><a href="tutorial-6_Building_described.html">Building described</a></li></ul><h3>Global</h3><ul><li><a href="global.html#xProductType">xProductType</a></li><li><a href="global.html#xState">xState</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha11</a> on Wed Jan 21 2015 17:53:15 GMT+0100 (Central Europe Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha11</a> on Thu Jan 29 2015 11:22:09 GMT+0100 (Central Europe Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

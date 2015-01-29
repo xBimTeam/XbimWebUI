@@ -302,7 +302,13 @@ xBrowser.prototype.renderZones = function (container, initTree) {
 * heavy transformation of the resulting HTML make sure you keep this if other parts of your code rely on these events.
 * @function xBrowser#renderAssignments
 * @param {xVisualEntity} entity - visual entity. You can obtain this entity directly from xVisualModel or in a handler of one of these events:
-* {@link xBrowser#event:entityClick entityClick}, {@link xBrowser#event:entityDblClick entityDblClick}, {@link xBrowser#event:entityMouseDown entityMouseDown}, {@link xBrowser#event:entityMouseUp entityMouseUp}, {@link xBrowser#event:entityMouseMove entityMouseMove}, {@link xBrowser#event:entityTouch entityTouch}, {@link xBrowser#event:entityActivate entityActivate} 
+* {@link xBrowser#event:entityClick entityClick}, 
+* {@link xBrowser#event:entityDblclick entityDblclick}, 
+* {@link xBrowser#event:entityMouseDown entityMouseDown}, 
+* {@link xBrowser#event:entityMouseUp entityMouseUp}, 
+* {@link xBrowser#event:entityMouseMove entityMouseMove}, 
+* {@link xBrowser#event:entityTouch entityTouch}, 
+* {@link xBrowser#event:entityActive entityActive} 
 * @param {string|HTMLElement} container - string ID of the contaier or HTMLElement representing container. Resulting HTML will be placed inside of this element. Be aware that this will erase any actual content of the container element.
 */
 xBrowser.prototype.renderAssignments = function (entity, container) {
@@ -342,13 +348,19 @@ xBrowser.prototype.renderAssignments = function (entity, container) {
 };
 
 /**
-* This function renders asset types as a list view (asset type -> asset). If you use jQuery UI it will use UI icons. 
+* This function renders documents as a list view. If you use jQuery UI it will use UI icons. 
 * But it is not mandatory and you can style it any way you want. Just keep in mind that HTML elements
 * created by this function have a handlers attached which will fire UI events of {@link xBrowser xBrowser}. If you do any
 * heavy transformation of the resulting HTML make sure you keep this if other parts of your code rely on these events.
-* @function xBrowser#renderAssignments
+* @function xBrowser#renderDocuments
 * @param {xVisualEntity} entity - visual entity. You can obtain this entity directly from xVisualModel or in a handler of one of these events:
-* {@link xBrowser#event:entityClick entityClick}, {@link xBrowser#event:entityDblClick entityDblClick}, {@link xBrowser#event:entityMouseDown entityMouseDown}, {@link xBrowser#event:entityMouseUp entityMouseUp}, {@link xBrowser#event:entityMouseMove entityMouseMove}, {@link xBrowser#event:entityTouch entityTouch}, {@link xBrowser#event:entityActivate entityActivate} 
+* {@link xBrowser#event:entityClick entityClick}, 
+* {@link xBrowser#event:entityDblclick entityDblclick}, 
+* {@link xBrowser#event:entityMouseDown entityMouseDown}, 
+* {@link xBrowser#event:entityMouseUp entityMouseUp}, 
+* {@link xBrowser#event:entityMouseMove entityMouseMove}, 
+* {@link xBrowser#event:entityTouch entityTouch}, 
+* {@link xBrowser#event:entityActive entityActive} 
 * @param {string|HTMLElement} container - string ID of the contaier or HTMLElement representing container. Resulting HTML will be placed inside of this element. Be aware that this will erase any actual content of the container element.
 */
 xBrowser.prototype.renderDocuments = function (entity, container) {
@@ -361,6 +373,22 @@ xBrowser.prototype.renderDocuments = function (entity, container) {
     }
 };
 
+/**
+* This function renders issues assigned to the entity as a list view. If you use jQuery UI it will use UI icons. 
+* But it is not mandatory and you can style it any way you want. Just keep in mind that HTML elements
+* created by this function have a handlers attached which will fire UI events of {@link xBrowser xBrowser}. If you do any
+* heavy transformation of the resulting HTML make sure you keep this if other parts of your code rely on these events.
+* @function xBrowser#renderIssues
+* @param {xVisualEntity} entity - visual entity. You can obtain this entity directly from xVisualModel or in a handler of one of these events:
+* {@link xBrowser#event:entityClick entityClick}, 
+* {@link xBrowser#event:entityDblclick entityDblclick}, 
+* {@link xBrowser#event:entityMouseDown entityMouseDown}, 
+* {@link xBrowser#event:entityMouseUp entityMouseUp}, 
+* {@link xBrowser#event:entityMouseMove entityMouseMove}, 
+* {@link xBrowser#event:entityTouch entityTouch}, 
+* {@link xBrowser#event:entityActive entityActive} 
+* @param {string|HTMLElement} container - string ID of the contaier or HTMLElement representing container. Resulting HTML will be placed inside of this element. Be aware that this will erase any actual content of the container element.
+*/
 xBrowser.prototype.renderIssues = function (entity, container) {
     if (!entity) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
     var self = this;
@@ -371,6 +399,22 @@ xBrowser.prototype.renderIssues = function (entity, container) {
     }
 };
 
+
+/**
+* This function renders attributes assigned to the entity as a list view. Attributes are COBie equivalent for Property Sets and can contain
+* arbitrary data. If you use jQuery UI it will use UI icons. 
+* But it is not mandatory and you can style it any way you want. 
+* @function xBrowser#renderAttributes
+* @param {xVisualEntity} entity - visual entity. You can obtain this entity directly from xVisualModel or in a handler of one of these events:
+* {@link xBrowser#event:entityClick entityClick}, 
+* {@link xBrowser#event:entityDblclick entityDblclick}, 
+* {@link xBrowser#event:entityMouseDown entityMouseDown}, 
+* {@link xBrowser#event:entityMouseUp entityMouseUp}, 
+* {@link xBrowser#event:entityMouseMove entityMouseMove}, 
+* {@link xBrowser#event:entityTouch entityTouch}, 
+* {@link xBrowser#event:entityActive entityActive} 
+* @param {string|HTMLElement} container - string ID of the contaier or HTMLElement representing container. Resulting HTML will be placed inside of this element. Be aware that this will erase any actual content of the container element.
+*/
 xBrowser.prototype.renderAttributes = function (entity, container) {
     if (!entity) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
     var self = this;
@@ -379,6 +423,20 @@ xBrowser.prototype.renderAttributes = function (entity, container) {
     container.innerHTML = html;
 };
 
+/**
+* This function renders properties assigned to the entity as a list view. Properties are predefined in COBie data model. If you use jQuery UI it will use UI icons. 
+* But it is not mandatory and you can style it any way you want. 
+* @function xBrowser#renderProperties
+* @param {xVisualEntity} entity - visual entity. You can obtain this entity directly from xVisualModel or in a handler of one of these events:
+* {@link xBrowser#event:entityClick entityClick}, 
+* {@link xBrowser#event:entityDblclick entityDblclick}, 
+* {@link xBrowser#event:entityMouseDown entityMouseDown}, 
+* {@link xBrowser#event:entityMouseUp entityMouseUp}, 
+* {@link xBrowser#event:entityMouseMove entityMouseMove}, 
+* {@link xBrowser#event:entityTouch entityTouch}, 
+* {@link xBrowser#event:entityActive entityActive} 
+* @param {string|HTMLElement} container - string ID of the contaier or HTMLElement representing container. Resulting HTML will be placed inside of this element. Be aware that this will erase any actual content of the container element.
+*/
 xBrowser.prototype.renderProperties = function (entity, container) {
     if (!entity) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
     var self = this;
@@ -387,6 +445,23 @@ xBrowser.prototype.renderProperties = function (entity, container) {
     container.innerHTML = html;
 };
 
+/**
+* This function renders properties and attributes assigned to the entity as a list view. This combines data which can be rendered separately 
+* by {@link xBrowser#renderProperties renderProperties()} or {@link xBrowser#renderAttributes renderAttributes()} but it is sometimes convenient
+* to render both into one single layout.  If you use jQuery UI it will use UI icons. 
+* But it is not mandatory and you can style it any way you want.
+* 
+* @function xBrowser#renderPropertiesAttributes
+* @param {xVisualEntity} entity - visual entity. You can obtain this entity directly from xVisualModel or in a handler of one of these events:
+* {@link xBrowser#event:entityClick entityClick}, 
+* {@link xBrowser#event:entityDblclick entityDblclick}, 
+* {@link xBrowser#event:entityMouseDown entityMouseDown}, 
+* {@link xBrowser#event:entityMouseUp entityMouseUp}, 
+* {@link xBrowser#event:entityMouseMove entityMouseMove}, 
+* {@link xBrowser#event:entityTouch entityTouch}, 
+* {@link xBrowser#event:entityActive entityActive} 
+* @param {string|HTMLElement} container - string ID of the contaier or HTMLElement representing container. Resulting HTML will be placed inside of this element. Be aware that this will erase any actual content of the container element.
+*/
 xBrowser.prototype.renderPropertiesAttributes = function (entity, container) {
     if (!entity) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
     var self = this;
@@ -411,6 +486,14 @@ xBrowser.prototype._registerEntityCallBacks = function (element, entity) {
     /**
     * Occurs when user clicks on a HTML element representing {@link xVisualEntity xVisualEntity} or if {@link xBrowser#activateEntity activateEntity()} is called. 
     * @event xBrowser#entityActive
+    * @type {object}
+    * @param {xVisualEntity} entity 
+    * @param {object} event 
+    * @param {HTMLElement} element - This argument might be null if event is fired in code by call to {@link xBrowser#activateEntity activateEntity()}. 
+    */
+    /**
+    * Occurs when user double clicks on a HTML element representing {@link xVisualEntity xVisualEntity}.
+    * @event xBrowser#entityDblclick
     * @type {object}
     * @param {xVisualEntity} entity 
     * @param {object} event 
@@ -580,6 +663,12 @@ xBrowser.prototype._renderTreeView = function (container, roots, initSimpleTree,
     if (initSimpleTree) this._uiTree(container);
 };
 
+/**
+* Use this function to activate entity from code. This will cause {@link xBrowser#event:entityActive entityActive} event to be fired.
+* That might be usefull to update data relying on any kind of selection.
+* @function xBrowser#activateEntity
+* @param {Number} id - ID of the entity to be activated
+*/
 xBrowser.prototype.activateEntity = function (id) {
     if (!this._model) return;
     var entity = this._model.getEntity(id);
@@ -626,9 +715,10 @@ xBrowser.prototype.load = function (source) {
             * Occurs when JSON data model is loaded
             * @event xBrowser#loaded
             * @type {object}
-            * @param {object} data - parsed JSON object
+            * @param {xVisualModel} model - preprocessed {@link xVisualModel model} prepared for visual representation
+            * @param {object} model - original COBie data
             */ 
-            self._fire('loaded', { model: self._model });
+            self._fire('loaded', { model: self._model , data: self._data});
         }
         //throw exception as a warning
         if (xhr.readyState == 4 && xhr.status != 200) {
@@ -1068,8 +1158,8 @@ xCobieUtils.prototype.setLanguage = function (lang, culture) {
 };
 
 xCobieUtils.prototype.getValueString = function (value) {
-    if (typeof(value) == 'undefined')
-        throw 'Object must be defined';
+    if (typeof(value) == 'undefined' || value == null)
+        return '';
     var tr = this.getTranslator();
 
     //this of for attributes
@@ -1085,7 +1175,7 @@ xCobieUtils.prototype.getValueString = function (value) {
 
     if (value.UnitName) baseVal += ' ' + value.UnitName;
 
-    return baseVal.length > 0 ? baseVal : null;
+    return baseVal.length > 0 ? baseVal : '';
 };
 
 xCobieUtils.prototype.getTranslator = function () {
@@ -1093,17 +1183,37 @@ xCobieUtils.prototype.getTranslator = function () {
     return function (term) {
         return self._dictionary[term] ? self._dictionary[term] : term.replace(/([a-z0-9])([A-Z])/g, '$1 $2');
     };
-};﻿function xVisualAssignmentSet() {
+};﻿/**
+* @name xVisualAssignmentSet
+* @constructor
+* @classdesc Visual model describing named sets of assignments
+*/
+function xVisualAssignmentSet() {
+    /** @member {string} xVisualAssignmentSet#name */
     this.name = "";
+    /** @member {string} xVisualAssignmentSet#id */
     this.id = "";
+    /** @member {xVisualEntity[]} xVisualAssignmentSet#assignments */
     this.assignments = [];
-};﻿function xVisualAttribute(values) {
+};﻿/**
+* @name xVisualAttribute
+* @constructor
+* @classdesc Visual model describing attribute of the object
+* @param {object} [values] - Object which can be used to initialize content of the object. It can be also used to create shallow copy of the object.
+*/
+function xVisualAttribute(values) {
 
+    /** @member {string} xVisualAttribute#name */
     this.name = "";
+    /** @member {string} xVisualAttribute#description */
     this.description = "";
+    /** @member {string} xVisualAttribute#value */
     this.value = "";
+    /** @member {string} xVisualAttribute#propertySet - original property set name from IFC file */
     this.propertySet = "";
+    /** @member {string} xVisualAttribute#category */
     this.category = "";
+    /** @member {xVisualEntity[]} xVisualAttribute#issues */
     this.issues = [];
 
     if (typeof (values) == 'object') {
@@ -1112,18 +1222,37 @@ xCobieUtils.prototype.getTranslator = function () {
         }
     }
 };
-﻿function xVisualEntity(values) {
+﻿/**
+* Visual model containing entity data
+* 
+* @name xVisualEntity
+* @constructor
+* @classdesc Visual model containing entity data
+* @param {object} [values] - Object which can be used to initialize content of the object. It can be also used to create shallow copy of the object.
+*/
+function xVisualEntity(values) {
+    /** @member {string} xVisualEntity#id - ID extracted from object attributes*/
     this.id = "";
+    /** @member {string} xVisualEntity#type - type of the object like asset, assettype, floor, facility, assembly and others. It is always one lower case word.*/
     this.type = "";
+    /** @member {string} xVisualEntity#name - Name extracted from object attributes*/
     this.name = "";
+    /** @member {string} xVisualEntity#description - Description extracted from attributes*/
     this.description = "";
+    /** @member {xVisualAttribute[]} xVisualEntity#attributes */
     this.attributes = [];
+    /** @member {xVisualProperty[]} xVisualEntity#properties */
     this.properties = [];
+    /** @member {xVisualEntity[]} xVisualEntity#documents */
     this.documents = [];
+    /** @member {xVisualEntity[]} xVisualEntity#issues */
     this.issues = [];
+    /** @member {xVisualAssignmentSet[]} xVisualEntity#assignments - An array of {@link xVisualAsignmentSet visual assignment sets} */
     this.assignments = [];
-    this.children = []; //for tree hierarchies only (spatial structure, asset types)
-    this.warranties = []; //for asset type only
+    /** @member {xVisualEntity[]} xVisualEntity#children - this can be used to build hierarchical structures like facility -> floors -> spaces -> assets */
+    this.children = []; 
+    /** @member {xVisualEntity[]} xVisualEntity#warranties - this is applicable for asset type only. */
+    this.warranties = []; 
 
     this.isKey = false; //indicates if this is only a key for the actual entity
 
@@ -1133,11 +1262,26 @@ xCobieUtils.prototype.getTranslator = function () {
         }
     }
 };
-﻿function xVisualModel(values) {
+﻿/**
+* Visual model containing preprocessed COBie data in more uniform form usable for templating and rendering
+* 
+* @name xVisualModel
+* @constructor
+* @classdesc Visual model containing preprocessed COBie data in more uniform form usable for templating and rendering
+* @param {object} [values] - Object which can be used to initialize content of the object. It can be also used to create shallow copy of the object.
+*/
+function xVisualModel(values) {
+    /** @member {xVisualEntity[]} xVisualModel#facility - An array of facilities. There is always one faclity but it is convenient to have all
+    * members of xVisualModel to be an array so they can be accessed in an uniform way.
+    */
     this.facility = [];
+    /** @member {xVisualEntity[]} xVisualModel#zones - An array of zones defined in COBie model. They contain spaces as their children. */
     this.zones = [];
+    /** @member {xVisualEntity[]} xVisualModel#systems - An array of systems */
     this.systems = [];
+    /** @member {xVisualEntity[]} xVisualModel#contacts - An array of all contacts used in the COBie model*/
     this.contacts = [];
+    /** @member {xVisualEntity[]} xVisualModel#assetTypes - An array of all asset types. These contain assets as their children */
     this.assetTypes = [];
 
     if (typeof (values) == 'object') {
@@ -1167,9 +1311,18 @@ xVisualModel.prototype.getEntity = function (id) {
         if (result) return result;
     }
     return null;
-};﻿function xVisualProperty(values) {
+};﻿/**
+* @name xVisualProperty
+* @constructor
+* @classdesc Visual model describing property of the object
+* @param {object} [values] - Object which can be used to initialize content of the object. It can be also used to create shallow copy of the object.
+*/
+function xVisualProperty(values) {
+    /** @member {string} xVisualProperty#name - name might be translated if you specify a language and culture in {@link xBrowser xBrowser} constructor */
     this.name = "";
+    /** @member {string} xVisualProperty#value - string containing eventually units*/
     this.value = "";
+    /** @member {string} xVisualProperty#id - original name from COBie before any transformation*/
     this.id = "";
 
     if (typeof (values) == 'object') {

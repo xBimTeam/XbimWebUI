@@ -120,6 +120,7 @@ are hidden by default unless you show them manualy.
         <option value="noAction">No action</option>
         <option value="hideProduct">Hide product</option>
         <option value="hideType">Hide type</option>
+        <option value="highlight">Highlight</option>
     </select>
     <button onclick="if (viewer) viewer.resetStates()">Show all</button>
     <script type="text/javascript">
@@ -135,12 +136,37 @@ are hidden by default unless you show them manualy.
                         var type = viewer.getProductType(args.id);
                         viewer.setState(xState.HIDDEN, type);
                         break;
+					case 'highlight':
+                        viewer.setState(xState.HIGHLIGHTED, [args.id]);
+                        break;
                     default:
                         break;
                 }
             });
         };
     </script> 
+
+###X-Ray rendering mode
+
+You have probably noticed there is one more option and that is *Highlight*. Highlighting is built in core 
+of the engine and it is very useful if you need to visually highlight or isolate some objects in your model.
+It is particularly useful in combination with x-ray rendering mode where everything is rendered in semitransparent
+light blue except for the products which has a state *xState.HIGHLIGHTED* or *xState.XRAYVISIBLE*. To switch
+between normal and x-ray rendering mode just set {@link xViewer#renderingMode renderingMode} property of {@link xViewer xViewer}.
+	
+	<div>
+		Rendering mode
+		<label>
+		    <input type="radio" name="rRenderingMode" checked="checked" 
+				onchange="if (viewer) viewer.renderingMode = 'normal';"/> 
+			Normal
+		</label>
+		<label>
+		    <input type="radio" name="rRenderingMode" 
+				onchange="if (viewer) viewer.renderingMode = 'x-ray';" /> 
+			X-Ray
+		</label>
+	</div>
 
 And this is the end of this tutorial. I bet you have lots of ideas how to create slick user interface to
 make use of all these features. So, go on. If you still have a stamina to learn something more you can
