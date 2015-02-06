@@ -99,6 +99,8 @@ xBinaryReader.prototype.read = function (type, count) {
             throw "No data loaded. You can't get any data unless data is loaded. Use 'onloaded' callback.";
         }
 
+        if (count === 0) return 0;
+
         var length = arity;
         if (typeof (count) != 'undefined' && count > 0) {
             length = count * arity;
@@ -845,6 +847,9 @@ xTriangulatedShape.prototype.parse = function (binReader) {
     self.normals = new Uint8Array(numOfTriangles * 6);
     //indices for incremental adding of indices and normals
     var iIndex = 0;
+
+    if (numVertices === numOfTriangles === 0)
+        return;
 
     var readIndex = function () {
         if (numVertices <= 0xFF) {

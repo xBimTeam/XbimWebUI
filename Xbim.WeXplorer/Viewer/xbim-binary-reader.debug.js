@@ -72,6 +72,8 @@ xBinaryReader.prototype.read = function (type, count) {
             throw "No data loaded. You can't get any data unless data is loaded. Use 'onloaded' callback.";
         }
 
+        if (count === 0) return 0;
+
         var length = arity;
         if (typeof (count) != 'undefined' && count > 0) {
             length = count * arity;
