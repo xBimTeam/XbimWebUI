@@ -54,12 +54,12 @@ vec3 getNormal(){
 	float U = aNormal[0];
 	float V = aNormal[1];
 	float PI = 3.1415926535897932384626433832795;
-	float u = ((U / 252.0) * (2.0 * PI)) - PI;
-	float v = ((V / 252.0) * (2.0 * PI)) - PI;
+	float lon = U / 252.0 * 2.0 * PI;
+	float lat = V / 252.0 * PI;
 	
-	float x = sin(v) * cos(u);
-	float y = sin(v) * sin(u);
-	float z = cos(v);
+	float x = sin(lon) * sin(lat);
+	float z = cos(lon) * sin(lat);
+	float y = cos(lat);
 	return normalize(vec3(x, y, z));
 }
 
