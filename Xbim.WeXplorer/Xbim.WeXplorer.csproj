@@ -151,6 +151,7 @@
     <Content Include="Data\LakesideRestaurant.wexbim" />
     <Content Include="Data\NewtownHighSchool.COBieLite.json" />
     <Content Include="tests\data\SampleHouse_32bit.wexbim" />
+    <Content Include="tests\data\IfcFacetedBRepWithIncorrectlyOrientedFaces.wexbim" />
     <None Include="Tutorials\1_Hello_building.md" />
     <Content Include="Resources\doctemplate\static\scripts\xbim-viewer.debug.bundle.js" />
     <Content Include="Viewer\fragment_shader.c" />
