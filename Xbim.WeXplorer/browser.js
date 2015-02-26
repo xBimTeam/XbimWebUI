@@ -49,6 +49,8 @@
             }
         });
 
+        $("#toolbar button").button();
+
     }
     function reinitControls() {
         $('#semantic-model').accordion('refresh');

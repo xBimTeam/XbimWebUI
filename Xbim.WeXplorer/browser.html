@@ -34,6 +34,10 @@
 <body>
     <div id="viewer-container">
         <canvas id="viewer-canvas"></canvas>
+        <div style="position: absolute; left: 5px; top: 5px; padding: 5px;" id="toolbar" class="ui-widget-header ui-corner-all">
+            <button onclick="viewer.clip();">Clip</button>
+            <button onclick="viewer.unclip();">Unclip</button>
+        </div>
     </div> 
     <div id="semantic-model-container" class="noselect">
         <div id="semantic-tabs">

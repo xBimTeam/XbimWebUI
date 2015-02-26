@@ -1401,7 +1401,8 @@ xViewer.prototype.clip = function (point, normal) {
         g.setAttribute('transform', 'rotate(' + angle + ' ' + position.x + ' ' + position.y + ')');
     }
 
-    this._canvas.parentNode.appendChild(svg);
+    //this._canvas.parentNode.appendChild(svg);
+    document.documentElement.appendChild(svg)
     svg.addEventListener('mousedown', handleMouseDown, true);
     window.addEventListener('mouseup', handleMouseUp, true);
     window.addEventListener('mousemove', handleMouseMove, true);

@@ -1162,16 +1162,26 @@ xCobieUtils.prototype.getValueString = function (value) {
         return '';
     var tr = this.getTranslator();
 
-    //this of for attributes
-    if (value.Item) value = value.Item;
+    //this of for attributes prior to serialization enhancements
+    if (typeof (value.Item) !== "undefined") value = value.Item;
+
+    //this is for different kinds of attributes using latest serializer implementation
+    if (typeof (value.AttributeBooleanValue) !== "undefined") value = value.AttributeBooleanValue;
+    if (typeof (value.AttributeDateValue) !== "undefined") value = value.AttributeDateValue;
+    if (typeof (value.AttributeDateTimeValue) !== "undefined") value = value.AttributeDateTimeValue;
+    if (typeof (value.AttributeDecimalValue) !== "undefined") value = value.AttributeDecimalValue;
+    if (typeof (value.AttributeIntegerValue) !== "undefined") value = value.AttributeIntegerValue;
+    if (typeof (value.AttributeMonetaryValue) !== "undefined") value = value.AttributeMonetaryValue;
+    if (typeof (value.AttributeStringValue) !== "undefined") value = value.AttributeStringValue;
+    if (typeof (value.AttributeTimeValue) !== "undefined") value = value.AttributeTimeValue;
+
 
     var baseVal = "";
-
     if (typeof (value) == 'string') baseVal = value;
-    if (value.BooleanValue) baseVal = value.BooleanValue ? tr('True') : tr('False');
-    if (value.StringValue) baseVal = value.StringValue;
-    if (typeof (value.DecimalValue) != 'undefined') baseVal = value.DecimalValue.toFixed(this.settings.decimalPlaces).toString();
-    if (typeof (value.IntegerValue) != 'undefined') baseVal = value.IntegerValue.toString();
+    if (typeof(value.BooleanValue) !==  "undefined") baseVal = value.BooleanValue ? tr('True') : tr('False');
+    if (typeof(value.StringValue)  !==  "undefined") baseVal = value.StringValue;
+    if (typeof (value.DecimalValue) !== 'undefined') baseVal = value.DecimalValue.toFixed(this.settings.decimalPlaces).toString();
+    if (typeof (value.IntegerValue) !== 'undefined') baseVal = value.IntegerValue.toString();
 
     if (value.UnitName) baseVal += ' ' + value.UnitName;
 
