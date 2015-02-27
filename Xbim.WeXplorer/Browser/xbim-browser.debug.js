@@ -534,14 +534,32 @@ xBrowser.prototype._getContainer = function (container) {
 * Use this function to load data from JSON representation of COBieLight. Listen to {@link xBrowser#event:loaded loaded} event to start
 * using the browser.
 * @function xBrowser#load
-* @param {string} source - path to JSON data
+* @param {string|File|Blob} source - path to JSON data or File or Blob object to be used to load the data from
 * @fires xBrowser#loaded
 */
 xBrowser.prototype.load = function (source) {
     if (typeof (source) == 'undefined') throw 'You have to define a source to JSON data.';
     var self = this;
 
-    //use AJAX to load JSON data
+    //if it is a file, load its content
+    if (source instanceof Blob || source instanceof File) {
+        var fReader = new FileReader();
+        fReader.onloadend = function () {
+            if (fReader.result) {
+                //set data buffer for next processing
+                self._data = JSON.parse(fReader.result);
+                self._model = self._utils.getVisualModel(self._data);
+                self._fire('loaded', { model: self._model, data: self._data });
+            }
+        };
+        fReader.readAsText(source);
+        return;
+    }
+
+    //it should be a string now. Throw an exception if it isn't
+    if (typeof (source) !== 'string') throw "Unexpected type of source. It should be File, Blob of string URL";
+
+    //if it is a string than use ajax to load the data
     var xhr = new XMLHttpRequest();
     xhr.open('GET', source, true);
     xhr.onreadystatechange = function () {
@@ -605,7 +623,7 @@ xBrowser.prototype.onRemove = function (eventName, callback) {
     if (!callbacks) {
         return;
     }
-    var index = callbacks.indexOf(callback)
+    var index = callbacks.indexOf(callback);
     if (index >= 0) {
         callbacks.splice(index, 1);
     }
@@ -617,7 +635,7 @@ xBrowser.prototype._fire = function (eventName, args) {
     if (!handlers) {
         return;
     }
-    //cal the callbacks
+    //call the callbacks
     for (var i in handlers) {
         handlers[i](args);
     }
