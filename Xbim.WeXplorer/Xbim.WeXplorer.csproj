@@ -153,6 +153,7 @@
     <Content Include="tests\data\IfcFacetedBRepWithIncorrectlyOrientedFaces.wexbim" />
     <Content Include="tests\data\SampleHouse.wexbim" />
     <Content Include="tests\data\DPoW_Test.wexbim" />
+    <Content Include="tests\data\rac.wexbim" />
     <None Include="Tutorials\1_Hello_building.md" />
     <Content Include="Resources\doctemplate\static\scripts\xbim-viewer.debug.bundle.js" />
     <Content Include="Viewer\fragment_shader.c" />

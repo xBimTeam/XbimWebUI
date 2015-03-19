@@ -36,7 +36,8 @@ uniform int uStyleTextureSize;
 uniform highp sampler2D uStateStyleSampler;
 
 //colour to go to fragment shader
-varying vec4 vColor;
+varying vec4 vFrontColor;
+varying vec4 vBackColor;
 //varying position used for clipping in fragment shader
 varying vec3 vPosition;
 //state passed to fragment shader
@@ -125,6 +126,8 @@ void main(void) {
 	//transform data to simulate camera perspective and position
 	vec3 vertex = getVertexPosition();
 	vec3 normal = getNormal();
+	vec3 backNormal = normal * -1.0;
+
 	int state = int(floor(aState[0] + 0.5));
 	int restyle = int(floor(aState[1] + 0.5));
 	//HIDDEN state or first stage of xray rendering and no style state
@@ -135,7 +138,9 @@ void main(void) {
 	}
 	
 	if (uColorCoding){
-		vColor = getIdColor();					
+		vec4 idColor = getIdColor();
+		vFrontColor = idColor;
+		vBackColor = idColor;
 	}
 	else{
 		//ulightA[3] represents intensity of the light
@@ -147,9 +152,12 @@ void main(void) {
 		//Light weighting
 		float lightWeightA = max(dot(normal, lightADirection ) * lightAIntensity, 0.0);
 		float lightWeightB = max(dot(normal, lightBDirection ) * lightBIntensity, 0.0);
+		float backLightWeightA = max(dot(backNormal, lightADirection) * lightAIntensity, 0.0);
+		float backLightWeightB = max(dot(backNormal, lightBDirection) * lightBIntensity, 0.0);
 		
 		//minimal constant value is for ambient light
 		float lightWeighting = lightWeightA + lightWeightB + 0.4;
+		float backLightWeighting = backLightWeightA + backLightWeightB + 0.4;
 		
 		//get base color or set highlighted colour
 		vec4 baseColor = state == 253 ? vec4(1.0, 0.68, 0.13, 1.0) : getColor();
@@ -165,7 +173,8 @@ void main(void) {
 		
 		//transform colour to simulate lighting
 		//preserve original alpha channel
-		vColor = vec4(baseColor.rgb * lightWeighting, baseColor.a);
+		vFrontColor = vec4(baseColor.rgb * lightWeighting, baseColor.a);
+		vBackColor = vec4(baseColor.rgb * backLightWeighting, baseColor.a);
 	}
 	vPosition = vertex;
 	gl_Position = uPMatrix * uMVMatrix * vec4(vertex, 1.0);
