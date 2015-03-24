@@ -211,8 +211,8 @@ xModelHandle.prototype._bufferTexture = function (pointer, data, arity) {
     var size = 0;
     var maxSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
     if (fp) {
-        //recompute to smaller size
-        size = Math.ceil(Math.sqrt(data.length / arity));
+        //recompute to smaller size, but make it +1 to make sure it is all right
+        size = Math.ceil(Math.sqrt(Math.ceil(data.length / arity))) + 1;
     }
     else {
         var dim = Math.sqrt(data.byteLength / 4);

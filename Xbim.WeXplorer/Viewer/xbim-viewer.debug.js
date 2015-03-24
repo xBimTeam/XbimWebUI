@@ -925,6 +925,7 @@ xViewer.prototype.draw = function () {
             var handle = this._handles[i];
             handle.setActive(this._pointers);
             handle.draw();
+            //handle.drawProduct(51649);
         }
     }
     
