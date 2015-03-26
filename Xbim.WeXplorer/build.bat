@@ -27,8 +27,3 @@ type Resources\xbim-disclaimer.txt > Build\xbim-browser.js
 type Browser\*.debug.js >> Build\xbim-browser.js
 type Resources\xbim-disclaimer.txt > Build\xbim-browser.min.js
 type Browser\*.debug.js | Utilities\jsmin.exe >> Build\xbim-browser.min.js
-
-rem Pack the NuGet package with the latest source
-cd ..
-Xbim.WeXplorer\Utilities\NuGet.exe pack  XbimWebUI.nuspec
-cd Xbim.WeXplorer
