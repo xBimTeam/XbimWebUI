@@ -1234,7 +1234,7 @@ xCobieUkUtils.prototype.getVisualEntity = function (entity, type) {
     return new xVisualEntity({
         id: entity.EntityId,
         type: type,
-        name: entity.Name,
+        name: entity.Name + this.getValidationStatus(entity),
         description: entity.Description,
         attributes: this.getAttributes(entity),
         properties: this.getProperties(entity),
@@ -1242,6 +1242,19 @@ xCobieUkUtils.prototype.getVisualEntity = function (entity, type) {
         documents: this.getDocuments(entity, type),
         issues: this.getIssues(entity)
     });
+};
+
+xCobieUkUtils.prototype.getValidationStatus = function(entity) {
+    var result = "";
+    if (entity.Categories == null) return result;
+
+    for (var i = 0; i < entity.Categories; i++) {
+        var category = entity.Categories[i];
+        if (typeof (category.Code) !== "undefined" && category.Code.toLowerCase() === "failed")
+            return "[F]";
+        if (typeof (category.Code) !== "undefined" && category.Code.toLowerCase() === "passed")
+            return "[T]";
+    }
 };
 
 xCobieUkUtils.prototype.getVisualModel = function (data) {
@@ -1859,7 +1872,7 @@ function xVisualProperty(values) {
 if (attributes && attributes.length > 0) {\
     var psets = [];\
     for(var i = 0; i < attributes.length; i++){\
-        var attr = attributes[i]; if (!attr.propertySet) attr.propertySet = "General"\
+        var attr = attributes[i]; if (!attr.propertySet) attr.propertySet = "General";\
         var pset = attr.propertySet; if (pset) {if(psets.indexOf(pset) == -1){psets.push(pset);}}\
     }\
 %>\
