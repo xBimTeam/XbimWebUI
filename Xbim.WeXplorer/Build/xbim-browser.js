@@ -1859,7 +1859,7 @@ function xVisualProperty(values) {
 if (attributes && attributes.length > 0) {\
     var psets = [];\
     for(var i = 0; i < attributes.length; i++){\
-        var attr = attributes[i]; if (!attr.propertySet) attr.propertySet = "General"\
+        var attr = attributes[i]; if (!attr.propertySet) attr.propertySet = "General";\
         var pset = attr.propertySet; if (pset) {if(psets.indexOf(pset) == -1){psets.push(pset);}}\
     }\
 %>\
