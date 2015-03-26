@@ -158,6 +158,9 @@
         case 'dpow':
             model = 'Data/NewtownHighSchool.COBieLite.json';
             break;
+        case 'duplex':
+            model = 'tests/Data/Duplex-Design.cobielite.json';
+            break;
         default:
 
     }

@@ -60,6 +60,7 @@
     <Content Include="browser.js" />
     <Content Include="Browser\xbim-attribute-dictionary.debug.js" />
     <Content Include="Browser\xbim-browser.debug.js" />
+    <Content Include="Browser\xbim-cobieuk-utils.debug.js" />
     <Content Include="Browser\xbim-cobie-utils.debug.js" />
     <Content Include="Browser\xbim-visual-assignment-set.debug.js" />
     <Content Include="Browser\xbim-visual-attribute.debug.js" />
@@ -155,6 +156,7 @@
     <Content Include="tests\data\DPoW_Test.wexbim" />
     <Content Include="tests\data\rac.wexbim" />
     <Content Include="tests\data\rac2.wexBIM" />
+    <Content Include="tests\data\Duplex-Design.cobielite.json" />
     <None Include="Tutorials\1_Hello_building.md" />
     <Content Include="Resources\doctemplate\static\scripts\xbim-viewer.debug.bundle.js" />
     <Content Include="Viewer\fragment_shader.c" />

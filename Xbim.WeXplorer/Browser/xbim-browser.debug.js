@@ -16,10 +16,10 @@
 * @param {string} [culture] - culture code. Default combination of language and culture is "en", "uk".
 */
 function xBrowser(lang, culture) {
-    this._data = null;
     this._model = new xVisualModel();
     this._events = [];
-    this._utils = new xCobieUtils(lang, culture);
+    this._lang = lang;
+    this._culture = culture;
     this._templates = {};
 
     //compile templates
@@ -547,9 +547,14 @@ xBrowser.prototype.load = function (source) {
         fReader.onloadend = function () {
             if (fReader.result) {
                 //set data buffer for next processing
-                self._data = JSON.parse(fReader.result);
-                self._model = self._utils.getVisualModel(self._data);
-                self._fire('loaded', { model: self._model, data: self._data });
+                var data = JSON.parse(fReader.result);
+
+                //set right utils according to the data type
+                var uk = typeof (data.FacilityDefaultLinearUnit) === "undefined";
+                var utils = uk ? new xCobieUkUtils(self._lang, self._culture) : new xCobieUtils(self._lang, self._culture);
+
+                self._model = utils.getVisualModel(data);
+                self._fire('loaded', { model: self._model });
             }
         };
         fReader.readAsText(source);
@@ -564,14 +569,18 @@ xBrowser.prototype.load = function (source) {
     xhr.open('GET', source, true);
     xhr.onreadystatechange = function () {
         if (xhr.readyState == 4 && xhr.status == 200) {
-            self._data = xhr.response;
+            var data = xhr.response;
 
             //----- IE fix
-            if (typeof (self._data) == 'string')
-                self._data = JSON.parse(self._data);
+            if (typeof (data) == 'string')
+                data = JSON.parse(data);
             //------
 
-            self._model = self._utils.getVisualModel(self._data);
+            //decide about the version if utils
+            var uk = typeof (data.FacilityDefaultLinearUnit) === "undefined";
+            var utils = uk ? new xCobieUkUtils(self._lang, self._culture) : new xCobieUtils(self._lang, self._culture);
+
+            self._model = utils.getVisualModel(data);
 
             /**
             * Occurs when JSON data model is loaded
@@ -580,7 +589,7 @@ xBrowser.prototype.load = function (source) {
             * @param {xVisualModel} model - preprocessed {@link xVisualModel model} prepared for visual representation
             * @param {object} model - original COBie data
             */ 
-            self._fire('loaded', { model: self._model , data: self._data});
+            self._fire('loaded', { model: self._model});
         }
         //throw exception as a warning
         if (xhr.readyState == 4 && xhr.status != 200) {
