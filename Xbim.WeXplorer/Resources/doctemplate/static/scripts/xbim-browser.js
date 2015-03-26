@@ -1234,7 +1234,7 @@ xCobieUkUtils.prototype.getVisualEntity = function (entity, type) {
     return new xVisualEntity({
         id: entity.EntityId,
         type: type,
-        name: entity.Name + this.getValidationStatus(entity),
+        name: this.getValidationStatus(entity) + entity.Name, //prepend validation status. This will make it easier for later.
         description: entity.Description,
         attributes: this.getAttributes(entity),
         properties: this.getProperties(entity),
@@ -1245,16 +1245,16 @@ xCobieUkUtils.prototype.getVisualEntity = function (entity, type) {
 };
 
 xCobieUkUtils.prototype.getValidationStatus = function(entity) {
-    var result = "";
-    if (entity.Categories == null) return result;
+    if (entity.Categories == null) return "";
 
     for (var i = 0; i < entity.Categories; i++) {
         var category = entity.Categories[i];
         if (typeof (category.Code) !== "undefined" && category.Code.toLowerCase() === "failed")
-            return "[F]";
+            return "[F] ";
         if (typeof (category.Code) !== "undefined" && category.Code.toLowerCase() === "passed")
-            return "[T]";
+            return "[T] ";
     }
+    return "";
 };
 
 xCobieUkUtils.prototype.getVisualModel = function (data) {
@@ -1519,7 +1519,7 @@ xCobieUkUtils.prototype.getAttributes = function (entity) {
         result.push(new xVisualAttribute({
             name: attribute.Name,
             description: attribute.Description,
-            value: this.getValueString(attribute.Value),
+            value: this.getValueString(attribute),
             propertySet: attribute.ExternalEntity,
             categories: this.getCategoryProperties(attribute),
             issues: attribute.Issues ? this.getIssues({ Issues: attribute.Issues }) : []
