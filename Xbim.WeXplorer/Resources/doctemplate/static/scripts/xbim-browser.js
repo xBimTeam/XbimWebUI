@@ -1247,7 +1247,7 @@ xCobieUkUtils.prototype.getVisualEntity = function (entity, type) {
 xCobieUkUtils.prototype.getValidationStatus = function(entity) {
     if (entity.Categories == null) return "";
 
-    for (var i = 0; i < entity.Categories; i++) {
+    for (var i = 0; i < entity.Categories.length; i++) {
         var category = entity.Categories[i];
         if (typeof (category.Code) !== "undefined" && category.Code.toLowerCase() === "failed")
             return "[F] ";
