@@ -136,6 +136,10 @@ void main(void) {
 		vDiscard = 1.0;
 		return;
 	}
+	else
+	{
+		vDiscard = 0.0;
+	}
 	
 	if (uColorCoding){
 		vec4 idColor = getIdColor();
@@ -145,9 +149,9 @@ void main(void) {
 	else{
 		//ulightA[3] represents intensity of the light
 		float lightAIntensity = ulightA[3];
-		vec3 lightADirection = normalize(ulightA.xyz - vPosition);
+		vec3 lightADirection = normalize(ulightA.xyz - vertex);
 		float lightBIntensity = ulightB[3];
-		vec3 lightBDirection = normalize(ulightB.xyz - vPosition);
+		vec3 lightBDirection = normalize(ulightB.xyz - vertex);
 		
 		//Light weighting
 		float lightWeightA = max(dot(normal, lightADirection ) * lightAIntensity, 0.0);
@@ -163,7 +167,7 @@ void main(void) {
 		vec4 baseColor = state == 253 ? vec4(1.0, 0.68, 0.13, 1.0) : getColor();
 		
 		//offset semitransparent triangles
-		if (baseColor.a < 0.99 && uRenderingMode == 0)
+		if (baseColor.a < 0.98 && uRenderingMode == 0)
 		{
 			mat4 transpose = mat4(1);
 			vec3 trans = -0.002 * uMeter * normalize(normal);

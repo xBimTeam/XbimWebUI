@@ -1232,7 +1232,7 @@ xCobieUkUtils.prototype.settings = {
 xCobieUkUtils.prototype.getVisualEntity = function (entity, type) {
     if (!entity || !type) throw 'entity must be defined';
     return new xVisualEntity({
-        id: entity.EntityId,
+        id: entity.ExternalId,
         type: type,
         name: this.getValidationStatus(entity) + entity.Name, //prepend validation status. This will make it easier for later.
         description: entity.Description,

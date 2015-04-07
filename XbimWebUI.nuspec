@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
   <metadata>
     <id>XbimWebUI</id>
-    <version>0.1.13-Prerelease</version>
+    <version>0.1.14-Prerelease</version>
     <title>xBIM WeXplorer</title>
     <authors>xBIM team</authors>
     <owners>Martin Černý, Steve Lockley</owners>
