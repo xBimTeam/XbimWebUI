@@ -3,7 +3,7 @@
 * 
 * @name xBrowser
 * @constructor
-* @classdesc This is a reader of COBie data encoded in JSON format in COBieLight data structure. You can easily combine this with 3D viewer xViewer to get full
+* @classdesc This is a reader of COBie data encoded in JSON format in COBieLite data structure. You can easily combine this with 3D viewer xViewer to get full
 * user experience. This class is loosely coupled with jQuery UI. It is not a mandatory dependency for the rendering itself. Tree views are basically
 * nested unordered lists which is a natural representation for hierarchical data and lists are rendered as a table with one column. Classes are assigned
 * to different parts in a way that you can use to style in any way you want.
@@ -531,7 +531,7 @@ xBrowser.prototype._getContainer = function (container) {
 };
 
 /**
-* Use this function to load data from JSON representation of COBieLight. Listen to {@link xBrowser#event:loaded loaded} event to start
+* Use this function to load data from JSON representation of COBieLite. Listen to {@link xBrowser#event:loaded loaded} event to start
 * using the browser.
 * @function xBrowser#load
 * @param {string|File|Blob} source - path to JSON data or File or Blob object to be used to load the data from
