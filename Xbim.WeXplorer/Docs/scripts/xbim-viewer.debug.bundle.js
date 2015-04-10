@@ -640,8 +640,8 @@ xModelHandle.prototype._bufferTexture = function (pointer, data, arity) {
     var size = 0;
     var maxSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
     if (fp) {
-        //recompute to smaller size
-        size = Math.ceil(Math.sqrt(data.length / arity));
+        //recompute to smaller size, but make it +1 to make sure it is all right
+        size = Math.ceil(Math.sqrt(Math.ceil(data.length / arity))) + 1;
     }
     else {
         var dim = Math.sqrt(data.byteLength / 4);
@@ -815,8 +815,8 @@ var xProductType = {
 */
 function xShaders() {
     var result = {};
-    result.fragment_shader = " precision mediump float; uniform vec4 uClippingPlane; varying vec4 vColor; varying vec3 vPosition; varying float vDiscard; void main(void) { if (vDiscard != 0.0) discard; if (uClippingPlane != vec4(0.0, 0.0, 0.0, 0.0)) { vec4 p = uClippingPlane; vec3 x = vPosition; float distance = (p.x * x.x + p.y * x.y + p.z * x.z + p.w) / sqrt(p.x * p.x + p.y * p.y  + p.z * p.z); if (distance < 0.0){ discard; } } gl_FragColor = vColor; }";
-    result.vertex_shader = " attribute highp float aVertexIndex; attribute highp float aTransformationIndex; attribute highp float aStyleIndex; attribute highp float aProduct; attribute highp vec2 aState; attribute highp vec2 aNormal; uniform mat4 uMVMatrix; uniform mat4 uPMatrix; uniform vec4 ulightA; uniform vec4 ulightB; uniform float uMeter; uniform bool uColorCoding; uniform int uRenderingMode; uniform highp sampler2D uVertexSampler; uniform int uVertexTextureSize; uniform highp sampler2D uMatrixSampler; uniform int uMatrixTextureSize; uniform highp sampler2D uStyleSampler; uniform int uStyleTextureSize; uniform highp sampler2D uStateStyleSampler; varying vec4 vColor; varying vec3 vPosition; varying float vDiscard; vec3 getNormal(){ float U = aNormal[0]; float V = aNormal[1]; float PI = 3.1415926535897932384626433832795; float lon = U / 252.0 * 2.0 * PI; float lat = V / 252.0 * PI; float x = sin(lon) * sin(lat); float z = cos(lon) * sin(lat); float y = cos(lat); return normalize(vec3(x, y, z)); } vec4 getIdColor(){ float product = floor(aProduct + 0.5); float B = floor (product/(256.0*256.0)); float G = floor((product  - B * 256.0*256.0)/256.0); float R = mod(product, 256.0); return vec4(R/255.0, G/255.0, B/255.0, 1.0); } vec2 getTextureCoordinates(int index, int size) { float x = float(index - (index / size) * size); float y = float(index / size); float pixelSize = 1.0 / float(size); return vec2((x + 0.5) * pixelSize, (y + 0.5) * pixelSize); } vec4 getColor(){ if (uRenderingMode == 2){ return vec4(0.0, 0.0, 0.3, 0.5); } int restyle = int(floor(aState[1] + 0.5)); if (restyle > 224){ int index = int (floor(aStyleIndex + 0.5)); vec2 coords = getTextureCoordinates(index, uStyleTextureSize); return texture2D(uStyleSampler, coords); } vec2 coords = getTextureCoordinates(restyle, 15); return texture2D(uStateStyleSampler, coords); } vec3 getVertexPosition(){ int index = int (floor(aVertexIndex +0.5)); vec2 coords = getTextureCoordinates(index, uVertexTextureSize); vec3 point = vec3(texture2D(uVertexSampler, coords)); int tIndex = int(floor(aTransformationIndex + 0.5)); if (tIndex != 65535) { tIndex *=4; mat4 transform = mat4( texture2D(uMatrixSampler, getTextureCoordinates(tIndex, uMatrixTextureSize)), texture2D(uMatrixSampler, getTextureCoordinates(tIndex+1, uMatrixTextureSize)), texture2D(uMatrixSampler, getTextureCoordinates(tIndex+2, uMatrixTextureSize)), texture2D(uMatrixSampler, getTextureCoordinates(tIndex+3, uMatrixTextureSize)) ); return vec3(transform * vec4(point, 1.0)); } return point; } void main(void) { vec3 vertex = getVertexPosition(); vec3 normal = getNormal(); int state = int(floor(aState[0] + 0.5)); int restyle = int(floor(aState[1] + 0.5)); if (state == 254 || (uRenderingMode == 1 && !(state == 253 || state == 252)) || (uRenderingMode == 2 && (state == 253 || state == 252))) { vDiscard = 1.0; return; } if (uColorCoding){ vColor = getIdColor(); } else{ float lightAIntensity = ulightA[3]; vec3 lightADirection = normalize(ulightA.xyz - vPosition); float lightBIntensity = ulightB[3]; vec3 lightBDirection = normalize(ulightB.xyz - vPosition); float lightWeightA = max(dot(normal, lightADirection ) * lightAIntensity, 0.0); float lightWeightB = max(dot(normal, lightBDirection ) * lightBIntensity, 0.0); float lightWeighting = lightWeightA + lightWeightB + 0.4; vec4 baseColor = state == 253 ? vec4(1.0, 0.68, 0.13, 1.0) : getColor(); if (baseColor.a < 0.99 && uRenderingMode == 0) { mat4 transpose = mat4(1); vec3 trans = -0.002 * uMeter * normalize(normal); transpose[3] = vec4(trans,1.0); vertex = vec3(transpose * vec4(vertex, 1.0)); } vColor = vec4(baseColor.rgb * lightWeighting, baseColor.a); } vPosition = vertex; gl_Position = uPMatrix * uMVMatrix * vec4(vertex, 1.0); }";
+    result.fragment_shader = " precision mediump float; uniform vec4 uClippingPlane; varying vec4 vFrontColor; varying vec4 vBackColor; varying vec3 vPosition; varying float vDiscard; void main(void) { if ( int(vDiscard + 0.5) != 0) discard; if (ivec4(uClippingPlane + 0.5) != ivec4(0, 0, 0, 0)) { vec4 p = uClippingPlane; vec3 x = vPosition; float distance = (p.x * x.x + p.y * x.y + p.z * x.z + p.w) / sqrt(p.x * p.x + p.y * p.y  + p.z * p.z); if (int(distance + 0.5) < 0){ discard; } } gl_FragColor = gl_FrontFacing ? vFrontColor : vBackColor; }";
+    result.vertex_shader = " attribute highp float aVertexIndex; attribute highp float aTransformationIndex; attribute highp float aStyleIndex; attribute highp float aProduct; attribute highp vec2 aState; attribute highp vec2 aNormal; uniform mat4 uMVMatrix; uniform mat4 uPMatrix; uniform vec4 ulightA; uniform vec4 ulightB; uniform float uMeter; uniform bool uColorCoding; uniform int uRenderingMode; uniform highp sampler2D uVertexSampler; uniform int uVertexTextureSize; uniform highp sampler2D uMatrixSampler; uniform int uMatrixTextureSize; uniform highp sampler2D uStyleSampler; uniform int uStyleTextureSize; uniform highp sampler2D uStateStyleSampler; varying vec4 vFrontColor; varying vec4 vBackColor; varying vec3 vPosition; varying float vDiscard; vec3 getNormal(){ float U = aNormal[0]; float V = aNormal[1]; float PI = 3.1415926535897932384626433832795; float lon = U / 252.0 * 2.0 * PI; float lat = V / 252.0 * PI; float x = sin(lon) * sin(lat); float z = cos(lon) * sin(lat); float y = cos(lat); return normalize(vec3(x, y, z)); } vec4 getIdColor(){ float product = floor(aProduct + 0.5); float B = floor (product/(256.0*256.0)); float G = floor((product  - B * 256.0*256.0)/256.0); float R = mod(product, 256.0); return vec4(R/255.0, G/255.0, B/255.0, 1.0); } vec2 getTextureCoordinates(int index, int size) { float x = float(index - (index / size) * size); float y = float(index / size); float pixelSize = 1.0 / float(size); return vec2((x + 0.5) * pixelSize, (y + 0.5) * pixelSize); } vec4 getColor(){ if (uRenderingMode == 2){ return vec4(0.0, 0.0, 0.3, 0.5); } int restyle = int(floor(aState[1] + 0.5)); if (restyle > 224){ int index = int (floor(aStyleIndex + 0.5)); vec2 coords = getTextureCoordinates(index, uStyleTextureSize); return texture2D(uStyleSampler, coords); } vec2 coords = getTextureCoordinates(restyle, 15); return texture2D(uStateStyleSampler, coords); } vec3 getVertexPosition(){ int index = int (floor(aVertexIndex +0.5)); vec2 coords = getTextureCoordinates(index, uVertexTextureSize); vec3 point = vec3(texture2D(uVertexSampler, coords)); int tIndex = int(floor(aTransformationIndex + 0.5)); if (tIndex != 65535) { tIndex *=4; mat4 transform = mat4( texture2D(uMatrixSampler, getTextureCoordinates(tIndex, uMatrixTextureSize)), texture2D(uMatrixSampler, getTextureCoordinates(tIndex+1, uMatrixTextureSize)), texture2D(uMatrixSampler, getTextureCoordinates(tIndex+2, uMatrixTextureSize)), texture2D(uMatrixSampler, getTextureCoordinates(tIndex+3, uMatrixTextureSize)) ); return vec3(transform * vec4(point, 1.0)); } return point; } void main(void) { vec3 vertex = getVertexPosition(); vec3 normal = getNormal(); vec3 backNormal = normal * -1.0; int state = int(floor(aState[0] + 0.5)); int restyle = int(floor(aState[1] + 0.5)); if (state == 254 || (uRenderingMode == 1 && !(state == 253 || state == 252)) || (uRenderingMode == 2 && (state == 253 || state == 252))) { vDiscard = 1.0; return; } else { vDiscard = 0.0; } if (uColorCoding){ vec4 idColor = getIdColor(); vFrontColor = idColor; vBackColor = idColor; } else{ float lightAIntensity = ulightA[3]; vec3 lightADirection = normalize(ulightA.xyz - vertex); float lightBIntensity = ulightB[3]; vec3 lightBDirection = normalize(ulightB.xyz - vertex); float lightWeightA = max(dot(normal, lightADirection ) * lightAIntensity, 0.0); float lightWeightB = max(dot(normal, lightBDirection ) * lightBIntensity, 0.0); float backLightWeightA = max(dot(backNormal, lightADirection) * lightAIntensity, 0.0); float backLightWeightB = max(dot(backNormal, lightBDirection) * lightBIntensity, 0.0); float lightWeighting = lightWeightA + lightWeightB + 0.4; float backLightWeighting = backLightWeightA + backLightWeightB + 0.4; vec4 baseColor = state == 253 ? vec4(1.0, 0.68, 0.13, 1.0) : getColor(); if (baseColor.a < 0.98 && uRenderingMode == 0) { mat4 transpose = mat4(1); vec3 trans = -0.002 * uMeter * normalize(normal); transpose[3] = vec4(trans,1.0); vertex = vec3(transpose * vec4(vertex, 1.0)); } vFrontColor = vec4(baseColor.rgb * lightWeighting, baseColor.a); vBackColor = vec4(baseColor.rgb * backLightWeighting, baseColor.a); } vPosition = vertex; gl_Position = uPMatrix * uMVMatrix * vec4(vertex, 1.0); }";
     result.vertex_shader_noFPT = " attribute highp float aVertexIndex; attribute highp float aTransformationIndex; attribute highp float aStyleIndex; attribute highp float aProduct; attribute highp float aState; attribute highp vec2 aNormal; uniform mat4 uMVMatrix; uniform mat4 uPMatrix; uniform vec4 ulightA; uniform vec4 ulightB; uniform bool uColorCoding; uniform bool uFloatingPoint; uniform highp sampler2D uVertexSampler; uniform int uVertexTextureSize; uniform highp sampler2D uMatrixSampler; uniform int uMatrixTextureSize; uniform highp sampler2D uStyleSampler; uniform int uStyleTextureSize; uniform highp sampler2D uStateStyleSampler; int stateStyleTextureSize = 15; varying vec4 vColor; varying vec3 vPosition; vec3 getNormal(){ float U = aNormal[0]; float V = aNormal[1]; float PI = 3.1415926535897932384626433832795; float u = ((U / 252.0) * (2.0 * PI)) - PI; float v = ((V / 252.0) * (2.0 * PI)) - PI; float x = sin(v) * cos(u); float y = sin(v) * sin(u); float z = cos(v); return normalize(vec3(x, y, z)); } vec4 getIdColor(){ float R = mod(aProduct, 256.0) / 255.0; float G = floor(aProduct/256.0) / 255.0; float B = floor (aProduct/(256.0*256.0)) / 255.0; return vec4(R, G, B, 1.0); } vec2 getVertexTextureCoordinates(int index, int size) { float x = float(index - (index / size) * size); float y = float(index / size); float pixelSize = 1.0 / float(size); return vec2((x + 0.5) * pixelSize, (y + 0.5) * pixelSize); } int getByteFromScale(float base) { float result = base * 255.0; int correction = fract(result) >= 0.5 ? 1 : 0; return int(result) + correction; } ivec4 getPixel(int index, sampler2D sampler, int size) { vec2 coords = getVertexTextureCoordinates(index, size); vec4 pixel = texture2D(sampler, coords); return ivec4( getByteFromScale(pixel.r), getByteFromScale(pixel.g), getByteFromScale(pixel.b), getByteFromScale(pixel.a) ); } void getBits(ivec4 pixel, out int result[32]) { for (int i = 0; i < 4; i++) { int actualByte = pixel[i]; for (int j = 0; j < 8; j++) { result[31 - (j + i * 8)] =  actualByte - (actualByte / 2) * 2; actualByte /= 2; } } } float getFloatFromPixel(ivec4 pixel) { int bits[32]; getBits(pixel, bits); float sign =  bits[0] == 0 ? 1.0 : -1.0; highp float fraction = 1.0; highp float exponent = 0.0; for (int i = 1; i < 9; i++) { exponent += float(bits[9 - i]) * exp2(float (i - 1)); } exponent -= 127.0; for (int i = 9; i < 32; i++) { fraction += float(bits[i]) * exp2(float((-1)*(i-8))); } return sign * fraction * exp2(exponent); } float getFloatFromPixel(int index, sampler2D sampler, int size) { ivec4 pixel = getPixel(index, sampler, size); return getFloatFromPixel(pixel); } vec4 getColor(){ if (floor(aState + 0.5) == 0.0){ int index = int (floor(aStyleIndex + 0.5)); vec2 coords = getVertexTextureCoordinates(index, uStyleTextureSize); return texture2D(uStyleSampler, coords); } else{ return vec4(1.0,1.0,1.0,1.0); } } vec3 getVertexPosition(){ int index = int (floor(aVertexIndex +0.5))* 3; vec3 position = vec3( getFloatFromPixel(index, uVertexSampler, uVertexTextureSize), getFloatFromPixel(index + 1, uVertexSampler, uVertexTextureSize), getFloatFromPixel(index + 2, uVertexSampler, uVertexTextureSize) ); int tIndex = int(floor(aTransformationIndex + 0.5)); if (tIndex != 65535) { tIndex *= 16; mat4 transform = mat4( getFloatFromPixel(tIndex + 0, uMatrixSampler, uMatrixTextureSize), getFloatFromPixel(tIndex + 1, uMatrixSampler, uMatrixTextureSize), getFloatFromPixel(tIndex + 2, uMatrixSampler, uMatrixTextureSize), getFloatFromPixel(tIndex + 3, uMatrixSampler, uMatrixTextureSize), getFloatFromPixel(tIndex + 4, uMatrixSampler, uMatrixTextureSize), getFloatFromPixel(tIndex + 5, uMatrixSampler, uMatrixTextureSize), getFloatFromPixel(tIndex + 6, uMatrixSampler, uMatrixTextureSize), getFloatFromPixel(tIndex + 7, uMatrixSampler, uMatrixTextureSize), getFloatFromPixel(tIndex + 8, uMatrixSampler, uMatrixTextureSize), getFloatFromPixel(tIndex + 9, uMatrixSampler, uMatrixTextureSize), getFloatFromPixel(tIndex + 10, uMatrixSampler, uMatrixTextureSize), getFloatFromPixel(tIndex + 11, uMatrixSampler, uMatrixTextureSize), getFloatFromPixel(tIndex + 12, uMatrixSampler, uMatrixTextureSize), getFloatFromPixel(tIndex + 13, uMatrixSampler, uMatrixTextureSize), getFloatFromPixel(tIndex + 14, uMatrixSampler, uMatrixTextureSize), getFloatFromPixel(tIndex + 15, uMatrixSampler, uMatrixTextureSize) ); vec4 transformedPosition = transform * vec4(position, 1.0); return vec3(transformedPosition); } return position; } void main(void) { vec3 vertex = getVertexPosition(); vPosition = vertex; gl_Position = uPMatrix * uMVMatrix * vec4(vertex, 1.0); if (uColorCoding){ vColor = getIdColor(); } else{ vec3 normal = getNormal(); float lightAIntensity = ulightA[3]; vec3 lightADirection = normalize(ulightA.xyz - vPosition); float lightBIntensity = ulightB[3]; vec3 lightBDirection = normalize(ulightB.xyz - vPosition); float lightWeightA = max(dot(normal, lightADirection ) * lightAIntensity, 0.0); float lightWeightB = max(dot(normal, lightBDirection ) * lightBIntensity, 0.0); float lightWeighting = lightWeightA + lightWeightB + 0.4; vec4 baseColor = getColor(); vColor = vec4(baseColor.rgb * lightWeighting, baseColor.a); } }";
     return result;
 }
@@ -1020,7 +1020,7 @@ function xViewer(canvas) {
     * Array of four floats. It represents Light A's position <strong>XYZ</strong> and intensity <strong>I</strong> as [X, Y, Z, I]. Intensity should be in range 0.0 - 1.0.
     * @member {Number[]} xViewer#lightA
     */
-    this.lightA = [0, 1000000, 200000, 1.0];
+    this.lightA = [0, 1000000, 200000, 0.8];
     /**
     * Array of four floats. It represents Light B's position <strong>XYZ</strong> and intensity <strong>I</strong> as [X, Y, Z, I]. Intensity should be in range 0.0 - 1.0.
     * @member {Number[]} xViewer#lightB
@@ -1069,7 +1069,7 @@ function xViewer(canvas) {
 
     //set up DEPTH_TEST and BLEND so that transparent objects look right
     //this is not 100% perfect as it would be necessary to sort all objects from back to
-    //from when rendering them. We have sacrified this for the sake of performance.
+    //front when rendering them. We have sacrified this for the sake of performance.
     //Objects with no transparency in their default style are drawn first and semitransparent last.
     //This gives 90% right when there is not too much of transparency. It may not look right if you
     //have a look through two windows or if you have a look from inside of the building out.
@@ -1086,6 +1086,11 @@ function xViewer(canvas) {
     this._height = this._canvas.height = this._canvas.offsetHeight;
 
     this._geometryLoaded = false;
+    //this object is used to identify if anything changed before two frames (hence if it is necessary to redraw)
+    this._lastStates = {};
+    this._visualStateAttributes = ["perspectiveCamera", "orthogonalCamera", "camera", "background", "lightA", "lightB",
+        "renderingMode", "_clippingPlane", "_mvMatrix", "_pMatrix", "_distance", "_origin"];
+    this._stylingChanged = true;
 
     //dictionary of named events which can be registered and unregistered by using '.on('eventname', callback)'
     // and '.onRemove('eventname', callback)'. Registered callbacks are triggered by the viewer when important events occure.
@@ -1129,10 +1134,6 @@ function xViewer(canvas) {
     this._initAttributesAndUniforms();
     //init mouse events to capture user interaction
     this._initMouseEvents();
-
-    //set back face culling. This might be usefull for certain kinds of visualization like x-ray mode where it will make model more transparent
-    //gl.enable(gl.CULL_FACE);
-    //gl.frontFace(gl.CCW); //counter clock-wise
 };
 
 /**
@@ -1225,6 +1226,7 @@ xViewer.check = function () {
 xViewer.prototype.defineStyle = function (index, colour) {
     if (typeof (index) == 'undefined' || (index < 0 && index > 224)) throw 'Style index has to be defined as a number 0-224';
     if (typeof (colour) == 'undefined' || colour.length == 'undefined' || colour.length != 4) throw 'Colour must be defined as an array of 4 bytes';
+    this._stylingChanged = true;
 
     //set style to style texture via model handle
     var colData = new Uint8Array(colour);
@@ -1253,6 +1255,7 @@ xViewer.prototype.setState = function (state, target) {
     for (var i in this._handles) {
         this._handles[i].setState(state, target);
     }
+    this._stylingChanged = true;
 };
 
 /**
@@ -1274,6 +1277,7 @@ xViewer.prototype.resetStates = function (hideSpaces) {
             this._handles[i].setState(xState.HIDDEN, xProductType.IFCSPACE);
         }
     }
+    this._stylingChanged = true;
 };
 
 
@@ -1300,6 +1304,7 @@ xViewer.prototype.setStyle = function (style, target) {
     for (var i in this._handles) {
         this._handles[i].setState(style, target);
     }
+    this._stylingChanged = true;
 };
 
 /**
@@ -1311,6 +1316,7 @@ xViewer.prototype.resetStyles = function () {
     for (var i in this._handles) {
         this._handles[i].resetStyles();
     }
+    this._stylingChanged = true;
 };
 
 /**
@@ -1788,9 +1794,13 @@ xViewer.prototype._initMouseEvents = function () {
 * @fires xViewer#frame
 */
 xViewer.prototype.draw = function () {
-    if (!this._geometryLoaded || this._handles.length == 0) {
+    if (!this._geometryLoaded || this._handles.length == 0 || !(this._stylingChanged || this._isChanged())) {
         return;
     }
+
+    //styles are up to date when new frame is drawn
+    this._stylingChanged = false;
+
     var gl = this._gl;
     var width = this._width;
     var height = this._height;
@@ -1855,6 +1865,7 @@ xViewer.prototype.draw = function () {
             var handle = this._handles[i];
             handle.setActive(this._pointers);
             handle.draw();
+            //handle.drawProduct(51649);
         }
     }
     
@@ -1865,6 +1876,17 @@ xViewer.prototype.draw = function () {
      * @type {object}
      */
     this._fire('frame', {});
+};
+
+xViewer.prototype._isChanged = function () {
+    var theSame = true;
+    for (var i in this._visualStateAttributes) {
+        var state = JSON.stringify(this[this._visualStateAttributes[i]]);
+        var lastState = this._lastStates[this._visualStateAttributes[i]];
+        this._lastStates[this._visualStateAttributes[i]] = state;
+        theSame = theSame && (state === lastState)
+    }
+    return !theSame;
 };
 
 /**
