@@ -90,7 +90,7 @@ function xViewer(canvas) {
     * Array of four floats. It represents Light A's position <strong>XYZ</strong> and intensity <strong>I</strong> as [X, Y, Z, I]. Intensity should be in range 0.0 - 1.0.
     * @member {Number[]} xViewer#lightA
     */
-    this.lightA = [0, 1000000, 200000, 1.0];
+    this.lightA = [0, 1000000, 200000, 0.8];
     /**
     * Array of four floats. It represents Light B's position <strong>XYZ</strong> and intensity <strong>I</strong> as [X, Y, Z, I]. Intensity should be in range 0.0 - 1.0.
     * @member {Number[]} xViewer#lightB
@@ -139,7 +139,7 @@ function xViewer(canvas) {
 
     //set up DEPTH_TEST and BLEND so that transparent objects look right
     //this is not 100% perfect as it would be necessary to sort all objects from back to
-    //from when rendering them. We have sacrified this for the sake of performance.
+    //front when rendering them. We have sacrified this for the sake of performance.
     //Objects with no transparency in their default style are drawn first and semitransparent last.
     //This gives 90% right when there is not too much of transparency. It may not look right if you
     //have a look through two windows or if you have a look from inside of the building out.
@@ -156,6 +156,11 @@ function xViewer(canvas) {
     this._height = this._canvas.height = this._canvas.offsetHeight;
 
     this._geometryLoaded = false;
+    //this object is used to identify if anything changed before two frames (hence if it is necessary to redraw)
+    this._lastStates = {};
+    this._visualStateAttributes = ["perspectiveCamera", "orthogonalCamera", "camera", "background", "lightA", "lightB",
+        "renderingMode", "_clippingPlane", "_mvMatrix", "_pMatrix", "_distance", "_origin"];
+    this._stylingChanged = true;
 
     //dictionary of named events which can be registered and unregistered by using '.on('eventname', callback)'
     // and '.onRemove('eventname', callback)'. Registered callbacks are triggered by the viewer when important events occure.
@@ -199,10 +204,6 @@ function xViewer(canvas) {
     this._initAttributesAndUniforms();
     //init mouse events to capture user interaction
     this._initMouseEvents();
-
-    //set back face culling. This might be usefull for certain kinds of visualization like x-ray mode where it will make model more transparent
-    //gl.enable(gl.CULL_FACE);
-    //gl.frontFace(gl.CCW); //counter clock-wise
 };
 
 /**
@@ -295,6 +296,7 @@ xViewer.check = function () {
 xViewer.prototype.defineStyle = function (index, colour) {
     if (typeof (index) == 'undefined' || (index < 0 && index > 224)) throw 'Style index has to be defined as a number 0-224';
     if (typeof (colour) == 'undefined' || colour.length == 'undefined' || colour.length != 4) throw 'Colour must be defined as an array of 4 bytes';
+    this._stylingChanged = true;
 
     //set style to style texture via model handle
     var colData = new Uint8Array(colour);
@@ -323,6 +325,7 @@ xViewer.prototype.setState = function (state, target) {
     for (var i in this._handles) {
         this._handles[i].setState(state, target);
     }
+    this._stylingChanged = true;
 };
 
 /**
@@ -344,6 +347,7 @@ xViewer.prototype.resetStates = function (hideSpaces) {
             this._handles[i].setState(xState.HIDDEN, xProductType.IFCSPACE);
         }
     }
+    this._stylingChanged = true;
 };
 
 
@@ -370,6 +374,7 @@ xViewer.prototype.setStyle = function (style, target) {
     for (var i in this._handles) {
         this._handles[i].setState(style, target);
     }
+    this._stylingChanged = true;
 };
 
 /**
@@ -381,6 +386,7 @@ xViewer.prototype.resetStyles = function () {
     for (var i in this._handles) {
         this._handles[i].resetStyles();
     }
+    this._stylingChanged = true;
 };
 
 /**
@@ -858,9 +864,13 @@ xViewer.prototype._initMouseEvents = function () {
 * @fires xViewer#frame
 */
 xViewer.prototype.draw = function () {
-    if (!this._geometryLoaded || this._handles.length == 0) {
+    if (!this._geometryLoaded || this._handles.length == 0 || !(this._stylingChanged || this._isChanged())) {
         return;
     }
+
+    //styles are up to date when new frame is drawn
+    this._stylingChanged = false;
+
     var gl = this._gl;
     var width = this._width;
     var height = this._height;
@@ -936,6 +946,17 @@ xViewer.prototype.draw = function () {
      * @type {object}
      */
     this._fire('frame', {});
+};
+
+xViewer.prototype._isChanged = function () {
+    var theSame = true;
+    for (var i in this._visualStateAttributes) {
+        var state = JSON.stringify(this[this._visualStateAttributes[i]]);
+        var lastState = this._lastStates[this._visualStateAttributes[i]];
+        this._lastStates[this._visualStateAttributes[i]] = state;
+        theSame = theSame && (state === lastState)
+    }
+    return !theSame;
 };
 
 /**
