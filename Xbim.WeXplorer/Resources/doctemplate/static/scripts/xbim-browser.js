@@ -1244,7 +1244,7 @@ xCobieUkUtils.prototype.getVisualEntity = function (entity, type) {
     });
 };
 
-xCobieUkUtils.prototype.getValidationStatus = function(entity) {
+xCobieUkUtils.prototype.getValidationStatus = function (entity) {
     if (entity.Categories == null) return "";
 
     for (var i = 0; i < entity.Categories.length; i++) {
@@ -1273,7 +1273,7 @@ xCobieUkUtils.prototype.getVisualModel = function (data) {
         systems: this.getSystems(data, types),
         assetTypes: types,
         contacts: this._contacts
-});
+    });
 };
 
 xCobieUkUtils.prototype.getContacts = function (data) {
@@ -1406,6 +1406,14 @@ xCobieUkUtils.prototype.getSystems = function (data, types) {
     var systems = data.Systems;
     if (!systems) return result;
 
+    var instances = [];
+    for (var k = 0; k < types.length; k++) {
+        var type = types[k];
+        for (var c in type.children) {
+            instances.push[type.children[c]];
+        }
+    }
+
     for (var s in systems) {
         var system = systems[s];
         var vSystem = this.getVisualEntity(system, 'system');
@@ -1415,25 +1423,22 @@ xCobieUkUtils.prototype.getSystems = function (data, types) {
         var componentKeys = system.Components;
         for (var j = 0; j < componentKeys.length; j++) {
             var key = componentKeys[j];
-            for (var t in types) {
-                var type = types[t];
-                for (var i in type.children) {
-                    var instance = type.children[i];
-                    if (instance.name != key.Name) continue;
+            var candidates = instances.filter(function (e) { return e.name == key.Name; });
+            if (!candidates) continue;
+            var instance = candidates[0];
+            if(!instance) continue;
 
-                    //add asset to system
-                    vSystem.children.push(instance);
-                    //add system to asset assignments
-                    var assignmentSet = instance.assignments.filter(function (e) { return e.id == 'System'; })[0];
-                    if (!assignmentSet) {
-                        assignmentSet = new xVisualAssignmentSet();
-                        assignmentSet.id = "System";
-                        assignmentSet.Name = "Systems";
-                        instance.assignments.push(assignmentSet);
-                    }
-                    assignmentSet.assignments.push(vSystem);
-                }
+            //add asset to system
+            vSystem.children.push(instance);
+            //add system to asset assignments
+            var assignmentSet = instance.assignments.filter(function (e) { return e.id == 'System'; })[0];
+            if (!assignmentSet) {
+                assignmentSet = new xVisualAssignmentSet();
+                assignmentSet.id = "System";
+                assignmentSet.Name = "Systems";
+                instance.assignments.push(assignmentSet);
             }
+            assignmentSet.assignments.push(vSystem);
         }
     }
     return result;
@@ -1493,7 +1498,7 @@ xCobieUkUtils.prototype.getProperties = function (entity) {
     return result;
 };
 
-xCobieUkUtils.prototype.getCategoryProperties = function(entity) {
+xCobieUkUtils.prototype.getCategoryProperties = function (entity) {
     var cats = entity.Categories;
     if (!cats) return [];
 
@@ -1535,7 +1540,7 @@ xCobieUkUtils.prototype.getAssignments = function (entity, type) {
 
     //assignment can either be an array of keys or a single embeded object
     for (var attrName in entity) {
-        if(!entity.hasOwnProperty(attrName)) continue;
+        if (!entity.hasOwnProperty(attrName)) continue;
         var assignmentSet = new xVisualAssignmentSet();
         var attr = entity[attrName];
 
@@ -1563,7 +1568,7 @@ xCobieUkUtils.prototype.getAssignments = function (entity, type) {
 
         //single key assignment
         if (typeof (attr.KeyType) !== "undefined") {
-            assignmentSet.id = attr.KeyType; 
+            assignmentSet.id = attr.KeyType;
             assignmentSet.name = tr(attrName);
 
             //add a contact if it is defined
@@ -1596,8 +1601,7 @@ xCobieUkUtils.prototype.getAssignments = function (entity, type) {
     return result;
 };
 
-xCobieUkUtils.prototype.findContact = function(email)
-{
+xCobieUkUtils.prototype.findContact = function (email) {
     for (var i = 0; i < this._contacts.length; i++) {
         var contact = this._contacts[i];
         var emailProp = contact.properties.filter(function (e) { return e.name === "Email"; })[0]
@@ -1642,7 +1646,7 @@ xCobieUkUtils.prototype.setLanguage = function (lang, culture) {
 };
 
 xCobieUkUtils.prototype.getValueString = function (value) {
-    if (typeof(value) == 'undefined' || value == null)
+    if (typeof (value) == 'undefined' || value == null)
         return '';
 
     var units = value.Unit || "";
