@@ -1410,7 +1410,7 @@ xCobieUkUtils.prototype.getSystems = function (data, types) {
     for (var k = 0; k < types.length; k++) {
         var type = types[k];
         for (var c in type.children) {
-            instances.push[type.children[c]];
+            instances.push(type.children[c]);
         }
     }
 
