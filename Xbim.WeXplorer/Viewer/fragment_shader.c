@@ -25,5 +25,7 @@ void main(void) {
 	}
 	
 	//fix wrong normals
-	gl_FragColor = gl_FrontFacing ? vFrontColor : vBackColor;
+	//gl_FragColor = gl_FrontFacing ? vFrontColor : vBackColor;
+	//gl_FragColor = vBackColor;
+	gl_FragColor = vFrontColor;
 }

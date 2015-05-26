@@ -73,7 +73,6 @@
     <Content Include="Build\xbim-viewer.debug.bundle.js" />
     <Content Include="Build\xbim-viewer.min.bundle.js" />
     <Content Include="Build\xbim-viewer.min.js" />
-    <Content Include="browser.html" />
     <Content Include="index.html" />
     <Content Include="Libs\gl-matrix.min.js" />
     <Content Include="Libs\jquery-ui-styles\images\ui-bg_flat_0_aaaaaa_40x100.png" />
@@ -102,6 +101,7 @@
     <Content Include="Libs\jstree-styles\style.css" />
     <Content Include="Libs\jstree-styles\style.min.css" />
     <Content Include="Libs\jstree-styles\throbber.gif" />
+    <Content Include="Libs\query-string.js" />
     <Content Include="Libs\webgl-utils.min.js" />
     <Content Include="Resources\doctemplate\publish.js" />
     <Content Include="Resources\doctemplate\static\1_Hello_building.live.html" />
@@ -141,22 +141,11 @@
     <Content Include="Resources\doctemplate\static\styles\prettify-tomorrow.css" />
     <Content Include="Resources\doctemplate\static\styles\xbrowser-styles.css" />
     <Content Include="Resources\doctemplate\static\styles\xviewer-styles.css" />
-    <Content Include="semantics.html" />
     <Content Include="Tutorials\2_Safe_Hello_building.md" />
     <Content Include="Tutorials\1_Hello_building.json" />
     <Content Include="Resources\doctemplate\static\5_Colourful_building.live.html" />
-    <Content Include="tests\data\COBieFacility.json" />
-    <Content Include="Data\Duplex_MEP_20110907.json" />
-    <Content Include="Data\Duplex_MEP_20110907.wexbim" />
-    <Content Include="Data\LakesideRestaurant.json" />
-    <Content Include="Data\LakesideRestaurant.wexbim" />
-    <Content Include="Data\NewtownHighSchool.COBieLite.json" />
-    <Content Include="tests\data\IfcFacetedBRepWithIncorrectlyOrientedFaces.wexbim" />
-    <Content Include="tests\data\SampleHouse.wexbim" />
-    <Content Include="tests\data\DPoW_Test.wexbim" />
-    <Content Include="tests\data\rac.wexbim" />
-    <Content Include="tests\data\rac2.wexBIM" />
-    <Content Include="tests\data\Duplex-Design.cobielite.json" />
+    <Content Include="tests\data\LakesideRestaurant.json" />
+    <Content Include="tests\data\wrong.wexbim" />
     <None Include="Tutorials\1_Hello_building.md" />
     <Content Include="Resources\doctemplate\static\scripts\xbim-viewer.debug.bundle.js" />
     <Content Include="Viewer\fragment_shader.c" />
@@ -190,7 +179,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="tests\data\data.dat" />
     <Content Include="tests\data\FourWalls.ifc" />
     <Content Include="tests\data\FourWalls.wexbim" />
     <Content Include="tests\data\FourWallsDoorWindows.ifc" />
