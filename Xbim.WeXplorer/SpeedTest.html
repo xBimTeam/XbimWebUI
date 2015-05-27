@@ -1,0 +1,133 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Speed test</title>
+</head>
+<body>
+<script type="text/javascript">
+    Array.prototype.filter1 = function(filter) {
+        var result = [];
+        for(var i = 0; i < this.length; i++)
+            if (filter(this[i])) result.push(this[i]);
+        return result;
+    }
+
+    //filtering test
+    var data = [1000000];
+    for (var i = 0; i < 1000000; i++) {
+        data[i] = i;
+    }
+    var predicate = function(element) {
+        return element % 7 === 0 || element % 4 === 0;
+    }
+
+    var start = new Date().getTime();
+    //var data2 = new Float32Array(data.buffer.slice(0, count));
+    var filteredData1 = data.filter(predicate);
+    var end = new Date().getTime();
+    var time = end - start;
+    console.log("Native filter: " + time);
+
+    var start = new Date().getTime();
+    //var data2 = new Float32Array(data.buffer.slice(0, count));
+    var filteredData1 = data.filter1(predicate);
+    var end = new Date().getTime();
+    var time = end - start;
+    console.log("JS filter: " + time);
+
+    //create sample data:
+    var count = 1000000;
+    var data = new Float32Array(count);
+    var little = new Float32Array(count);
+    for (var i = 0; i < count; i++) {
+        data[i] = Math.random();
+        little[i] = data[i];
+    }
+
+    //creating typed data view
+    var start = new Date().getTime();
+    //var data2 = new Float32Array(data.buffer.slice(0, count));
+    var data2 = new Float32Array(data.buffer, 0, count);
+    var end = new Date().getTime();
+    var time = end - start;
+    console.log("Casting the buffer: " + time);
+
+    //using DatView which can control endiannes of the data
+    var start = new Date().getTime();
+    var data3 = new Float32Array(count);
+    var view = new DataView(data.buffer);
+    for (var i = 0; i < count; i++) {
+        data3[i] = view.getFloat32(i * 4, true);
+    }
+    var end = new Date().getTime();
+    var time = end - start;
+    console.log("Using DataView: " + time);
+
+    //converting endiannes from 'little' to 'big'
+    var start = new Date().getTime();
+    var buffer = little.buffer;
+    var swap;
+    for (var i = 0; i < count*4; i = i + 4) {
+        swap = buffer[i];
+        buffer[i] = buffer[i + 3];
+        buffer[i + 3] = swap;
+        swap = buffer[i + 1];
+        buffer[i + 1] = buffer[i + 2];
+        buffer[i + 2] = swap;
+    }
+    var end = new Date().getTime();
+    var time = end - start;
+    console.log("Swapping the buffer to big endian: " + time);
+
+    //using DatView which can control endiannes of the data
+    var start = new Date().getTime();
+    var data4 = new Float32Array(count);
+    var view = new DataView(buffer);
+    for (var i = 0; i < count; i++) {
+        data4[i] = view.getFloat32(i * 4, false);
+    }
+    var end = new Date().getTime();
+    var time = end - start;
+    console.log("Using DataView to read big endian: " + time);
+
+    //final values check in full range
+    //for (var i = 0; i < count; i++) {
+    //    if (data[i] !== data2[i] || data[i] !== data3[i] || data[i] !== data4[i]) throw "Different value of index " + i;
+    //}
+
+
+    //equality testing speed
+    var start = new Date().getTime();
+    var number = 456;
+    for (var i = 0; i < count; i++) {
+        if (typeof (number) != "undefined" && number > 0)
+            number++;
+    }
+    var end = new Date().getTime();
+    var time = end - start;
+    console.log("Comparing with coercing operator: " + time);
+
+    var start = new Date().getTime();
+    var number = 456;
+    for (var i = 0; i < count; i++) {
+        if (typeof (number) !== "undefined" && number > 0)
+            number++;
+    }
+    var end = new Date().getTime();
+    var time = end - start;
+    console.log("Comparing with exact operator: " + time);
+
+    //equality testing speed
+    var start = new Date().getTime();
+    var number = 456;
+    for (var i = 0; i < count; i++) {
+        if (number)
+            number++;
+    }
+    var end = new Date().getTime();
+    var time = end - start;
+    console.log("Basic test: " + time);
+
+</script>
+</body>
+</html>

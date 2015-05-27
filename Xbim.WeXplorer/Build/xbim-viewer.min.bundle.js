@@ -26,10 +26,11 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
-function xBinaryReader(){this._buffer=null;this._position=0;}
+function xBinaryReader(){this._buffer=null;this._view=null;this._position=0;}
 xBinaryReader.prototype.onloaded=function(){};xBinaryReader.prototype.onerror=function(){};xBinaryReader.prototype.load=function(source){var self=this;if(typeof(source)=='undefined'||source==null)throw'Source must be defined';if(typeof(source)=='string'){var xhr;xhr=new XMLHttpRequest();xhr.open("GET",source,true);xhr.onreadystatechange=function(){if(xhr.readyState==4&&xhr.status==200){var fReader=new FileReader();fReader.onloadend=function(){if(fReader.result){self._buffer=fReader.result;if(self.onloaded){self.onloaded();}}};fReader.readAsArrayBuffer(xhr.response);}
 if(xhr.readyState==4&&xhr.status!=200){var msg='Failed to fetch binary data from server. Server code: '+xhr.status+'. This might be due to CORS policy of your browser if you run this as a local file.';if(self.onerror)self.onerror(msg);throw msg;}};xhr.responseType='blob';xhr.send();}
-else if(source instanceof Blob||source instanceof File){var fReader=new FileReader();fReader.onloadend=function(){if(fReader.result){self._buffer=fReader.result;if(self.onloaded){self.onloaded();}}};fReader.readAsArrayBuffer(source);}};xBinaryReader.prototype.getIsEOF=function(type,count){return this._position==this._buffer.byteLength;};xBinaryReader.prototype.read=function(type,count){if(typeof(type)=='undefined'){throw'You have to specify one of predefined types.';}
+else if(source instanceof Blob||source instanceof File){var fReader=new FileReader();fReader.onloadend=function(){if(fReader.result){self._buffer=fReader.result;self._view=new DataView(fReader.result)
+if(self.onloaded){self.onloaded();}}};fReader.readAsArrayBuffer(source);}};xBinaryReader.prototype.getIsEOF=function(type,count){return this._position==this._buffer.byteLength;};xBinaryReader.prototype.read=function(type,count){if(typeof(type)=='undefined'){throw'You have to specify one of predefined types.';}
 var self=this;var subBuffer=function(arity){if(!self._buffer){throw"No data loaded. You can't get any data unless data is loaded. Use 'onloaded' callback.";}
 if(count===0)return 0;var length=arity;if(typeof(count)!='undefined'&&count>0){length=count*arity;}
 if(self._position+length>self._buffer.byteLength){throw'Data buffer overflow. You have asked for '+length+' bytes which is more than is currently available in data buffer (position: '+self._position+').';}

@@ -141,11 +141,12 @@
     <Content Include="Resources\doctemplate\static\styles\prettify-tomorrow.css" />
     <Content Include="Resources\doctemplate\static\styles\xbrowser-styles.css" />
     <Content Include="Resources\doctemplate\static\styles\xviewer-styles.css" />
+    <Content Include="SpeedTest.html" />
     <Content Include="Tutorials\2_Safe_Hello_building.md" />
     <Content Include="Tutorials\1_Hello_building.json" />
     <Content Include="Resources\doctemplate\static\5_Colourful_building.live.html" />
-    <Content Include="tests\data\LakesideRestaurant.json" />
     <Content Include="tests\data\wrong.wexbim" />
+    <Content Include="tests\data\LakesideRestaurant.json" />
     <None Include="Tutorials\1_Hello_building.md" />
     <Content Include="Resources\doctemplate\static\scripts\xbim-viewer.debug.bundle.js" />
     <Content Include="Viewer\fragment_shader.c" />

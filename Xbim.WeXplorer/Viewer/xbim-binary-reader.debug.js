@@ -1,5 +1,6 @@
 function xBinaryReader() {
     this._buffer = null;
+    this._view = null;
     this._position = 0;
 }
 
@@ -47,6 +48,7 @@ xBinaryReader.prototype.load = function (source) {
             if (fReader.result) {
                 //set data buffer for next processing
                 self._buffer = fReader.result;
+                self._view = new DataView(fReader.result)
                 //do predefined processing of the data
                 if (self.onloaded) {
                     self.onloaded();

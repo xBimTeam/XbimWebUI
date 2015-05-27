@@ -754,7 +754,7 @@ xBrowser.prototype.load = function (source) {
             throw msg;
         }
     };
-    xhr.responseType = 'text';
+    xhr.responseType = 'json';
     xhr.send();
 };
 
