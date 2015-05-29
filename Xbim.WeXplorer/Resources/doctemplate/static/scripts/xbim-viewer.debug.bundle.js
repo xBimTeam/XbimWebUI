@@ -27,15 +27,15 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 function xBinaryReader() {
     this._buffer = null;
-    this._view = null;
     this._position = 0;
 }
 
-xBinaryReader.prototype.onloaded = function() {};
-xBinaryReader.prototype.onerror = function() {};
+xBinaryReader.prototype.onloaded = function () { };
+xBinaryReader.prototype.onerror = function () { };
 
 
 xBinaryReader.prototype.load = function (source) {
+    this._position = 0;
     var self = this;
 
     if (typeof (source) == 'undefined' || source == null) throw 'Source must be defined';
@@ -75,7 +75,6 @@ xBinaryReader.prototype.load = function (source) {
             if (fReader.result) {
                 //set data buffer for next processing
                 self._buffer = fReader.result;
-                self._view = new DataView(fReader.result)
                 //do predefined processing of the data
                 if (self.onloaded) {
                     self.onloaded();
@@ -84,126 +83,98 @@ xBinaryReader.prototype.load = function (source) {
         };
         fReader.readAsArrayBuffer(source);
     }
+    else if (source instanceof ArrayBuffer) {
+        this._buffer = source;
+    }
 };
 
 xBinaryReader.prototype.getIsEOF = function (type, count) {
     return this._position == this._buffer.byteLength;
 };
 
-xBinaryReader.prototype.read = function (type, count) {
-    if (typeof (type) == 'undefined') {
-        throw 'You have to specify one of predefined types.';
-    }
-
-    var self = this;
-    var subBuffer = function (arity) {
-        if (!self._buffer) {
-            throw "No data loaded. You can't get any data unless data is loaded. Use 'onloaded' callback.";
-        }
-
-        if (count === 0) return 0;
-
-        var length = arity;
-        if (typeof (count) != 'undefined' && count > 0) {
-            length = count * arity;
-        }
-
-        if (self._position + length > self._buffer.byteLength) {
-            throw 'Data buffer overflow. You have asked for ' + length + ' bytes which is more than is currently available in data buffer (position: ' + self._position + ').';
-        }
-
-        var result = self._buffer.slice(self._position, self._position + length);
-        self._position += length;
-        return result;
-    };
-    var results = type.ctor(subBuffer(type.arity));
-
-    if (typeof (count) == 'undefined') {
-        return results[0];
-    }
-    else {
-        return results;
-    }
+xBinaryReader.prototype.read = function(arity, count, ctor) {
+    count = count | 1;
+    var length = arity * count;
+    var offset = this._position;
+    this._position += length;
+    return count === 1 ?
+        new ctor(this._buffer.slice( offset, length))[0] :
+        new ctor(this._buffer.slice( offset, length));
 };
 
-//types containing arity of the type (number of bytes for a unit) and function used to convert bytes to the type. Base types are created as typed arrays.
-xBinaryReader.prototype.BYTE = { arity: 1, ctor: function (slice) { return new Uint8Array(slice); } };
-xBinaryReader.prototype.UINT8 = { arity: 1, ctor: function (slice) { return new Uint8Array(slice); } };
-xBinaryReader.prototype.INT16 = { arity: 2, ctor: function (slice) { return new Int16Array(slice); } };
-xBinaryReader.prototype.UINT16 = { arity: 2, ctor: function (slice) { return new Uint16Array(slice); } };
-xBinaryReader.prototype.INT32 = { arity: 4, ctor: function (slice) { return new Int32Array(slice); } };
-xBinaryReader.prototype.UINT32 = { arity: 4, ctor: function (slice) { return new Uint32Array(slice); } };
-xBinaryReader.prototype.FLOAT32 = { arity: 4, ctor: function (slice) { return new Float32Array(slice); } };
-xBinaryReader.prototype.FLOAT64 = { arity: 8, ctor: function (slice) { return new Float64Array(slice); } };
-xBinaryReader.prototype.CHAR = {
-    arity: 1, ctor: function (slice) {
-        var bytes = new Uint8Array(slice);
-        var result = [];
-        for (var i in bytes) {
-            result.push(String.fromCharCode(bytes[i]));
-        }
-        return result;
-    }
+xBinaryReader.prototype.readByte = function (count) {
+    return this.read(1, count, Uint8Array);
 };
-xBinaryReader.prototype.POINT = {
-    arity: 12, ctor: function (slice) {
-        var coords = new Float32Array(slice);
-        var result = [];
-        for (var i = 0; i < coords.length / 3; i++) {
-            var index = i * 3;
-            var point = new Float32Array(3);
-            point[0] = coords[index];
-            point[1] = coords[index + 1];
-            point[2] = coords[index + 2];
-            result.push(point)
-        }
-        return result;
-    }
+
+xBinaryReader.prototype.readUint8 = xBinaryReader.prototype.BYTE; //this is only alias
+
+xBinaryReader.prototype.readInt16 = function (count) {
+    return this.read(2, count, Int16Array);
 };
-xBinaryReader.prototype.RGBA = {
-    arity: 4, ctor: function (slice) {
-        var values = new Uint8Array(slice);
-        var result = [];
-        for (var i = 0; i < values.length / 4; i++) {
-            var index = i * 4;
-            var colour = new Uint8Array(4);
-            colour[0] = values[index];
-            colour[1] = values[index + 1];
-            colour[2] = values[index + 2];
-            colour[3] = values[index + 3];
-            result.push(colour)
-        }
-        return result;
-    }
+xBinaryReader.prototype.readUint16 = function (count) {
+    return this.read(2, count, Uint16Array);
 };
-xBinaryReader.prototype.PACKED_NORMAL = {
-    arity: 2, ctor: function (slice) {
-        var values = new Uint8Array(slice);
-        var result = [];
-        for (var i = 0; i < values.length / 2; i++) {
-            var index = i * 2;
-            var uv = new Uint8Array(2);
-            uv[0] = values[index];
-            uv[1] = values[index + 1];
-            result.push(uv)
-        }
-        return result;
-    }
+xBinaryReader.prototype.readInt32 = function (count) {
+    return this.read(4, count, Int32Array);
 };
-xBinaryReader.prototype.MATRIX4x4 = {
-    arity: 16 * 4, ctor: function (slice) {
-        var vals = new Float32Array(slice);
-        var result = [];
-        for (var i = 0; i < vals.length / 16; i++) {
-            var index = i * 16;
-            var matrix = new Float32Array(16);
-            for (var j = 0; j < 16; j++) {
-                matrix[j] = vals[index + j]
-            }
-            result.push(matrix)
-        }
-        return result;
+xBinaryReader.prototype.readUint32 = function (count) {
+    return this.read(4, count, Uint32Array);
+};
+xBinaryReader.prototype.readFloat32 = function (count) {
+    return this.read(4, count, Float32Array);
+};
+xBinaryReader.prototype.readFloat64 = function (count) {
+    return this.read(4, count, Float64Array);
+};
+xBinaryReader.prototype.readChar = function (count) {
+    var bytes = this.readByte(count);
+    var result = new Array(count);
+    for (var i in bytes) {
+        result[i] = String.fromCharCode(bytes[i]);
     }
+    return count ===1 ? result[0] : result;
+};
+
+//functions for a higher objects like points, colours and matrices
+xBinaryReader.prototype.readPoint = function (count) {
+    var coords = this.readFloat32(count * 3);
+    var result = new Array(count);
+    for (var i = 0; i < count; i++) {
+        var offset = i * 3 * 4;
+        //only create new view on the buffer so that no new memmory is allocated
+        var point = new Float32Array(coords.buffer, offset, 3);
+        result[i] = point;
+    }
+    return count === 1 ? result[0] : result;
+};
+xBinaryReader.prototype.readRgba = function (count) {
+    var values = this.readByte(count * 4);
+    var result = new Array(count);
+    for (var i = 0; i < count ; i++) {
+        var offset = i * 4;
+        var colour = new Uint8Array(values.buffer, offset, 4);
+        result[i] = colour;
+    }
+    return count === 1 ? result[0] : result;
+};
+xBinaryReader.prototype.readPackedNormal = function (count) {
+    var values = this.readUint8(count * 2);
+    var result = new Array(count);
+    for (var i = 0; i < count; i++) {
+        var uv = new Uint8Array(values.buffer, i * 2, 2);
+        result[i] = uv;
+    }
+    return count === 1 ? result[0] : result;
+};
+xBinaryReader.prototype.readMatrix4x4 = function (count) {
+    var values = this.readFloat32(count * 16);
+    var result = new Array(count);
+    for (var i = 0; i < count; i++) {
+        var offset = i * 16 * 4;
+        var matrix = new Float32Array(values.buffer, offset, 16);
+        result[i] = matrix;
+    }
+    return count === 1 ? result[0] : result;
 };function xModelGeometry() {
     //all this data is to be fed into GPU as attributes
     this.normals = [];
@@ -234,47 +205,47 @@ xBinaryReader.prototype.MATRIX4x4 = {
 
 xModelGeometry.prototype.parse = function (binReader) {
     var br = binReader;
-    var magicNumber = br.read(br.INT32);
+    var magicNumber = br.readInt32();
     if (magicNumber != 94132117) throw 'Magic number mismatch.';
-    var version = br.read(br.BYTE);
-    var numShapes = br.read(br.INT32);
-    var numVertices = br.read(br.INT32);
-    var numTriangles = br.read(br.INT32);
-    var numMatrices = br.read(br.INT32);
-    var numProducts = br.read(br.INT32);
-    var numStyles = br.read(br.INT32);
-    this.meter = br.read(br.FLOAT32);
-    var numRegions = br.read(br.INT16);
+    var version = br.readByte();
+    var numShapes = br.readInt32();
+    var numVertices = br.readInt32();
+    var numTriangles = br.readInt32();
+    var numMatrices = br.readInt32();;
+    var numProducts = br.readInt32();;
+    var numStyles = br.readInt32();;
+    this.meter = br.readFloat32();;
+    var numRegions = br.readInt16();
 
 
 
     //set size of arrays to be square usable for texture data
     //TODO: reflect support for floating point textures
-    var square = function (type, count) {
-        if (typeof (type) == 'undefined' || typeof (count) == 'undefined') {
+    var square = function (arity, count) {
+        if (typeof (arity) == 'undefined' || typeof (count) == 'undefined') {
             throw 'Wrong arguments';
         }
         if (count == 0) return 0;
-        var byteLength = count * type.arity;
+        var byteLength = count * arity;
         var imgSide = Math.ceil(Math.sqrt(byteLength / 4));
         //clamp to arity
-        while ((imgSide * 4) % type.arity != 0) {
+        while ((imgSide * 4) % arity != 0) {
             imgSide++
         }
-        var result = imgSide * imgSide * 4 / type.arity;
+        var result = imgSide * imgSide * 4 / arity;
         return result;
     };
 
     //create target buffers of correct size (avoid reallocation of memory)
-    this.vertices = new Float32Array(square(br.FLOAT32, numVertices * 3));
+    this.vertices = new Float32Array(square(4, numVertices * 3));
     this.normals = new Uint8Array(numTriangles * 6);
     this.indices = new Float32Array(numTriangles * 3);
     this.styleIndices = new Uint16Array(numTriangles * 3);
-    this.styles = new Uint8Array(square(br.BYTE, numStyles * 4));
+    this.styles = new Uint8Array(square(1, numStyles * 4));
     this.products = new Float32Array(numTriangles * 3);
     this.states = new Uint8Array(numTriangles * 3 * 2); //place for state and restyling
     this.transformations = new Float32Array(numTriangles * 3);
-    this.matrices = new Float32Array(square(br.FLOAT32, numMatrices * 16));
+    this.matrices = new Float32Array(square(4, numMatrices * 16));
     this.productMap = new Array(numProducts);
     this.regions = new Array(numRegions);
 
@@ -290,27 +261,27 @@ xModelGeometry.prototype.parse = function (binReader) {
 
     for (var i = 0; i < numRegions; i++) {
         this.regions[i] = {
-            population: br.read(br.INT32),
-            centre: br.read(br.FLOAT32, 3),
-            bbox: br.read(br.FLOAT32, 6)
+            population: br.readInt32(),
+            centre: br.readPoint(),
+            bbox: br.readFloat32(6)
         }
     }
 
 
     var styleMap = [];
     for (var iStyle = 0; iStyle < numStyles; iStyle++) {
-        var styleId = br.read(br.INT32);
-        var R = br.read(br.FLOAT32) * 255;
-        var G = br.read(br.FLOAT32) * 255;
-        var B = br.read(br.FLOAT32) * 255;
-        var A = br.read(br.FLOAT32) * 255;
+        var styleId = br.readInt32();
+        var R = br.readFloat32() * 255;
+        var G = br.readFloat32() * 255;
+        var B = br.readFloat32() * 255;
+        var A = br.readFloat32() * 255;
         this.styles.set([R, G, B, A], iStyle * 4);
         styleMap.push({ id: styleId, index: iStyle, transparent: A < 254 });
     }
     for (var i = 0; i < numProducts ; i++) {
-        var productLabel = br.read(br.INT32);
-        var prodType = br.read(br.INT16);
-        var bBox = br.read(br.FLOAT32, 6);
+        var productLabel = br.readInt32();
+        var prodType = br.readInt16();
+        var bBox = br.readFloat32(6);
 
         var map = {
             productID: productLabel,
@@ -323,17 +294,17 @@ xModelGeometry.prototype.parse = function (binReader) {
 
     for (var iShape = 0; iShape < numShapes; iShape++) {
 
-        var repetition = br.read(br.INT32);
+        var repetition = br.readInt32();
         var shapeList = [];
         for (var iProduct = 0; iProduct < repetition; iProduct++) {
-            var prodLabel = br.read(br.INT32);
-            var instanceTypeId = br.read(br.INT16);
-            var instanceLabel = br.read(br.INT32);
-            var styleId = br.read(br.INT32);
+            var prodLabel = br.readInt32();
+            var instanceTypeId = br.readInt16();
+            var instanceLabel = br.readInt32();
+            var styleId = br.readInt32();
             var transformation = null;
 
             if (repetition > 1) {
-                transformation = br.read(br.MATRIX4x4);
+                transformation = br.readMatrix4x4();
                 this.matrices.set(transformation, iMatrix);
                 iMatrix += 16;
             }
@@ -840,10 +811,10 @@ function xTriangulatedShape() { };
 //this will get xBinaryReader on the current position and will parse it's content to fill itself with vertices, normals and vertex indices
 xTriangulatedShape.prototype.parse = function (binReader) {
     var self = this;
-    var version = binReader.read(binReader.BYTE);
-    var numVertices = binReader.read(binReader.INT32);
-    var numOfTriangles = binReader.read(binReader.INT32);
-    self.vertices = binReader.read(binReader.FLOAT32, numVertices * 3);
+    var version = binReader.readByte();
+    var numVertices = binReader.readInt32();
+    var numOfTriangles = binReader.readInt32();
+    self.vertices = binReader.readFloat32(numVertices * 3);
     //allocate memory of defined size (to avoid reallocation of memory)
     self.indices = new Uint32Array(numOfTriangles * 3);
     self.normals = new Uint8Array(numOfTriangles * 6);
@@ -855,25 +826,25 @@ xTriangulatedShape.prototype.parse = function (binReader) {
 
     var readIndex = function () {
         if (numVertices <= 0xFF) {
-            return binReader.read(binReader.BYTE);
+            return binReader.readByte();
         }
         else if (numVertices <= 0xFFFF) {
-            return binReader.read(binReader.UINT16);
+            return binReader.readUint16();
         }
         else {
-            return binReader.read(binReader.INT32);
+            return binReader.readInt32();
         }
     };
 
-    var numFaces = binReader.read(binReader.INT32);
+    var numFaces = binReader.readInt32();
     for (var i = 0; i < numFaces; i++) {
-        var numTrianglesInFace = binReader.read(binReader.INT32);
+        var numTrianglesInFace = binReader.readInt32();
         if (numTrianglesInFace == 0) continue;
 
         var isPlanar = numTrianglesInFace > 0;
         numTrianglesInFace = Math.abs(numTrianglesInFace);
         if (isPlanar) {
-            var normal = binReader.read(binReader.BYTE, 2);
+            var normal = binReader.readByte(2);
             for (var j = 0; j < numTrianglesInFace; j++) {
                 //add three identical normals because this is planar but needs to be expanded for WebGL
                 //read three indices
@@ -893,15 +864,15 @@ xTriangulatedShape.prototype.parse = function (binReader) {
         else {
             for (var j = 0; j < numTrianglesInFace; j++) {
                 self.indices[iIndex] = readIndex();//a
-                self.normals.set(binReader.read(binReader.BYTE, 2), iIndex * 2);
+                self.normals.set(binReader.readByte(2), iIndex * 2);
                 iIndex++;
 
                 self.indices[iIndex] = readIndex();//b
-                self.normals.set(binReader.read(binReader.BYTE, 2), iIndex * 2);
+                self.normals.set(binReader.readByte(2), iIndex * 2);
                 iIndex++;
 
                 self.indices[iIndex] = readIndex();//c
-                self.normals.set(binReader.read(binReader.BYTE, 2), iIndex * 2);
+                self.normals.set(binReader.readByte(2), iIndex * 2);
                 iIndex++;
             }
         }

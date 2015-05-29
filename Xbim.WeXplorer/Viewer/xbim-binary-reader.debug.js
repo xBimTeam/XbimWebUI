@@ -1,14 +1,14 @@
 function xBinaryReader() {
     this._buffer = null;
-    this._view = null;
     this._position = 0;
 }
 
-xBinaryReader.prototype.onloaded = function() {};
-xBinaryReader.prototype.onerror = function() {};
+xBinaryReader.prototype.onloaded = function () { };
+xBinaryReader.prototype.onerror = function () { };
 
-
+  
 xBinaryReader.prototype.load = function (source) {
+    this._position = 0;
     var self = this;
 
     if (typeof (source) == 'undefined' || source == null) throw 'Source must be defined';
@@ -48,7 +48,6 @@ xBinaryReader.prototype.load = function (source) {
             if (fReader.result) {
                 //set data buffer for next processing
                 self._buffer = fReader.result;
-                self._view = new DataView(fReader.result)
                 //do predefined processing of the data
                 if (self.onloaded) {
                     self.onloaded();
@@ -57,124 +56,102 @@ xBinaryReader.prototype.load = function (source) {
         };
         fReader.readAsArrayBuffer(source);
     }
+    else if (source instanceof ArrayBuffer) {
+        this._buffer = source;
+    }
 };
 
 xBinaryReader.prototype.getIsEOF = function (type, count) {
     return this._position == this._buffer.byteLength;
 };
 
-xBinaryReader.prototype.read = function (type, count) {
-    if (typeof (type) == 'undefined') {
-        throw 'You have to specify one of predefined types.';
-    }
-
-    var self = this;
-    var subBuffer = function (arity) {
-        if (!self._buffer) {
-            throw "No data loaded. You can't get any data unless data is loaded. Use 'onloaded' callback.";
-        }
-
-        if (count === 0) return 0;
-
-        var length = arity;
-        if (typeof (count) != 'undefined' && count > 0) {
-            length = count * arity;
-        }
-
-        if (self._position + length > self._buffer.byteLength) {
-            throw 'Data buffer overflow. You have asked for ' + length + ' bytes which is more than is currently available in data buffer (position: ' + self._position + ').';
-        }
-
-        var result = self._buffer.slice(self._position, self._position + length);
-        self._position += length;
-        return result;
-    };
-    var results = type.ctor(subBuffer(type.arity));
-
-    if (typeof (count) == 'undefined') {
-        return results[0];
-    }
-    else {
-        return results;
-    }
+xBinaryReader.prototype.read = function(arity, count, ctor) {
+    count = count | 1;
+    var length = arity * count;
+    var offset = this._position;
+    this._position += length;
+    return count === 1 ?
+        new ctor(this._buffer.slice( offset, offset + length))[0] :
+        new ctor(this._buffer.slice( offset, offset + length));
 };
 
-//types containing arity of the type (number of bytes for a unit) and function used to convert bytes to the type. Base types are created as typed arrays.
-xBinaryReader.prototype.BYTE = { arity: 1, ctor: function (slice) { return new Uint8Array(slice); } };
-xBinaryReader.prototype.UINT8 = { arity: 1, ctor: function (slice) { return new Uint8Array(slice); } };
-xBinaryReader.prototype.INT16 = { arity: 2, ctor: function (slice) { return new Int16Array(slice); } };
-xBinaryReader.prototype.UINT16 = { arity: 2, ctor: function (slice) { return new Uint16Array(slice); } };
-xBinaryReader.prototype.INT32 = { arity: 4, ctor: function (slice) { return new Int32Array(slice); } };
-xBinaryReader.prototype.UINT32 = { arity: 4, ctor: function (slice) { return new Uint32Array(slice); } };
-xBinaryReader.prototype.FLOAT32 = { arity: 4, ctor: function (slice) { return new Float32Array(slice); } };
-xBinaryReader.prototype.FLOAT64 = { arity: 8, ctor: function (slice) { return new Float64Array(slice); } };
-xBinaryReader.prototype.CHAR = {
-    arity: 1, ctor: function (slice) {
-        var bytes = new Uint8Array(slice);
-        var result = [];
-        for (var i in bytes) {
-            result.push(String.fromCharCode(bytes[i]));
-        }
-        return result;
-    }
+xBinaryReader.prototype.readByte = function (count) {
+    return this.read(1, count, Uint8Array);
 };
-xBinaryReader.prototype.POINT = {
-    arity: 12, ctor: function (slice) {
-        var coords = new Float32Array(slice);
-        var result = [];
-        for (var i = 0; i < coords.length / 3; i++) {
-            var index = i * 3;
-            var point = new Float32Array(3);
-            point[0] = coords[index];
-            point[1] = coords[index + 1];
-            point[2] = coords[index + 2];
-            result.push(point)
-        }
-        return result;
-    }
+
+xBinaryReader.prototype.readUint8 = xBinaryReader.prototype.BYTE; //this is only alias
+
+xBinaryReader.prototype.readInt16 = function (count) {
+    return this.read(2, count, Int16Array);
 };
-xBinaryReader.prototype.RGBA = {
-    arity: 4, ctor: function (slice) {
-        var values = new Uint8Array(slice);
-        var result = [];
-        for (var i = 0; i < values.length / 4; i++) {
-            var index = i * 4;
-            var colour = new Uint8Array(4);
-            colour[0] = values[index];
-            colour[1] = values[index + 1];
-            colour[2] = values[index + 2];
-            colour[3] = values[index + 3];
-            result.push(colour)
-        }
-        return result;
-    }
+xBinaryReader.prototype.readUint16 = function (count) {
+    return this.read(2, count, Uint16Array);
 };
-xBinaryReader.prototype.PACKED_NORMAL = {
-    arity: 2, ctor: function (slice) {
-        var values = new Uint8Array(slice);
-        var result = [];
-        for (var i = 0; i < values.length / 2; i++) {
-            var index = i * 2;
-            var uv = new Uint8Array(2);
-            uv[0] = values[index];
-            uv[1] = values[index + 1];
-            result.push(uv)
-        }
-        return result;
-    }
+xBinaryReader.prototype.readInt32 = function (count) {
+    return this.read(4, count, Int32Array);
 };
-xBinaryReader.prototype.MATRIX4x4 = {
-    arity: 16 * 4, ctor: function (slice) {
-        var vals = new Float32Array(slice);
-        var result = [];
-        for (var i = 0; i < vals.length / 16; i++) {
-            var index = i * 16;
-            var matrix = new Float32Array(16);
-            for (var j = 0; j < 16; j++) {
-                matrix[j] = vals[index + j]
-            }
-            result.push(matrix)
-        }
-        return result;
+xBinaryReader.prototype.readUint32 = function (count) {
+    return this.read(4, count, Uint32Array);
+};
+xBinaryReader.prototype.readFloat32 = function (count) {
+    return this.read(4, count, Float32Array);
+};
+xBinaryReader.prototype.readFloat64 = function (count) {
+    return this.read(4, count, Float64Array);
+};
+
+//functions for a higher objects like points, colours and matrices
+xBinaryReader.prototype.readChar = function (count) {
+    count = count | 1;
+    var bytes = this.readByte(count);
+    var result = new Array(count);
+    for (var i in bytes) {
+        result[i] = String.fromCharCode(bytes[i]);
     }
+    return count ===1 ? result[0] : result;
+};
+
+xBinaryReader.prototype.readPoint = function (count) {
+    count = count | 1;
+    var coords = this.readFloat32(count * 3);
+    var result = new Array(count);
+    for (var i = 0; i < count; i++) {
+        var offset = i * 3 * 4;
+        //only create new view on the buffer so that no new memmory is allocated
+        var point = new Float32Array(coords.buffer, offset, 3);
+        result[i] = point;
+    }
+    return count === 1 ? result[0] : result;
+};
+xBinaryReader.prototype.readRgba = function (count) {
+    count = count | 1;
+    var values = this.readByte(count * 4);
+    var result = new Array(count);
+    for (var i = 0; i < count ; i++) {
+        var offset = i * 4;
+        var colour = new Uint8Array(values.buffer, offset, 4);
+        result[i] = colour;
+    }
+    return count === 1 ? result[0] : result;
+};
+xBinaryReader.prototype.readPackedNormal = function (count) {
+    count = count | 1;
+    var values = this.readUint8(count * 2);
+    var result = new Array(count);
+    for (var i = 0; i < count; i++) {
+        var uv = new Uint8Array(values.buffer, i * 2, 2);
+        result[i] = uv;
+    }
+    return count === 1 ? result[0] : result;
+};
+xBinaryReader.prototype.readMatrix4x4 = function (count) {
+    count = count | 1;
+    var values = this.readFloat32(count * 16);
+    var result = new Array(count);
+    for (var i = 0; i < count; i++) {
+        var offset = i * 16 * 4;
+        var matrix = new Float32Array(values.buffer, offset, 16);
+        result[i] = matrix;
+    }
+    return count === 1 ? result[0] : result;
 };
