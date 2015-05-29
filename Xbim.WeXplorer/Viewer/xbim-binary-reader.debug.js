@@ -71,9 +71,12 @@ xBinaryReader.prototype.read = function (arity, count, ctor) {
     var offset = this._position;
     this._position += length;
     var result;
-    return count === 1 ?
-        new ctor(this._buffer.slice( offset, offset + length))[0] :
-        new ctor(this._buffer.slice( offset, offset + length));
+    if (offset % arity === 0) { //use just a view if the offset is multipliable by arity
+        result = new ctor(this._buffer, offset, count);
+    } else { //slice part of the buffer to get the right size
+        result = new ctor(this._buffer.slice(offset, offset + length));
+    }
+    return count === 1 ?  result[0] : result;
 };
 
 xBinaryReader.prototype.readByte = function (count) {
