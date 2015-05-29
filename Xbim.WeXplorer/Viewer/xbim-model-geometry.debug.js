@@ -85,7 +85,7 @@ xModelGeometry.prototype.parse = function (binReader) {
     for (var i = 0; i < numRegions; i++) {
         this.regions[i] = {
             population: br.readInt32(),
-            centre: br.readPoint(),
+            centre: br.readFloat32(3),
             bbox: br.readFloat32(6)
         }
     }

@@ -33,7 +33,7 @@ function xBinaryReader() {
 xBinaryReader.prototype.onloaded = function () { };
 xBinaryReader.prototype.onerror = function () { };
 
-
+  
 xBinaryReader.prototype.load = function (source) {
     this._position = 0;
     var self = this;
@@ -92,22 +92,23 @@ xBinaryReader.prototype.getIsEOF = function (type, count) {
     return this._position == this._buffer.byteLength;
 };
 
-xBinaryReader.prototype.read = function(arity, count, ctor) {
-    count = count | 1;
+xBinaryReader.prototype.read = function (arity, count, ctor) {
+    if(typeof (count) === "undefined") count = 1;
     var length = arity * count;
     var offset = this._position;
     this._position += length;
+    var result;
     return count === 1 ?
-        new ctor(this._buffer.slice( offset, length))[0] :
-        new ctor(this._buffer.slice( offset, length));
+        new ctor(this._buffer.slice( offset, offset + length))[0] :
+        new ctor(this._buffer.slice( offset, offset + length));
 };
 
 xBinaryReader.prototype.readByte = function (count) {
     return this.read(1, count, Uint8Array);
 };
-
-xBinaryReader.prototype.readUint8 = xBinaryReader.prototype.BYTE; //this is only alias
-
+xBinaryReader.prototype.readUint8 = function (count) {
+    return this.read(1, count, Uint8Array);
+};
 xBinaryReader.prototype.readInt16 = function (count) {
     return this.read(2, count, Int16Array);
 };
@@ -124,9 +125,12 @@ xBinaryReader.prototype.readFloat32 = function (count) {
     return this.read(4, count, Float32Array);
 };
 xBinaryReader.prototype.readFloat64 = function (count) {
-    return this.read(4, count, Float64Array);
+    return this.read(8, count, Float64Array);
 };
+
+//functions for a higher objects like points, colours and matrices
 xBinaryReader.prototype.readChar = function (count) {
+    if (typeof (count) === "undefined") count = 1;
     var bytes = this.readByte(count);
     var result = new Array(count);
     for (var i in bytes) {
@@ -135,8 +139,8 @@ xBinaryReader.prototype.readChar = function (count) {
     return count ===1 ? result[0] : result;
 };
 
-//functions for a higher objects like points, colours and matrices
 xBinaryReader.prototype.readPoint = function (count) {
+    if (typeof (count) === "undefined") count = 1;
     var coords = this.readFloat32(count * 3);
     var result = new Array(count);
     for (var i = 0; i < count; i++) {
@@ -148,6 +152,7 @@ xBinaryReader.prototype.readPoint = function (count) {
     return count === 1 ? result[0] : result;
 };
 xBinaryReader.prototype.readRgba = function (count) {
+    if (typeof (count) === "undefined") count = 1;
     var values = this.readByte(count * 4);
     var result = new Array(count);
     for (var i = 0; i < count ; i++) {
@@ -158,6 +163,7 @@ xBinaryReader.prototype.readRgba = function (count) {
     return count === 1 ? result[0] : result;
 };
 xBinaryReader.prototype.readPackedNormal = function (count) {
+    if (typeof (count) === "undefined") count = 1;
     var values = this.readUint8(count * 2);
     var result = new Array(count);
     for (var i = 0; i < count; i++) {
@@ -167,6 +173,7 @@ xBinaryReader.prototype.readPackedNormal = function (count) {
     return count === 1 ? result[0] : result;
 };
 xBinaryReader.prototype.readMatrix4x4 = function (count) {
+    if (typeof (count) === "undefined") count = 1;
     var values = this.readFloat32(count * 16);
     var result = new Array(count);
     for (var i = 0; i < count; i++) {
@@ -262,7 +269,7 @@ xModelGeometry.prototype.parse = function (binReader) {
     for (var i = 0; i < numRegions; i++) {
         this.regions[i] = {
             population: br.readInt32(),
-            centre: br.readPoint(),
+            centre: br.readFloat32(3),
             bbox: br.readFloat32(6)
         }
     }
