@@ -150,7 +150,11 @@ xModelHandle.prototype.drawProduct = function (ID) {
 };
 
 xModelHandle.prototype.getProductMap = function (ID) {
-    return this._model.productMap.filter(function (m) { return m.productID == ID }).pop();
+    for (var i = 0; i < this._model.productMap.length; i++) {
+        var map = this._model.productMap[i];
+        if (map.productID === ID) return map;
+    }
+    return null;
 };
 
 xModelHandle.prototype.feedGPU = function () {

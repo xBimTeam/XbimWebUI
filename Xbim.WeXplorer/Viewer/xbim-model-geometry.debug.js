@@ -26,6 +26,14 @@ function xModelGeometry() {
     this.productMap = [];
 }
 
+xModelGeometry.prototype.getProductMap = function (ID) {
+    for (var i = 0; i < this.productMap.length; i++) {
+        var map = this.productMap[i];
+        if (map.productID === ID) return map;
+    }
+    return null;
+};
+
 xModelGeometry.prototype.parse = function (binReader) {
     var br = binReader;
     var magicNumber = br.readInt32();
@@ -92,6 +100,13 @@ xModelGeometry.prototype.parse = function (binReader) {
 
 
     var styleMap = [];
+    styleMap.getStyle = function(id) {
+        for (var i = 0; i < this.length; i++) {
+            var item = this[i];
+            if (item.id == id) return item;
+        }
+        return null;
+    };
     for (var iStyle = 0; iStyle < numStyles; iStyle++) {
         var styleId = br.readInt32();
         var R = br.readFloat32() * 255;
@@ -132,8 +147,8 @@ xModelGeometry.prototype.parse = function (binReader) {
                 iMatrix += 16;
             }
 
-            var styleItem = styleMap.filter(function (st) { return st.id == styleId }).pop();
-            if (!styleItem)
+            var styleItem = styleMap.getStyle(styleId);
+            if (styleItem === null)
                 throw 'Style index not found.';
 
             shapeList.push({
@@ -164,15 +179,15 @@ xModelGeometry.prototype.parse = function (binReader) {
             }
 
             var begin = iIndex;
-            var map = this.productMap.filter(function (m) { return m.productID == shape.pLabel }).pop();
-            if (typeof (map) == 'undefined') throw "Product hasn't been defined before.";
+            var map = this.getProductMap(shape.pLabel);
+            if (map === null) throw "Product hasn't been defined before.";
 
             this.normals.set(shapeGeom.normals, iIndex * 2);
 
             //switch spaces and openings off by default 
             var state = map.type == typeEnum.IFCSPACE || map.type == typeEnum.IFCOPENINGELEMENT ?
                 stateEnum.HIDDEN :
-                0xFF; //0xFF is for default state
+                0xFF; //0xFF is for the default state
 
             //fix indices to right absolute position. It is relative to the shape.
             for (var i = 0; i < shapeGeom.indices.length; i++) {

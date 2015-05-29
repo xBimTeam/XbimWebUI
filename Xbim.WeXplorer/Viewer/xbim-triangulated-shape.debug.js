@@ -26,7 +26,7 @@ xTriangulatedShape.prototype.parse = function (binReader) {
     else {
         readIndex = function (count) { return binReader.readInt32(count); };
     }
-
+    
     var numFaces = binReader.readInt32();
     for (var i = 0; i < numFaces; i++) {
         var numTrianglesInFace = binReader.readInt32();
@@ -36,17 +36,15 @@ xTriangulatedShape.prototype.parse = function (binReader) {
         numTrianglesInFace = Math.abs(numTrianglesInFace);
         if (isPlanar) {
             var normal = binReader.readByte(2);
-            for (var j = 0; j < numTrianglesInFace; j++) {
-                //add three identical normals because this is planar but needs to be expanded for WebGL
-                //read three indices
-                var planarIndices = readIndex(3);
-                //create three planar normals which are the same
-                var planarNormals = [normal[0], normal[1], normal[0], normal[1], normal[0], normal[1]];
+            //read and set all indices
+            var planarIndices = readIndex(3 * numTrianglesInFace);
+            self.indices.set(planarIndices, iIndex);
 
-                //set to target arrays
-                self.indices.set(planarIndices, iIndex);//a
-                self.normals.set(planarNormals, iIndex * 2);
-                iIndex += 3;
+            for (var j = 0; j < numTrianglesInFace*3; j++) {
+                //add three identical normals because this is planar but needs to be expanded for WebGL
+                self.normals[iIndex * 2] = normal[0];
+                self.normals[iIndex * 2 + 1] = normal[1];
+                iIndex++;
             }
         }
         else {
