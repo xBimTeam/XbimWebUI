@@ -329,6 +329,21 @@ xViewer.prototype.setState = function (state, target) {
 };
 
 /**
+* Use this function to get state of the products in the model. You can compare result of this function 
+* with one of values from {@link xState xState} enumeration. 0xFF is the default value.
+*
+* @function xViewer#getState
+* @param {Number} id - Id of the product. You would typicaly get the id from {@link xViewer#event:pick pick event} or similar event.
+*/
+xViewer.prototype.getState = function (id) {
+    for (var i in this._handles) {
+        var state = this._handles[i].getState(id);
+        if (state !== null) return state;
+    }
+    return null;
+};
+
+/**
 * Use this function to reset state of all products to 'UNDEFINED' which means visible and not highlighted. 
 * You can use optional hideSpaces parameter if you also want to show spaces. They will be hidden by default.
 * 
@@ -378,6 +393,21 @@ xViewer.prototype.setStyle = function (style, target) {
 };
 
 /**
+* Use this function to get overriding colour style of the products in the model. The number you get is the index of 
+* your custom colour which you have defined in {@link xViewer#defineStyle defineStyle()} function. 0xFF is the default value.
+*
+* @function xViewer#getStyle
+* @param {Number} id - Id of the product. You would typicaly get the id from {@link xViewer#event:pick pick event} or similar event.
+*/
+xViewer.prototype.getStyle = function (id) {
+    for (var i in this._handles) {
+        var style = this._handles[i].getStyle(id);
+        if (style !== null) return style;
+    }
+    return null;
+};
+
+/**
 * Use this function to reset appearance of all products to their default styles.
 *
 * @function xViewer#resetStyles 
@@ -393,7 +423,7 @@ xViewer.prototype.resetStyles = function () {
 * 
 * @function xViewer#getProductType
 * @return {Number} Product type ID. This is either null if no type is identified or one of {@link xProductType type ids}.
-* @param {Number} prodID - Product ID. You can get this value either from semantic structure of the model or by listening to {@link xViewer#pick pick} event.
+* @param {Number} prodID - Product ID. You can get this value either from semantic structure of the model or by listening to {@link xViewer#event:pick pick} event.
 */
 xViewer.prototype.getProductType = function (prodId) {
     for (var i in this._handles) {

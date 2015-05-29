@@ -23,16 +23,8 @@ function xModelGeometry() {
     //	spans: [Int32Array([int, int]),Int32Array([int, int]), ...] //spanning indexes defining shapes of product and it's state
     //};
 
-    this.productMap = [];
+    this.productMap = {};
 }
-
-xModelGeometry.prototype.getProductMap = function (ID) {
-    for (var i = 0; i < this.productMap.length; i++) {
-        var map = this.productMap[i];
-        if (map.productID === ID) return map;
-    }
-    return null;
-};
 
 xModelGeometry.prototype.parse = function (binReader) {
     var br = binReader;
@@ -77,7 +69,7 @@ xModelGeometry.prototype.parse = function (binReader) {
     this.states = new Uint8Array(numTriangles * 3 * 2); //place for state and restyling
     this.transformations = new Float32Array(numTriangles * 3);
     this.matrices = new Float32Array(square(4, numMatrices * 16));
-    this.productMap = new Array(numProducts);
+    this.productMap = {};
     this.regions = new Array(numRegions);
 
     var iVertex = 0;
@@ -127,7 +119,7 @@ xModelGeometry.prototype.parse = function (binReader) {
             bBox: bBox,
             spans: []
         };
-        this.productMap[i] = map;
+        this.productMap[productLabel] = map;
     }
 
     for (var iShape = 0; iShape < numShapes; iShape++) {
@@ -179,8 +171,8 @@ xModelGeometry.prototype.parse = function (binReader) {
             }
 
             var begin = iIndex;
-            var map = this.getProductMap(shape.pLabel);
-            if (map === null) throw "Product hasn't been defined before.";
+            var map = this.productMap[shape.pLabel];
+            if (typeof (map) === "undefined") throw "Product hasn't been defined before.";
 
             this.normals.set(shapeGeom.normals, iIndex * 2);
 

@@ -150,10 +150,8 @@ xModelHandle.prototype.drawProduct = function (ID) {
 };
 
 xModelHandle.prototype.getProductMap = function (ID) {
-    for (var i = 0; i < this._model.productMap.length; i++) {
-        var map = this._model.productMap[i];
-        if (map.productID === ID) return map;
-    }
+        var map = this._model.productMap[ID];
+        if (typeof (map) !== "undefined") return map;
     return null;
 };
 
@@ -260,6 +258,28 @@ xModelHandle.prototype._bufferTexture = function (pointer, data, arity) {
     return size;
 };
 
+xModelHandle.prototype.getState = function (id) {
+    if (typeof (id) === "undefined") throw "id must be defined";
+    var map = this.getProductMap(id);
+    if (map === null) return null;
+
+    var span = map.spans[0];
+    if (typeof (span) == "undefined") return null;
+
+    return this._model.states[span[0]*2];
+}
+
+xModelHandle.prototype.getStyle = function (id) {
+    if (typeof (id) === "undefined") throw "id must be defined";
+    var map = this.getProductMap(id);
+    if (map === null) return null;
+
+    var span = map.spans[0];
+    if (typeof (span) == "undefined") return null;
+
+    return this._model.states[span[0]*2 + 1];
+}
+
 xModelHandle.prototype.setState = function (state, args) {
     if (typeof (state) != 'number' && state < 0 && state > 255) throw 'You have to specify state as an ID of state or index in style pallete.';
     if (typeof (args) == 'undefined') throw 'You have to specify products as an array of product IDs or as a product type ID';
@@ -267,11 +287,18 @@ xModelHandle.prototype.setState = function (state, args) {
     var maps = [];
     //it is type
     if (typeof (args) == 'number') {
-        maps = this._model.productMap.filter(function (m) { return m.type == args });
+        for (var n in this._model.productMap) {
+            var map = this._model.productMap[n];
+            if (map.type == args) maps.push(map);
+        }
     }
-        //it is list of IDs
+        //it is a list of IDs
     else {
-        maps = this._model.productMap.filter(function (m) { return args.indexOf(m.productID) != -1 });
+        for (var l = 0; l < args.length; l++) {
+            var id = args[id];
+            var map = this.getProductMap(id);
+            if (map != null) maps.push(map);
+        }
     }
 
     //shift +1 if it is an overlay colour style or 0 if it is a state.

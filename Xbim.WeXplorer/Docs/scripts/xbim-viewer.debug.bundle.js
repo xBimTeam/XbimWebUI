@@ -30,11 +30,12 @@ function xBinaryReader() {
     this._position = 0;
 }
 
-xBinaryReader.prototype.onloaded = function() {};
-xBinaryReader.prototype.onerror = function() {};
+xBinaryReader.prototype.onloaded = function () { };
+xBinaryReader.prototype.onerror = function () { };
 
-
+  
 xBinaryReader.prototype.load = function (source) {
+    this._position = 0;
     var self = this;
 
     if (typeof (source) == 'undefined' || source == null) throw 'Source must be defined';
@@ -82,126 +83,108 @@ xBinaryReader.prototype.load = function (source) {
         };
         fReader.readAsArrayBuffer(source);
     }
+    else if (source instanceof ArrayBuffer) {
+        this._buffer = source;
+    }
 };
 
 xBinaryReader.prototype.getIsEOF = function (type, count) {
     return this._position == this._buffer.byteLength;
 };
 
-xBinaryReader.prototype.read = function (type, count) {
-    if (typeof (type) == 'undefined') {
-        throw 'You have to specify one of predefined types.';
+xBinaryReader.prototype.read = function (arity, count, ctor) {
+    if(typeof (count) === "undefined") count = 1;
+    var length = arity * count;
+    var offset = this._position;
+    this._position += length;
+    var result;
+    if (offset % arity === 0) { //use just a view if the offset is multipliable by arity
+        result = new ctor(this._buffer, offset, count);
+    } else { //slice part of the buffer to get the right size
+        result = new ctor(this._buffer.slice(offset, offset + length));
     }
-
-    var self = this;
-    var subBuffer = function (arity) {
-        if (!self._buffer) {
-            throw "No data loaded. You can't get any data unless data is loaded. Use 'onloaded' callback.";
-        }
-
-        if (count === 0) return 0;
-
-        var length = arity;
-        if (typeof (count) != 'undefined' && count > 0) {
-            length = count * arity;
-        }
-
-        if (self._position + length > self._buffer.byteLength) {
-            throw 'Data buffer overflow. You have asked for ' + length + ' bytes which is more than is currently available in data buffer (position: ' + self._position + ').';
-        }
-
-        var result = self._buffer.slice(self._position, self._position + length);
-        self._position += length;
-        return result;
-    };
-    var results = type.ctor(subBuffer(type.arity));
-
-    if (typeof (count) == 'undefined') {
-        return results[0];
-    }
-    else {
-        return results;
-    }
+    return count === 1 ?  result[0] : result;
 };
 
-//types containing arity of the type (number of bytes for a unit) and function used to convert bytes to the type. Base types are created as typed arrays.
-xBinaryReader.prototype.BYTE = { arity: 1, ctor: function (slice) { return new Uint8Array(slice); } };
-xBinaryReader.prototype.UINT8 = { arity: 1, ctor: function (slice) { return new Uint8Array(slice); } };
-xBinaryReader.prototype.INT16 = { arity: 2, ctor: function (slice) { return new Int16Array(slice); } };
-xBinaryReader.prototype.UINT16 = { arity: 2, ctor: function (slice) { return new Uint16Array(slice); } };
-xBinaryReader.prototype.INT32 = { arity: 4, ctor: function (slice) { return new Int32Array(slice); } };
-xBinaryReader.prototype.UINT32 = { arity: 4, ctor: function (slice) { return new Uint32Array(slice); } };
-xBinaryReader.prototype.FLOAT32 = { arity: 4, ctor: function (slice) { return new Float32Array(slice); } };
-xBinaryReader.prototype.FLOAT64 = { arity: 8, ctor: function (slice) { return new Float64Array(slice); } };
-xBinaryReader.prototype.CHAR = {
-    arity: 1, ctor: function (slice) {
-        var bytes = new Uint8Array(slice);
-        var result = [];
-        for (var i in bytes) {
-            result.push(String.fromCharCode(bytes[i]));
-        }
-        return result;
-    }
+xBinaryReader.prototype.readByte = function (count) {
+    return this.read(1, count, Uint8Array);
 };
-xBinaryReader.prototype.POINT = {
-    arity: 12, ctor: function (slice) {
-        var coords = new Float32Array(slice);
-        var result = [];
-        for (var i = 0; i < coords.length / 3; i++) {
-            var index = i * 3;
-            var point = new Float32Array(3);
-            point[0] = coords[index];
-            point[1] = coords[index + 1];
-            point[2] = coords[index + 2];
-            result.push(point)
-        }
-        return result;
-    }
+xBinaryReader.prototype.readUint8 = function (count) {
+    return this.read(1, count, Uint8Array);
 };
-xBinaryReader.prototype.RGBA = {
-    arity: 4, ctor: function (slice) {
-        var values = new Uint8Array(slice);
-        var result = [];
-        for (var i = 0; i < values.length / 4; i++) {
-            var index = i * 4;
-            var colour = new Uint8Array(4);
-            colour[0] = values[index];
-            colour[1] = values[index + 1];
-            colour[2] = values[index + 2];
-            colour[3] = values[index + 3];
-            result.push(colour)
-        }
-        return result;
-    }
+xBinaryReader.prototype.readInt16 = function (count) {
+    return this.read(2, count, Int16Array);
 };
-xBinaryReader.prototype.PACKED_NORMAL = {
-    arity: 2, ctor: function (slice) {
-        var values = new Uint8Array(slice);
-        var result = [];
-        for (var i = 0; i < values.length / 2; i++) {
-            var index = i * 2;
-            var uv = new Uint8Array(2);
-            uv[0] = values[index];
-            uv[1] = values[index + 1];
-            result.push(uv)
-        }
-        return result;
-    }
+xBinaryReader.prototype.readUint16 = function (count) {
+    return this.read(2, count, Uint16Array);
 };
-xBinaryReader.prototype.MATRIX4x4 = {
-    arity: 16 * 4, ctor: function (slice) {
-        var vals = new Float32Array(slice);
-        var result = [];
-        for (var i = 0; i < vals.length / 16; i++) {
-            var index = i * 16;
-            var matrix = new Float32Array(16);
-            for (var j = 0; j < 16; j++) {
-                matrix[j] = vals[index + j]
-            }
-            result.push(matrix)
-        }
-        return result;
+xBinaryReader.prototype.readInt32 = function (count) {
+    return this.read(4, count, Int32Array);
+};
+xBinaryReader.prototype.readUint32 = function (count) {
+    return this.read(4, count, Uint32Array);
+};
+xBinaryReader.prototype.readFloat32 = function (count) {
+    return this.read(4, count, Float32Array);
+};
+xBinaryReader.prototype.readFloat64 = function (count) {
+    return this.read(8, count, Float64Array);
+};
+
+//functions for a higher objects like points, colours and matrices
+xBinaryReader.prototype.readChar = function (count) {
+    if (typeof (count) === "undefined") count = 1;
+    var bytes = this.readByte(count);
+    var result = new Array(count);
+    for (var i in bytes) {
+        result[i] = String.fromCharCode(bytes[i]);
     }
+    return count ===1 ? result[0] : result;
+};
+
+xBinaryReader.prototype.readPoint = function (count) {
+    if (typeof (count) === "undefined") count = 1;
+    var coords = this.readFloat32(count * 3);
+    var result = new Array(count);
+    for (var i = 0; i < count; i++) {
+        var offset = i * 3 * 4;
+        //only create new view on the buffer so that no new memmory is allocated
+        var point = new Float32Array(coords.buffer, offset, 3);
+        result[i] = point;
+    }
+    return count === 1 ? result[0] : result;
+};
+xBinaryReader.prototype.readRgba = function (count) {
+    if (typeof (count) === "undefined") count = 1;
+    var values = this.readByte(count * 4);
+    var result = new Array(count);
+    for (var i = 0; i < count ; i++) {
+        var offset = i * 4;
+        var colour = new Uint8Array(values.buffer, offset, 4);
+        result[i] = colour;
+    }
+    return count === 1 ? result[0] : result;
+};
+xBinaryReader.prototype.readPackedNormal = function (count) {
+    if (typeof (count) === "undefined") count = 1;
+    var values = this.readUint8(count * 2);
+    var result = new Array(count);
+    for (var i = 0; i < count; i++) {
+        var uv = new Uint8Array(values.buffer, i * 2, 2);
+        result[i] = uv;
+    }
+    return count === 1 ? result[0] : result;
+};
+xBinaryReader.prototype.readMatrix4x4 = function (count) {
+    if (typeof (count) === "undefined") count = 1;
+    var values = this.readFloat32(count * 16);
+    var result = new Array(count);
+    for (var i = 0; i < count; i++) {
+        var offset = i * 16 * 4;
+        var matrix = new Float32Array(values.buffer, offset, 16);
+        result[i] = matrix;
+    }
+    return count === 1 ? result[0] : result;
 };function xModelGeometry() {
     //all this data is to be fed into GPU as attributes
     this.normals = [];
@@ -227,53 +210,53 @@ xBinaryReader.prototype.MATRIX4x4 = {
     //	spans: [Int32Array([int, int]),Int32Array([int, int]), ...] //spanning indexes defining shapes of product and it's state
     //};
 
-    this.productMap = [];
+    this.productMap = {};
 }
 
 xModelGeometry.prototype.parse = function (binReader) {
     var br = binReader;
-    var magicNumber = br.read(br.INT32);
+    var magicNumber = br.readInt32();
     if (magicNumber != 94132117) throw 'Magic number mismatch.';
-    var version = br.read(br.BYTE);
-    var numShapes = br.read(br.INT32);
-    var numVertices = br.read(br.INT32);
-    var numTriangles = br.read(br.INT32);
-    var numMatrices = br.read(br.INT32);
-    var numProducts = br.read(br.INT32);
-    var numStyles = br.read(br.INT32);
-    this.meter = br.read(br.FLOAT32);
-    var numRegions = br.read(br.INT16);
+    var version = br.readByte();
+    var numShapes = br.readInt32();
+    var numVertices = br.readInt32();
+    var numTriangles = br.readInt32();
+    var numMatrices = br.readInt32();;
+    var numProducts = br.readInt32();;
+    var numStyles = br.readInt32();;
+    this.meter = br.readFloat32();;
+    var numRegions = br.readInt16();
 
 
 
     //set size of arrays to be square usable for texture data
     //TODO: reflect support for floating point textures
-    var square = function (type, count) {
-        if (typeof (type) == 'undefined' || typeof (count) == 'undefined') {
+    var square = function (arity, count) {
+        if (typeof (arity) == 'undefined' || typeof (count) == 'undefined') {
             throw 'Wrong arguments';
         }
         if (count == 0) return 0;
-        var byteLength = count * type.arity;
+        var byteLength = count * arity;
         var imgSide = Math.ceil(Math.sqrt(byteLength / 4));
         //clamp to arity
-        while ((imgSide * 4) % type.arity != 0) {
+        while ((imgSide * 4) % arity != 0) {
             imgSide++
         }
-        var result = imgSide * imgSide * 4 / type.arity;
+        var result = imgSide * imgSide * 4 / arity;
         return result;
     };
 
     //create target buffers of correct size (avoid reallocation of memory)
-    this.vertices = new Float32Array(square(br.FLOAT32, numVertices * 3));
+    this.vertices = new Float32Array(square(4, numVertices * 3));
     this.normals = new Uint8Array(numTriangles * 6);
     this.indices = new Float32Array(numTriangles * 3);
     this.styleIndices = new Uint16Array(numTriangles * 3);
-    this.styles = new Uint8Array(square(br.BYTE, numStyles * 4));
+    this.styles = new Uint8Array(square(1, numStyles * 4));
     this.products = new Float32Array(numTriangles * 3);
     this.states = new Uint8Array(numTriangles * 3 * 2); //place for state and restyling
     this.transformations = new Float32Array(numTriangles * 3);
-    this.matrices = new Float32Array(square(br.FLOAT32, numMatrices * 16));
-    this.productMap = new Array(numProducts);
+    this.matrices = new Float32Array(square(4, numMatrices * 16));
+    this.productMap = {};
     this.regions = new Array(numRegions);
 
     var iVertex = 0;
@@ -288,27 +271,34 @@ xModelGeometry.prototype.parse = function (binReader) {
 
     for (var i = 0; i < numRegions; i++) {
         this.regions[i] = {
-            population: br.read(br.INT32),
-            centre: br.read(br.FLOAT32, 3),
-            bbox: br.read(br.FLOAT32, 6)
+            population: br.readInt32(),
+            centre: br.readFloat32(3),
+            bbox: br.readFloat32(6)
         }
     }
 
 
     var styleMap = [];
+    styleMap.getStyle = function(id) {
+        for (var i = 0; i < this.length; i++) {
+            var item = this[i];
+            if (item.id == id) return item;
+        }
+        return null;
+    };
     for (var iStyle = 0; iStyle < numStyles; iStyle++) {
-        var styleId = br.read(br.INT32);
-        var R = br.read(br.FLOAT32) * 255;
-        var G = br.read(br.FLOAT32) * 255;
-        var B = br.read(br.FLOAT32) * 255;
-        var A = br.read(br.FLOAT32) * 255;
+        var styleId = br.readInt32();
+        var R = br.readFloat32() * 255;
+        var G = br.readFloat32() * 255;
+        var B = br.readFloat32() * 255;
+        var A = br.readFloat32() * 255;
         this.styles.set([R, G, B, A], iStyle * 4);
         styleMap.push({ id: styleId, index: iStyle, transparent: A < 254 });
     }
     for (var i = 0; i < numProducts ; i++) {
-        var productLabel = br.read(br.INT32);
-        var prodType = br.read(br.INT16);
-        var bBox = br.read(br.FLOAT32, 6);
+        var productLabel = br.readInt32();
+        var prodType = br.readInt16();
+        var bBox = br.readFloat32(6);
 
         var map = {
             productID: productLabel,
@@ -316,28 +306,28 @@ xModelGeometry.prototype.parse = function (binReader) {
             bBox: bBox,
             spans: []
         };
-        this.productMap[i] = map;
+        this.productMap[productLabel] = map;
     }
 
     for (var iShape = 0; iShape < numShapes; iShape++) {
 
-        var repetition = br.read(br.INT32);
+        var repetition = br.readInt32();
         var shapeList = [];
         for (var iProduct = 0; iProduct < repetition; iProduct++) {
-            var prodLabel = br.read(br.INT32);
-            var instanceTypeId = br.read(br.INT16);
-            var instanceLabel = br.read(br.INT32);
-            var styleId = br.read(br.INT32);
+            var prodLabel = br.readInt32();
+            var instanceTypeId = br.readInt16();
+            var instanceLabel = br.readInt32();
+            var styleId = br.readInt32();
             var transformation = null;
 
             if (repetition > 1) {
-                transformation = br.read(br.MATRIX4x4);
+                transformation = br.readMatrix4x4();
                 this.matrices.set(transformation, iMatrix);
                 iMatrix += 16;
             }
 
-            var styleItem = styleMap.filter(function (st) { return st.id == styleId }).pop();
-            if (!styleItem)
+            var styleItem = styleMap.getStyle(styleId);
+            if (styleItem === null)
                 throw 'Style index not found.';
 
             shapeList.push({
@@ -368,10 +358,15 @@ xModelGeometry.prototype.parse = function (binReader) {
             }
 
             var begin = iIndex;
-            var map = this.productMap.filter(function (m) { return m.productID == shape.pLabel }).pop();
-            if (typeof (map) == 'undefined') throw "Product hasn't been defined before.";
+            var map = this.productMap[shape.pLabel];
+            if (typeof (map) === "undefined") throw "Product hasn't been defined before.";
 
             this.normals.set(shapeGeom.normals, iIndex * 2);
+
+            //switch spaces and openings off by default 
+            var state = map.type == typeEnum.IFCSPACE || map.type == typeEnum.IFCOPENINGELEMENT ?
+                stateEnum.HIDDEN :
+                0xFF; //0xFF is for the default state
 
             //fix indices to right absolute position. It is relative to the shape.
             for (var i = 0; i < shapeGeom.indices.length; i++) {
@@ -379,11 +374,7 @@ xModelGeometry.prototype.parse = function (binReader) {
                 this.products[iIndex] = shape.pLabel;
                 this.styleIndices[iIndex] = shape.style;
                 this.transformations[iIndex] = shape.transform;
-                //switch spaces and openings off by default 
-                if (map.type == typeEnum.IFCSPACE || map.type == typeEnum.IFCOPENINGELEMENT) {
-                    this.states[2 * iIndex] = stateEnum.HIDDEN;
-                }
-                else this.states[2 * iIndex] = 0xFF; //default state
+                this.states[2 * iIndex] = state; //set state
                 this.states[2 * iIndex + 1] = 0xFF; //default style
 
                 iIndex++;
@@ -579,7 +570,9 @@ xModelHandle.prototype.drawProduct = function (ID) {
 };
 
 xModelHandle.prototype.getProductMap = function (ID) {
-    return this._model.productMap.filter(function (m) { return m.productID == ID }).pop();
+        var map = this._model.productMap[ID];
+        if (typeof (map) !== "undefined") return map;
+    return null;
 };
 
 xModelHandle.prototype.feedGPU = function () {
@@ -685,6 +678,28 @@ xModelHandle.prototype._bufferTexture = function (pointer, data, arity) {
     return size;
 };
 
+xModelHandle.prototype.getState = function (id) {
+    if (typeof (id) === "undefined") throw "id must be defined";
+    var map = this.getProductMap(id);
+    if (map === null) return null;
+
+    var span = map.spans[0];
+    if (typeof (span) == "undefined") return null;
+
+    return this._model.states[span[0]*2];
+}
+
+xModelHandle.prototype.getStyle = function (id) {
+    if (typeof (id) === "undefined") throw "id must be defined";
+    var map = this.getProductMap(id);
+    if (map === null) return null;
+
+    var span = map.spans[0];
+    if (typeof (span) == "undefined") return null;
+
+    return this._model.states[span[0]*2 + 1];
+}
+
 xModelHandle.prototype.setState = function (state, args) {
     if (typeof (state) != 'number' && state < 0 && state > 255) throw 'You have to specify state as an ID of state or index in style pallete.';
     if (typeof (args) == 'undefined') throw 'You have to specify products as an array of product IDs or as a product type ID';
@@ -692,11 +707,18 @@ xModelHandle.prototype.setState = function (state, args) {
     var maps = [];
     //it is type
     if (typeof (args) == 'number') {
-        maps = this._model.productMap.filter(function (m) { return m.type == args });
+        for (var n in this._model.productMap) {
+            var map = this._model.productMap[n];
+            if (map.type == args) maps.push(map);
+        }
     }
-        //it is list of IDs
+        //it is a list of IDs
     else {
-        maps = this._model.productMap.filter(function (m) { return args.indexOf(m.productID) != -1 });
+        for (var l = 0; l < args.length; l++) {
+            var id = args[id];
+            var map = this.getProductMap(id);
+            if (map != null) maps.push(map);
+        }
     }
 
     //shift +1 if it is an overlay colour style or 0 if it is a state.
@@ -815,7 +837,7 @@ var xProductType = {
 */
 function xShaders() {
     var result = {};
-    result.fragment_shader = " precision mediump float; uniform vec4 uClippingPlane; varying vec4 vFrontColor; varying vec4 vBackColor; varying vec3 vPosition; varying float vDiscard; void main(void) { if ( int(vDiscard + 0.5) != 0) discard; if (ivec4(uClippingPlane + 0.5) != ivec4(0, 0, 0, 0)) { vec4 p = uClippingPlane; vec3 x = vPosition; float distance = (p.x * x.x + p.y * x.y + p.z * x.z + p.w) / sqrt(p.x * p.x + p.y * p.y  + p.z * p.z); if (int(distance + 0.5) < 0){ discard; } } gl_FragColor = gl_FrontFacing ? vFrontColor : vBackColor; }";
+    result.fragment_shader = " precision mediump float; uniform vec4 uClippingPlane; varying vec4 vFrontColor; varying vec4 vBackColor; varying vec3 vPosition; varying float vDiscard; void main(void) { if ( int(vDiscard + 0.5) != 0) discard; if (ivec4(uClippingPlane + 0.5) != ivec4(0, 0, 0, 0)) { vec4 p = uClippingPlane; vec3 x = vPosition; float distance = (p.x * x.x + p.y * x.y + p.z * x.z + p.w) / sqrt(p.x * p.x + p.y * p.y  + p.z * p.z); if (int(distance + 0.5) < 0){ discard; } } gl_FragColor = vFrontColor; }";
     result.vertex_shader = " attribute highp float aVertexIndex; attribute highp float aTransformationIndex; attribute highp float aStyleIndex; attribute highp float aProduct; attribute highp vec2 aState; attribute highp vec2 aNormal; uniform mat4 uMVMatrix; uniform mat4 uPMatrix; uniform vec4 ulightA; uniform vec4 ulightB; uniform float uMeter; uniform bool uColorCoding; uniform int uRenderingMode; uniform highp sampler2D uVertexSampler; uniform int uVertexTextureSize; uniform highp sampler2D uMatrixSampler; uniform int uMatrixTextureSize; uniform highp sampler2D uStyleSampler; uniform int uStyleTextureSize; uniform highp sampler2D uStateStyleSampler; varying vec4 vFrontColor; varying vec4 vBackColor; varying vec3 vPosition; varying float vDiscard; vec3 getNormal(){ float U = aNormal[0]; float V = aNormal[1]; float PI = 3.1415926535897932384626433832795; float lon = U / 252.0 * 2.0 * PI; float lat = V / 252.0 * PI; float x = sin(lon) * sin(lat); float z = cos(lon) * sin(lat); float y = cos(lat); return normalize(vec3(x, y, z)); } vec4 getIdColor(){ float product = floor(aProduct + 0.5); float B = floor (product/(256.0*256.0)); float G = floor((product  - B * 256.0*256.0)/256.0); float R = mod(product, 256.0); return vec4(R/255.0, G/255.0, B/255.0, 1.0); } vec2 getTextureCoordinates(int index, int size) { float x = float(index - (index / size) * size); float y = float(index / size); float pixelSize = 1.0 / float(size); return vec2((x + 0.5) * pixelSize, (y + 0.5) * pixelSize); } vec4 getColor(){ if (uRenderingMode == 2){ return vec4(0.0, 0.0, 0.3, 0.5); } int restyle = int(floor(aState[1] + 0.5)); if (restyle > 224){ int index = int (floor(aStyleIndex + 0.5)); vec2 coords = getTextureCoordinates(index, uStyleTextureSize); return texture2D(uStyleSampler, coords); } vec2 coords = getTextureCoordinates(restyle, 15); return texture2D(uStateStyleSampler, coords); } vec3 getVertexPosition(){ int index = int (floor(aVertexIndex +0.5)); vec2 coords = getTextureCoordinates(index, uVertexTextureSize); vec3 point = vec3(texture2D(uVertexSampler, coords)); int tIndex = int(floor(aTransformationIndex + 0.5)); if (tIndex != 65535) { tIndex *=4; mat4 transform = mat4( texture2D(uMatrixSampler, getTextureCoordinates(tIndex, uMatrixTextureSize)), texture2D(uMatrixSampler, getTextureCoordinates(tIndex+1, uMatrixTextureSize)), texture2D(uMatrixSampler, getTextureCoordinates(tIndex+2, uMatrixTextureSize)), texture2D(uMatrixSampler, getTextureCoordinates(tIndex+3, uMatrixTextureSize)) ); return vec3(transform * vec4(point, 1.0)); } return point; } void main(void) { vec3 vertex = getVertexPosition(); vec3 normal = getNormal(); vec3 backNormal = normal * -1.0; int state = int(floor(aState[0] + 0.5)); int restyle = int(floor(aState[1] + 0.5)); if (state == 254 || (uRenderingMode == 1 && !(state == 253 || state == 252)) || (uRenderingMode == 2 && (state == 253 || state == 252))) { vDiscard = 1.0; return; } else { vDiscard = 0.0; } if (uColorCoding){ vec4 idColor = getIdColor(); vFrontColor = idColor; vBackColor = idColor; } else{ float lightAIntensity = ulightA[3]; vec3 lightADirection = normalize(ulightA.xyz - vertex); float lightBIntensity = ulightB[3]; vec3 lightBDirection = normalize(ulightB.xyz - vertex); float lightWeightA = max(dot(normal, lightADirection ) * lightAIntensity, 0.0); float lightWeightB = max(dot(normal, lightBDirection ) * lightBIntensity, 0.0); float backLightWeightA = max(dot(backNormal, lightADirection) * lightAIntensity, 0.0); float backLightWeightB = max(dot(backNormal, lightBDirection) * lightBIntensity, 0.0); float lightWeighting = lightWeightA + lightWeightB + 0.4; float backLightWeighting = backLightWeightA + backLightWeightB + 0.4; vec4 baseColor = state == 253 ? vec4(1.0, 0.68, 0.13, 1.0) : getColor(); if (baseColor.a < 0.98 && uRenderingMode == 0) { mat4 transpose = mat4(1); vec3 trans = -0.002 * uMeter * normalize(normal); transpose[3] = vec4(trans,1.0); vertex = vec3(transpose * vec4(vertex, 1.0)); } vFrontColor = vec4(baseColor.rgb * lightWeighting, baseColor.a); vBackColor = vec4(baseColor.rgb * backLightWeighting, baseColor.a); } vPosition = vertex; gl_Position = uPMatrix * uMVMatrix * vec4(vertex, 1.0); }";
     result.vertex_shader_noFPT = " attribute highp float aVertexIndex; attribute highp float aTransformationIndex; attribute highp float aStyleIndex; attribute highp float aProduct; attribute highp float aState; attribute highp vec2 aNormal; uniform mat4 uMVMatrix; uniform mat4 uPMatrix; uniform vec4 ulightA; uniform vec4 ulightB; uniform bool uColorCoding; uniform bool uFloatingPoint; uniform highp sampler2D uVertexSampler; uniform int uVertexTextureSize; uniform highp sampler2D uMatrixSampler; uniform int uMatrixTextureSize; uniform highp sampler2D uStyleSampler; uniform int uStyleTextureSize; uniform highp sampler2D uStateStyleSampler; int stateStyleTextureSize = 15; varying vec4 vColor; varying vec3 vPosition; vec3 getNormal(){ float U = aNormal[0]; float V = aNormal[1]; float PI = 3.1415926535897932384626433832795; float u = ((U / 252.0) * (2.0 * PI)) - PI; float v = ((V / 252.0) * (2.0 * PI)) - PI; float x = sin(v) * cos(u); float y = sin(v) * sin(u); float z = cos(v); return normalize(vec3(x, y, z)); } vec4 getIdColor(){ float R = mod(aProduct, 256.0) / 255.0; float G = floor(aProduct/256.0) / 255.0; float B = floor (aProduct/(256.0*256.0)) / 255.0; return vec4(R, G, B, 1.0); } vec2 getVertexTextureCoordinates(int index, int size) { float x = float(index - (index / size) * size); float y = float(index / size); float pixelSize = 1.0 / float(size); return vec2((x + 0.5) * pixelSize, (y + 0.5) * pixelSize); } int getByteFromScale(float base) { float result = base * 255.0; int correction = fract(result) >= 0.5 ? 1 : 0; return int(result) + correction; } ivec4 getPixel(int index, sampler2D sampler, int size) { vec2 coords = getVertexTextureCoordinates(index, size); vec4 pixel = texture2D(sampler, coords); return ivec4( getByteFromScale(pixel.r), getByteFromScale(pixel.g), getByteFromScale(pixel.b), getByteFromScale(pixel.a) ); } void getBits(ivec4 pixel, out int result[32]) { for (int i = 0; i < 4; i++) { int actualByte = pixel[i]; for (int j = 0; j < 8; j++) { result[31 - (j + i * 8)] =  actualByte - (actualByte / 2) * 2; actualByte /= 2; } } } float getFloatFromPixel(ivec4 pixel) { int bits[32]; getBits(pixel, bits); float sign =  bits[0] == 0 ? 1.0 : -1.0; highp float fraction = 1.0; highp float exponent = 0.0; for (int i = 1; i < 9; i++) { exponent += float(bits[9 - i]) * exp2(float (i - 1)); } exponent -= 127.0; for (int i = 9; i < 32; i++) { fraction += float(bits[i]) * exp2(float((-1)*(i-8))); } return sign * fraction * exp2(exponent); } float getFloatFromPixel(int index, sampler2D sampler, int size) { ivec4 pixel = getPixel(index, sampler, size); return getFloatFromPixel(pixel); } vec4 getColor(){ if (floor(aState + 0.5) == 0.0){ int index = int (floor(aStyleIndex + 0.5)); vec2 coords = getVertexTextureCoordinates(index, uStyleTextureSize); return texture2D(uStyleSampler, coords); } else{ return vec4(1.0,1.0,1.0,1.0); } } vec3 getVertexPosition(){ int index = int (floor(aVertexIndex +0.5))* 3; vec3 position = vec3( getFloatFromPixel(index, uVertexSampler, uVertexTextureSize), getFloatFromPixel(index + 1, uVertexSampler, uVertexTextureSize), getFloatFromPixel(index + 2, uVertexSampler, uVertexTextureSize) ); int tIndex = int(floor(aTransformationIndex + 0.5)); if (tIndex != 65535) { tIndex *= 16; mat4 transform = mat4( getFloatFromPixel(tIndex + 0, uMatrixSampler, uMatrixTextureSize), getFloatFromPixel(tIndex + 1, uMatrixSampler, uMatrixTextureSize), getFloatFromPixel(tIndex + 2, uMatrixSampler, uMatrixTextureSize), getFloatFromPixel(tIndex + 3, uMatrixSampler, uMatrixTextureSize), getFloatFromPixel(tIndex + 4, uMatrixSampler, uMatrixTextureSize), getFloatFromPixel(tIndex + 5, uMatrixSampler, uMatrixTextureSize), getFloatFromPixel(tIndex + 6, uMatrixSampler, uMatrixTextureSize), getFloatFromPixel(tIndex + 7, uMatrixSampler, uMatrixTextureSize), getFloatFromPixel(tIndex + 8, uMatrixSampler, uMatrixTextureSize), getFloatFromPixel(tIndex + 9, uMatrixSampler, uMatrixTextureSize), getFloatFromPixel(tIndex + 10, uMatrixSampler, uMatrixTextureSize), getFloatFromPixel(tIndex + 11, uMatrixSampler, uMatrixTextureSize), getFloatFromPixel(tIndex + 12, uMatrixSampler, uMatrixTextureSize), getFloatFromPixel(tIndex + 13, uMatrixSampler, uMatrixTextureSize), getFloatFromPixel(tIndex + 14, uMatrixSampler, uMatrixTextureSize), getFloatFromPixel(tIndex + 15, uMatrixSampler, uMatrixTextureSize) ); vec4 transformedPosition = transform * vec4(position, 1.0); return vec3(transformedPosition); } return position; } void main(void) { vec3 vertex = getVertexPosition(); vPosition = vertex; gl_Position = uPMatrix * uMVMatrix * vec4(vertex, 1.0); if (uColorCoding){ vColor = getIdColor(); } else{ vec3 normal = getNormal(); float lightAIntensity = ulightA[3]; vec3 lightADirection = normalize(ulightA.xyz - vPosition); float lightBIntensity = ulightB[3]; vec3 lightBDirection = normalize(ulightB.xyz - vPosition); float lightWeightA = max(dot(normal, lightADirection ) * lightAIntensity, 0.0); float lightWeightB = max(dot(normal, lightBDirection ) * lightBIntensity, 0.0); float lightWeighting = lightWeightA + lightWeightB + 0.4; vec4 baseColor = getColor(); vColor = vec4(baseColor.rgb * lightWeighting, baseColor.a); } }";
     return result;
@@ -838,10 +860,10 @@ function xTriangulatedShape() { };
 //this will get xBinaryReader on the current position and will parse it's content to fill itself with vertices, normals and vertex indices
 xTriangulatedShape.prototype.parse = function (binReader) {
     var self = this;
-    var version = binReader.read(binReader.BYTE);
-    var numVertices = binReader.read(binReader.INT32);
-    var numOfTriangles = binReader.read(binReader.INT32);
-    self.vertices = binReader.read(binReader.FLOAT32, numVertices * 3);
+    var version = binReader.readByte();
+    var numVertices = binReader.readInt32();
+    var numOfTriangles = binReader.readInt32();
+    self.vertices = binReader.readFloat32(numVertices * 3);
     //allocate memory of defined size (to avoid reallocation of memory)
     self.indices = new Uint32Array(numOfTriangles * 3);
     self.normals = new Uint8Array(numOfTriangles * 6);
@@ -851,55 +873,49 @@ xTriangulatedShape.prototype.parse = function (binReader) {
     if (numVertices === numOfTriangles === 0)
         return;
 
-    var readIndex = function () {
-        if (numVertices <= 0xFF) {
-            return binReader.read(binReader.BYTE);
-        }
-        else if (numVertices <= 0xFFFF) {
-            return binReader.read(binReader.UINT16);
-        }
-        else {
-            return binReader.read(binReader.INT32);
-        }
-    };
-
-    var numFaces = binReader.read(binReader.INT32);
+    var readIndex;
+    if (numVertices <= 0xFF) {
+        readIndex = function (count) { return binReader.readByte(count); };
+    }
+    else if (numVertices <= 0xFFFF) {
+        readIndex = function (count) { return binReader.readUint16(count); };
+    }
+    else {
+        readIndex = function (count) { return binReader.readInt32(count); };
+    }
+    
+    var numFaces = binReader.readInt32();
     for (var i = 0; i < numFaces; i++) {
-        var numTrianglesInFace = binReader.read(binReader.INT32);
+        var numTrianglesInFace = binReader.readInt32();
         if (numTrianglesInFace == 0) continue;
 
         var isPlanar = numTrianglesInFace > 0;
         numTrianglesInFace = Math.abs(numTrianglesInFace);
         if (isPlanar) {
-            var normal = binReader.read(binReader.BYTE, 2);
-            for (var j = 0; j < numTrianglesInFace; j++) {
+            var normal = binReader.readByte(2);
+            //read and set all indices
+            var planarIndices = readIndex(3 * numTrianglesInFace);
+            self.indices.set(planarIndices, iIndex);
+
+            for (var j = 0; j < numTrianglesInFace*3; j++) {
                 //add three identical normals because this is planar but needs to be expanded for WebGL
-                //read three indices
-                self.indices[iIndex] = readIndex();//a
-                self.normals.set(normal, iIndex * 2);
-                iIndex++;
-
-                self.indices[iIndex] = readIndex();//b
-                self.normals.set(normal, iIndex * 2);
-                iIndex++;
-
-                self.indices[iIndex] = readIndex();//c
-                self.normals.set(normal, iIndex * 2);
+                self.normals[iIndex * 2] = normal[0];
+                self.normals[iIndex * 2 + 1] = normal[1];
                 iIndex++;
             }
         }
         else {
             for (var j = 0; j < numTrianglesInFace; j++) {
                 self.indices[iIndex] = readIndex();//a
-                self.normals.set(binReader.read(binReader.BYTE, 2), iIndex * 2);
+                self.normals.set(binReader.readByte(2), iIndex * 2);
                 iIndex++;
 
                 self.indices[iIndex] = readIndex();//b
-                self.normals.set(binReader.read(binReader.BYTE, 2), iIndex * 2);
+                self.normals.set(binReader.readByte(2), iIndex * 2);
                 iIndex++;
 
                 self.indices[iIndex] = readIndex();//c
-                self.normals.set(binReader.read(binReader.BYTE, 2), iIndex * 2);
+                self.normals.set(binReader.readByte(2), iIndex * 2);
                 iIndex++;
             }
         }
@@ -1259,6 +1275,21 @@ xViewer.prototype.setState = function (state, target) {
 };
 
 /**
+* Use this function to get state of the products in the model. You can compare result of this function 
+* with one of values from {@link xState xState} enumeration. 0xFF is the default value.
+*
+* @function xViewer#getState
+* @param {Number} id - Id of the product. You would typicaly get the id from {@link xViewer#event:pick pick event} or similar event.
+*/
+xViewer.prototype.getState = function (id) {
+    for (var i in this._handles) {
+        var state = this._handles[i].getState(id);
+        if (state !== null) return state;
+    }
+    return null;
+};
+
+/**
 * Use this function to reset state of all products to 'UNDEFINED' which means visible and not highlighted. 
 * You can use optional hideSpaces parameter if you also want to show spaces. They will be hidden by default.
 * 
@@ -1308,6 +1339,21 @@ xViewer.prototype.setStyle = function (style, target) {
 };
 
 /**
+* Use this function to get overriding colour style of the products in the model. The number you get is the index of 
+* your custom colour which you have defined in {@link xViewer#defineStyle defineStyle()} function. 0xFF is the default value.
+*
+* @function xViewer#getStyle
+* @param {Number} id - Id of the product. You would typicaly get the id from {@link xViewer#event:pick pick event} or similar event.
+*/
+xViewer.prototype.getStyle = function (id) {
+    for (var i in this._handles) {
+        var style = this._handles[i].getStyle(id);
+        if (style !== null) return style;
+    }
+    return null;
+};
+
+/**
 * Use this function to reset appearance of all products to their default styles.
 *
 * @function xViewer#resetStyles 
@@ -1323,7 +1369,7 @@ xViewer.prototype.resetStyles = function () {
 * 
 * @function xViewer#getProductType
 * @return {Number} Product type ID. This is either null if no type is identified or one of {@link xProductType type ids}.
-* @param {Number} prodID - Product ID. You can get this value either from semantic structure of the model or by listening to {@link xViewer#pick pick} event.
+* @param {Number} prodID - Product ID. You can get this value either from semantic structure of the model or by listening to {@link xViewer#event:pick pick} event.
 */
 xViewer.prototype.getProductType = function (prodId) {
     for (var i in this._handles) {

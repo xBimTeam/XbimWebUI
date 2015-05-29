@@ -210,16 +210,8 @@ xBinaryReader.prototype.readMatrix4x4 = function (count) {
     //	spans: [Int32Array([int, int]),Int32Array([int, int]), ...] //spanning indexes defining shapes of product and it's state
     //};
 
-    this.productMap = [];
+    this.productMap = {};
 }
-
-xModelGeometry.prototype.getProductMap = function (ID) {
-    for (var i = 0; i < this.productMap.length; i++) {
-        var map = this.productMap[i];
-        if (map.productID === ID) return map;
-    }
-    return null;
-};
 
 xModelGeometry.prototype.parse = function (binReader) {
     var br = binReader;
@@ -264,7 +256,7 @@ xModelGeometry.prototype.parse = function (binReader) {
     this.states = new Uint8Array(numTriangles * 3 * 2); //place for state and restyling
     this.transformations = new Float32Array(numTriangles * 3);
     this.matrices = new Float32Array(square(4, numMatrices * 16));
-    this.productMap = new Array(numProducts);
+    this.productMap = {};
     this.regions = new Array(numRegions);
 
     var iVertex = 0;
@@ -314,7 +306,7 @@ xModelGeometry.prototype.parse = function (binReader) {
             bBox: bBox,
             spans: []
         };
-        this.productMap[i] = map;
+        this.productMap[productLabel] = map;
     }
 
     for (var iShape = 0; iShape < numShapes; iShape++) {
@@ -366,8 +358,8 @@ xModelGeometry.prototype.parse = function (binReader) {
             }
 
             var begin = iIndex;
-            var map = this.getProductMap(shape.pLabel);
-            if (map === null) throw "Product hasn't been defined before.";
+            var map = this.productMap[shape.pLabel];
+            if (typeof (map) === "undefined") throw "Product hasn't been defined before.";
 
             this.normals.set(shapeGeom.normals, iIndex * 2);
 
@@ -578,10 +570,8 @@ xModelHandle.prototype.drawProduct = function (ID) {
 };
 
 xModelHandle.prototype.getProductMap = function (ID) {
-    for (var i = 0; i < this._model.productMap.length; i++) {
-        var map = this._model.productMap[i];
-        if (map.productID === ID) return map;
-    }
+        var map = this._model.productMap[ID];
+        if (typeof (map) !== "undefined") return map;
     return null;
 };
 
@@ -688,6 +678,28 @@ xModelHandle.prototype._bufferTexture = function (pointer, data, arity) {
     return size;
 };
 
+xModelHandle.prototype.getState = function (id) {
+    if (typeof (id) === "undefined") throw "id must be defined";
+    var map = this.getProductMap(id);
+    if (map === null) return null;
+
+    var span = map.spans[0];
+    if (typeof (span) == "undefined") return null;
+
+    return this._model.states[span[0]*2];
+}
+
+xModelHandle.prototype.getStyle = function (id) {
+    if (typeof (id) === "undefined") throw "id must be defined";
+    var map = this.getProductMap(id);
+    if (map === null) return null;
+
+    var span = map.spans[0];
+    if (typeof (span) == "undefined") return null;
+
+    return this._model.states[span[0]*2 + 1];
+}
+
 xModelHandle.prototype.setState = function (state, args) {
     if (typeof (state) != 'number' && state < 0 && state > 255) throw 'You have to specify state as an ID of state or index in style pallete.';
     if (typeof (args) == 'undefined') throw 'You have to specify products as an array of product IDs or as a product type ID';
@@ -695,11 +707,18 @@ xModelHandle.prototype.setState = function (state, args) {
     var maps = [];
     //it is type
     if (typeof (args) == 'number') {
-        maps = this._model.productMap.filter(function (m) { return m.type == args });
+        for (var n in this._model.productMap) {
+            var map = this._model.productMap[n];
+            if (map.type == args) maps.push(map);
+        }
     }
-        //it is list of IDs
+        //it is a list of IDs
     else {
-        maps = this._model.productMap.filter(function (m) { return args.indexOf(m.productID) != -1 });
+        for (var l = 0; l < args.length; l++) {
+            var id = args[id];
+            var map = this.getProductMap(id);
+            if (map != null) maps.push(map);
+        }
     }
 
     //shift +1 if it is an overlay colour style or 0 if it is a state.
@@ -1256,6 +1275,21 @@ xViewer.prototype.setState = function (state, target) {
 };
 
 /**
+* Use this function to get state of the products in the model. You can compare result of this function 
+* with one of values from {@link xState xState} enumeration. 0xFF is the default value.
+*
+* @function xViewer#getState
+* @param {Number} id - Id of the product. You would typicaly get the id from {@link xViewer#event:pick pick event} or similar event.
+*/
+xViewer.prototype.getState = function (id) {
+    for (var i in this._handles) {
+        var state = this._handles[i].getState(id);
+        if (state !== null) return state;
+    }
+    return null;
+};
+
+/**
 * Use this function to reset state of all products to 'UNDEFINED' which means visible and not highlighted. 
 * You can use optional hideSpaces parameter if you also want to show spaces. They will be hidden by default.
 * 
@@ -1305,6 +1339,21 @@ xViewer.prototype.setStyle = function (style, target) {
 };
 
 /**
+* Use this function to get overriding colour style of the products in the model. The number you get is the index of 
+* your custom colour which you have defined in {@link xViewer#defineStyle defineStyle()} function. 0xFF is the default value.
+*
+* @function xViewer#getStyle
+* @param {Number} id - Id of the product. You would typicaly get the id from {@link xViewer#event:pick pick event} or similar event.
+*/
+xViewer.prototype.getStyle = function (id) {
+    for (var i in this._handles) {
+        var style = this._handles[i].getStyle(id);
+        if (style !== null) return style;
+    }
+    return null;
+};
+
+/**
 * Use this function to reset appearance of all products to their default styles.
 *
 * @function xViewer#resetStyles 
@@ -1320,7 +1369,7 @@ xViewer.prototype.resetStyles = function () {
 * 
 * @function xViewer#getProductType
 * @return {Number} Product type ID. This is either null if no type is identified or one of {@link xProductType type ids}.
-* @param {Number} prodID - Product ID. You can get this value either from semantic structure of the model or by listening to {@link xViewer#pick pick} event.
+* @param {Number} prodID - Product ID. You can get this value either from semantic structure of the model or by listening to {@link xViewer#event:pick pick} event.
 */
 xViewer.prototype.getProductType = function (prodId) {
     for (var i in this._handles) {
