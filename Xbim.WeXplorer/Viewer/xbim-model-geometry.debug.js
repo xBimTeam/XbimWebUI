@@ -169,17 +169,18 @@ xModelGeometry.prototype.parse = function (binReader) {
 
             this.normals.set(shapeGeom.normals, iIndex * 2);
 
+            //switch spaces and openings off by default 
+            var state = map.type == typeEnum.IFCSPACE || map.type == typeEnum.IFCOPENINGELEMENT ?
+                stateEnum.HIDDEN :
+                0xFF; //0xFF is for default state
+
             //fix indices to right absolute position. It is relative to the shape.
             for (var i = 0; i < shapeGeom.indices.length; i++) {
                 this.indices[iIndex] = shapeGeom.indices[i] + iVertex / 3;
                 this.products[iIndex] = shape.pLabel;
                 this.styleIndices[iIndex] = shape.style;
                 this.transformations[iIndex] = shape.transform;
-                //switch spaces and openings off by default 
-                if (map.type == typeEnum.IFCSPACE || map.type == typeEnum.IFCOPENINGELEMENT) {
-                    this.states[2 * iIndex] = stateEnum.HIDDEN;
-                }
-                else this.states[2 * iIndex] = 0xFF; //default state
+                this.states[2 * iIndex] = state; //set state
                 this.states[2 * iIndex + 1] = 0xFF; //default style
 
                 iIndex++;

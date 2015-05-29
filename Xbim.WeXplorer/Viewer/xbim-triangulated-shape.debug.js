@@ -16,17 +16,16 @@ xTriangulatedShape.prototype.parse = function (binReader) {
     if (numVertices === numOfTriangles === 0)
         return;
 
-    var readIndex = function () {
-        if (numVertices <= 0xFF) {
-            return binReader.readByte();
-        }
-        else if (numVertices <= 0xFFFF) {
-            return binReader.readUint16();
-        }
-        else {
-            return binReader.readInt32();
-        }
-    };
+    var readIndex;
+    if (numVertices <= 0xFF) {
+        readIndex = function (count) { return binReader.readByte(count); };
+    }
+    else if (numVertices <= 0xFFFF) {
+        readIndex = function (count) { return binReader.readUint16(count); };
+    }
+    else {
+        readIndex = function (count) { return binReader.readInt32(count); };
+    }
 
     var numFaces = binReader.readInt32();
     for (var i = 0; i < numFaces; i++) {
@@ -40,17 +39,14 @@ xTriangulatedShape.prototype.parse = function (binReader) {
             for (var j = 0; j < numTrianglesInFace; j++) {
                 //add three identical normals because this is planar but needs to be expanded for WebGL
                 //read three indices
-                self.indices[iIndex] = readIndex();//a
-                self.normals.set(normal, iIndex * 2);
-                iIndex++;
+                var planarIndices = readIndex(3);
+                //create three planar normals which are the same
+                var planarNormals = [normal[0], normal[1], normal[0], normal[1], normal[0], normal[1]];
 
-                self.indices[iIndex] = readIndex();//b
-                self.normals.set(normal, iIndex * 2);
-                iIndex++;
-
-                self.indices[iIndex] = readIndex();//c
-                self.normals.set(normal, iIndex * 2);
-                iIndex++;
+                //set to target arrays
+                self.indices.set(planarIndices, iIndex);//a
+                self.normals.set(planarNormals, iIndex * 2);
+                iIndex += 3;
             }
         }
         else {
