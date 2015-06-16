@@ -87,6 +87,11 @@ function xViewer(canvas) {
     */
     this.background = [230, 230, 230, 255]
     /**
+    * Array of four integers between 0 and 255 representing RGBA colour components. This defines colour for highlighted elements. You can change this value at any time with instant efect.
+    * @member {Number[]} xViewer#highlightingColour
+    */
+    this.highlightingColour = [255, 173, 33, 255]
+    /**
     * Array of four floats. It represents Light A's position <strong>XYZ</strong> and intensity <strong>I</strong> as [X, Y, Z, I]. Intensity should be in range 0.0 - 1.0.
     * @member {Number[]} xViewer#lightA
     */
@@ -159,7 +164,7 @@ function xViewer(canvas) {
     //this object is used to identify if anything changed before two frames (hence if it is necessary to redraw)
     this._lastStates = {};
     this._visualStateAttributes = ["perspectiveCamera", "orthogonalCamera", "camera", "background", "lightA", "lightB",
-        "renderingMode", "_clippingPlane", "_mvMatrix", "_pMatrix", "_distance", "_origin"];
+        "renderingMode", "_clippingPlane", "_mvMatrix", "_pMatrix", "_distance", "_origin", "highlightingColour"];
     this._stylingChanged = true;
 
     //dictionary of named events which can be registered and unregistered by using '.on('eventname', callback)'
@@ -175,6 +180,7 @@ function xViewer(canvas) {
     this._clippingPlaneUniformPointer = null;
     this._meterUniformPointer = null;
     this._renderingModeUniformPointer = null;
+    this._highlightingColourUniformPointer = null;
 
     //transformation matrices
     this._mvMatrix = mat4.create(); 	//world matrix
@@ -625,6 +631,7 @@ xViewer.prototype._initAttributesAndUniforms = function () {
     this._clippingPlaneUniformPointer = gl.getUniformLocation(this._shaderProgram, "uClippingPlane");
     this._meterUniformPointer = gl.getUniformLocation(this._shaderProgram, "uMeter");
     this._renderingModeUniformPointer = gl.getUniformLocation(this._shaderProgram, "uRenderingMode");
+    this._highlightingColourUniformPointer = gl.getUniformLocation(this._shaderProgram, "uHighlightColour");
 
     this._pointers = {
         normalAttrPointer: gl.getAttribLocation(this._shaderProgram, "aNormal"),
@@ -934,6 +941,12 @@ xViewer.prototype.draw = function () {
     //use normal colour representation (1 would cause shader to use colour coding of IDs)
     gl.uniform1i(this._colorCodingUniformPointer, 0);
 
+    //update highlighting colour
+    gl.uniform4fv(this._highlightingColourUniformPointer, new Float32Array(
+        [this.highlightingColour[0]/255.0, 
+        this.highlightingColour[1]/255.0, 
+        this.highlightingColour[2]/255.0, 
+        this.highlightingColour[3]/255.0]));
 
     //check for x-ray mode
     if (this.renderingMode == 'x-ray')

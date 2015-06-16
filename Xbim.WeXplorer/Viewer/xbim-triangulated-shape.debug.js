@@ -13,7 +13,7 @@ xTriangulatedShape.prototype.parse = function (binReader) {
     //indices for incremental adding of indices and normals
     var iIndex = 0;
 
-    if (numVertices === numOfTriangles === 0)
+    if (numVertices === 0 || numOfTriangles === 0)
         return;
 
     var readIndex;

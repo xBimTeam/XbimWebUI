@@ -13,6 +13,9 @@ uniform mat4 uPMatrix;
 uniform vec4 ulightA;
 uniform vec4 ulightB;
 
+//Highlighting colour
+uniform vec4 uHighlightColour;
+
 //One meter
 uniform float uMeter;
 
@@ -164,7 +167,7 @@ void main(void) {
 		float backLightWeighting = backLightWeightA + backLightWeightB + 0.4;
 		
 		//get base color or set highlighted colour
-		vec4 baseColor = state == 253 ? vec4(1.0, 0.68, 0.13, 1.0) : getColor();
+		vec4 baseColor = state == 253 ? uHighlightColour : getColor();
 		
 		//offset semitransparent triangles
 		if (baseColor.a < 0.98 && uRenderingMode == 0)

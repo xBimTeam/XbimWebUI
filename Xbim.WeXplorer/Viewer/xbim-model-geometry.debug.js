@@ -209,7 +209,7 @@ xModelGeometry.prototype.parse = function (binReader) {
 
     //binary reader should be at the end by now
     if (!br.getIsEOF()) {
-        throw 'Binary reader is not at the end of the file.';
+        //throw 'Binary reader is not at the end of the file.';
     }
 };
 
