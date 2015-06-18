@@ -77,9 +77,10 @@ vec4 getIdColor(){
 
 vec2 getTextureCoordinates(int index, int size)
 {
-	float x = float(index - (index / size) * size); //mod(index, uVertexTextureSize);
+	float x = float(index - (index / size) * size); 
 	float y = float(index / size);
 	float pixelSize = 1.0 / float(size);
+	//ask for the middle of the pixel
 	return vec2((x + 0.5) * pixelSize, (y + 0.5) * pixelSize);
 }
 
