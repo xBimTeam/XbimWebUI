@@ -715,7 +715,7 @@ xModelHandle.prototype.setState = function (state, args) {
         //it is a list of IDs
     else {
         for (var l = 0; l < args.length; l++) {
-            var id = args[id];
+            var id = args[l];
             var map = this.getProductMap(id);
             if (map != null) maps.push(map);
         }
