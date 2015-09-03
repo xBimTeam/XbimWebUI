@@ -170,6 +170,7 @@
 			
 			
 			var viewer = new xViewer("xBIM-viewer");
+			viewer.background = [0, 0, 0];
 			viewer.on("error", function (arg) {
 			    var container = viewer._canvas.parentNode;
 			    if (container) {

@@ -141,6 +141,10 @@ xModelHandle.prototype.draw = function () {
 xModelHandle.prototype.drawProduct = function (ID) {
     var gl = this._gl;
     var map = this.getProductMap(ID);
+
+    //var i = 3; //3 is for a glass panel
+    //gl.drawArrays(gl.TRIANGLES, map.spans[i][0], map.spans[i][1] - map.spans[i][0]);
+
     if (map != null) {
         for (var i in map.spans) {
             var span = map.spans[i];

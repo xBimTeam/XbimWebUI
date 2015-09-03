@@ -98,12 +98,22 @@ xBinaryReader.prototype.read = function (arity, count, ctor) {
     var offset = this._position;
     this._position += length;
     var result;
-    if (offset % arity === 0) { //use just a view if the offset is multipliable by arity
-        result = new ctor(this._buffer, offset, count);
-    } else { //slice part of the buffer to get the right size
-        result = new ctor(this._buffer.slice(offset, offset + length));
-    }
-    return count === 1 ?  result[0] : result;
+
+    return count === 1 ?
+        new ctor(this._buffer.slice(offset, offset + length))[0] :
+        new ctor(this._buffer.slice(offset, offset + length));
+
+    /*The following code should also work and it should be more efficient as only a view on 
+    the underlying memory is created where data is properly alligned. But it seems like
+    underlying memory buffer is released even if other arrays are in fact a view of a part of it. This creates 
+    undefined values. It become visible as a wrong transformation of some of the mapped shapes*/
+
+    //if (offset % arity === 0) { //use just a view if the offset is multipliable by arity
+    //    result = new ctor(this._buffer, offset, count);
+    //} else { //slice part of the buffer to get the right size
+    //    result = new ctor(this._buffer.slice(offset, offset + length));
+    //}
+    //return count === 1 ?  result[0] : result;
 };
 
 xBinaryReader.prototype.readByte = function (count) {
@@ -561,6 +571,10 @@ xModelHandle.prototype.draw = function () {
 xModelHandle.prototype.drawProduct = function (ID) {
     var gl = this._gl;
     var map = this.getProductMap(ID);
+
+    //var i = 3; //3 is for a glass panel
+    //gl.drawArrays(gl.TRIANGLES, map.spans[i][0], map.spans[i][1] - map.spans[i][0]);
+
     if (map != null) {
         for (var i in map.spans) {
             var span = map.spans[i];
@@ -1114,7 +1128,7 @@ function xViewer(canvas) {
     this._stylingChanged = true;
 
     //dictionary of named events which can be registered and unregistered by using '.on('eventname', callback)'
-    // and '.onRemove('eventname', callback)'. Registered callbacks are triggered by the viewer when important events occure.
+    // and '.off('eventname', callback)'. Registered callbacks are triggered by the viewer when important events occure.
     this._events = {};
 
     //pointers to uniforms in shaders
@@ -1924,7 +1938,8 @@ xViewer.prototype.draw = function () {
             var handle = this._handles[i];
             handle.setActive(this._pointers);
             handle.draw();
-            //handle.drawProduct(51649);
+            //handle.drawProduct(923); //the first one is all right
+            //handle.drawProduct(952);  //another one is wrong
         }
     }
     
@@ -2176,7 +2191,7 @@ xViewer.prototype.stop = function () {
 
 /**
 * Use this method to register to events of the viewer like {@link xViewer#pick pick}, {@link xViewer#mouseDown mouseDown}, {@link xViewer#loaded loaded} and others. You can define arbitrary number
-* of event handlers for any event. You can remove handler by calling {@link xViewer#onRemove onRemove()} method.
+* of event handlers for any event. You can remove handler by calling {@link xViewer#off off()} method.
 *
 * @function xViewer#on
 * @param {String} eventName - Name of the event you would like to listen to.
@@ -2191,19 +2206,19 @@ xViewer.prototype.on = function (eventName, callback) {
 };
 
 /**
-* Use this method to unregisted handlers from events. You can add event handlers by call to {@link xViewer#on on()} method.
+* Use this method to unregisted handlers from events. You can add event handlers by calling the {@link xViewer#on on()} method.
 *
-* @function xViewer#onRemove
+* @function xViewer#off
 * @param {String} eventName - Name of the event
 * @param {Object} callback - Handler to be removed
 */
-xViewer.prototype.onRemove = function (eventName, callback) {
+xViewer.prototype.off = function (eventName, callback) {
     var events = this._events;
     var callbacks = events[eventName];
     if (!callbacks) {
         return;
     }
-    var index = callbacks.indexOf(callback)
+    var index = callbacks.indexOf(callback);
     if (index >= 0) {
         callbacks.splice(index, 1);
     }
