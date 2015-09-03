@@ -30,13 +30,19 @@ uniform int uRenderingMode;
 uniform highp sampler2D uVertexSampler;
 uniform int uVertexTextureSize;
 
+//sampler with transformation matrices
 uniform highp sampler2D uMatrixSampler;
 uniform int uMatrixTextureSize;
 
+//sampler with default styles
 uniform highp sampler2D uStyleSampler;
 uniform int uStyleTextureSize;
 
+//sampler with user defined styles
 uniform highp sampler2D uStateStyleSampler;
+
+//sampler used to decode normals
+uniform highp sampler2D uNormalDecodeSampler;
 
 //colour to go to fragment shader
 varying vec4 vFrontColor;
@@ -46,25 +52,22 @@ varying vec3 vPosition;
 //state passed to fragment shader
 varying float vDiscard;
 
-//using this encoding the base normals are encoded as follows:
-//  Z : [0,0,1]  : 0
-// -Z : [0,0,-1] : 36
-//  X : [1,0,0]  : 18
-// -X : [-1,0,0] : 54
-//  Y : [0,1,0]  : 1314
-// -Y : [0,-1,0] : 1350
 vec3 getNormal(){
-	//normal is encoded as the second number in the array
-	float U = aNormal[0];
-	float V = aNormal[1];
-	float PI = 3.1415926535897932384626433832795;
-	float lon = U / 252.0 * 2.0 * PI;
-	float lat = V / 252.0 * PI;
+	float U = aNormal[0] / 252.0;
+	float V = aNormal[1] / 252.0;
+	return vec3(texture2D(uNormalDecodeSampler, vec2(U, V)));
 	
-	float x = sin(lon) * sin(lat);
-	float z = cos(lon) * sin(lat);
-	float y = cos(lat);
-	return normalize(vec3(x, y, z));
+	//The old way this was calculated every time for every index
+	//float U = aNormal[0];
+	//float V = aNormal[1];
+	//float PI = 3.1415926535897932384626433832795;
+	//float lon = U / 252.0 * 2.0 * PI;
+	//float lat = V / 252.0 * PI;
+	//
+	//float x = sin(lon) * sin(lat);
+	//float z = cos(lon) * sin(lat);
+	//float y = cos(lat);
+	//return normalize(vec3(x, y, z));
 }
 
 vec4 getIdColor(){

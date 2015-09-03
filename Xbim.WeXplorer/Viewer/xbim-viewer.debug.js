@@ -643,6 +643,7 @@ xViewer.prototype._initAttributesAndUniforms = function () {
         vertexSamplerUniform: gl.getUniformLocation(this._shaderProgram, "uVertexSampler"),
         matrixSamplerUniform: gl.getUniformLocation(this._shaderProgram, "uMatrixSampler"),
         styleSamplerUniform: gl.getUniformLocation(this._shaderProgram, "uStyleSampler"),
+        normalDecodeSamplerUniform: gl.getUniformLocation(this._shaderProgram, "uNormalDecodeSampler"),
         stateStyleSamplerUniform: gl.getUniformLocation(this._shaderProgram, "uStateStyleSampler"),
         vertexTextureSizeUniform: gl.getUniformLocation(this._shaderProgram, "uVertexTextureSize"),
         matrixTextureSizeUniform: gl.getUniformLocation(this._shaderProgram, "uMatrixTextureSize"),

@@ -21,6 +21,7 @@ function xModelHandle(gl, model, fpt) {
     this.matrixTexture = gl.createTexture();
     this.styleTexture = gl.createTexture();
     this.stateStyleTexture = gl.createTexture();
+    this.normalDecodeTexture = gl.createTexture();
 
     this.vertexTextureSize = 0;
     this.matrixTextureSize = 0;
@@ -53,6 +54,26 @@ function xModelHandle(gl, model, fpt) {
     }
 }
 
+xModelHandle.prototype._createNormalDecodeImage = function() {
+    var image = new Float32Array(253 * 253 * 3);
+    for (var V = 0; V < 253; V++) {
+        for (var U = 0; U < 253; U++) {
+            var lon = U / 252.0 * 2.0 * Math.PI;
+            var lat = V / 252.0 * Math.PI;
+	
+            var x = Math.sin(lon) * Math.sin(lat);
+            var z = Math.cos(lon) * Math.sin(lat);
+            var y = Math.cos(lat);
+
+            var baseIndex = (V * 253 + U) * 3;
+            image[baseIndex] = x;
+            image[baseIndex + 1] = y;
+            image[baseIndex + 2] = z;
+        }
+    }
+    return image;
+};
+
 xModelHandle._instancesNum = 0;
 xModelHandle._activeInstance = -1;
 
@@ -70,6 +91,7 @@ xModelHandle._activeInstance = -1;
 //	matrixSamplerUniform: null,
 //	vertexSamplerUniform: null,
 //	styleSamplerUniform: null,
+//  normalDecodeSamplerUniform: null
 //	stateStyleSamplerUniform: null,
 //	
 //	vertexTextureSizeUniform: null,
@@ -101,6 +123,9 @@ xModelHandle.prototype.setActive = function (pointers) {
     gl.activeTexture(gl.TEXTURE4);
     gl.bindTexture(gl.TEXTURE_2D, this.stateStyleTexture);
 
+    gl.activeTexture(gl.TEXTURE5);
+    gl.bindTexture(gl.TEXTURE_2D, this.normalDecodeTexture);
+
     //set attributes and uniforms
     gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
     gl.vertexAttribPointer(pointers.normalAttrPointer, 2, gl.UNSIGNED_BYTE, false, 0, 0);
@@ -124,6 +149,7 @@ xModelHandle.prototype.setActive = function (pointers) {
     gl.uniform1i(pointers.matrixSamplerUniform, 2);
     gl.uniform1i(pointers.styleSamplerUniform, 3);
     gl.uniform1i(pointers.stateStyleSamplerUniform, 4);
+    gl.uniform1i(pointers.normalDecodeSamplerUniform, 5);
     gl.uniform1i(pointers.vertexTextureSizeUniform, this.vertexTextureSize);
     gl.uniform1i(pointers.matrixTextureSizeUniform, this.matrixTextureSize);
     gl.uniform1i(pointers.styleTextureSizeUniform, this.styleTextureSize);
@@ -181,6 +207,7 @@ xModelHandle.prototype.feedGPU = function () {
     this.styleTextureSize = this._bufferTexture(this.styleTexture, model.styles);
     //this has a constant size 15 which is defined in vertex shader
     this._bufferTexture(this.stateStyleTexture, this.stateStyle);
+    this._bufferTexture(this.normalDecodeTexture, this._createNormalDecodeImage(), 3);
 
     //Forget everything except for states and styles (this should save some RAM).
     //data is already loaded to GPU by now
