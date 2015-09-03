@@ -149,9 +149,8 @@ else{return null;}};xViewer.prototype.start=function(){this._isRunning=true;var 
 if(viewer._isRunning){window.requestAnimFrame(tick)
 viewer.draw()}}
 tick();};xViewer.prototype.stop=function(){this._isRunning=false;};xViewer.prototype.on=function(eventName,callback){var events=this._events;if(!events[eventName]){events[eventName]=[];}
-events[eventName].push(callback);};xViewer.prototype.onRemove=function(eventName,callback){var events=this._events;var callbacks=events[eventName];if(!callbacks){return;}
-var index=callbacks.indexOf(callback)
-if(index>=0){callbacks.splice(index,1);}};xViewer.prototype._fire=function(eventName,args){var handlers=this._events[eventName];if(!handlers){return;}
+events[eventName].push(callback);};xViewer.prototype.off=function(eventName,callback){var events=this._events;var callbacks=events[eventName];if(!callbacks){return;}
+var index=callbacks.indexOf(callback);if(index>=0){callbacks.splice(index,1);}};xViewer.prototype._fire=function(eventName,args){var handlers=this._events[eventName];if(!handlers){return;}
 for(var i in handlers){handlers[i](args);}};xViewer.prototype._disableTextSelection=function(){document.documentElement.style['-webkit-touch-callout']='none';document.documentElement.style['-webkit-user-select']='none';document.documentElement.style['-khtml-user-select']='none';document.documentElement.style['-moz-user-select']='none';document.documentElement.style['-ms-user-select']='none';document.documentElement.style['user-select']='none';};xViewer.prototype._enableTextSelection=function(){document.documentElement.style['-webkit-touch-callout']='text';document.documentElement.style['-webkit-user-select']='text';document.documentElement.style['-khtml-user-select']='text';document.documentElement.style['-moz-user-select']='text';document.documentElement.style['-ms-user-select']='text';document.documentElement.style['user-select']='text';};xViewer.prototype._getSVGOverlay=function(){if(!document.implementation.hasFeature("http://www.w3.org/TR/SVG11/feature#BasicStructure","1.1"))return false;var ns="http://www.w3.org/2000/svg";function getOffsetRect(elem){var box=elem.getBoundingClientRect()
 var body=document.body
 var docElem=document.documentElement

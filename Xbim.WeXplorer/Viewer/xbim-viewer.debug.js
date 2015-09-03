@@ -978,7 +978,8 @@ xViewer.prototype.draw = function () {
             var handle = this._handles[i];
             handle.setActive(this._pointers);
             handle.draw();
-            //handle.drawProduct(51649);
+            //handle.drawProduct(923); //the first one is all right
+            //handle.drawProduct(952);  //another one is wrong
         }
     }
     
