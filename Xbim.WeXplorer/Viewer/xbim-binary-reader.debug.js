@@ -71,12 +71,22 @@ xBinaryReader.prototype.read = function (arity, count, ctor) {
     var offset = this._position;
     this._position += length;
     var result;
-    if (offset % arity === 0) { //use just a view if the offset is multipliable by arity
-        result = new ctor(this._buffer, offset, count);
-    } else { //slice part of the buffer to get the right size
-        result = new ctor(this._buffer.slice(offset, offset + length));
-    }
-    return count === 1 ?  result[0] : result;
+
+    return count === 1 ?
+        new ctor(this._buffer.slice(offset, offset + length))[0] :
+        new ctor(this._buffer.slice(offset, offset + length));
+
+    /*The following code should also work and it should be more efficient as only a view on 
+    the underlying memory is created where data is properly alligned. But it seems like
+    underlying memory buffer is released even if other arrays are in fact a view of a part of it. This creates 
+    undefined values. It become visible as a wrong transformation of some of the mapped shapes*/
+
+    //if (offset % arity === 0) { //use just a view if the offset is multipliable by arity
+    //    result = new ctor(this._buffer, offset, count);
+    //} else { //slice part of the buffer to get the right size
+    //    result = new ctor(this._buffer.slice(offset, offset + length));
+    //}
+    //return count === 1 ?  result[0] : result;
 };
 
 xBinaryReader.prototype.readByte = function (count) {
