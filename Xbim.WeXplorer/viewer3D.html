@@ -16,6 +16,8 @@
 		<script type="text/javascript" src="Viewer/xbim-triangulated-shape.debug.js"></script>
 		<script type="text/javascript" src="Viewer/xbim-viewer.debug.js"></script>
   
+        <script src="Plugins/NavigationCube/xbim-navigation-cube-shaders.debug.js"></script>
+	    <script src="Plugins/NavigationCube/xbim-navigation-cube.debug.js"></script>
 
         <style>
             html, body {
@@ -251,6 +253,10 @@
 
 			    //viewer.zoomTo(id);
 			});
+
+			var cube = new xNavigationCube(viewer);
+			cube.start();
+
 		</script>
 	</body>
 	

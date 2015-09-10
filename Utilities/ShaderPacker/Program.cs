@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace ShaderPacker
 {
@@ -18,9 +15,7 @@ namespace ShaderPacker
             var output = "xbim-shaders.js";
             if (args.Length > 1)
                 output = args[1];
-            var minify = false;
-            if (args.Contains("-min"))
-                minify = true;
+            var minify = args.Contains("-min");
 
             var shaders = Directory.EnumerateFiles(basePath, "*.c", SearchOption.TopDirectoryOnly).ToArray();
             if (shaders.Length == 0)
@@ -47,17 +42,17 @@ namespace ShaderPacker
                 tw.WriteLine("*/");
 
                 //start object definition
-                tw.WriteLine("function xShaders() {");
-                tw.WriteLine("    var result = {};");
+                tw.WriteLine("if (!window.xShaders) window.xShaders = {}");
 
                 //get content of every shader and create JS property containing code content of the shader
-                for (var j = 0; j < shaders.Length; j++ )
+                foreach (var shader in shaders)
                 {
-                    var shader = shaders[j];
-                    var isLastShader = j == (shaders.Length - 1);
                     var shaderName = Path.GetFileNameWithoutExtension(shader);
-                    shaderName = shaderName.Replace('.', '_');
-                    tw.Write(String.Format("    result.{0} = {1}", shaderName, minify ? "\"" : ""));
+                    if (shaderName != null)
+                    {
+                        shaderName = shaderName.Replace('.', '_');
+                        tw.Write("xShaders.{0} = {1}", shaderName, minify ? "\"" : "");
+                    }
 
                     var lines = File.ReadAllLines(shader);
                     for (var i = 0; i < lines.Length; i++)
@@ -70,22 +65,16 @@ namespace ShaderPacker
                             //remove comments
                             var exp = new Regex("//.*");
                             var stripLine = exp.Replace(line, "").Trim();
-                            if (!String.IsNullOrEmpty(stripLine))
+                            if (!string.IsNullOrEmpty(stripLine))
                                 tw.Write(" " + stripLine);
                         }
                         else
-                            tw.WriteLine(String.Format("\"{0} \\n \" {1}", line, isLast ? "" : "+"));
+                            tw.WriteLine("\"{0} \\n \" {1}", line, isLast ? "" : "+");
 
                     }
-                    if (minify)
-                        tw.WriteLine(String.Format("\";"));
-                    else
-                        tw.WriteLine(String.Format(";"));
-
+                    tw.WriteLine(minify ? "\";" : ";");
                 }
 
-                tw.WriteLine("    return result;");
-                tw.WriteLine("}");
                 tw.Close();
             }
         }

@@ -586,7 +586,6 @@ xViewer.prototype.load = function (model) {
 xViewer.prototype._initShaders = function () {
         
     var gl = this._gl;
-    var shaders = new xShaders();
     var viewer = this;
     var compile = function (shader, code) {
         gl.shaderSource(shader, code);
@@ -599,12 +598,12 @@ xViewer.prototype._initShaders = function () {
 
     //fragment shader
     var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-    compile(fragmentShader, shaders.fragment_shader);
+    compile(fragmentShader, xShaders.fragment_shader);
     
     //vertex shader (the more complicated one)
     var vertexShader = gl.createShader(gl.VERTEX_SHADER);
-    if (this._fpt != null) compile(vertexShader, shaders.vertex_shader);
-    else compile(vertexShader, shaders.shaders.vertex_shader_noFPT);
+    if (this._fpt != null) compile(vertexShader, xShaders.vertex_shader);
+    else compile(vertexShader, xShaders.vertex_shader_noFPT);
 
     //link program
     this._shaderProgram = gl.createProgram();
@@ -913,6 +912,7 @@ xViewer.prototype.draw = function () {
     var width = this._width;
     var height = this._height;
 
+    gl.useProgram(this._shaderProgram);
     gl.viewport(0, 0, width, height);
     gl.clearColor(this.background[0] / 255, this.background[1] / 255, this.background[2] / 255, this.background[3] / 255);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -979,8 +979,6 @@ xViewer.prototype.draw = function () {
             var handle = this._handles[i];
             handle.setActive(this._pointers);
             handle.draw();
-            //handle.drawProduct(923); //the first one is all right
-            //handle.drawProduct(952);  //another one is wrong
         }
     }
     
