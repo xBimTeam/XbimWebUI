@@ -60,8 +60,8 @@ xNavigationCube.prototype.draw = function() {
         this.ratio * width, //right
         this.ratio * -1.0 * height, //bottom
         (1.0 - this.ratio) * height,  //top
-        -2,  //near
-        2 ); //far
+        -1,  //near
+        1 ); //far
 
     gl.uniformMatrix4fv(this._pMatrixUniformPointer, false, pMatrix);
     gl.uniformMatrix4fv(this._mvMatrixUniformPointer, false, this.viewer._mvMatrix);
