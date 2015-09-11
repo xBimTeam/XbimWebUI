@@ -167,9 +167,15 @@ function xViewer(canvas) {
         "renderingMode", "_clippingPlane", "_mvMatrix", "_pMatrix", "_distance", "_origin", "highlightingColour"];
     this._stylingChanged = true;
 
+    //this is to indicate that user has done some interaction
+    this._userAction = true;
+
     //dictionary of named events which can be registered and unregistered by using '.on('eventname', callback)'
     // and '.off('eventname', callback)'. Registered callbacks are triggered by the viewer when important events occure.
     this._events = {};
+
+    //array of plugins which can implement certain methods which get called at certain points like before draw, after draw and others.
+    this._plugins = [];
 
     //pointers to uniforms in shaders
     this._mvMatrixUniformPointer = null;
@@ -291,6 +297,31 @@ xViewer.check = function () {
     if (result.errors.length == 0) result.noErrors = true;
     if (result.warnings.length == 0) result.noWarnings = true;
     return result;
+};
+
+/**
+* Adds plugin to the viewer. Plugins can implement certain methods which get called in certain moments in time like
+* before draw, after draw etc. This makes it possible to implement functionality tightly integrated into xViewer like navigation cube or others. 
+* @function xViewer#addPlugin
+* @param {object} plugin - plug-in object
+*/
+xViewer.prototype.addPlugin = function (plugin) {
+    this._plugins.push(plugin);
+
+    if (!plugin.init) return;
+    plugin.init(this);
+};
+
+/**
+* Removes plugin from the viewer. Plugins can implement certain methods which get called in certain moments in time like
+* before draw, after draw etc. This makes it possible to implement functionality tightly integrated into xViewer like navigation cube or others. 
+* @function xViewer#removePlugin
+* @param {object} plugin - plug-in object
+*/
+xViewer.prototype.removePlugin = function (plugin) {
+    var index = this._plugins.indexOf(plugin, 0);
+    if (index < 0) return;
+    this._plugins.splice(index, 1);
 };
 
 /**
@@ -465,7 +496,7 @@ xViewer.prototype.setCameraTarget = function (prodId) {
     var setDistance = function (bBox) {
         var size = Math.max(bBox[3], bBox[4], bBox[5]);
         var ratio = Math.max(viewer._width, viewer._height) / Math.min(viewer._width, viewer._height);
-        viewer._distance = size / Math.tan(viewer.perspectiveCamera.fov * Math.PI / 360.0) * ratio * 1.2;
+        viewer._distance = size / Math.tan(viewer.perspectiveCamera.fov * Math.PI / 360.0) * ratio * 1.0;
     }
 
     //set navigation origin and default distance to the product BBox
@@ -586,7 +617,6 @@ xViewer.prototype.load = function (model) {
 xViewer.prototype._initShaders = function () {
         
     var gl = this._gl;
-    var shaders = new xShaders();
     var viewer = this;
     var compile = function (shader, code) {
         gl.shaderSource(shader, code);
@@ -599,12 +629,12 @@ xViewer.prototype._initShaders = function () {
 
     //fragment shader
     var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-    compile(fragmentShader, shaders.fragment_shader);
+    compile(fragmentShader, xShaders.fragment_shader);
     
     //vertex shader (the more complicated one)
     var vertexShader = gl.createShader(gl.VERTEX_SHADER);
-    if (this._fpt != null) compile(vertexShader, shaders.vertex_shader);
-    else compile(vertexShader, shaders.shaders.vertex_shader_noFPT);
+    if (this._fpt != null) compile(vertexShader, xShaders.vertex_shader);
+    else compile(vertexShader, xShaders.vertex_shader_noFPT);
 
     //link program
     this._shaderProgram = gl.createProgram();
@@ -729,6 +759,14 @@ xViewer.prototype._initMouseEvents = function () {
 
         //if it was a longer movement do not perform picking
         if (deltaX < 3 && deltaY < 3 && button == 'left') {
+
+            var handled = false;
+            for (var pluginId in viewer._plugins) {
+                var plugin = viewer._plugins[pluginId];
+                if (!plugin.onBeforePick) continue;
+                handled = handled || plugin.onBeforePick(id);
+            }
+
             /**
             * Occurs when user click on model.
             *
@@ -736,7 +774,7 @@ xViewer.prototype._initMouseEvents = function () {
             * @type {object}
             * @param {Number} id - product ID of the element or null if there wasn't any product under mouse
             */
-            viewer._fire('pick', {id : id});
+            if(!handled) viewer._fire('pick', {id : id});
         }
 
         viewer._enableTextSelection();
@@ -885,6 +923,11 @@ xViewer.prototype._initMouseEvents = function () {
     window.addEventListener('mouseup', handleMouseUp, true);
     window.addEventListener('mousemove', handleMouseMove, true);
 
+    this._canvas.addEventListener('mousemove', function() {
+        viewer._userAction = true;
+    }, true);
+
+
     /**
     * Occurs when user double clicks on model.
     *
@@ -903,7 +946,15 @@ xViewer.prototype._initMouseEvents = function () {
 */
 xViewer.prototype.draw = function () {
     if (!this._geometryLoaded || this._handles.length == 0 || !(this._stylingChanged || this._isChanged())) {
-        return;
+        if (!this._userAction) return;
+    }
+    this._userAction = false;
+
+    //call all before-draw plugins
+    for (var pluginId in this._plugins) {
+        var plugin = this._plugins[pluginId];
+        if (!plugin.onBeforeDraw) continue;
+        plugin.onBeforeDraw();
     }
 
     //styles are up to date when new frame is drawn
@@ -913,6 +964,7 @@ xViewer.prototype.draw = function () {
     var width = this._width;
     var height = this._height;
 
+    gl.useProgram(this._shaderProgram);
     gl.viewport(0, 0, width, height);
     gl.clearColor(this.background[0] / 255, this.background[1] / 255, this.background[2] / 255, this.background[3] / 255);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -979,11 +1031,16 @@ xViewer.prototype.draw = function () {
             var handle = this._handles[i];
             handle.setActive(this._pointers);
             handle.draw();
-            //handle.drawProduct(923); //the first one is all right
-            //handle.drawProduct(952);  //another one is wrong
         }
     }
     
+    //call all after-draw plugins
+    for (var pluginId in this._plugins) {
+        var plugin = this._plugins[pluginId];
+        if (!plugin.onAfterDraw) continue;
+        plugin.onAfterDraw();
+    }
+
     /**
      * Occurs after every frame in animation. Don't do anything heavy weighted in here as it will happen about 60 times in a second all the time.
      *
@@ -1059,13 +1116,14 @@ xViewer.prototype.show = function (type) {
         //top and bottom are different because these are singular points for look-at function if heading is [0,0,1]
         case 'top':
             //only move to origin and up (negative values because we move camera against model)
-            mat4.translate(this._mvMatrix, mat4.create(), [origin[0] * -1.0, origin[1] * -1.0, distance * -1.0]);
+            mat4.translate(this._mvMatrix, mat4.create(), [origin[0] * -1.0, origin[1] * -1.0, (distance + origin[2])* -1.0 ]);
             return;
         case 'bottom':
             //only move to origin and up and rotate 180 degrees around Y axis
-            var translate = mat4.create();
-            mat4.translate(translate, mat4.create(), [origin[0] * -1.0, origin[1] * -1.0, distance * -1.0]);
-            mat4.rotateY(this._mvMatrix, translate, Math.PI);
+            var toOrigin = mat4.translate(mat4.create(), mat4.create(), [origin[0] * -1.0, origin[1] * +1.0, (origin[2] + distance) * -1]);
+            var rotationY = mat4.rotateY(mat4.create(), toOrigin, Math.PI);
+            var rotationZ = mat4.rotateZ(mat4.create(), rotationY, Math.PI);
+            this._mvMatrix = rotationZ; // mat4.translate(mat4.create(), rotationZ, [0, 0, -1.0 * distance]);
             return;
 
         case 'front':
@@ -1101,6 +1159,14 @@ xViewer.prototype._error = function (msg) {
 //this renders the colour coded model into the memory buffer
 //not to the canvas and use it to identify ID of the object from that
 xViewer.prototype._getID = function (x, y) {
+
+    //call all before-drawId plugins
+    for (var pluginId in this._plugins) {
+        var plugin = this._plugins[pluginId];
+        if (!plugin.onBeforeDrawId) continue;
+        plugin.onBeforeDrawId();
+    }
+
     //it is not necessary to render the image in full resolution so this factor is used for less resolution. 
     var factor = 2;
     var gl = this._gl;
@@ -1157,6 +1223,13 @@ xViewer.prototype._getID = function (x, y) {
         handle.draw();
     }
 
+    //call all after-drawId plugins
+    for (var pluginId in this._plugins) {
+        var plugin = this._plugins[pluginId];
+        if (!plugin.onAfterDrawId) continue;
+        plugin.onAfterDrawId();
+    }
+
     //get colour in of the pixel
     var result = new Uint8Array(4);
     gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, result);
@@ -1177,7 +1250,18 @@ xViewer.prototype._getID = function (x, y) {
     //decode ID (bit shifting by multiplication)
     var hasValue = result[3] != 0; //0 transparency is only for no-values
     if (hasValue) {
-        return result[0] + result[1] * 256 + result[2] * 256 * 256
+        var id = result[0] + result[1] * 256 + result[2] * 256 * 256;
+        var handled = false;
+        for (var pluginId in this._plugins) {
+            var plugin = this._plugins[pluginId];
+            if (!plugin.onBeforeGetId) continue;
+            handled = handled || plugin.onBeforeGetId(id);
+        }
+
+        if (!handled)
+            return id;
+        else
+            return null;
     }
     else {
         return null;

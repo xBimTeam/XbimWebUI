@@ -125,6 +125,10 @@
 
         viewer.load( "tests/data/LakesideRestaurant.wexbim");
         browser.load("tests/data/LakesideRestaurant.json");
+
+        var cube = new xNavigationCube();
+        viewer.addPlugin(cube);
+
         viewer.start();
     }
     else {
