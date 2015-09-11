@@ -167,9 +167,15 @@ function xViewer(canvas) {
         "renderingMode", "_clippingPlane", "_mvMatrix", "_pMatrix", "_distance", "_origin", "highlightingColour"];
     this._stylingChanged = true;
 
+    //this is to indicate that user has done some interaction
+    this._userAction = true;
+
     //dictionary of named events which can be registered and unregistered by using '.on('eventname', callback)'
     // and '.off('eventname', callback)'. Registered callbacks are triggered by the viewer when important events occure.
     this._events = {};
+
+    //array of plugins which can implement certain methods which get called at certain points like before draw, after draw and others.
+    this._plugins = [];
 
     //pointers to uniforms in shaders
     this._mvMatrixUniformPointer = null;
@@ -291,6 +297,31 @@ xViewer.check = function () {
     if (result.errors.length == 0) result.noErrors = true;
     if (result.warnings.length == 0) result.noWarnings = true;
     return result;
+};
+
+/**
+* Adds plugin to the viewer. Plugins can implement certain methods which get called in certain moments in time like
+* before draw, after draw etc. This makes it possible to implement functionality tightly integrated into xViewer like navigation cube or others. 
+* @function xViewer#addPlugin
+* @param {object} plugin - plug-in object
+*/
+xViewer.prototype.addPlugin = function (plugin) {
+    this._plugins.push(plugin);
+
+    if (!plugin.init) return;
+    plugin.init(this);
+};
+
+/**
+* Removes plugin from the viewer. Plugins can implement certain methods which get called in certain moments in time like
+* before draw, after draw etc. This makes it possible to implement functionality tightly integrated into xViewer like navigation cube or others. 
+* @function xViewer#removePlugin
+* @param {object} plugin - plug-in object
+*/
+xViewer.prototype.removePlugin = function (plugin) {
+    var index = this._plugins.indexOf(plugin, 0);
+    if (index < 0) return;
+    this._plugins.splice(index, 1);
 };
 
 /**
@@ -884,6 +915,11 @@ xViewer.prototype._initMouseEvents = function () {
     window.addEventListener('mouseup', handleMouseUp, true);
     window.addEventListener('mousemove', handleMouseMove, true);
 
+    this._canvas.addEventListener('mousemove', function() {
+        viewer._userAction = true;
+    }, true);
+
+
     /**
     * Occurs when user double clicks on model.
     *
@@ -902,7 +938,15 @@ xViewer.prototype._initMouseEvents = function () {
 */
 xViewer.prototype.draw = function () {
     if (!this._geometryLoaded || this._handles.length == 0 || !(this._stylingChanged || this._isChanged())) {
-        return;
+        if (!this._userAction) return;
+    }
+    this._userAction = false;
+
+    //call all before-draw plugins
+    for (var pluginId in this._plugins) {
+        var plugin = this._plugins[pluginId];
+        if (!plugin.onBeforeDraw) continue;
+        plugin.onBeforeDraw();
     }
 
     //styles are up to date when new frame is drawn
@@ -982,6 +1026,13 @@ xViewer.prototype.draw = function () {
         }
     }
     
+    //call all after-draw plugins
+    for (var pluginId in this._plugins) {
+        var plugin = this._plugins[pluginId];
+        if (!plugin.onAfterDraw) continue;
+        plugin.onAfterDraw();
+    }
+
     /**
      * Occurs after every frame in animation. Don't do anything heavy weighted in here as it will happen about 60 times in a second all the time.
      *
@@ -1099,6 +1150,14 @@ xViewer.prototype._error = function (msg) {
 //this renders the colour coded model into the memory buffer
 //not to the canvas and use it to identify ID of the object from that
 xViewer.prototype._getID = function (x, y) {
+
+    //call all before-drawId plugins
+    for (var pluginId in this._plugins) {
+        var plugin = this._plugins[pluginId];
+        if (!plugin.onBeforeDrawId) continue;
+        plugin.onBeforeDrawId();
+    }
+
     //it is not necessary to render the image in full resolution so this factor is used for less resolution. 
     var factor = 2;
     var gl = this._gl;
@@ -1155,6 +1214,13 @@ xViewer.prototype._getID = function (x, y) {
         handle.draw();
     }
 
+    //call all after-drawId plugins
+    for (var pluginId in this._plugins) {
+        var plugin = this._plugins[pluginId];
+        if (!plugin.onAfterDrawId) continue;
+        plugin.onAfterDrawId();
+    }
+
     //get colour in of the pixel
     var result = new Uint8Array(4);
     gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, result);
@@ -1175,7 +1241,18 @@ xViewer.prototype._getID = function (x, y) {
     //decode ID (bit shifting by multiplication)
     var hasValue = result[3] != 0; //0 transparency is only for no-values
     if (hasValue) {
-        return result[0] + result[1] * 256 + result[2] * 256 * 256
+        var id = result[0] + result[1] * 256 + result[2] * 256 * 256;
+        var handled = false;
+        for (var pluginId in this._plugins) {
+            var plugin = this._plugins[pluginId];
+            if (!plugin.onBeforeGetId) continue;
+            handled = handled || plugin.onBeforeGetId(id);
+        }
+
+        if (!handled)
+            return id;
+        else
+            return null;
     }
     else {
         return null;

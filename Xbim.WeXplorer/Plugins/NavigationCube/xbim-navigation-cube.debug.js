@@ -1,60 +1,124 @@
-﻿function xNavigationCube (xviewer) {
+﻿
+function xNavigationCube() {
+    this.TOP = 1600000;
+    this.BOTTOM = 1600001;
+    this.LEFT = 1600002;
+    this.RIGHT = 1600003;
+    this.FRONT = 1600004;
+    this.BACK = 1600005;
+}
+
+xNavigationCube.prototype.init = function (xviewer) {
     var self = this;
     this.viewer = xviewer;
     this.ratio = 0.1;
-    this._stopped = true;
     var gl = this.viewer._gl;
 
     //create own shader 
     this._shader = null;
     this._initShader();
 
+    this.alpha = 1.0;
+
     //set own shader for init
     gl.useProgram(this._shader);
 
-    //create uniform pointers
+    //create uniform and attribute pointers
     this._pMatrixUniformPointer = gl.getUniformLocation(this._shader, "uPMatrix");
-    this._mvMatrixUniformPointer = gl.getUniformLocation(this._shader, "uMVMatrix");
+    this._rotationUniformPointer = gl.getUniformLocation(this._shader, "uRotation");
+    this._colourCodingUniformPointer = gl.getUniformLocation(this._shader, "uColorCoding");
+    this._alphaUniformPointer = gl.getUniformLocation(this._shader, "uAlpha");
     this._vertexAttrPointer = gl.getAttribLocation(this._shader, "aVertex"),
     this._colourAttrPointer = gl.getAttribLocation(this._shader, "aColour"),
+    this._idAttrPointer = gl.getAttribLocation(this._shader, "aId"),
     gl.enableVertexAttribArray(this._vertexAttrPointer);
     gl.enableVertexAttribArray(this._colourAttrPointer);
+    gl.enableVertexAttribArray(this._idAttrPointer);
 
     //feed data into the GPU and keep pointers
     this._indexBuffer = gl.createBuffer();
     this._vertexBuffer = gl.createBuffer();
     this._colourBuffer = gl.createBuffer();
-    
+    this._idBuffer = gl.createBuffer();
+
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.indices, gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, this.vertices, gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._colourBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, this.colours, gl.STATIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._idBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, this.ids(), gl.STATIC_DRAW);
 
     //reset original shader program 
     gl.useProgram(this.viewer._shaderProgram);
 
-    //set handle for xViewer frame event which means that this will execute in every frame
-    this.viewer.on("frame", function() {
-        self.draw();
-    });
+    xviewer._canvas.addEventListener('mousemove', function (event) {
+        startX = event.clientX;
+        startY = event.clientY;
+
+        //get coordinates within canvas (with the right orientation)
+        var r = xviewer._canvas.getBoundingClientRect();
+        var viewX = startX - r.left;
+        var viewY = xviewer._height - (startY - r.top);
+
+        //this is for picking
+        var id = xviewer._getID(viewX, viewY);
+
+        if (id >= self.TOP && id <= self.BACK) {
+            self.alpha = 1.0;
+        } else {
+            self.alpha = 0.2;
+        }
+    }, true);
+
 }
 
-xNavigationCube.prototype.draw = function() {
-    if (this._stopped) return;
+xNavigationCube.prototype.onBeforeDraw = function () { };
 
+xNavigationCube.prototype.onAfterDraw = function() {
+    var gl = this.setActive();
+    //set uniform for colour coding to false
+    gl.uniform1i(this._colourCodingUniformPointer, 0);
+    this.draw();
+    this.setInactive();
+};
+
+xNavigationCube.prototype.onBeforeDrawId = function () { };
+
+xNavigationCube.prototype.onAfterDrawId = function () {
+    var gl = this.setActive();
+    //set uniform for colour coding to false
+    gl.uniform1i(this._colourCodingUniformPointer, 1);
+    this.draw();
+    this.setInactive();
+};
+
+xNavigationCube.prototype.onBeforeGetId = function(id) { }
+
+xNavigationCube.prototype.setActive = function() {
     var gl = this.viewer._gl;
-    var originalShader = this.viewer._shaderProgram;
-
     //set own shader
     gl.useProgram(this._shader);
+
+    return gl;
+};
+
+xNavigationCube.prototype.setInactive = function () {
+    var gl = this.viewer._gl;
+    //set viewer shader
+    gl.useProgram(this.viewer._shaderProgram);
+};
+
+xNavigationCube.prototype.draw = function () {
+    var gl = this.viewer._gl;
 
     //set navigation data from xViewer to this shader
     var pMatrix = mat4.create();
     var height = 1.0 / this.ratio;
     var width = height / this.viewer._height * this.viewer._width;
 
+    //create orthogonal projection matrix
     mat4.ortho(pMatrix,
         (this.ratio - 1.0) * width, //left
         this.ratio * width, //right
@@ -63,29 +127,29 @@ xNavigationCube.prototype.draw = function() {
         -1,  //near
         1 ); //far
 
+    //extract just a rotation from model-view matrix
+    var rotation = mat3.fromMat4(mat3.create(), this.viewer._mvMatrix);
     gl.uniformMatrix4fv(this._pMatrixUniformPointer, false, pMatrix);
-    gl.uniformMatrix4fv(this._mvMatrixUniformPointer, false, this.viewer._mvMatrix);
+    gl.uniformMatrix3fv(this._rotationUniformPointer, false, rotation);
+    gl.uniform1f(this._alphaUniformPointer, this.alpha);
 
     //bind data buffers
     gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
     gl.vertexAttribPointer(this._vertexAttrPointer, 3, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._idBuffer);
+    gl.vertexAttribPointer(this._idAttrPointer, 1, gl.FLOAT, false, 0, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._colourBuffer);
     gl.vertexAttribPointer(this._colourAttrPointer, 4, gl.FLOAT, false, 0, 0);
+
+    var cfEnabled = gl.getParameter(gl.CULL_FACE);
+    if (!cfEnabled) gl.enable(gl.CULL_FACE);
 
     //draw the cube as an element array
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
     gl.drawElements(gl.TRIANGLES, this.indices.length, gl.UNSIGNED_SHORT, 0);
 
-    //set original xViewer shader for it's next loop
-    gl.useProgram(originalShader);
-};
+    if (!cfEnabled) gl.disable(gl.CULL_FACE);
 
-xNavigationCube.prototype.start = function() {
-    this._stopped = false;
-};
-
-xNavigationCube.prototype.stop = function () {
-    this._stopped = true;
 };
 
 xNavigationCube.prototype._initShader = function () {
@@ -119,6 +183,8 @@ xNavigationCube.prototype._initShader = function () {
         viewer._error('Could not initialise shaders for a navigation cube plugin');
     }
 };
+
+
 
 xNavigationCube.prototype.vertices = new Float32Array([
       // Front face
@@ -198,3 +264,32 @@ xNavigationCube.prototype.colours = new Float32Array([
       0.0, 0.0, 1.0, 1.0,     
       0.0, 0.0, 1.0, 1.0      
 ]);
+
+xNavigationCube.prototype.ids = function() {
+    return new Float32Array([
+        this.FRONT, // Front face
+        this.FRONT,
+        this.FRONT,
+        this.FRONT,
+        this.BACK, // Back face
+        this.BACK,
+        this.BACK,
+        this.BACK,
+        this.TOP, // Top face
+        this.TOP,
+        this.TOP,
+        this.TOP,
+        this.BOTTOM, // Bottom face
+        this.BOTTOM,
+        this.BOTTOM,
+        this.BOTTOM,
+        this.RIGHT, // Right face
+        this.RIGHT,
+        this.RIGHT,
+        this.RIGHT,
+        this.LEFT, // Left face
+        this.LEFT,
+        this.LEFT,
+        this.LEFT
+    ]);
+};

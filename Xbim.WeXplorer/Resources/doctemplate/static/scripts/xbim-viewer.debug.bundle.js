@@ -1149,6 +1149,9 @@ function xViewer(canvas) {
     // and '.off('eventname', callback)'. Registered callbacks are triggered by the viewer when important events occure.
     this._events = {};
 
+    //array of plugins which can implement certain methods which get called at certain points like before draw, after draw and others.
+    this._plugins = [];
+
     //pointers to uniforms in shaders
     this._mvMatrixUniformPointer = null;
     this._pMatrixUniformPointer = null;
@@ -1269,6 +1272,31 @@ xViewer.check = function () {
     if (result.errors.length == 0) result.noErrors = true;
     if (result.warnings.length == 0) result.noWarnings = true;
     return result;
+};
+
+/**
+* Adds plugin to the viewer. Plugins can implement certain methods which get called in certain moments in time like
+* before draw, after draw etc. This makes it possible to implement functionality tightly integrated into xViewer like navigation cube or others. 
+* @function xViewer#addPlugin
+* @param {object} plugin - plug-in object
+*/
+xViewer.prototype.addPlugin = function (plugin) {
+    this._plugins.push(plugin);
+
+    if (!plugin.init) return;
+    plugin.init(this);
+};
+
+/**
+* Removes plugin from the viewer. Plugins can implement certain methods which get called in certain moments in time like
+* before draw, after draw etc. This makes it possible to implement functionality tightly integrated into xViewer like navigation cube or others. 
+* @function xViewer#removePlugin
+* @param {object} plugin - plug-in object
+*/
+xViewer.prototype.removePlugin = function (plugin) {
+    var index = this._plugins.indexOf(plugin, 0);
+    if (index < 0) return;
+    this._plugins.splice(index, 1);
 };
 
 /**
@@ -1883,6 +1911,13 @@ xViewer.prototype.draw = function () {
         return;
     }
 
+    //call all before-draw plugins
+    for (var pluginId in this._plugins) {
+        var plugin = this._plugins[pluginId];
+        if (!plugin.onBeforeDraw) continue;
+        plugin.onBeforeDraw();
+    }
+
     //styles are up to date when new frame is drawn
     this._stylingChanged = false;
 
@@ -1960,6 +1995,13 @@ xViewer.prototype.draw = function () {
         }
     }
     
+    //call all after-draw plugins
+    for (var pluginId in this._plugins) {
+        var plugin = this._plugins[pluginId];
+        if (!plugin.onAfterDraw) continue;
+        plugin.onAfterDraw();
+    }
+
     /**
      * Occurs after every frame in animation. Don't do anything heavy weighted in here as it will happen about 60 times in a second all the time.
      *
@@ -2077,6 +2119,14 @@ xViewer.prototype._error = function (msg) {
 //this renders the colour coded model into the memory buffer
 //not to the canvas and use it to identify ID of the object from that
 xViewer.prototype._getID = function (x, y) {
+
+    //call all before-drawId plugins
+    for (var pluginId in this._plugins) {
+        var plugin = this._plugins[pluginId];
+        if (!plugin.onBeforeDrawId) continue;
+        plugin.onBeforeDrawId();
+    }
+
     //it is not necessary to render the image in full resolution so this factor is used for less resolution. 
     var factor = 2;
     var gl = this._gl;
@@ -2131,6 +2181,13 @@ xViewer.prototype._getID = function (x, y) {
         var handle = this._handles[i];
         handle.setActive(this._pointers);
         handle.draw();
+    }
+
+    //call all after-drawId plugins
+    for (var pluginId in this._plugins) {
+        var plugin = this._plugins[pluginId];
+        if (!plugin.onAfterDrawId) continue;
+        plugin.onAfterDrawId();
     }
 
     //get colour in of the pixel

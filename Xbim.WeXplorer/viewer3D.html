@@ -254,8 +254,8 @@
 			    //viewer.zoomTo(id);
 			});
 
-			var cube = new xNavigationCube(viewer);
-			cube.start();
+			var cube = new xNavigationCube();
+			viewer.addPlugin(cube);
 
 		</script>
 	</body>

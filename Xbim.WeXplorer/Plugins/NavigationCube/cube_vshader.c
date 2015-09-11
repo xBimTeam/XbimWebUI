@@ -1,9 +1,11 @@
 ﻿attribute highp vec3 aVertex;
 attribute highp vec4 aColour;
+attribute highp float aId;
 
 //transformations (model view and perspective matrix)
-uniform mat4 uMVMatrix;
+uniform mat3 uRotation;
 uniform mat4 uPMatrix;
+uniform float uAlpha;
 
 //this might be used for a color coding for pick operation
 uniform bool uColorCoding;
@@ -20,10 +22,16 @@ vec4 getIdColor(float id){
 }
 
 void main(void) {
-	vColor = aColour;
+	if (uColorCoding)
+	{
+		vColor = getIdColor(aId);
+	}
+	else
+	{
+		vColor = vec4(aColour.rgb, uAlpha);
+	}
 	
-	//gl_Position = uPMatrix * uMVMatrix * vec4(aVertex, 1.0);
-	mat3 rotation = mat3(uMVMatrix);
-	vec4 point = vec4(rotation * aVertex, 1.0);
+	//gl_Position = uPMatrix * uRotation * vec4(aVertex, 1.0);
+	vec4 point = vec4(uRotation * aVertex, 1.0);
 	gl_Position = uPMatrix * point;
 }
