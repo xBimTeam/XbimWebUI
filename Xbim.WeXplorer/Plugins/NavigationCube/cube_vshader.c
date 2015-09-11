@@ -1,18 +1,19 @@
 ﻿attribute highp vec3 aVertex;
-attribute highp vec4 aColour;
+attribute highp vec2 aTexCoord;
 attribute highp float aId;
 
 //transformations (model view and perspective matrix)
 uniform mat3 uRotation;
 uniform mat4 uPMatrix;
-uniform float uAlpha;
-uniform float uSelection;
+
 
 //this might be used for a color coding for pick operation
 uniform bool uColorCoding;
+uniform float uSelection;
 
 //this will pass colour information to fragment shader
-varying vec4 vColor;
+varying vec2 vTexCoord;
+varying vec4 vIdColor;
 
 vec4 getIdColor(float id){
 	float product = floor(id + 0.5);
@@ -23,24 +24,21 @@ vec4 getIdColor(float id){
 }
 
 void main(void) {
-	if (uColorCoding)
-	{
-		vColor = getIdColor(aId);
-	}
-	else
-	{
-		bool isSelected = abs(uSelection - aId) < 0.1;
-		if (isSelected)
-		{
-			vColor = vec4(aColour.rgb, uAlpha);
-		}
-		else
-		{
-			vColor = vec4(aColour.rgb * 0.8, uAlpha);
-		}
-	}
-	
-	//gl_Position = uPMatrix * uRotation * vec4(aVertex, 1.0);
 	vec4 point = vec4(uRotation * aVertex, 1.0);
 	gl_Position = uPMatrix * point;
+	vTexCoord = aTexCoord;
+
+	if (uColorCoding)
+	{
+		vIdColor = getIdColor(aId);
+		return;
+	}
+	
+	bool isSelected = abs(uSelection - aId) < 0.1;
+	if (isSelected){
+		vIdColor = vec4(-1.0, -1.0, -1.0, -1.0);
+	}
+	else{
+		vIdColor = vec4(1.0, 1.0, 1.0, 1.0);
+	}
 }

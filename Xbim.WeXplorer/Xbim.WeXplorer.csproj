@@ -72,6 +72,8 @@
     <Content Include="Browser\xbim-visual-templates.debug.js" />
     <Content Include="Build\xbim-browser.js" />
     <Content Include="Build\xbim-browser.min.js" />
+    <Content Include="Build\xbim-navigation-cube.js" />
+    <Content Include="Build\xbim-navigation-cube.min.js" />
     <Content Include="Build\xbim-viewer.debug.bundle.js" />
     <Content Include="Build\xbim-viewer.min.bundle.js" />
     <Content Include="Build\xbim-viewer.min.js" />
@@ -106,6 +108,7 @@
     <Content Include="Libs\query-string.js" />
     <Content Include="Libs\webgl-utils.min.js" />
     <Content Include="Plugins\NavigationCube\cube_fshader.c" />
+    <Content Include="Plugins\NavigationCube\cube_texture_cs.png" />
     <Content Include="Plugins\NavigationCube\cube_texture_en.png" />
     <Content Include="Plugins\NavigationCube\cube_vshader.c" />
     <Content Include="Plugins\NavigationCube\xbim-navigation-cube-shaders.debug.js" />

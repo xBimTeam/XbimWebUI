@@ -2094,13 +2094,14 @@ xViewer.prototype.show = function (type) {
         //top and bottom are different because these are singular points for look-at function if heading is [0,0,1]
         case 'top':
             //only move to origin and up (negative values because we move camera against model)
-            mat4.translate(this._mvMatrix, mat4.create(), [origin[0] * -1.0, origin[1] * -1.0, distance * -1.0]);
+            mat4.translate(this._mvMatrix, mat4.create(), [origin[0] * -1.0, origin[1] * -1.0, origin[1] * -1.0 - distance]);
             return;
         case 'bottom':
             //only move to origin and up and rotate 180 degrees around Y axis
-            var translate = mat4.create();
-            mat4.translate(translate, mat4.create(), [origin[0] * -1.0, origin[1] * -1.0, distance * -1.0]);
-            mat4.rotateY(this._mvMatrix, translate, Math.PI);
+            var toOrigin = mat4.translate(mat4.create(), mat4.create(), [origin[0] * -1.0, origin[1] * +1.0, origin[2] * -1.0 - distance]);
+            var rotationY = mat4.rotateY(mat4.create(), toOrigin, Math.PI);
+            var rotationZ = mat4.rotateZ(mat4.create(), rotationY, Math.PI);
+            this._mvMatrix = rotationZ; // mat4.translate(mat4.create(), rotationZ, [0, 0, -1.0 * distance]);
             return;
 
         case 'front':

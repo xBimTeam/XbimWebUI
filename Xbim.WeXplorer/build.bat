@@ -28,3 +28,9 @@ type Resources\xbim-disclaimer.txt > Build\xbim-browser.js
 type Browser\*.debug.js >> Build\xbim-browser.js
 type Resources\xbim-disclaimer.txt > Build\xbim-browser.min.js
 type Browser\*.debug.js | Utilities\jsmin.exe >> Build\xbim-browser.min.js
+
+rem Create build files for the cube navigation plugin
+type Resources\xbim-disclaimer.txt > Build\xbim-navigation-cube.js
+type Plugins\NavigationCube\*.debug.js >> Build\xbim-navigation-cube.js
+type Resources\xbim-disclaimer.txt > Build\xbim-navigation-cube.min.js
+type Plugins\NavigationCube\*.debug.js | Utilities\jsmin.exe >> Build\xbim-navigation-cube.min.js

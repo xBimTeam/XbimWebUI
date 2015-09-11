@@ -7,6 +7,8 @@ function xNavigationCube(locale) {
     this.FRONT = 1600004;
     this.BACK = 1600005;
 
+    this._initialized = false;
+
     this.locale = typeof (locale) !== "undefined" ? locale : "en";
     if (typeof (xCubeTextures[this.locale]) === "undefined")
         throw new Error("Locale " + this.locale + " doesn't exist");
@@ -34,25 +36,27 @@ xNavigationCube.prototype.init = function (xviewer) {
     this._colourCodingUniformPointer = gl.getUniformLocation(this._shader, "uColorCoding");
     this._alphaUniformPointer = gl.getUniformLocation(this._shader, "uAlpha");
     this._selectionUniformPointer = gl.getUniformLocation(this._shader, "uSelection");
+    this._textureUniformPointer = gl.getUniformLocation(this._shader, "uTexture");
+
     this._vertexAttrPointer = gl.getAttribLocation(this._shader, "aVertex"),
-    this._colourAttrPointer = gl.getAttribLocation(this._shader, "aColour"),
+    this._texCoordAttrPointer = gl.getAttribLocation(this._shader, "aTexCoord"),
     this._idAttrPointer = gl.getAttribLocation(this._shader, "aId"),
     gl.enableVertexAttribArray(this._vertexAttrPointer);
-    gl.enableVertexAttribArray(this._colourAttrPointer);
+    gl.enableVertexAttribArray(this._texCoordAttrPointer);
     gl.enableVertexAttribArray(this._idAttrPointer);
 
     //feed data into the GPU and keep pointers
     this._indexBuffer = gl.createBuffer();
     this._vertexBuffer = gl.createBuffer();
-    this._colourBuffer = gl.createBuffer();
+    this._texCoordBuffer = gl.createBuffer();
     this._idBuffer = gl.createBuffer();
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.indices, gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, this.vertices, gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._colourBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, this.colours, gl.STATIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, this.txtCoords, gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._idBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, this.ids(), gl.STATIC_DRAW);
 
@@ -64,6 +68,7 @@ xNavigationCube.prototype.init = function (xviewer) {
 
     //load image texture into GPU
     gl.bindTexture(gl.TEXTURE_2D, this._texture);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, txtImage);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
@@ -89,9 +94,11 @@ xNavigationCube.prototype.init = function (xviewer) {
             self.alpha = 1.0;
             self.selection = id;
         } else {
-            self.alpha = 0.2;
+            self.alpha = 0.6;
         }
     }, true);
+
+    this._initialized = true;
 
 }
 
@@ -159,6 +166,8 @@ xNavigationCube.prototype.setInactive = function () {
 };
 
 xNavigationCube.prototype.draw = function () {
+    if (!this._initialized) return;
+
     var gl = this.viewer._gl;
 
     //set navigation data from xViewer to this shader
@@ -187,8 +196,13 @@ xNavigationCube.prototype.draw = function () {
     gl.vertexAttribPointer(this._vertexAttrPointer, 3, gl.FLOAT, false, 0, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._idBuffer);
     gl.vertexAttribPointer(this._idAttrPointer, 1, gl.FLOAT, false, 0, 0);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._colourBuffer);
-    gl.vertexAttribPointer(this._colourAttrPointer, 4, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer);
+    gl.vertexAttribPointer(this._texCoordAttrPointer, 2, gl.FLOAT, false, 0, 0);
+
+    //bind texture
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, this._texture);
+    gl.uniform1i(this._textureUniformPointer, 1);
 
     var cfEnabled = gl.getParameter(gl.CULL_FACE);
     if (!cfEnabled) gl.enable(gl.CULL_FACE);
@@ -312,44 +326,13 @@ xNavigationCube.prototype.txtCoords = new Float32Array([
       0.0, 2*1.0/3.0,
       1.0/3.0, 2*1.0/3.0,
       1.0/3.0, 1.0,
-      0.0, 2*1.0/3.0,
+      0.0, 1.0,
 
       // Left face
       2*1.0/3.0, 2*1.0/3.0,
       2*1.0/3.0, 1.0,
       1.0/3.0, 1.0,
       1.0/3.0, 2*1.0/3.0
-]);
-xNavigationCube.prototype.colours = new Float32Array([
-      1.0, 0.0, 0.0, 1.0,     // Front face
-      1.0, 0.0, 0.0, 1.0,     
-      1.0, 0.0, 0.0, 1.0,     
-      1.0, 0.0, 0.0, 1.0,     
-
-      1.0, 1.0, 0.0, 1.0,     // Back face
-      1.0, 1.0, 0.0, 1.0,     
-      1.0, 1.0, 0.0, 1.0,     
-      1.0, 1.0, 0.0, 1.0,     
-
-      0.0, 1.0, 0.0, 1.0,     // Top face
-      0.0, 1.0, 0.0, 1.0,     
-      0.0, 1.0, 0.0, 1.0,     
-      0.0, 1.0, 0.0, 1.0,     
-
-      1.0, 0.5, 0.5, 1.0,     // Bottom face
-      1.0, 0.5, 0.5, 1.0,     
-      1.0, 0.5, 0.5, 1.0,     
-      1.0, 0.5, 0.5, 1.0,     
-
-      1.0, 0.0, 1.0, 1.0,     // Right face
-      1.0, 0.0, 1.0, 1.0,     
-      1.0, 0.0, 1.0, 1.0,     
-      1.0, 0.0, 1.0, 1.0,     
-
-      0.0, 0.0, 1.0, 1.0,     // Left face
-      0.0, 0.0, 1.0, 1.0,     
-      0.0, 0.0, 1.0, 1.0,     
-      0.0, 0.0, 1.0, 1.0      
 ]);
 
 xNavigationCube.prototype.ids = function() {
