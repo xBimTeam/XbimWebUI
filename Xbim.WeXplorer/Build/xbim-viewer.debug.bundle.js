@@ -1474,7 +1474,7 @@ xViewer.prototype.setCameraTarget = function (prodId) {
     var setDistance = function (bBox) {
         var size = Math.max(bBox[3], bBox[4], bBox[5]);
         var ratio = Math.max(viewer._width, viewer._height) / Math.min(viewer._width, viewer._height);
-        viewer._distance = size / Math.tan(viewer.perspectiveCamera.fov * Math.PI / 360.0) * ratio * 1.2;
+        viewer._distance = size / Math.tan(viewer.perspectiveCamera.fov * Math.PI / 360.0) * ratio * 1.0;
     }
 
     //set navigation origin and default distance to the product BBox
@@ -2094,11 +2094,11 @@ xViewer.prototype.show = function (type) {
         //top and bottom are different because these are singular points for look-at function if heading is [0,0,1]
         case 'top':
             //only move to origin and up (negative values because we move camera against model)
-            mat4.translate(this._mvMatrix, mat4.create(), [origin[0] * -1.0, origin[1] * -1.0, origin[1] * -1.0 - distance]);
+            mat4.translate(this._mvMatrix, mat4.create(), [origin[0] * -1.0, origin[1] * -1.0, (distance + origin[2])* -1.0 ]);
             return;
         case 'bottom':
             //only move to origin and up and rotate 180 degrees around Y axis
-            var toOrigin = mat4.translate(mat4.create(), mat4.create(), [origin[0] * -1.0, origin[1] * +1.0, origin[2] * -1.0 - distance]);
+            var toOrigin = mat4.translate(mat4.create(), mat4.create(), [origin[0] * -1.0, origin[1] * +1.0, (origin[2] + distance) * -1]);
             var rotationY = mat4.rotateY(mat4.create(), toOrigin, Math.PI);
             var rotationZ = mat4.rotateZ(mat4.create(), rotationY, Math.PI);
             this._mvMatrix = rotationZ; // mat4.translate(mat4.create(), rotationZ, [0, 0, -1.0 * distance]);
