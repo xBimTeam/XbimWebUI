@@ -106,8 +106,10 @@
     <Content Include="Libs\query-string.js" />
     <Content Include="Libs\webgl-utils.min.js" />
     <Content Include="Plugins\NavigationCube\cube_fshader.c" />
+    <Content Include="Plugins\NavigationCube\cube_texture_en.png" />
     <Content Include="Plugins\NavigationCube\cube_vshader.c" />
     <Content Include="Plugins\NavigationCube\xbim-navigation-cube-shaders.debug.js" />
+    <Content Include="Plugins\NavigationCube\xbim-navigation-cube-textures.debug.js" />
     <Content Include="Resources\doctemplate\publish.js" />
     <Content Include="Resources\doctemplate\static\1_Hello_building.live.html" />
     <Content Include="Resources\doctemplate\static\3_Eventful_building.live.html" />

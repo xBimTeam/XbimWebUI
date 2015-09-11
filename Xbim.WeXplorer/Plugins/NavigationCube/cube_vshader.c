@@ -6,6 +6,7 @@ attribute highp float aId;
 uniform mat3 uRotation;
 uniform mat4 uPMatrix;
 uniform float uAlpha;
+uniform float uSelection;
 
 //this might be used for a color coding for pick operation
 uniform bool uColorCoding;
@@ -28,7 +29,15 @@ void main(void) {
 	}
 	else
 	{
-		vColor = vec4(aColour.rgb, uAlpha);
+		bool isSelected = abs(uSelection - aId) < 0.1;
+		if (isSelected)
+		{
+			vColor = vec4(aColour.rgb, uAlpha);
+		}
+		else
+		{
+			vColor = vec4(aColour.rgb * 0.8, uAlpha);
+		}
 	}
 	
 	//gl_Position = uPMatrix * uRotation * vec4(aVertex, 1.0);

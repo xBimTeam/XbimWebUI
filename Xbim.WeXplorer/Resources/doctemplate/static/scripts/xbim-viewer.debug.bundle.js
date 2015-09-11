@@ -1145,6 +1145,9 @@ function xViewer(canvas) {
         "renderingMode", "_clippingPlane", "_mvMatrix", "_pMatrix", "_distance", "_origin", "highlightingColour"];
     this._stylingChanged = true;
 
+    //this is to indicate that user has done some interaction
+    this._userAction = true;
+
     //dictionary of named events which can be registered and unregistered by using '.on('eventname', callback)'
     // and '.off('eventname', callback)'. Registered callbacks are triggered by the viewer when important events occure.
     this._events = {};
@@ -1734,6 +1737,14 @@ xViewer.prototype._initMouseEvents = function () {
 
         //if it was a longer movement do not perform picking
         if (deltaX < 3 && deltaY < 3 && button == 'left') {
+
+            var handled = false;
+            for (var pluginId in viewer._plugins) {
+                var plugin = viewer._plugins[pluginId];
+                if (!plugin.onBeforePick) continue;
+                handled = handled || plugin.onBeforePick(id);
+            }
+
             /**
             * Occurs when user click on model.
             *
@@ -1741,7 +1752,7 @@ xViewer.prototype._initMouseEvents = function () {
             * @type {object}
             * @param {Number} id - product ID of the element or null if there wasn't any product under mouse
             */
-            viewer._fire('pick', {id : id});
+            if(!handled) viewer._fire('pick', {id : id});
         }
 
         viewer._enableTextSelection();
@@ -1890,6 +1901,11 @@ xViewer.prototype._initMouseEvents = function () {
     window.addEventListener('mouseup', handleMouseUp, true);
     window.addEventListener('mousemove', handleMouseMove, true);
 
+    this._canvas.addEventListener('mousemove', function() {
+        viewer._userAction = true;
+    }, true);
+
+
     /**
     * Occurs when user double clicks on model.
     *
@@ -1908,8 +1924,9 @@ xViewer.prototype._initMouseEvents = function () {
 */
 xViewer.prototype.draw = function () {
     if (!this._geometryLoaded || this._handles.length == 0 || !(this._stylingChanged || this._isChanged())) {
-        return;
+        if (!this._userAction) return;
     }
+    this._userAction = false;
 
     //call all before-draw plugins
     for (var pluginId in this._plugins) {
@@ -2210,7 +2227,18 @@ xViewer.prototype._getID = function (x, y) {
     //decode ID (bit shifting by multiplication)
     var hasValue = result[3] != 0; //0 transparency is only for no-values
     if (hasValue) {
-        return result[0] + result[1] * 256 + result[2] * 256 * 256
+        var id = result[0] + result[1] * 256 + result[2] * 256 * 256;
+        var handled = false;
+        for (var pluginId in this._plugins) {
+            var plugin = this._plugins[pluginId];
+            if (!plugin.onBeforeGetId) continue;
+            handled = handled || plugin.onBeforeGetId(id);
+        }
+
+        if (!handled)
+            return id;
+        else
+            return null;
     }
     else {
         return null;

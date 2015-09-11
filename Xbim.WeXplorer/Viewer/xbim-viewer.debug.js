@@ -759,6 +759,14 @@ xViewer.prototype._initMouseEvents = function () {
 
         //if it was a longer movement do not perform picking
         if (deltaX < 3 && deltaY < 3 && button == 'left') {
+
+            var handled = false;
+            for (var pluginId in viewer._plugins) {
+                var plugin = viewer._plugins[pluginId];
+                if (!plugin.onBeforePick) continue;
+                handled = handled || plugin.onBeforePick(id);
+            }
+
             /**
             * Occurs when user click on model.
             *
@@ -766,7 +774,7 @@ xViewer.prototype._initMouseEvents = function () {
             * @type {object}
             * @param {Number} id - product ID of the element or null if there wasn't any product under mouse
             */
-            viewer._fire('pick', {id : id});
+            if(!handled) viewer._fire('pick', {id : id});
         }
 
         viewer._enableTextSelection();
