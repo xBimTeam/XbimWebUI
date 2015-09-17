@@ -464,10 +464,9 @@ xViewer.prototype.resetStyles = function () {
 */
 xViewer.prototype.getProductType = function (prodId) {
     for (var i in this._handles) {
-        var map = this._handles[i]._model.productMap;
-        var prod = map.filter(function (e) { return e.productID == prodId }).pop();
-        if (prod) return prod.type;
-        else return null;
+        var map = this._handles[i].getProductMap(prodId);
+        if (map) return map.type;
+        return null;
     }
 };
 
