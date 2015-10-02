@@ -672,7 +672,6 @@ xViewer.prototype._initAttributesAndUniforms = function () {
         vertexSamplerUniform: gl.getUniformLocation(this._shaderProgram, "uVertexSampler"),
         matrixSamplerUniform: gl.getUniformLocation(this._shaderProgram, "uMatrixSampler"),
         styleSamplerUniform: gl.getUniformLocation(this._shaderProgram, "uStyleSampler"),
-        normalDecodeSamplerUniform: gl.getUniformLocation(this._shaderProgram, "uNormalDecodeSampler"),
         stateStyleSamplerUniform: gl.getUniformLocation(this._shaderProgram, "uStateStyleSampler"),
         vertexTextureSizeUniform: gl.getUniformLocation(this._shaderProgram, "uVertexTextureSize"),
         matrixTextureSizeUniform: gl.getUniformLocation(this._shaderProgram, "uMatrixTextureSize"),
@@ -1556,7 +1555,24 @@ xViewer.prototype.clip = function (point, normal) {
     svg.addEventListener('mousedown', handleMouseDown, true);
     window.addEventListener('mouseup', handleMouseUp, true);
     window.addEventListener('mousemove', handleMouseMove, true);
+
+    this.stopClipping = function() {
+        svg.parentNode.removeChild(svg);
+        svg.removeEventListener('mousedown', handleMouseDown, true);
+        window.removeEventListener('mouseup', handleMouseUp, true);
+        window.removeEventListener('mousemove', handleMouseMove, true);
+        //clear also itself
+        viewer.stopClipping = function() {};
+    };
 };
+
+/**
+* This method is only active when interactive clipping is active. It stops interactive clipping operation.
+* 
+* @function xViewer#stopClipping
+*/
+//this is only a placeholder. It is actually created only when interactive clipping is active.
+xViewer.prototype.stopClipping = function() {};
 
 /**
 * This method will cancel any clipping plane if it is defined. Use {@link xViewer#clip clip()} 

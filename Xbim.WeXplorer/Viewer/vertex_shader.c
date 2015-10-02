@@ -41,9 +41,6 @@ uniform int uStyleTextureSize;
 //sampler with user defined styles
 uniform highp sampler2D uStateStyleSampler;
 
-//sampler used to decode normals
-uniform highp sampler2D uNormalDecodeSampler;
-
 //colour to go to fragment shader
 varying vec4 vFrontColor;
 varying vec4 vBackColor;
@@ -53,21 +50,16 @@ varying vec3 vPosition;
 varying float vDiscard;
 
 vec3 getNormal(){
-	float U = aNormal[0] / 252.0;
-	float V = aNormal[1] / 252.0;
-	return vec3(texture2D(uNormalDecodeSampler, vec2(U, V)));
+	float U = aNormal[0];
+	float V = aNormal[1];
+	float PI = 3.1415926535897932384626433832795;
+	float lon = U / 252.0 * 2.0 * PI;
+	float lat = V / 252.0 * PI;
 	
-	//The old way this was calculated every time for every index
-	//float U = aNormal[0];
-	//float V = aNormal[1];
-	//float PI = 3.1415926535897932384626433832795;
-	//float lon = U / 252.0 * 2.0 * PI;
-	//float lat = V / 252.0 * PI;
-	//
-	//float x = sin(lon) * sin(lat);
-	//float z = cos(lon) * sin(lat);
-	//float y = cos(lat);
-	//return normalize(vec3(x, y, z));
+	float x = sin(lon) * sin(lat);
+	float z = cos(lon) * sin(lat);
+	float y = cos(lat);
+	return normalize(vec3(x, y, z));
 }
 
 vec4 getIdColor(){
