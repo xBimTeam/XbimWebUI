@@ -16,7 +16,9 @@
 		<script type="text/javascript" src="Viewer/xbim-triangulated-shape.debug.js"></script>
 		<script type="text/javascript" src="Viewer/xbim-viewer.debug.js"></script>
   
-
+        <script src="Plugins/NavigationCube/xbim-navigation-cube-shaders.debug.js"></script>
+	    <script src="Plugins/NavigationCube/xbim-navigation-cube.debug.js"></script>
+        <script src="Plugins/NavigationCube/xbim-navigation-cube-textures.debug.js"></script>
         <style>
             html, body {
                 height: 100%;
@@ -51,19 +53,22 @@
             <a href="tests/tests.html" target="_blank">Tests</a>
             <br />
 			<a href="Docs/index.html" target="_blank">Documentation</a>
-			<div style="margin-top: 50px;">
-				Models:
-				<ul>
-                    <li><a href="?model=OneWall"> One Wall </a></li>
-					<li><a href="?model=OneWallTwoWindows"> One Wall Two Windows </a></li>
-					<li><a href="?model=TwoProxy"> Two proxy objects </a></li>
-					<li><a href="?model=TwoWallsTwoColour"> Two Walls Two Colour </a></li>
-					<li><a href="?model=FourWalls"> Four Walls </a></li>
-					<li><a href="?model=FourWallsDoorWindows"> Four Walls Door Windows </a></li>
-					<li><a href="?model=FourWallsDoorWindowsRoof"> Four Walls Door Windows Roof </a></li>
-                    <li><a href="?model=LakesideRestaurant"> Lakeside Restaurant </a></li>
-				</ul>
-			</div>
+		    <div style="margin-top: 50px;">
+		        Models:
+		        <ul>
+		            <li><a href="?model=OneWall"> One Wall </a></li>
+		            <li><a href="?model=OneWallTwoWindows"> One Wall Two Windows </a></li>
+		            <li><a href="?model=TwoProxy"> Two proxy objects </a></li>
+		            <li><a href="?model=TwoWallsTwoColour"> Two Walls Two Colour </a></li>
+		            <li><a href="?model=FourWalls"> Four Walls </a></li>
+		            <li><a href="?model=FourWallsDoorWindows"> Four Walls Door Windows </a></li>
+		            <li><a href="?model=FourWallsDoorWindowsRoof"> Four Walls Door Windows Roof </a></li>
+		            <li><a href="?model=LakesideRestaurant"> Lakeside Restaurant </a></li>
+		        </ul>
+		    </div>
+		    <div id="errLog" style="color: red">
+		        
+		    </div>
 		</div>
 		<div style="float:right; margin:20px;">
 			<div>
@@ -251,6 +256,10 @@
 
 			    //viewer.zoomTo(id);
 			});
+
+			var cube = new xNavigationCube('xbim');
+			viewer.addPlugin(cube);
+
 		</script>
 	</body>
 	

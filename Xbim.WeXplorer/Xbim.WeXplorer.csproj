@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Default.props" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Default.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -19,6 +20,7 @@
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
+    <TypeScriptToolsVersion>1.0</TypeScriptToolsVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -70,6 +72,8 @@
     <Content Include="Browser\xbim-visual-templates.debug.js" />
     <Content Include="Build\xbim-browser.js" />
     <Content Include="Build\xbim-browser.min.js" />
+    <Content Include="Build\xbim-navigation-cube.js" />
+    <Content Include="Build\xbim-navigation-cube.min.js" />
     <Content Include="Build\xbim-viewer.debug.bundle.js" />
     <Content Include="Build\xbim-viewer.min.bundle.js" />
     <Content Include="Build\xbim-viewer.min.js" />
@@ -103,6 +107,12 @@
     <Content Include="Libs\jstree-styles\throbber.gif" />
     <Content Include="Libs\query-string.js" />
     <Content Include="Libs\webgl-utils.min.js" />
+    <Content Include="Plugins\NavigationCube\cube_fshader.c" />
+    <Content Include="Plugins\NavigationCube\cube_texture_cs.png" />
+    <Content Include="Plugins\NavigationCube\cube_texture_en.png" />
+    <Content Include="Plugins\NavigationCube\cube_vshader.c" />
+    <Content Include="Plugins\NavigationCube\xbim-navigation-cube-shaders.debug.js" />
+    <Content Include="Plugins\NavigationCube\xbim-navigation-cube-textures.debug.js" />
     <Content Include="Resources\doctemplate\publish.js" />
     <Content Include="Resources\doctemplate\static\1_Hello_building.live.html" />
     <Content Include="Resources\doctemplate\static\3_Eventful_building.live.html" />
@@ -160,6 +170,7 @@
     <Content Include="Resources\xbim-disclaimer.txt" />
     <Content Include="Viewer\xbim-model-geometry.debug.js" />
     <Content Include="Viewer\xbim-model-handle.debug.js" />
+    <Content Include="Plugins\NavigationCube\xbim-navigation-cube.debug.js" />
     <Content Include="Viewer\xbim-product-type.debug.js" />
     <Content Include="Viewer\xbim-shaders.debug.js" />
     <Content Include="Viewer\xbim-state.debug.js" />
@@ -245,12 +256,12 @@
       <DependentUpon>Web.config</DependentUpon>
     </None>
   </ItemGroup>
-  <ItemGroup />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
   </PropertyGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets')" />
   <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
   <ProjectExtensions>

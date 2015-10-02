@@ -30,12 +30,15 @@ uniform int uRenderingMode;
 uniform highp sampler2D uVertexSampler;
 uniform int uVertexTextureSize;
 
+//sampler with transformation matrices
 uniform highp sampler2D uMatrixSampler;
 uniform int uMatrixTextureSize;
 
+//sampler with default styles
 uniform highp sampler2D uStyleSampler;
 uniform int uStyleTextureSize;
 
+//sampler with user defined styles
 uniform highp sampler2D uStateStyleSampler;
 
 //colour to go to fragment shader
@@ -46,15 +49,7 @@ varying vec3 vPosition;
 //state passed to fragment shader
 varying float vDiscard;
 
-//using this encoding the base normals are encoded as follows:
-//  Z : [0,0,1]  : 0
-// -Z : [0,0,-1] : 36
-//  X : [1,0,0]  : 18
-// -X : [-1,0,0] : 54
-//  Y : [0,1,0]  : 1314
-// -Y : [0,-1,0] : 1350
 vec3 getNormal(){
-	//normal is encoded as the second number in the array
 	float U = aNormal[0];
 	float V = aNormal[1];
 	float PI = 3.1415926535897932384626433832795;
