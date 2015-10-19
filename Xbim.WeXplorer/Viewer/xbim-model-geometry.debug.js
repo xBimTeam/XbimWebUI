@@ -134,7 +134,7 @@ xModelGeometry.prototype.parse = function (binReader) {
             var transformation = null;
 
             if (repetition > 1) {
-                transformation = br.readMatrix4x4();
+                transformation = version === 1 ? br.readFloat32(16) : br.readFloat64(16);
                 this.matrices.set(transformation, iMatrix);
                 iMatrix += 16;
             }

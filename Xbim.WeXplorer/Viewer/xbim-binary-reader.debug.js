@@ -169,3 +169,14 @@ xBinaryReader.prototype.readMatrix4x4 = function (count) {
     }
     return count === 1 ? result[0] : result;
 };
+xBinaryReader.prototype.readMatrix4x4_64 = function (count) {
+    if (typeof (count) === "undefined") count = 1;
+    var values = this.readFloat64(count * 16);
+    var result = new Array(count);
+    for (var i = 0; i < count; i++) {
+        var offset = i * 16 * 8;
+        var matrix = new Float64Array(values.buffer, offset, 16);
+        result[i] = matrix;
+    }
+    return count === 1 ? result[0] : result;
+};
