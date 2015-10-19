@@ -116,12 +116,6 @@ function xViewer(canvas) {
     */
     this.renderingMode = 'normal';
 
-    /**
-    * When focusing on an entity, this method will reduce the zoom distance relational to the size of the model.
-    * @member {Number} xViewer#autoZoomRelationalDistance
-    */
-    this.autoZoomRelationalDistance = 0;
-
     /** 
     * Clipping plane [a, b, c, d] defined as normal equation of the plane ax + by + cz + d = 0. [0,0,0,0] is for no clipping plane.
     * @member {Number[]} xViewer#_clippingPlane
@@ -200,8 +194,6 @@ function xViewer(canvas) {
 
     //Navigation settings - coordinates in the WCS of the origin used for orbiting and panning
     this._origin = [0, 0, 0]
-    //Default distance when the model first loads, used to get idea of model size
-    this._baseDistance = 0;
     //Default distance for default views (top, bottom, left, right, front, back)
     this._distance = 0;
     //shader program used for rendering
@@ -503,8 +495,7 @@ xViewer.prototype.setCameraTarget = function (prodId) {
     var setDistance = function (bBox) {
         var size = Math.max(bBox[3], bBox[4], bBox[5]);
         var ratio = Math.max(viewer._width, viewer._height) / Math.min(viewer._width, viewer._height);
-        viewer._distance = size / Math.tan(viewer.perspectiveCamera.fov * Math.PI / 360.0) * ratio * 1.2;
-        if(viewer._baseDistance) viewer._distance += viewer._baseDistance * viewer.autoZoomRelationalDistance;
+        viewer._distance = size / Math.tan(viewer.perspectiveCamera.fov * Math.PI / 360.0) * ratio * 1.0;
     }
 
     //set navigation origin and default distance to the product BBox
@@ -535,7 +526,6 @@ xViewer.prototype.setCameraTarget = function (prodId) {
             if (region) {
                 this._origin = [region.centre[0], region.centre[1], region.centre[2]]
                 setDistance(region.bbox);
-                if(!viewer._baseDistance) viewer._baseDistance = viewer._distance;
             }
         }
         return true;
