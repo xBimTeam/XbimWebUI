@@ -846,6 +846,7 @@ xViewer.prototype._initMouseEvents = function () {
     }
 
     function navigate(type, deltaX, deltaY) {
+        if(!viewer._handles || !viewer._handles[0]) return;
         //translation in WCS is position from [0, 0, 0]
         var origin = viewer._origin;
         var camera = viewer.getCameraPosition();
