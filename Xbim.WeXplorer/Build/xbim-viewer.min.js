@@ -126,7 +126,7 @@ if(x===0||isNaN(x))
 return x
 return x>0?1:-1}
 navigate('zoom',sign(event.deltaX)*-1.0,sign(event.deltaY)*-1.0);}
-function navigate(type,deltaX,deltaY){var origin=viewer._origin;var camera=viewer.getCameraPosition();var mvOrigin=vec3.transformMat4(vec3.create(),origin,viewer._mvMatrix)
+function navigate(type,deltaX,deltaY){if(!viewer._handles||!viewer._handles[0])return;var origin=viewer._origin;var camera=viewer.getCameraPosition();var mvOrigin=vec3.transformMat4(vec3.create(),origin,viewer._mvMatrix)
 var distanceVec=vec3.subtract(vec3.create(),origin,camera);var distance=Math.max(vec3.length(distanceVec),viewer._handles[0]._model.meter);var transform=mat4.translate(mat4.create(),mat4.create(),mvOrigin)
 function degToRad(deg){return deg*Math.PI/180.0;}
 switch(type){case'free-orbit':transform=mat4.rotate(mat4.create(),transform,degToRad(deltaY/4),[1,0,0]);transform=mat4.rotate(mat4.create(),transform,degToRad(deltaX/4),[0,1,0]);break;case'fixed-orbit':case'orbit':mat4.rotate(transform,transform,degToRad(deltaY/4),[1,0,0]);var mvZ=vec3.transformMat3(vec3.create(),[0,0,1],mat3.fromMat4(mat3.create(),viewer._mvMatrix));mvZ=vec3.normalize(vec3.create(),mvZ);transform=mat4.rotate(mat4.create(),transform,degToRad(deltaX/4),mvZ);break;case'pan':mat4.translate(transform,transform,[deltaX*distance/150,0,0]);mat4.translate(transform,transform,[0,(-1.0*deltaY)*distance/150,0]);break;case'zoom':mat4.translate(transform,transform,[0,0,deltaX*distance/20]);mat4.translate(transform,transform,[0,0,deltaY*distance/20]);break;default:break;}
