@@ -16,7 +16,21 @@ function xNavigationCube(locale) {
     this.BOTTOM_LEFT_BACK = 1600012;
     this.BOTTOM_RIGHT_BACK = 1600013;
 
+    this.TOP_LEFT = 1600014;
+    this.TOP_RIGHT = 1600015;
+    this.TOP_FRONT = 1600016;
+    this.TOP_BACK = 1600017;
+    this.BOTTOM_LEFT = 1600018;
+    this.BOTTOM_RIGHT = 1600019;
+    this.BOTTOM_FRONT = 1600020;
+    this.BOTTOM_BACK = 1600021;
 
+    this.FRONT_RIGHT = 1600022;
+    this.FRONT_LEFT = 1600023;
+    this.BACK_RIGHT = 1600024;
+    this.BACK_LEFT = 1600025;
+
+    this.position = this.BOTTOM_RIGHT;
 
     this._initialized = false;
 
@@ -28,14 +42,17 @@ function xNavigationCube(locale) {
 xNavigationCube.prototype.init = function (xviewer) {
     var self = this;
     this.viewer = xviewer;
-    this.ratio = 0.1;
+    this.ratio = 0.15;
     var gl = this.viewer._gl;
 
     //create own shader 
     this._shader = null;
     this._initShader();
 
-    this.alpha = 1.0;
+    this.activeAlpha = 1.0;
+    this.passiveAlpha = 0.4;
+    this._alpha = this.passiveAlpha;
+
     this.selection = 0.0;
 
     //set own shader for init
@@ -101,11 +118,12 @@ xNavigationCube.prototype.init = function (xviewer) {
         //this is for picking
         var id = xviewer._getID(viewX, viewY);
 
-        if (id >= self.TOP && id <= self.BACK) {
-            self.alpha = 1.0;
+        if (id >= self.TOP && id <= self.BACK_LEFT) {
+            self._alpha = self.activeAlpha;
             self.selection = id;
         } else {
-            self.alpha = 0.6;
+            self._alpha = self.passiveAlpha;
+            self.selection = 0;
         }
     }, true);
 
@@ -116,7 +134,12 @@ xNavigationCube.prototype.init = function (xviewer) {
 xNavigationCube.prototype.onBeforeDraw = function () { };
 
 xNavigationCube.prototype.onBeforePick = function (id) {
-    if (id >= this.TOP && id <= this.BACK) {
+    if (id >= this.TOP && id <= this.BACK_LEFT) {
+
+        var dir = vec3.create();
+        var distance = this.viewer._distance;
+        var diagonalRatio = 1.3;
+
         switch (id) {
             case this.TOP:
                 this.viewer.show('top');
@@ -136,10 +159,102 @@ xNavigationCube.prototype.onBeforePick = function (id) {
             case this.BACK:
                 this.viewer.show('back');
                 return true;
+            case this.TOP_LEFT_FRONT:
+                dir = vec3.fromValues(-1, -1, 1);
+                distance *= diagonalRatio;
+                break;
+            case this.TOP_RIGHT_FRONT:
+                dir = vec3.fromValues(1, -1, 1);
+                distance *= diagonalRatio;
+                break;
+            case this.TOP_LEFT_BACK:
+                dir = vec3.fromValues(-1, 1, 1);
+                distance *= diagonalRatio;
+                break;
+            case this.TOP_RIGHT_BACK:
+                dir = vec3.fromValues(1, 1, 1);
+                distance *= diagonalRatio;
+                break;
+            case this.BOTTOM_LEFT_FRONT:
+                dir = vec3.fromValues(-1, -1, -1);
+                distance *= diagonalRatio;
+                break;
+            case this.BOTTOM_RIGHT_FRONT:
+                dir = vec3.fromValues(1, -1, -1);
+                distance *= diagonalRatio;
+                break;
+            case this.BOTTOM_LEFT_BACK:
+                dir = vec3.fromValues(-1, 1, -1);
+                distance *= diagonalRatio;
+                break;
+            case this.BOTTOM_RIGHT_BACK:
+                dir = vec3.fromValues(1, 1, -1);
+                distance *= diagonalRatio;
+                break;
+            case this.TOP_LEFT:
+                dir = vec3.fromValues(-1, 0, 1);
+                distance *= diagonalRatio;
+                break;
+            case this.TOP_RIGHT:
+                dir = vec3.fromValues(1, 0, 1);
+                distance *= diagonalRatio;
+                break;
+            case this.TOP_FRONT:
+                dir = vec3.fromValues(0, -1, 1);
+                distance *= diagonalRatio;
+                break;
+            case this.TOP_BACK:
+                dir = vec3.fromValues(0, 1, 1);
+                distance *= diagonalRatio;
+                break;
+            case this.BOTTOM_LEFT:
+                dir = vec3.fromValues(-1, 0, -1);
+                distance *= diagonalRatio;
+                break;
+            case this.BOTTOM_RIGHT:
+                dir = vec3.fromValues(1, 0, -1);
+                break;
+            case this.BOTTOM_FRONT:
+                dir = vec3.fromValues(0, -1, -1);
+                distance *= diagonalRatio;
+                break;
+            case this.BOTTOM_BACK:
+                dir = vec3.fromValues(0, 1, -1);
+                distance *= diagonalRatio;
+                break;
+            case this.FRONT_RIGHT:
+                dir = vec3.fromValues(1, -1, 0);
+                distance *= diagonalRatio;
+                break;
+            case this.FRONT_LEFT:
+                dir = vec3.fromValues(-1, -1, 0);
+                distance *= diagonalRatio;
+                break;
+            case this.BACK_RIGHT:
+                dir = vec3.fromValues(1, 1, 0);
+                distance *= diagonalRatio;
+                break;
+            case this.BACK_LEFT:
+                dir = vec3.fromValues(-1, 1, 0);
+                distance *= diagonalRatio;
+                break;
             default:
-                return false;
+                break;
         }
+
+        var o = this.viewer._origin;
+        var heading = vec3.fromValues(0, 0, 1);
+        var origin = vec3.fromValues(o[0], o[1], o[2]);
+
+        dir = vec3.normalize(vec3.create(), dir);
+        var shift = vec3.scale(vec3.create(), dir, distance);
+        var camera = vec3.add(vec3.create(), origin, shift);
+
+        //use look-at function to set up camera and target
+        mat4.lookAt(this.viewer._mvMatrix, camera, origin, heading);
+        return true;
     }
+    return false;
 };
 
 xNavigationCube.prototype.onAfterDraw = function() {
@@ -187,19 +302,51 @@ xNavigationCube.prototype.draw = function () {
     var width = height / this.viewer._height * this.viewer._width;
 
     //create orthogonal projection matrix
-    mat4.ortho(pMatrix,
-        (this.ratio - 1.0) * width, //left
-        this.ratio * width, //right
-        this.ratio * -1.0 * height, //bottom
-        (1.0 - this.ratio) * height,  //top
-        -1,  //near
-        1 ); //far
+    switch (this.position) {
+        case this.BOTTOM_RIGHT:
+            mat4.ortho(pMatrix,
+                (this.ratio - 1.0) * width, //left
+                this.ratio * width, //right
+                this.ratio * -1.0 * height, //bottom
+                (1.0 - this.ratio) * height,  //top
+                -1,  //near
+                1); //far
+            break;
+        case this.BOTTOM_LEFT:
+            mat4.ortho(pMatrix,
+                -1.0 * this.ratio * width, //left
+                (1.0 - this.ratio) * width, //right
+                this.ratio * -1.0 * height, //bottom
+                (1.0 - this.ratio) * height,  //top
+                -1,  //near
+                1); //far
+            break;
+        case this.TOP_LEFT:
+            mat4.ortho(pMatrix,
+                -1.0 * this.ratio * width, //left
+                (1.0 - this.ratio) * width, //right
+                (this.ratio - 1.0) * height, //bottom
+                this.ratio * height,  //top
+                -1,  //near
+                1); //far
+            break;
+        case this.TOP_RIGHT:
+            mat4.ortho(pMatrix,
+                (this.ratio - 1.0) * width, //left
+                this.ratio * width, //right
+                (this.ratio - 1.0) * height, //bottom
+                this.ratio * height,  //top
+                -1,  //near
+                1); //far
+            break;
+    default:
+    }
 
     //extract just a rotation from model-view matrix
     var rotation = mat3.fromMat4(mat3.create(), this.viewer._mvMatrix);
     gl.uniformMatrix4fv(this._pMatrixUniformPointer, false, pMatrix);
     gl.uniformMatrix3fv(this._rotationUniformPointer, false, rotation);
-    gl.uniform1f(this._alphaUniformPointer, this.alpha);
+    gl.uniform1f(this._alphaUniformPointer, this._alpha);
     gl.uniform1f(this._selectionUniformPointer, this.selection);
 
     //bind data buffers
@@ -258,6 +405,307 @@ xNavigationCube.prototype._initShader = function () {
     }
 };
 
+
+xNavigationCube.prototype.vertices = new Float32Array([
+      // Front face
+      -0.3, -0.5, -0.3,
+       0.3, -0.5, -0.3,
+       0.3, -0.5,  0.3, 
+      -0.3, -0.5,  0.3, 
+
+      // Back face
+      -0.3, 0.5, -0.3, 
+      -0.3, 0.5,  0.3,  
+       0.3, 0.5,  0.3,  
+       0.3, 0.5, -0.3, 
+
+      
+      // Top face
+      -0.3, -0.3, 0.5, 
+       0.3, -0.3, 0.5, 
+       0.3,  0.3, 0.5,  
+      -0.3,  0.3, 0.5,  
+
+      // Bottom face
+      -0.3, -0.3, -0.5,
+      -0.3,  0.3, -0.5, 
+       0.3,  0.3, -0.5, 
+       0.3, -0.3, -0.5,
+
+      // Right face
+       0.5, -0.3, -0.3,
+       0.5,  0.3, -0.3, 
+       0.5,  0.3,  0.3,  
+       0.5, -0.3,  0.3, 
+
+      // Left face
+      -0.5, -0.3, -0.3,
+      -0.5, -0.3,  0.3, 
+      -0.5,  0.3,  0.3,  
+      -0.5, 0.3, -0.3,
+
+      //top - left - front (--+)
+      -0.5, -0.5, 0.5, 
+      -0.3, -0.5, 0.5,
+      -0.3, -0.3, 0.5,
+      -0.5, -0.3, 0.5,
+
+      -0.5, -0.5, 0.3,
+      -0.5, -0.5, 0.5, 
+      -0.5, -0.3, 0.5,
+      -0.5, -0.3, 0.3,
+
+      -0.5, -0.5, 0.3,
+      -0.3, -0.5, 0.3,
+      -0.3, -0.5, 0.5,
+      -0.5, -0.5, 0.5, 
+
+      //top-right-front (+-+)
+       0.3, -0.5, 0.5,
+       0.5, -0.5, 0.5, 
+       0.5, -0.3, 0.5,
+       0.3, -0.3, 0.5,
+
+       0.5, -0.5, 0.3,
+       0.5, -0.3, 0.3,
+       0.5, -0.3, 0.5,
+       0.5, -0.5, 0.5, 
+       
+       0.3, -0.5, 0.3,
+       0.5, -0.5, 0.3,
+       0.5, -0.5, 0.5, 
+       0.3, -0.5, 0.5,
+
+       //top-left-back (-++)
+       -0.5, 0.3, 0.5,
+       -0.3, 0.3, 0.5,
+       -0.3, 0.5, 0.5,
+       -0.5, 0.5, 0.5,
+       
+       -0.5, 0.3, 0.3,
+       -0.5, 0.3, 0.5,
+       -0.5, 0.5, 0.5,
+       -0.5, 0.5, 0.3,
+       
+       -0.5, 0.5, 0.3,
+       -0.5, 0.5, 0.5,
+       -0.3, 0.5, 0.5,
+       -0.3, 0.5, 0.3,
+       
+       //top-right-back (+++)
+       0.3, 0.3, 0.5,
+       0.5, 0.3, 0.5,
+       0.5, 0.5, 0.5,
+       0.3, 0.5, 0.5,
+
+       0.5, 0.3, 0.3,
+       0.5, 0.5, 0.3,
+       0.5, 0.5, 0.5,
+       0.5, 0.3, 0.5,
+        
+       0.3, 0.5, 0.3,
+       0.3, 0.5, 0.5,
+       0.5, 0.5, 0.5,
+       0.5, 0.5, 0.3,
+
+      //bottom - left - front (---)
+      -0.5, -0.5, -0.5,
+      -0.3, -0.5, -0.5,
+      -0.3, -0.3, -0.5,
+      -0.5, -0.3, -0.5,
+
+      -0.5, -0.5, -0.5,
+      -0.5, -0.5, -0.3,
+      -0.5, -0.3, -0.3,
+      -0.5, -0.3, -0.5,
+
+      -0.5, -0.5, -0.5,
+      -0.3, -0.5, -0.5,
+      -0.3, -0.5, -0.3,
+      -0.5, -0.5, -0.3,
+
+      //bottom-right-front (+--)
+       0.3, -0.5, -0.5,
+       0.5, -0.5, -0.5,
+       0.5, -0.3, -0.5,
+       0.3, -0.3, -0.5,
+
+       0.5, -0.5, -0.5,
+       0.5, -0.3, -0.5,
+       0.5, -0.3, -0.3,
+       0.5, -0.5, -0.3,
+
+       0.3, -0.5, -0.5,
+       0.5, -0.5, -0.5,
+       0.5, -0.5, -0.3,
+       0.3, -0.5, -0.3,
+
+       //bottom-left-back (-+-)
+       -0.5, 0.3, -0.5,
+       -0.3, 0.3, -0.5,
+       -0.3, 0.5, -0.5,
+       -0.5, 0.5, -0.5,
+
+       -0.5, 0.3, -0.5,
+       -0.5, 0.3, -0.3,
+       -0.5, 0.5, -0.3,
+       -0.5, 0.5, -0.5,
+
+       -0.5, 0.5, -0.5,
+       -0.5, 0.5, -0.3,
+       -0.3, 0.5, -0.3,
+       -0.3, 0.5, -0.5,
+
+       //bottom-right-back (++-)
+       0.3, 0.3, -0.5,
+       0.5, 0.3, -0.5,
+       0.5, 0.5, -0.5,
+       0.3, 0.5, -0.5,
+
+       0.5, 0.3, -0.5,
+       0.5, 0.5, -0.5,
+       0.5, 0.5, -0.3,
+       0.5, 0.3, -0.3,
+
+       0.3, 0.5, -0.5,
+       0.3, 0.5, -0.3,
+       0.5, 0.5, -0.3,
+       0.5, 0.5, -0.5,
+
+       //top-right (+0+)
+       0.3, -0.3, 0.5,
+       0.5, -0.3, 0.5,
+       0.5,  0.3, 0.5,
+       0.3,  0.3, 0.5,
+
+       0.5, -0.3, 0.3,
+       0.5,  0.3, 0.3,
+       0.5,  0.3, 0.5,
+       0.5, -0.3, 0.5,
+
+       //top-left (-0+)
+       -0.5, -0.3, 0.5,
+       -0.3, -0.3, 0.5,
+       -0.3,  0.3, 0.5,
+       -0.5,  0.3, 0.5,
+
+       -0.5, -0.3, 0.3,
+       -0.5, -0.3, 0.5,
+       -0.5,  0.3, 0.5,
+       -0.5, 0.3, 0.3,
+
+       //top-front (0-+)
+       -0.3, -0.5, 0.5,
+        0.3, -0.5, 0.5,
+        0.3, -0.3, 0.5,
+       -0.3, -0.3, 0.5,
+
+       -0.3, -0.5, 0.3,
+        0.3, -0.5, 0.3,
+        0.3, -0.5, 0.5,
+       -0.3, -0.5, 0.5,
+
+       //top-back (0++)
+       -0.3, 0.3, 0.5,
+        0.3, 0.3, 0.5,
+        0.3, 0.5, 0.5,
+       -0.3, 0.5, 0.5,
+
+       -0.3, 0.5, 0.3,
+       -0.3, 0.5, 0.5,
+        0.3, 0.5, 0.5,
+        0.3, 0.5, 0.3,
+
+       //bottom-right (+0-)
+       0.3, -0.3, -0.5,
+       0.5, -0.3, -0.5,
+       0.5, 0.3,  -0.5,
+       0.3, 0.3,  -0.5,
+
+       0.5, -0.3, -0.5,
+       0.5, 0.3,  -0.5,
+       0.5, 0.3,  -0.3,
+       0.5, -0.3, -0.3,
+
+       //bottom-left (-0-)
+       -0.5, -0.3, -0.5,
+       -0.5,  0.3, -0.5,
+       -0.3,  0.3, -0.5,
+       -0.3, -0.3, -0.5,
+
+       -0.5, -0.3, -0.5,
+       -0.5, -0.3, -0.3,
+       -0.5,  0.3, -0.3,
+       -0.5,  0.3, -0.5,
+
+       //bottom-front (0--)
+       -0.3, -0.5, -0.5,
+        0.3, -0.5, -0.5,
+        0.3, -0.3, -0.5,
+       -0.3, -0.3, -0.5,
+
+       -0.3, -0.5, -0.5,
+        0.3, -0.5, -0.5,
+        0.3, -0.5, -0.3,
+       -0.3, -0.5, -0.3,
+
+       //bottom-back (0+-)
+       -0.3, 0.3, -0.5,
+        0.3, 0.3, -0.5,
+        0.3, 0.5, -0.5,
+       -0.3, 0.5, -0.5,
+
+       -0.3, 0.5, -0.5,
+       -0.3, 0.5, -0.3,
+        0.3, 0.5, -0.3,
+        0.3, 0.5, -0.5,
+
+        //front-right (+-0)
+        0.3, -0.5, -0.3,
+        0.5, -0.5, -0.3,
+        0.5, -0.5,  0.3,
+        0.3, -0.5,  0.3,
+
+        0.5, -0.5, -0.3,
+        0.5, -0.3, -0.3,
+        0.5, -0.3,  0.3,
+        0.5, -0.5,  0.3,
+
+        //front-left (--0)
+        -0.5, -0.5, -0.3,
+        -0.3, -0.5, -0.3,
+        -0.3, -0.5,  0.3,
+        -0.5, -0.5,  0.3,
+
+        -0.5, -0.5, -0.3,
+        -0.5, -0.5,  0.3,
+        -0.5, -0.3,  0.3,
+        -0.5, -0.3, -0.3,
+
+        //back-right (++0)
+         0.3, 0.5, -0.3,
+         0.3, 0.5,  0.3,
+         0.5, 0.5,  0.3,
+         0.5, 0.5, -0.3,
+
+         0.5, 0.3, -0.3,
+         0.5, 0.5, -0.3,
+         0.5, 0.5,  0.3,
+         0.5, 0.3,  0.3,
+
+        //back-left (-+0)
+        -0.5, 0.5, -0.3,
+        -0.5, 0.5,  0.3,
+        -0.3, 0.5,  0.3,
+        -0.3, 0.5, -0.3,
+
+         -0.5, 0.3, -0.3,
+         -0.5, 0.3,  0.3,
+         -0.5, 0.5,  0.3,
+         -0.5, 0.5, -0.3,
+]);
+
+
 //// Front face
 //-0.5, -0.5, -0.5,
 // 0.5, -0.5, -0.5,
@@ -269,7 +717,6 @@ xNavigationCube.prototype._initShader = function () {
 //-0.5, 0.5, 0.5,
 // 0.5, 0.5, 0.5,
 // 0.5, 0.5, -0.5,
-//
 //
 //// Top face
 //-0.5, -0.5, 0.5,
@@ -295,95 +742,6 @@ xNavigationCube.prototype._initShader = function () {
 //-0.5, 0.5, 0.5,
 //-0.5, 0.5, -0.5,
 
-
-xNavigationCube.prototype.vertices = new Float32Array([
-      // Front face
-      -0.4, -0.5, -0.4,
-       0.4, -0.5, -0.4,
-       0.4, -0.5,  0.4, 
-      -0.4, -0.5,  0.4, 
-
-      // Back face
-      -0.4, 0.5, -0.4, 
-      -0.4, 0.5,  0.4,  
-       0.4, 0.5,  0.4,  
-       0.4, 0.5, -0.4, 
-
-      
-      // Top face
-      -0.4, -0.4, 0.5, 
-       0.4, -0.4, 0.5, 
-       0.4,  0.4, 0.5,  
-      -0.4,  0.4, 0.5,  
-
-      // Bottom face
-      -0.4, -0.4, -0.5,
-      -0.4,  0.4, -0.5, 
-       0.4,  0.4, -0.5, 
-       0.4, -0.4, -0.5,
-
-      // Right face
-       0.5, -0.4, -0.4,
-       0.5,  0.4, -0.4, 
-       0.5,  0.4,  0.4,  
-       0.5, -0.4,  0.4, 
-
-      // Left face
-      -0.5, -0.4, -0.4,
-      -0.5, -0.4,  0.4, 
-      -0.5,  0.4,  0.4,  
-      -0.5, 0.4, -0.4,
-
-      //top - left - front (--+)
-      -0.5, -0.5, 0.5, //corner
-      -0.4, -0.5, 0.5,
-      -0.4, -0.4, 0.5,
-      -0.5, -0.4, 0.5,
-
-      -0.5, -0.5, 0.4,
-      -0.5, -0.5, 0.5, //corner
-      -0.5, -0.4, 0.5,
-      -0.5, -0.4, 0.4,
-
-      -0.5, -0.5, 0.4,
-      -0.4, -0.5, 0.4,
-      -0.4, -0.5, 0.5,
-      -0.5, -0.5, 0.5, //corner
-
-      //top-right-front (+-+)
-       0.4, -0.5, 0.5,
-       0.5, -0.5, 0.5, //corner
-       0.5, -0.4, 0.5,
-       0.4, -0.4, 0.5,
-
-      0.5, -0.5, 0.4,
-      0.5, -0.4, 0.4,
-      0.5, -0.4, 0.5,
-      0.5, -0.5, 0.5, //corner
-
-      0.4, -0.5, 0.4,
-      0.5, -0.5, 0.4,
-      0.5, -0.5, 0.5, //corner
-      0.4, -0.5, 0.5,
-
-      //top-left-back (-++)
-      -0.5, 0.4, 0.5,
-       -0.4, 0.4, 0.5,
-       -0.4, 0.5, 0.5,
-      -0.5, 0.5, 0.5,
-
-      -0.5, 0.4, 0.4,
-      -0.5, 0.4, 0.5,
-      -0.5, 0.5, 0.5,
-      -0.5, 0.5, 0.4,
-
-      -0.5, 0.5, 0.4,
-      -0.5, 0.5, 0.5,
-      -0.4, 0.5, 0.5,
-      -0.4, 0.5, 0.4,
-
-]);
-
 xNavigationCube.prototype.indices = new Uint16Array([
     0, 1, 2, 0, 2, 3, // Front face
     4, 5, 6, 4, 6, 7, // Back face
@@ -392,21 +750,93 @@ xNavigationCube.prototype.indices = new Uint16Array([
     16, 17, 18, 16, 18, 19, // Right face
     20, 21, 22, 20, 22, 23, // Left face
 
-    //top - left - front (--+)
+    //top - left - front 
     0 + 24, 1 + 24, 2 + 24, 0 + 24, 2 + 24, 3 + 24,
     4 + 24, 5 + 24, 6 + 24, 4 + 24, 6 + 24, 7 + 24,
     8 + 24, 9 + 24, 10 + 24, 8 + 24, 10 + 24, 11 + 24,
 
-    //top-right-front (+-+)
+    //top-right-front 
     0 + 36, 1 + 36, 2 + 36, 0 + 36, 2 + 36, 3 + 36,
     4 + 36, 5 + 36, 6 + 36, 4 + 36, 6 + 36, 7 + 36,
     8 + 36, 9 + 36, 10 + 36, 8 + 36, 10 + 36, 11 + 36,
 
-    //top-left-back (-++)
+    //top-left-back 
     0 + 48, 1 + 48, 2 + 48, 0 + 48, 2 + 48, 3 + 48,
     4 + 48, 5 + 48, 6 + 48, 4 + 48, 6 + 48, 7 + 48,
     8 + 48, 9 + 48, 10 + 48, 8 + 48, 10 + 48, 11 + 48,
 
+    //top-right-back
+    0 + 60, 1 + 60, 2 + 60, 0 + 60, 2 + 60, 3 + 60,
+    4 + 60, 5 + 60, 6 + 60, 4 + 60, 6 + 60, 7 + 60,
+    8 + 60, 9 + 60, 10 + 60, 8 + 60, 10 + 60, 11 + 60,
+
+    //bottom - left - front
+    0 + 72, 2 + 72, 1 + 72, 0 + 72, 3 + 72, 2 + 72,
+    4 + 72, 5 + 72, 6 + 72, 4 + 72, 6 + 72, 7 + 72,
+    8 + 72, 9 + 72, 10 + 72, 8 + 72, 10 + 72, 11 + 72,
+
+    //bottom-right-front 
+    0 + 84, 2 + 84, 1 + 84, 0 + 84, 3 + 84, 2 + 84,
+    4 + 84, 5 + 84, 6 + 84, 4 + 84, 6 + 84, 7 + 84,
+    8 + 84, 9 + 84, 10 + 84, 8 + 84, 10 + 84, 11 + 84,
+
+    //bottom-left-back 
+    0 + 96, 2 + 96, 1 + 96, 0 + 96, 3 + 96, 2 + 96,
+    4 + 96, 5 + 96, 6 + 96, 4 + 96, 6 + 96, 7 + 96,
+    8 + 96, 9 + 96, 10 + 96, 8 + 96, 10 + 96, 11 + 96,
+
+    //bottom-right-back
+    0 + 108, 2 + 108, 1 + 108, 0 + 108, 3 + 108, 2 + 108,
+    4 + 108, 5 + 108, 6 + 108, 4 + 108, 6 + 108, 7 + 108,
+    8 + 108, 9 + 108, 10 + 108, 8 + 108, 10 + 108, 11 + 108,
+
+    //top-right
+    0 + 120, 1 + 120, 2 + 120, 0 + 120, 2 + 120, 3 + 120,
+    4 + 120, 5 + 120, 6 + 120, 4 + 120, 6 + 120, 7 + 120,
+
+    //top-left
+    0 + 128, 1 + 128, 2 + 128, 0 + 128, 2 + 128, 3 + 128,
+    4 + 128, 5 + 128, 6 + 128, 4 + 128, 6 + 128, 7 + 128,
+
+    //top-front
+    0 + 136, 1 + 136, 2 + 136, 0 + 136, 2 + 136, 3 + 136,
+    4 + 136, 5 + 136, 6 + 136, 4 + 136, 6 + 136, 7 + 136,
+
+    //top-back
+    0 + 144, 1 + 144, 2 + 144, 0 + 144, 2 + 144, 3 + 144,
+    4 + 144, 5 + 144, 6 + 144, 4 + 144, 6 + 144, 7 + 144,
+
+    //bottom-right
+    0 + 152, 2 + 152, 1 + 152, 0 + 152, 3 + 152, 2 + 152,
+    4 + 152, 5 + 152, 6 + 152, 4 + 152, 6 + 152, 7 + 152,
+
+    //bottom-left
+    0 + 160, 1 + 160, 2 + 160, 0 + 160, 2 + 160, 3 + 160,
+    4 + 160, 5 + 160, 6 + 160, 4 + 160, 6 + 160, 7 + 160,
+
+    //bottom-front
+    0 + 168, 2 + 168, 1 + 168, 0 + 168, 3 + 168, 2 + 168,
+    4 + 168, 5 + 168, 6 + 168, 4 + 168, 6 + 168, 7 + 168,
+
+    //bottom-back
+    0 + 176, 2 + 176, 1 + 176, 0 + 176, 3 + 176, 2 + 176,
+    4 + 176, 5 + 176, 6 + 176, 4 + 176, 6 + 176, 7 + 176,
+
+    //front-right
+    0 + 184, 1 + 184, 2 + 184, 0 + 184, 2 + 184, 3 + 184,
+    4 + 184, 5 + 184, 6 + 184, 4 + 184, 6 + 184, 7 + 184,
+
+    //front-left
+    0 + 192, 1 + 192, 2 + 192, 0 + 192, 2 + 192, 3 + 192,
+    4 + 192, 5 + 192, 6 + 192, 4 + 192, 6 + 192, 7 + 192,
+
+    //back-right
+    0 + 200, 1 + 200, 2 + 200, 0 + 200, 2 + 200, 3 + 200,
+    4 + 200, 5 + 200, 6 + 200, 4 + 200, 6 + 200, 7 + 200,
+
+    //back-left
+    0 + 208, 1 + 208, 2 + 208, 0 + 208, 2 + 208, 3 + 208,
+    4 + 208, 5 + 208, 6 + 208, 4 + 208, 6 + 208, 7 + 208,
 ]);
 
 //// Front face
@@ -484,7 +914,7 @@ xNavigationCube.prototype.txtCoords = new Float32Array([
       1.0 / 3.0 + 1.0 / 15.0, 2.0 / 3.0 - 1.0 / 15.0,
       1.0 / 3.0 + 1.0 / 15.0, 1.0 / 3.0 + 1.0 / 15.0,
 
-      //top - left - front (--+)
+      //top - left - front 
       2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
       2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
       2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
@@ -500,7 +930,7 @@ xNavigationCube.prototype.txtCoords = new Float32Array([
       1.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
       1.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
 
-      //top-right-front (+-+)
+      //top-right-front 
       2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
       2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
       2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
@@ -516,7 +946,7 @@ xNavigationCube.prototype.txtCoords = new Float32Array([
       1.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
       1.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
 
-      //top-left-back (-++)
+      //top-left-back 
       2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
       2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
       2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
@@ -531,6 +961,218 @@ xNavigationCube.prototype.txtCoords = new Float32Array([
       2.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
       2.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
       2.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
+
+      //top-right-back 
+      2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+
+      1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+
+      2.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
+      2.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
+      2.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
+      2.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
+
+      //bottom - left - front 
+      1.0 / 30.0, 1.0 / 30.0,
+      1.0 / 30.0, 1.0 / 30.0,
+      1.0 / 30.0, 1.0 / 30.0,
+      1.0 / 30.0, 1.0 / 30.0,
+
+      1.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      1.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      1.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      1.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+
+      1.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
+      1.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
+      1.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
+      1.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
+
+      //bottom-right-front 
+      1.0 / 30.0, 1.0 / 30.0,
+      1.0 / 30.0, 1.0 / 30.0,
+      1.0 / 30.0, 1.0 / 30.0,
+      1.0 / 30.0, 1.0 / 30.0,
+
+      1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+
+      1.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
+      1.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
+      1.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
+      1.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
+
+      //bottom-left-back 
+      1.0 / 30.0, 1.0 / 30.0,
+      1.0 / 30.0, 1.0 / 30.0,
+      1.0 / 30.0, 1.0 / 30.0,
+      1.0 / 30.0, 1.0 / 30.0,
+
+      1.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      1.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      1.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      1.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+
+      2.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
+      2.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
+      2.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
+      2.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
+
+      //bottom-right-back 
+      1.0 / 30.0, 1.0 / 30.0,
+      1.0 / 30.0, 1.0 / 30.0,
+      1.0 / 30.0, 1.0 / 30.0,
+      1.0 / 30.0, 1.0 / 30.0,
+
+      1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+
+      2.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
+      2.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
+      2.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
+      2.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
+
+      //top-right
+      2.0 / 3.0 + 2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      2.0 / 3.0 + 2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      2.0 / 3.0 + 2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      2.0 / 3.0 + 2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+
+      2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+
+      //top-left
+      2.0 / 3.0 + 2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      2.0 / 3.0 + 2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      2.0 / 3.0 + 2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      2.0 / 3.0 + 2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+
+      1.0 / 3.0 + 2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      1.0 / 3.0 + 2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      1.0 / 3.0 + 2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      1.0 / 3.0 + 2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+
+      //top-front
+      2.0 / 3.0 + 2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      2.0 / 3.0 + 2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      2.0 / 3.0 + 2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      2.0 / 3.0 + 2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+
+      1.0 / 3.0 + 2.0 / 30.0, 1.0 / 30.0,
+      1.0 / 3.0 + 2.0 / 30.0, 1.0 / 30.0,
+      1.0 / 3.0 + 2.0 / 30.0, 1.0 / 30.0,
+      1.0 / 3.0 + 2.0 / 30.0, 1.0 / 30.0,
+
+      //top-back
+      2.0 / 3.0 + 2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      2.0 / 3.0 + 2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      2.0 / 3.0 + 2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      2.0 / 3.0 + 2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+
+      2.0 / 3.0 + 2.0 / 30.0, 1.0 / 30.0,
+      2.0 / 3.0 + 2.0 / 30.0, 1.0 / 30.0,
+      2.0 / 3.0 + 2.0 / 30.0, 1.0 / 30.0,
+      2.0 / 3.0 + 2.0 / 30.0, 1.0 / 30.0,
+
+      //bottom-right
+      2.0 / 30.0, 1.0 / 30.0,
+      2.0 / 30.0, 1.0 / 30.0,
+      2.0 / 30.0, 1.0 / 30.0,
+      2.0 / 30.0, 1.0 / 30.0,
+
+      2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+
+      //bottom-left
+      2.0 / 30.0, 1.0 / 30.0,
+      2.0 / 30.0, 1.0 / 30.0,
+      2.0 / 30.0, 1.0 / 30.0,
+      2.0 / 30.0, 1.0 / 30.0,
+
+      1.0 / 3.0 + 2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      1.0 / 3.0 + 2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      1.0 / 3.0 + 2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      1.0 / 3.0 + 2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+
+      //bottom-front
+      2.0 / 30.0, 1.0 / 30.0,
+      2.0 / 30.0, 1.0 / 30.0,
+      2.0 / 30.0, 1.0 / 30.0,
+      2.0 / 30.0, 1.0 / 30.0,
+
+      1.0 / 3.0 + 2.0 / 30.0, 1.0 / 30.0,
+      1.0 / 3.0 + 2.0 / 30.0, 1.0 / 30.0,
+      1.0 / 3.0 + 2.0 / 30.0, 1.0 / 30.0,
+      1.0 / 3.0 + 2.0 / 30.0, 1.0 / 30.0,
+
+      //bottom-back
+      2.0 / 30.0, 1.0 / 30.0,
+      2.0 / 30.0, 1.0 / 30.0,
+      2.0 / 30.0, 1.0 / 30.0,
+      2.0 / 30.0, 1.0 / 30.0,
+
+      2.0 / 3.0 + 2.0 / 30.0, 1.0 / 30.0,
+      2.0 / 3.0 + 2.0 / 30.0, 1.0 / 30.0,
+      2.0 / 3.0 + 2.0 / 30.0, 1.0 / 30.0,
+      2.0 / 3.0 + 2.0 / 30.0, 1.0 / 30.0,
+
+      //front-right
+      1.0 / 3.0 + 2.0 / 30.0, 1.0 / 30.0,
+      1.0 / 3.0 + 2.0 / 30.0, 1.0 / 30.0,
+      1.0 / 3.0 + 2.0 / 30.0, 1.0 / 30.0,
+      1.0 / 3.0 + 2.0 / 30.0, 1.0 / 30.0,
+
+      2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+
+      //front-left
+      1.0 / 3.0 + 2.0 / 30.0, 1.0 / 30.0,
+      1.0 / 3.0 + 2.0 / 30.0, 1.0 / 30.0,
+      1.0 / 3.0 + 2.0 / 30.0, 1.0 / 30.0,
+      1.0 / 3.0 + 2.0 / 30.0, 1.0 / 30.0,
+
+      1.0 / 3.0 + 2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      1.0 / 3.0 + 2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      1.0 / 3.0 + 2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      1.0 / 3.0 + 2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+
+      //back-right
+      2.0 / 3.0 + 2.0 / 30.0, 1.0 / 30.0,
+      2.0 / 3.0 + 2.0 / 30.0, 1.0 / 30.0,
+      2.0 / 3.0 + 2.0 / 30.0, 1.0 / 30.0,
+      2.0 / 3.0 + 2.0 / 30.0, 1.0 / 30.0,
+
+      2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+
+      //back-left
+      2.0 / 3.0 + 2.0 / 30.0, 1.0 / 30.0,
+      2.0 / 3.0 + 2.0 / 30.0, 1.0 / 30.0,
+      2.0 / 3.0 + 2.0 / 30.0, 1.0 / 30.0,
+      2.0 / 3.0 + 2.0 / 30.0, 1.0 / 30.0,
+
+      1.0 / 3.0 + 2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      1.0 / 3.0 + 2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      1.0 / 3.0 + 2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
+      1.0 / 3.0 + 2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
 
 ]);
 
@@ -596,5 +1238,161 @@ xNavigationCube.prototype.ids = function() {
         this.TOP_LEFT_BACK,
         this.TOP_LEFT_BACK,
         this.TOP_LEFT_BACK,
+        this.TOP_RIGHT_BACK,
+        this.TOP_RIGHT_BACK,
+        this.TOP_RIGHT_BACK,
+        this.TOP_RIGHT_BACK,
+        this.TOP_RIGHT_BACK,
+        this.TOP_RIGHT_BACK,
+        this.TOP_RIGHT_BACK,
+        this.TOP_RIGHT_BACK,
+        this.TOP_RIGHT_BACK,
+        this.TOP_RIGHT_BACK,
+        this.TOP_RIGHT_BACK,
+        this.TOP_RIGHT_BACK,
+        this.BOTTOM_LEFT_FRONT,
+        this.BOTTOM_LEFT_FRONT,
+        this.BOTTOM_LEFT_FRONT,
+        this.BOTTOM_LEFT_FRONT,
+        this.BOTTOM_LEFT_FRONT,
+        this.BOTTOM_LEFT_FRONT,
+        this.BOTTOM_LEFT_FRONT,
+        this.BOTTOM_LEFT_FRONT,
+        this.BOTTOM_LEFT_FRONT,
+        this.BOTTOM_LEFT_FRONT,
+        this.BOTTOM_LEFT_FRONT,
+        this.BOTTOM_LEFT_FRONT,
+        this.BOTTOM_RIGHT_FRONT,
+        this.BOTTOM_RIGHT_FRONT,
+        this.BOTTOM_RIGHT_FRONT,
+        this.BOTTOM_RIGHT_FRONT,
+        this.BOTTOM_RIGHT_FRONT,
+        this.BOTTOM_RIGHT_FRONT,
+        this.BOTTOM_RIGHT_FRONT,
+        this.BOTTOM_RIGHT_FRONT,
+        this.BOTTOM_RIGHT_FRONT,
+        this.BOTTOM_RIGHT_FRONT,
+        this.BOTTOM_RIGHT_FRONT,
+        this.BOTTOM_RIGHT_FRONT,
+        this.BOTTOM_LEFT_BACK,
+        this.BOTTOM_LEFT_BACK,
+        this.BOTTOM_LEFT_BACK,
+        this.BOTTOM_LEFT_BACK,
+        this.BOTTOM_LEFT_BACK,
+        this.BOTTOM_LEFT_BACK,
+        this.BOTTOM_LEFT_BACK,
+        this.BOTTOM_LEFT_BACK,
+        this.BOTTOM_LEFT_BACK,
+        this.BOTTOM_LEFT_BACK,
+        this.BOTTOM_LEFT_BACK,
+        this.BOTTOM_LEFT_BACK,
+        this.BOTTOM_RIGHT_BACK,
+        this.BOTTOM_RIGHT_BACK,
+        this.BOTTOM_RIGHT_BACK,
+        this.BOTTOM_RIGHT_BACK,
+        this.BOTTOM_RIGHT_BACK,
+        this.BOTTOM_RIGHT_BACK,
+        this.BOTTOM_RIGHT_BACK,
+        this.BOTTOM_RIGHT_BACK,
+        this.BOTTOM_RIGHT_BACK,
+        this.BOTTOM_RIGHT_BACK,
+        this.BOTTOM_RIGHT_BACK,
+        this.BOTTOM_RIGHT_BACK,
+        this.TOP_RIGHT,
+        this.TOP_RIGHT,
+        this.TOP_RIGHT,
+        this.TOP_RIGHT,
+        this.TOP_RIGHT,
+        this.TOP_RIGHT,
+        this.TOP_RIGHT,
+        this.TOP_RIGHT,
+        this.TOP_LEFT,
+        this.TOP_LEFT,
+        this.TOP_LEFT,
+        this.TOP_LEFT,
+        this.TOP_LEFT,
+        this.TOP_LEFT,
+        this.TOP_LEFT,
+        this.TOP_LEFT,
+        this.TOP_FRONT,
+        this.TOP_FRONT,
+        this.TOP_FRONT,
+        this.TOP_FRONT,
+        this.TOP_FRONT,
+        this.TOP_FRONT,
+        this.TOP_FRONT,
+        this.TOP_FRONT,
+        this.TOP_BACK,
+        this.TOP_BACK,
+        this.TOP_BACK,
+        this.TOP_BACK,
+        this.TOP_BACK,
+        this.TOP_BACK,
+        this.TOP_BACK,
+        this.TOP_BACK,
+        this.BOTTOM_RIGHT,
+        this.BOTTOM_RIGHT,
+        this.BOTTOM_RIGHT,
+        this.BOTTOM_RIGHT,
+        this.BOTTOM_RIGHT,
+        this.BOTTOM_RIGHT,
+        this.BOTTOM_RIGHT,
+        this.BOTTOM_RIGHT,
+        this.BOTTOM_LEFT,
+        this.BOTTOM_LEFT,
+        this.BOTTOM_LEFT,
+        this.BOTTOM_LEFT,
+        this.BOTTOM_LEFT,
+        this.BOTTOM_LEFT,
+        this.BOTTOM_LEFT,
+        this.BOTTOM_LEFT,
+        this.BOTTOM_FRONT,
+        this.BOTTOM_FRONT,
+        this.BOTTOM_FRONT,
+        this.BOTTOM_FRONT,
+        this.BOTTOM_FRONT,
+        this.BOTTOM_FRONT,
+        this.BOTTOM_FRONT,
+        this.BOTTOM_FRONT,
+        this.BOTTOM_BACK,
+        this.BOTTOM_BACK,
+        this.BOTTOM_BACK,
+        this.BOTTOM_BACK,
+        this.BOTTOM_BACK,
+        this.BOTTOM_BACK,
+        this.BOTTOM_BACK,
+        this.BOTTOM_BACK,
+        this.FRONT_RIGHT,
+        this.FRONT_RIGHT,
+        this.FRONT_RIGHT,
+        this.FRONT_RIGHT,
+        this.FRONT_RIGHT,
+        this.FRONT_RIGHT,
+        this.FRONT_RIGHT,
+        this.FRONT_RIGHT,
+        this.FRONT_LEFT,
+        this.FRONT_LEFT,
+        this.FRONT_LEFT,
+        this.FRONT_LEFT,
+        this.FRONT_LEFT,
+        this.FRONT_LEFT,
+        this.FRONT_LEFT,
+        this.FRONT_LEFT,
+        this.BACK_RIGHT,
+        this.BACK_RIGHT,
+        this.BACK_RIGHT,
+        this.BACK_RIGHT,
+        this.BACK_RIGHT,
+        this.BACK_RIGHT,
+        this.BACK_RIGHT,
+        this.BACK_RIGHT,
+        this.BACK_LEFT,
+        this.BACK_LEFT,
+        this.BACK_LEFT,
+        this.BACK_LEFT,
+        this.BACK_LEFT,
+        this.BACK_LEFT,
+        this.BACK_LEFT,
+        this.BACK_LEFT,
     ]);
 };
