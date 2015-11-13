@@ -14,8 +14,8 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.48.5 r10040"
-   sodipodi:docname="cube_texture_en.svg"
-   inkscape:export-filename="C:\CODE\XbimGit\XbimWebUI\Xbim.WeXplorer\Plugins\NavigationCube\cube_texture_en.png"
+   sodipodi:docname="cube_texture_en3.svg"
+   inkscape:export-filename="C:\CODE\XbimGit\XbimWebUI\Xbim.WeXplorer\Plugins\NavigationCube\cube_texture_en3.png"
    inkscape:export-xdpi="90"
    inkscape:export-ydpi="90">
   <defs
@@ -27,9 +27,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1"
-     inkscape:cx="126.32194"
-     inkscape:cy="194.93713"
+     inkscape:zoom="1.4142136"
+     inkscape:cx="226.22167"
+     inkscape:cy="199.3264"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -52,7 +52,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -62,42 +62,42 @@
      id="layer1"
      transform="translate(-65.714285,133.92354)">
     <rect
-       style="fill:#ff0000;fill-opacity:1;stroke:none"
+       style="fill:#c83737;fill-opacity:1;stroke:none"
        id="rect2985"
        width="170.66666"
        height="170.66666"
-       x="65.714272"
-       y="36.74313" />
+       x="65.714279"
+       y="36.743126" />
     <rect
-       style="fill:#008000;fill-opacity:1;stroke:none"
+       style="fill:#37c871;fill-opacity:1;stroke:none"
        id="rect2985-7"
        width="170.66666"
        height="170.66666"
-       x="236.38094"
-       y="36.74313" />
+       x="236.38092"
+       y="36.743126" />
     <rect
-       style="fill:#0000ff;fill-opacity:1;stroke:none"
+       style="fill:#00aad4;fill-opacity:1;stroke:none"
        id="rect2985-4"
        width="170.66666"
        height="170.66666"
        x="407.04758"
-       y="36.74313" />
+       y="36.743126" />
     <rect
-       style="fill:#ffff00;fill-opacity:1;stroke:none"
+       style="fill:#ffdd55;fill-opacity:1;stroke:none"
        id="rect2985-0"
        width="170.66666"
        height="170.66666"
        x="65.714287"
        y="207.40981" />
     <rect
-       style="fill:#ff6600;fill-opacity:1;stroke:none"
+       style="fill:#ff7f2a;fill-opacity:1;stroke:none"
        id="rect2985-9"
        width="170.66666"
        height="170.66666"
-       x="236.38094"
+       x="236.38092"
        y="207.40981" />
     <rect
-       style="fill:#ff00ff;fill-opacity:1;stroke:none"
+       style="fill:#d42aff;fill-opacity:1;stroke:none"
        id="rect2985-48"
        width="170.66666"
        height="170.66666"
@@ -108,73 +108,77 @@
        id="rect2985-8"
        width="511.99997"
        height="170.66666"
-       x="65.714287"
-       y="-133.92354" />
+       x="65.714279"
+       y="-133.92352" />
     <text
        xml:space="preserve"
        style="font-size:148.01145935px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:125%;letter-spacing:0px;word-spacing:0px;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;baseline-shift:baseline;color:#000000;fill:#ffffff;stroke:none;stroke-width:1.89999998;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Trebuchet MS;-inkscape-font-specification:Trebuchet MS"
-       x="492.34476"
-       y="175.01512"
+       x="492.3504"
+       y="166.7847"
        id="text3062"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan3064"
-         x="492.34476"
-         y="175.01512">T</tspan></text>
+         x="492.3504"
+         y="166.7847"
+         style="font-size:125px">T</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:148.01145935px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:125%;letter-spacing:0px;word-spacing:0px;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;baseline-shift:baseline;color:#000000;fill:#ffffff;stroke:none;stroke-width:1.89999998;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Trebuchet MS;-inkscape-font-specification:Trebuchet MS"
-       x="145.26591"
-       y="175.55714"
-       id="text3062-2"
-       sodipodi:linespacing="125%"><tspan
-         sodipodi:role="line"
-         id="tspan3064-4"
-         x="145.26591"
-         y="175.55714">R</tspan></text>
-    <text
-       xml:space="preserve"
-       style="font-size:148.01145935px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:125%;letter-spacing:0px;word-spacing:0px;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;baseline-shift:baseline;color:#000000;fill:#ffffff;stroke:none;stroke-width:1.89999998;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Trebuchet MS;-inkscape-font-specification:Trebuchet MS"
-       x="317.16116"
-       y="175.01512"
+       x="317.86902"
+       y="166.7847"
        id="text3062-5"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan3064-5"
-         x="317.16116"
-         y="175.01512">L</tspan></text>
+         x="317.86902"
+         y="166.7847"
+         style="font-size:125px">L</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:148.01145935px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:125%;letter-spacing:0px;word-spacing:0px;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;baseline-shift:baseline;color:#000000;fill:#ffffff;stroke:none;stroke-width:1.89999998;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Trebuchet MS;-inkscape-font-specification:Trebuchet MS"
-       x="148.55426"
-       y="346.15155"
+       style="font-size:100.45500946px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:100%;letter-spacing:0px;word-spacing:0px;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;baseline-shift:baseline;color:#000000;fill:#ffffff;stroke:none;stroke-width:1.89999998;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Trebuchet MS;-inkscape-font-specification:'Trebuchet MS, Normal'"
+       x="149.33086"
+       y="328.50079"
        id="text3062-1"
-       sodipodi:linespacing="125%"><tspan
+       sodipodi:linespacing="100%"><tspan
          sodipodi:role="line"
          id="tspan3064-7"
-         x="148.55426"
-         y="346.15155">B</tspan></text>
+         x="149.33086"
+         y="328.50079">Ba</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:148.01145935px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:125%;letter-spacing:0px;word-spacing:0px;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;baseline-shift:baseline;color:#000000;fill:#ffffff;stroke:none;stroke-width:1.89999998;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Trebuchet MS;-inkscape-font-specification:Trebuchet MS"
-       x="317.05276"
-       y="345.68176"
+       style="font-size:125px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:100%;letter-spacing:0px;word-spacing:0px;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;baseline-shift:baseline;color:#000000;fill:#ffffff;stroke:none;stroke-width:1.89999998;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Trebuchet MS;-inkscape-font-specification:'Trebuchet MS, Normal'"
+       x="317.77747"
+       y="337.45139"
        id="text3062-11"
-       sodipodi:linespacing="125%"><tspan
+       sodipodi:linespacing="100%"><tspan
          sodipodi:role="line"
          id="tspan3064-52"
-         x="317.05276"
-         y="345.68176">F</tspan></text>
+         x="317.77747"
+         y="337.45139">F</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:125px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:100%;letter-spacing:0px;word-spacing:0px;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;baseline-shift:baseline;color:#000000;fill:#ffffff;stroke:none;stroke-width:1.89999998;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Trebuchet MS;-inkscape-font-specification:'Trebuchet MS, Normal'"
+       x="490.33014"
+       y="328.33884"
+       id="text3062-7"
+       sodipodi:linespacing="100%"><tspan
+         sodipodi:role="line"
+         id="tspan3064-6"
+         x="490.33014"
+         y="328.33884"
+         style="font-size:100px">Bo</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:148.01145935px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:125%;letter-spacing:0px;word-spacing:0px;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;baseline-shift:baseline;color:#000000;fill:#ffffff;stroke:none;stroke-width:1.89999998;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Trebuchet MS;-inkscape-font-specification:Trebuchet MS"
-       x="489.88757"
-       y="346.15155"
-       id="text3062-7"
+       x="146.16479"
+       y="167.24246"
+       id="text3062-2"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
-         id="tspan3064-6"
-         x="489.88757"
-         y="346.15155">B</tspan></text>
+         id="tspan3064-4"
+         x="146.16479"
+         y="167.24246"
+         style="font-size:125px">R</tspan></text>
   </g>
 </svg>

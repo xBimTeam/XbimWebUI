@@ -1,4 +1,17 @@
-﻿
+﻿/**
+ * This is constructor of the Navigation Cube plugin for {@link xViewer xBIM Viewer}. It gets optional string ID as an argument for locale. 
+ * The only current locale is 'en' which id also the default value. Cube might have localized texture in the future. 
+ * @name xNavigationCube
+ * @constructor
+ * @classdesc This is a plugin for xViewer which renders interactive navigation cube. It is customizable in terms of alpha 
+ * behaviour and its position on the viewer canvas. Use of plugin:
+ *  
+ *     var cube = new xNavigationCube();
+ *     viewer.addPlugin(cube);
+ * 
+ *
+ * @param {string} [locale = 'en'] - optional string ID of the locale.
+*/
 function xNavigationCube(locale) {
     this.TOP = 1600000;
     this.BOTTOM = 1600001;
@@ -30,30 +43,62 @@ function xNavigationCube(locale) {
     this.BACK_RIGHT = 1600024;
     this.BACK_LEFT = 1600025;
 
-    this.position = this.BOTTOM_RIGHT;
 
     this._initialized = false;
 
     this.locale = typeof (locale) !== "undefined" ? locale : "en";
     if (typeof (xCubeTextures[this.locale]) === "undefined")
         throw new Error("Locale " + this.locale + " doesn't exist");
+
+    /**
+    * Size of the cube relative to the size of viewer canvas. This has to be a positive number between [0,1] Default value is 0.15. 
+    * @member {Number} xNavigationCube#ratio
+    */
+    this.ratio = 0.15;
+
+    /**
+    * Active parts of the navigation cube are highlighted so that user can recognize which part is active. 
+    * This should be a positive number between [0,2]. If the value is less than 1 active area is darker.
+    * If the value is greater than 1 active area is lighter. Default value is 1.2. 
+    * @member {Number} xNavigationCube#highlighting
+    */
+    this.highlighting = 1.2;
+
+    /**
+    * Navigation cube has two transparency states. One is when user hovers over the cube and the second when the cursor is anywhere else.
+    * This is for the hovering shate and it should be a positive number between [0,1]. If the value is less than 1 cube will be semitransparent 
+    * when user hovers over. Default value is 1.0. 
+    * @member {Number} xNavigationCube#activeAlpha
+    */
+    this.activeAlpha = 1.0;
+
+    /**
+    * Navigation cube has two transparency states. One is when user hovers over the cube and the second when the cursor is anywhere else.
+    * This is for the non-hovering shate and it should be a positive number between [0,1]. If the value is less than 1 cube will be semitransparent 
+    * when user is not hovering over. Default value is 0.3. 
+    * @member {Number} xNavigationCube#passiveAlpha
+    */
+    this.passiveAlpha = 0.3;
+
+    /**
+    * It is possible to place navigation cube to any of the corners of the canvas using this property. Default value is cube.BOTTOM_RIGHT. 
+    * Allowed values are cube.BOTTOM_RIGHT, cube.BOTTOM_LEFT, cube.TOP_RIGHT and cube.TOP_LEFT.
+    * @member {Enum} xNavigationCube#position
+    */
+    this.position = this.BOTTOM_RIGHT;
 }
 
 xNavigationCube.prototype.init = function (xviewer) {
     var self = this;
     this.viewer = xviewer;
-    this.ratio = 0.15;
     var gl = this.viewer._gl;
 
     //create own shader 
     this._shader = null;
     this._initShader();
-
-    this.activeAlpha = 1.0;
-    this.passiveAlpha = 0.4;
+    
     this._alpha = this.passiveAlpha;
-
-    this.selection = 0.0;
+    this._selection = 0.0;
 
     //set own shader for init
     gl.useProgram(this._shader);
@@ -65,6 +110,7 @@ xNavigationCube.prototype.init = function (xviewer) {
     this._alphaUniformPointer = gl.getUniformLocation(this._shader, "uAlpha");
     this._selectionUniformPointer = gl.getUniformLocation(this._shader, "uSelection");
     this._textureUniformPointer = gl.getUniformLocation(this._shader, "uTexture");
+    this._highlightingUniformPointer = gl.getUniformLocation(this._shader, "uHighlighting");
 
     this._vertexAttrPointer = gl.getAttribLocation(this._shader, "aVertex"),
     this._texCoordAttrPointer = gl.getAttribLocation(this._shader, "aTexCoord"),
@@ -120,10 +166,10 @@ xNavigationCube.prototype.init = function (xviewer) {
 
         if (id >= self.TOP && id <= self.BACK_LEFT) {
             self._alpha = self.activeAlpha;
-            self.selection = id;
+            self._selection = id;
         } else {
             self._alpha = self.passiveAlpha;
-            self.selection = 0;
+            self._selection = 0;
         }
     }, true);
 
@@ -347,7 +393,8 @@ xNavigationCube.prototype.draw = function () {
     gl.uniformMatrix4fv(this._pMatrixUniformPointer, false, pMatrix);
     gl.uniformMatrix3fv(this._rotationUniformPointer, false, rotation);
     gl.uniform1f(this._alphaUniformPointer, this._alpha);
-    gl.uniform1f(this._selectionUniformPointer, this.selection);
+    gl.uniform1f(this._highlightingUniformPointer, this.highlighting);
+    gl.uniform1f(this._selectionUniformPointer, this._selection);
 
     //bind data buffers
     gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
