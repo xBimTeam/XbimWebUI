@@ -184,7 +184,7 @@
 			    }
 			});
 			var model = "";
-			if (typeof (QueryString.model) == "undefined") model = "Lakeside/Lakeside.wexbim";
+			if (typeof (QueryString.model) == "undefined") model = "tests/data/SampleHouse.wexbim";
 			else model = "tests/data/" + QueryString.model + ".wexbim";
 			viewer.show("back");
 			viewer.on("pick", function(arg){
@@ -257,7 +257,7 @@
 			    //viewer.zoomTo(id);
 			});
 
-			var cube = new xNavigationCube('xbim');
+			var cube = new xNavigationCube();
 			viewer.addPlugin(cube);
 
 		</script>

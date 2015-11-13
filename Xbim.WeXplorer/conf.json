@@ -1,7 +1,7 @@
 {
    "opts":{
       "tutorials":"Tutorials",
-      "destination":"Docs",
+      "destination":"..\\..\\XbimWebUI.Docs",
       "template":"Resources/doctemplate"
    },
    "tags":{
@@ -18,6 +18,7 @@
 		"Browser\\xbim-visual-entity.debug.js",
 		"Browser\\xbim-visual-model.debug.js",
 		"Browser\\xbim-visual-property.debug.js",
+		"Plugins\\NavigationCube\\xbim-navigation-cube.debug.js",
         "Resources/README.md"
       ],
       "includePattern":".+\\.js(doc)?$",
