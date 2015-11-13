@@ -28,7 +28,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.4142136"
-     inkscape:cx="226.22167"
+     inkscape:cx="134.29779"
      inkscape:cy="199.3264"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -52,7 +52,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -137,13 +137,13 @@
     <text
        xml:space="preserve"
        style="font-size:100.45500946px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:100%;letter-spacing:0px;word-spacing:0px;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;baseline-shift:baseline;color:#000000;fill:#ffffff;stroke:none;stroke-width:1.89999998;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Trebuchet MS;-inkscape-font-specification:'Trebuchet MS, Normal'"
-       x="149.33086"
+       x="490.66415"
        y="328.50079"
        id="text3062-1"
        sodipodi:linespacing="100%"><tspan
          sodipodi:role="line"
          id="tspan3064-7"
-         x="149.33086"
+         x="490.66415"
          y="328.50079">Ba</tspan></text>
     <text
        xml:space="preserve"
@@ -159,13 +159,13 @@
     <text
        xml:space="preserve"
        style="font-size:125px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:100%;letter-spacing:0px;word-spacing:0px;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;baseline-shift:baseline;color:#000000;fill:#ffffff;stroke:none;stroke-width:1.89999998;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Trebuchet MS;-inkscape-font-specification:'Trebuchet MS, Normal'"
-       x="490.33014"
+       x="148.99683"
        y="328.33884"
        id="text3062-7"
        sodipodi:linespacing="100%"><tspan
          sodipodi:role="line"
          id="tspan3064-6"
-         x="490.33014"
+         x="148.99683"
          y="328.33884"
          style="font-size:100px">Bo</tspan></text>
     <text

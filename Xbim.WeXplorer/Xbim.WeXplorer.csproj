@@ -144,6 +144,7 @@
     <Content Include="Resources\doctemplate\static\scripts\prettify\lang-css.js" />
     <Content Include="Resources\doctemplate\static\scripts\prettify\prettify.js" />
     <Content Include="Resources\doctemplate\static\scripts\xbim-browser.js" />
+    <Content Include="Resources\doctemplate\static\scripts\xbim-navigation-cube.js" />
     <Content Include="Resources\doctemplate\static\styles\jsdoc-default.css" />
     <Content Include="Resources\doctemplate\static\styles\prettify-jsdoc.css" />
     <Content Include="Resources\doctemplate\static\styles\prettify-tomorrow.css" />

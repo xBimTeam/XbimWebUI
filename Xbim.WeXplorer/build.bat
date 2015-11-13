@@ -34,3 +34,4 @@ type Resources\xbim-disclaimer.txt > Build\xbim-navigation-cube.js
 type Plugins\NavigationCube\*.debug.js >> Build\xbim-navigation-cube.js
 type Resources\xbim-disclaimer.txt > Build\xbim-navigation-cube.min.js
 type Plugins\NavigationCube\*.debug.js | Utilities\jsmin.exe >> Build\xbim-navigation-cube.min.js
+xcopy /y Build\xbim-navigation-cube.js Resources\doctemplate\static\scripts
