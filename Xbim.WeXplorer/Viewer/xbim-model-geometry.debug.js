@@ -172,7 +172,16 @@ xModelGeometry.prototype.parse = function (binReader) {
 
             var begin = iIndex;
             var map = this.productMap[shape.pLabel];
-            if (typeof (map) === "undefined") throw "Product hasn't been defined before.";
+            if (typeof (map) === "undefined") {
+                //throw "Product hasn't been defined before.";
+                map = {
+                    productID: 0,
+                    type: typeEnum.IFCOPENINGELEMENT,
+                    bBox: new Float32Array(6),
+                    spans: []
+                };
+                this.productMap[shape.pLabel] = map;
+            }
 
             this.normals.set(shapeGeom.normals, iIndex * 2);
 
