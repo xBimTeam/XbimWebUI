@@ -18,7 +18,10 @@
   
         <script src="Plugins/NavigationCube/xbim-navigation-cube-shaders.debug.js"></script>
 	    <script src="Plugins/NavigationCube/xbim-navigation-cube.debug.js"></script>
-        <script src="Plugins/NavigationCube/xbim-navigation-cube-textures.debug.js"></script>
+	    <script src="Plugins/NavigationCube/xbim-navigation-cube-textures.debug.js"></script>
+
+        <script src="Plugins/NavigationHome/xbim-navigation-home-textures.debug.js"></script>
+        <script src="Plugins/NavigationHome/xbim-navigation-home.debug.js"></script>
         <style>
             html, body {
                 height: 100%;
@@ -259,6 +262,9 @@
 
 			var cube = new xNavigationCube();
 			viewer.addPlugin(cube);
+
+			var home = new xNavigationHome();
+			viewer.addPlugin(home);
 
 		</script>
 	</body>

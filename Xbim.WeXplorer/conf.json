@@ -19,6 +19,7 @@
 		"Browser\\xbim-visual-model.debug.js",
 		"Browser\\xbim-visual-property.debug.js",
 		"Plugins\\NavigationCube\\xbim-navigation-cube.debug.js",
+		"Plugins\\NavigationHome\\xbim-navigation-home.debug.js",
         "Resources/README.md"
       ],
       "includePattern":".+\\.js(doc)?$",

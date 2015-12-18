@@ -35,3 +35,10 @@ type Plugins\NavigationCube\*.debug.js >> Build\xbim-navigation-cube.js
 type Resources\xbim-disclaimer.txt > Build\xbim-navigation-cube.min.js
 type Plugins\NavigationCube\*.debug.js | Utilities\jsmin.exe >> Build\xbim-navigation-cube.min.js
 xcopy /y Build\xbim-navigation-cube.js Resources\doctemplate\static\scripts
+
+rem Create build files for the home navigation plugin
+type Resources\xbim-disclaimer.txt > Build\xbim-navigation-home.js
+type Plugins\NavigationHome\*.debug.js >> Build\xbim-navigation-home.js
+type Resources\xbim-disclaimer.txt > Build\xbim-navigation-home.min.js
+type Plugins\NavigationCube\*.debug.js | Utilities\jsmin.exe >> Build\xbim-navigation-home.min.js
+xcopy /y Build\xbim-navigation-home.js Resources\doctemplate\static\scripts
