@@ -1,6 +1,7 @@
 ﻿/**
- * This is constructor of the Navigation Cube plugin for {@link xViewer xBIM Viewer}. It gets optional string ID as an argument for locale. 
- * The only current locale is 'en' which id also the default value. Cube might have localized texture in the future. 
+ * This is constructor of the Navigation Cube plugin for {@link xViewer xBIM Viewer}. It gets optional Image as an argument.
+ * The image will be used as a texture of the navigation cube. If you don't specify eny image default one will be used.
+ * Image has to be square and its size has to be power of 2. The default image is this one: ![Cube texture](cube_texture.png)
  * @name xNavigationCube
  * @constructor
  * @classdesc This is a plugin for xViewer which renders interactive navigation cube. It is customizable in terms of alpha 
@@ -10,9 +11,11 @@
  *     viewer.addPlugin(cube);
  * 
  *
- * @param {string} [locale = 'en'] - optional string ID of the locale.
+ * @param {Image} [image = null] - optional image to be used for a cube texture.
 */
-function xNavigationCube(locale) {
+function xNavigationCube(image) {
+    this._image = image;
+
     this.TOP = 1600000;
     this.BOTTOM = 1600001;
     this.LEFT = 1600002;
@@ -45,10 +48,6 @@ function xNavigationCube(locale) {
 
 
     this._initialized = false;
-
-    this.locale = typeof (locale) !== "undefined" ? locale : "en";
-    if (typeof (xCubeTextures[this.locale]) === "undefined")
-        throw new Error("Locale " + this.locale + " doesn't exist");
 
     /**
     * Size of the cube relative to the size of viewer canvas. This has to be a positive number between [0,1] Default value is 0.15. 
@@ -135,18 +134,34 @@ xNavigationCube.prototype.init = function (xviewer) {
     gl.bufferData(gl.ARRAY_BUFFER, this.ids(), gl.STATIC_DRAW);
 
     //create texture
-    var txtData = xCubeTextures[this.locale];
-    var txtImage = new Image();
-    txtImage.src = txtData;
+    var self = this;
     this._texture = gl.createTexture();
+    if (typeof (this._image) === "undefined") {
+        //add HTML UI to viewer port
+        var data = xCubeTextures["en"];
+        var image = new Image();
+        self._image = image;
+        image.addEventListener("load", function () {
+            //load image texture into GPU
+            gl.bindTexture(gl.TEXTURE_2D, self._texture);
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, self._image);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+            gl.generateMipmap(gl.TEXTURE_2D);
+        });
+        image.src = data;
+    } else {
+        //load image texture into GPU
+        gl.bindTexture(gl.TEXTURE_2D, self._texture);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, self._image);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+        gl.generateMipmap(gl.TEXTURE_2D);
+    }
 
-    //load image texture into GPU
-    gl.bindTexture(gl.TEXTURE_2D, this._texture);
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, txtImage);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-    gl.generateMipmap(gl.TEXTURE_2D);
+   
 
 
     //reset original shader program 

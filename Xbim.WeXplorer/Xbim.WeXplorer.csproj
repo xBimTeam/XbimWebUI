@@ -120,6 +120,7 @@
     <Content Include="Resources\doctemplate\static\3_Eventful_building.live.html" />
     <Content Include="Resources\doctemplate\static\4_Building_seen_from_everywhere.live.html" />
     <Content Include="Resources\doctemplate\static\6_Building_described.live.html" />
+    <Content Include="Resources\doctemplate\static\cube_texture.png" />
     <Content Include="Resources\doctemplate\static\fonts\OpenSans-Bold-webfont.svg" />
     <Content Include="Resources\doctemplate\static\fonts\OpenSans-BoldItalic-webfont.svg" />
     <Content Include="Resources\doctemplate\static\fonts\OpenSans-Italic-webfont.svg" />
