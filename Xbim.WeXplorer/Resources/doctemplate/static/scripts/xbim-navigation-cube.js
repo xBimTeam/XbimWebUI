@@ -37,7 +37,7 @@ xShaders.cube_vshader = " attribute highp vec3 aVertex; attribute highp vec2 aTe
 };﻿/**
  * This is constructor of the Navigation Cube plugin for {@link xViewer xBIM Viewer}. It gets optional Image as an argument.
  * The image will be used as a texture of the navigation cube. If you don't specify eny image default one will be used.
- * Image has to be square and its size has to be power of 2. The default image is this one: ![Cube texture](cube_texture.png)
+ * Image has to be square and its size has to be power of 2. 
  * @name xNavigationCube
  * @constructor
  * @classdesc This is a plugin for xViewer which renders interactive navigation cube. It is customizable in terms of alpha 
@@ -46,6 +46,10 @@ xShaders.cube_vshader = " attribute highp vec3 aVertex; attribute highp vec2 aTe
  *     var cube = new xNavigationCube();
  *     viewer.addPlugin(cube);
  * 
+ * You can specify your own texture of the cube as an [Image](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/Image)
+ * object argumen in constructor. If you don't specify any image default texture will be used (you can also use this one and enhance it if you want):
+ * 
+ * ![Cube texture](cube_texture.png) 
  *
  * @param {Image} [image = null] - optional image to be used for a cube texture.
 */
