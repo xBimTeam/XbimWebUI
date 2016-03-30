@@ -85,12 +85,12 @@ function xViewer(canvas) {
     * Array of four integers between 0 and 255 representing RGBA colour components. This defines background colour of the viewer. You can change this value at any time with instant efect.
     * @member {Number[]} xViewer#background
     */
-    this.background = [230, 230, 230, 255]
+    this.background = [230, 230, 230, 255];
     /**
     * Array of four integers between 0 and 255 representing RGBA colour components. This defines colour for highlighted elements. You can change this value at any time with instant efect.
     * @member {Number[]} xViewer#highlightingColour
     */
-    this.highlightingColour = [255, 173, 33, 255]
+    this.highlightingColour = [255, 173, 33, 255];
     /**
     * Array of four floats. It represents Light A's position <strong>XYZ</strong> and intensity <strong>I</strong> as [X, Y, Z, I]. Intensity should be in range 0.0 - 1.0.
     * @member {Number[]} xViewer#lightA
@@ -340,11 +340,10 @@ xViewer.prototype.defineStyle = function (index, colour) {
     this._stateStyles.set(colData, index * 4);
 
     //if there are some handles already set this style in there
-    for (var i in this._handles) {
-        var handle = this._handles[i];
+    this._handles.forEach(function (handle) {
         handle.stateStyle = this._stateStyles;
         handle.refreshStyles();
-    }
+    }, this);
 };
 
     
@@ -359,9 +358,9 @@ xViewer.prototype.defineStyle = function (index, colour) {
 */
 xViewer.prototype.setState = function (state, target) {
     if (typeof (state) == 'undefined' || !(state >= 225 && state <= 255)) throw 'State has to be defined as 225 - 255. Use xState enum.';
-    for (var i in this._handles) {
-        this._handles[i].setState(state, target);
-    }
+    this._handles.forEach(function (handle) {
+        handle.setState(state, target);
+    }, this);
     this._stylingChanged = true;
 };
 
@@ -373,10 +372,12 @@ xViewer.prototype.setState = function (state, target) {
 * @param {Number} id - Id of the product. You would typicaly get the id from {@link xViewer#event:pick pick event} or similar event.
 */
 xViewer.prototype.getState = function (id) {
-    for (var i in this._handles) {
-        var state = this._handles[i].getState(id);
-        if (state !== null) return state;
-    }
+    this._handles.forEach(function (handle) {
+        var state = handle.getState(id);
+        if (state !== null) {
+            return state;
+        }
+    }, this);
     return null;
 };
 
@@ -395,9 +396,9 @@ xViewer.prototype.resetStates = function (hideSpaces) {
     //hide spaces
     hideSpaces = typeof (hideSpaces) != 'undefined' ? hideSpaces : true;
     if (hideSpaces){
-        for (var i in this._handles) {
-            this._handles[i].setState(xState.HIDDEN, xProductType.IFCSPACE);
-        }
+        this._handles.forEach(function (handle) {
+            handle.setState(xState.HIDDEN, xProductType.IFCSPACE);
+        }, this);
     }
     this._stylingChanged = true;
 };
@@ -423,9 +424,9 @@ xViewer.prototype.setStyle = function (style, target) {
     if (c[0] == 0 && c[1] == 0 && c[2] == 0 && c[3] == 0 && console && console.warn)
         console.warn('You have used undefined colour for restyling. Elements with this style will have transparent black colour and hence will be invisible.');
 
-    for (var i in this._handles) {
-        this._handles[i].setState(style, target);
-    }
+    this._handles.forEach(function (handle) {
+        handle.setState(style, target);
+    }, this);
     this._stylingChanged = true;
 };
 
@@ -437,10 +438,12 @@ xViewer.prototype.setStyle = function (style, target) {
 * @param {Number} id - Id of the product. You would typicaly get the id from {@link xViewer#event:pick pick event} or similar event.
 */
 xViewer.prototype.getStyle = function (id) {
-    for (var i in this._handles) {
-        var style = this._handles[i].getStyle(id);
-        if (style !== null) return style;
-    }
+    this._handles.forEach(function (handle) {
+        var style = handle.getStyle(id);
+        if (style !== null) {
+            return style;
+        }
+    }, this);
     return null;
 };
 
@@ -450,9 +453,9 @@ xViewer.prototype.getStyle = function (id) {
 * @function xViewer#resetStyles 
 */
 xViewer.prototype.resetStyles = function () {
-    for (var i in this._handles) {
-        this._handles[i].resetStyles();
-    }
+    this._handles.forEach(function (handle) {
+        handle.resetStyles();
+    }, this);
     this._stylingChanged = true;
 };
 
@@ -463,11 +466,11 @@ xViewer.prototype.resetStyles = function () {
 * @param {Number} prodID - Product ID. You can get this value either from semantic structure of the model or by listening to {@link xViewer#event:pick pick} event.
 */
 xViewer.prototype.getProductType = function (prodId) {
-    for (var i in this._handles) {
-        var map = this._handles[i].getProductMap(prodId);
+    this._handles.forEach(function (handle) {
+        var map = handle.getProductMap(prodId);
         if (map) return map.type;
         return null;
-    }
+    }, this);
 };
 
 /**
@@ -502,13 +505,14 @@ xViewer.prototype.setCameraTarget = function (prodId) {
     if (typeof (prodId) != 'undefined' && prodId != null) {
         //get product BBox and set it's center as a navigation origin
         var bbox = null;
-        for (var i in this._handles) {
-            var map = this._handles[i].getProductMap(prodId);
+        this._handles.every(function (handle) {
+            var map = handle.getProductMap(prodId);
             if (map) {
                 bbox = map.bBox;
-                break;
+                return false;
             }
-        }
+            return true;
+        });
         if (bbox) {
             this._origin = [bbox[0] + bbox[3] / 2.0, bbox[1] + bbox[4] / 2.0, bbox[2] + bbox[5] / 2.0];
             setDistance(bbox);
@@ -759,11 +763,12 @@ xViewer.prototype._initMouseEvents = function () {
         if (deltaX < 3 && deltaY < 3 && button == 'left') {
 
             var handled = false;
-            for (var pluginId in viewer._plugins) {
-                var plugin = viewer._plugins[pluginId];
-                if (!plugin.onBeforePick) continue;
+            viewer._plugins.forEach(function (plugin) {
+                if (!plugin.onBeforePick) {
+                    return;
+                }
                 handled = handled || plugin.onBeforePick(id);
-            }
+            }, this);
 
             /**
             * Occurs when user click on model.
@@ -832,7 +837,9 @@ xViewer.prototype._initMouseEvents = function () {
         }
         if (event.stopPropagation) {
             event.stopPropagation();
-            event.cancelBubble = true;
+        }
+        if (event.preventDefault) {
+            event.preventDefault();
         }
         function sign(x) {
             x = +x // convert to a number
@@ -950,11 +957,12 @@ xViewer.prototype.draw = function () {
     this._userAction = false;
 
     //call all before-draw plugins
-    for (var pluginId in this._plugins) {
-        var plugin = this._plugins[pluginId];
-        if (!plugin.onBeforeDraw) continue;
+    this._plugins.forEach(function (plugin) {
+        if (!plugin.onBeforeDraw) {
+            return;
+        }
         plugin.onBeforeDraw();
-    }
+    }, this);
 
     //styles are up to date when new frame is drawn
     this._stylingChanged = false;
@@ -1006,39 +1014,37 @@ xViewer.prototype.draw = function () {
         //two passes - first one for non-transparent objects, second one for all the others
         gl.uniform1i(this._renderingModeUniformPointer, 1);
         gl.disable(gl.CULL_FACE);
-        for (var i in this._handles) {
-            var handle = this._handles[i];
+        this._handles.forEach(function (handle) {
             handle.setActive(this._pointers);
             handle.draw();
-        }
+        }, this);
 
         //transparent objects should have only one side so that they are even more transparent.
         gl.uniform1i(this._renderingModeUniformPointer, 2);
         gl.enable(gl.CULL_FACE);
-        for (var i in this._handles) {
-            var handle = this._handles[i];
+        this._handles.forEach(function (handle) {
             handle.setActive(this._pointers);
             handle.draw();
-        }
+        }, this);
         gl.uniform1i(this._renderingModeUniformPointer, 0);
     }
     else {
         gl.uniform1i(this._renderingModeUniformPointer, 0);
         gl.disable(gl.CULL_FACE);
 
-        for (var i in this._handles) {
-            var handle = this._handles[i];
+        this._handles.forEach(function (handle) {
             handle.setActive(this._pointers);
             handle.draw();
-        }
+        }, this);
     }
     
     //call all after-draw plugins
-    for (var pluginId in this._plugins) {
-        var plugin = this._plugins[pluginId];
-        if (!plugin.onAfterDraw) continue;
+    this._plugins.forEach(function (plugin) {
+        if (!plugin.onAfterDraw) {
+            return;
+        }
         plugin.onAfterDraw();
-    }
+    }, this);
 
     /**
      * Occurs after every frame in animation. Don't do anything heavy weighted in here as it will happen about 60 times in a second all the time.
@@ -1051,12 +1057,12 @@ xViewer.prototype.draw = function () {
 
 xViewer.prototype._isChanged = function () {
     var theSame = true;
-    for (var i in this._visualStateAttributes) {
-        var state = JSON.stringify(this[this._visualStateAttributes[i]]);
-        var lastState = this._lastStates[this._visualStateAttributes[i]];
-        this._lastStates[this._visualStateAttributes[i]] = state;
+    this._visualStateAttributes.forEach(function (visualStateAttribute) {
+        var state = JSON.stringify(this[visualStateAttribute]);
+        var lastState = this._lastStates[visualStateAttribute];
+        this._lastStates[visualStateAttribute] = state;
         theSame = theSame && (state === lastState)
-    }
+    }, this);
     return !theSame;
 };
 
@@ -1160,11 +1166,12 @@ xViewer.prototype._error = function (msg) {
 xViewer.prototype._getID = function (x, y) {
 
     //call all before-drawId plugins
-    for (var pluginId in this._plugins) {
-        var plugin = this._plugins[pluginId];
-        if (!plugin.onBeforeDrawId) continue;
+    this._plugins.forEach(function (plugin) {
+        if (!plugin.onBeforeDrawId) {
+            return;
+        }
         plugin.onBeforeDrawId();
-    }
+    }, this);
 
     //it is not necessary to render the image in full resolution so this factor is used for less resolution. 
     var factor = 2;
@@ -1216,18 +1223,18 @@ xViewer.prototype._getID = function (x, y) {
     gl.uniform1i(this._colorCodingUniformPointer, 1);
 
     //render colour coded image using latest buffered data
-    for (var i in this._handles) {
-        var handle = this._handles[i];
+    this._handles.forEach(function (handle) {
         handle.setActive(this._pointers);
         handle.draw();
-    }
+    }, this);
 
     //call all after-drawId plugins
-    for (var pluginId in this._plugins) {
-        var plugin = this._plugins[pluginId];
-        if (!plugin.onAfterDrawId) continue;
+    this._plugins.forEach(function (plugin) {
+        if (!plugin.onAfterDrawId) {
+            return;
+        }
         plugin.onAfterDrawId();
-    }
+    }, this);
 
     //get colour in of the pixel
     var result = new Uint8Array(4);
@@ -1251,11 +1258,12 @@ xViewer.prototype._getID = function (x, y) {
     if (hasValue) {
         var id = result[0] + result[1] * 256 + result[2] * 256 * 256;
         var handled = false;
-        for (var pluginId in this._plugins) {
-            var plugin = this._plugins[pluginId];
-            if (!plugin.onBeforeGetId) continue;
+        this._plugins.forEach(function (plugin) {
+            if (!plugin.onBeforeGetId) {
+                return;
+            }
             handled = handled || plugin.onBeforeGetId(id);
-        }
+        }, this);
 
         if (!handled)
             return id;
@@ -1355,9 +1363,9 @@ xViewer.prototype._fire = function (eventName, args) {
         return;
     }
     //cal the callbacks
-    for (var i in handlers) {
-        handlers[i](args);
-    }
+    handlers.forEach(function (handler) {
+        handler(args);
+    }, this);
 };
 
 xViewer.prototype._disableTextSelection = function () {

@@ -645,7 +645,7 @@ xBrowser.prototype._fire = function (eventName, args) {
         return;
     }
     //call the callbacks
-    for (var i in handlers) {
-        handlers[i](args);
-    }
+    handlers.forEach(function (handler) {
+        handler(args);
+    }, this);
 };
