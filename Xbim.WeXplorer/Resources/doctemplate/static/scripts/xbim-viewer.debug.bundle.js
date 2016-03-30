@@ -1360,9 +1360,9 @@ xViewer.prototype.getState = function (id) {
 * desired so it can be excluded with this parameter.
 */
 xViewer.prototype.resetStates = function (hideSpaces) {
-    for (var i in this._handles) {
-        this._handles[i].resetStates();
-    }
+    this._handles.forEach(function (handle) {
+        handle.resetStates();
+    }, this);
     //hide spaces
     hideSpaces = typeof (hideSpaces) != 'undefined' ? hideSpaces : true;
     if (hideSpaces){
