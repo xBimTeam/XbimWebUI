@@ -158,9 +158,7 @@ xModelGeometry.prototype.parse = function (binReader) {
 
 
         //copy shape data into inner array and set to null so it can be garbage collected
-        for (var si in shapeList) {
-            var shape = shapeList[si];
-
+        shapeList.forEach(function (shape) {
             var iIndex = 0;
             //set iIndex according to transparency either from beginning or at the end
             if (shape.transparent) {
@@ -207,7 +205,7 @@ xModelGeometry.prototype.parse = function (binReader) {
 
             if (shape.transparent) iIndexBackward -= shapeGeom.indices.length;
             else iIndexForward += shapeGeom.indices.length;
-        }
+        }, this);
 
         //copy geometry and keep track of amount so that we can fix indices to right position
         //this must be the last step to have correct iVertex number above

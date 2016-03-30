@@ -801,9 +801,9 @@ xBrowser.prototype._fire = function (eventName, args) {
         return;
     }
     //call the callbacks
-    for (var i in handlers) {
-        handlers[i](args);
-    }
+    handlers.forEach(function (handler) {
+        handler(args);
+    }, this);
 };﻿function xCobieUtils(lang, culture) {
     this._dictionary = new xAttributeDictionary(lang, culture);
 };
@@ -818,11 +818,14 @@ xCobieUtils.prototype.getVisualEntity = function (entity, type) {
     var name = "";
     var description = "";
     for (var a in entity) {
-        if (a.toLowerCase() == (type + 'name').toLowerCase())
+        if (!entity.hasOwnProperty(a)) {
+            continue;
+        }
+        if (a.toLowerCase() === (type + 'name').toLowerCase())
             name = entity[a];
-        if (a.toLowerCase() == (type + 'description').toLowerCase())
+        if (a.toLowerCase() === (type + 'description').toLowerCase())
             description = entity[a];
-        if (name.length != 0 && description.length != 0)
+        if (name.length !== 0 && description.length !== 0)
             break;
     }
 
@@ -861,11 +864,10 @@ xCobieUtils.prototype.getContacts = function (data) {
     if (contacts) contacts = contacts.Contact;
     if (!contacts) return result;
 
-    for (var i = 0; i < contacts.length; i++) {
-        var contact = contacts[i];
+    contacts.forEach(function (contact) {
         var vContact = this.getVisualEntity(contact, 'contact');
         result.push(vContact);
-    }
+    }, this);
 
     return result;
 };
@@ -882,53 +884,48 @@ xCobieUtils.prototype.getSpatialStructure = function (data, types) {
     if (!floors || floors.length == 0)
         return [facility];
 
-    for (var i in floors) {
-        var floor = floors[i];
+    floors.forEach(function (floor) {
         var vFloor = this.getVisualEntity(floor, 'floor');
         facility.children.push(vFloor);
 
         var spaces = floor.Spaces;
-        if (!spaces) continue;
+        if (!spaces) return;
         spaces = spaces.Space;
-        if (!spaces) continue;
+        if (!spaces) return;
 
-        for (var s in spaces) {
-            var space = spaces[s];
+        spaces.forEach(function (space) {
             var vSpace = this.getVisualEntity(space, 'space');
             vFloor.children.push(vSpace);
-        }
-    }
+        }, this);
+    }, this);
 
     //add asset types and assets to spaces 
     types = types ? types : this.getAssetTypes(data);
-    for (var t in types) {
-        var type = types[t];
-        for (var i in type.children) {
-            var instance = type.children[i];
-
+    types.forEach(function (type) {
+        type.children.forEach(function (instance) {
             //check assignments
-            var assignmentSet = instance.assignments.filter(function (e) { return e.id == 'Space' })[0];
-            if (!assignmentSet) continue;
+            var assignmentSet = instance.assignments.filter(function (e) { return e.id === 'Space' })[0];
+            if (!assignmentSet) return;
             key = assignmentSet.assignments[0];
-            if (!key) continue;
+            if (!key) return;
 
-            var spaceProp = key.properties.filter(function (e) { return e.id == 'SpaceName' })[0];
-            var floorProp = key.properties.filter(function (e) { return e.id == 'FloorName' })[0];
-            if (!floorProp || !spaceProp) continue;
+            var spaceProp = key.properties.filter(function (e) { return e.id === 'SpaceName' })[0];
+            var floorProp = key.properties.filter(function (e) { return e.id === 'FloorName' })[0];
+            if (!floorProp || !spaceProp) return;
 
             var spaceName = spaceProp.value;
             var floorName = floorProp.value;
 
-            var floor = facility.children.filter(function (e) { return e.name == floorName; })[0];
-            if (!floor) continue;
+            var floor = facility.children.filter(function (e) { return e.name === floorName; })[0];
+            if (!floor) return;
 
-            var space = floor.children.filter(function (e) { return e.name == spaceName })[0];
-            if (!space) continue;
-            
+            var space = floor.children.filter(function (e) { return e.name === spaceName })[0];
+            if (!space) return;
+
             space.children.push(instance);
             assignmentSet.assignments[0] = space;
-        }
-    }
+        }, this);
+    }, this);
 
     //facility is a root element of the tree spatial structure
     return [facility];
@@ -943,35 +940,31 @@ xCobieUtils.prototype.getZones = function (data, facility) {
     zones = zones.Zone;
     if (!zones) return result;
 
-    for (var z in zones) {
-        var zone = zones[z];
+    zones.forEach(function (zone) {
         var vZone = this.getVisualEntity(zone, 'zone');
         result.push(vZone);
-    }
+    }, this);
 
     //add spaces as a children of zones
-    for (var i = 0; i < facility.length; i++) { //facilities (always 1)
-        var f = facility[i];
-        for (var j = 0; j < f.children.length; j++) { //floors
-            var floor = f.children[j];
-            for (var k = 0; k < floor.children.length; k++) { //spaces
-                var space = floor.children[k];
-                var assignmentSet = space.assignments.filter(function (e) { return e.id == 'Zone'; })[0];
-                if (!assignmentSet) continue;
+    facility.forEach(function (f) { //facilities (always 1)
+        f.children.forEach(function (floor) { //floors
+            floor.children.forEach(function (space) { //floors
+                var assignmentSet = space.assignments.filter(function (e) { return e.id === 'Zone'; })[0];
+                if (!assignmentSet) return;
                 key = assignmentSet.assignments[0];
-                if (!key) continue;
-                if (!key.id) continue;
+                if (!key) return;
+                if (!key.id) return;
 
-                var zone = result.filter(function (e) { return e.id == key.id; })[0];
+                var zone = result.filter(function (e) { return e.id === key.id; })[0];
                 if (zone) {
                     //add space to visual children
                     zone.children.push(space);
                     //replace key with actual object
                     assignmentSet.assignments[0] = zone;
                 }
-            }
-        }
-    }
+            }, this);
+        }, this);
+    }, this);
 
     return result;
 };
@@ -985,35 +978,31 @@ xCobieUtils.prototype.getSystems = function (data, types) {
     systems = systems.System;
     if (!systems) return result;
 
-    for (var s in systems) {
-        var system = systems[s];
+    systems.forEach(function (system) {
         var vSystem = this.getVisualEntity(system, 'system');
         result.push(vSystem);
-    }
+    }, this);
 
     //add asset types and assets to spaces 
     types = types ? types : this.getAssetTypes(data);
-    for (var t in types) {
-        var type = types[t];
-        for (var i in type.children) {
-            var instance = type.children[i];
-
+    types.forEach(function (type) {
+        type.children.forEach(function (instance) {
             //check assignments
-            var assignmentSet = instance.assignments.filter(function (e) { return e.id == 'System' })[0];
-            if (!assignmentSet) continue;
+            var assignmentSet = instance.assignments.filter(function (e) { return e.id === 'System' })[0];
+            if (!assignmentSet) return;
             key = assignmentSet.assignments[0];
-            if (!key) continue;
+            if (!key) return;
 
-            if (!key.id) continue;
-            var system = result.filter(function (e) { return e.id == key.id; })[0];
+            if (!key.id) return;
+            var system = result.filter(function (e) { return e.id === key.id; })[0];
             if (system) {
                 //add instance to system's visual children
                 system.children.push(instance);
                 //replace key with actual object
                 assignmentSet.assignments[0] = system;
             }
-        }
-    }
+        }, this);
+    }, this);
 
     return result;
 };
@@ -1029,18 +1018,16 @@ xCobieUtils.prototype.getAssetTypes = function (data) {
     types = types.AssetType;
     if (!types) return result;
 
-    for (var t in types) {
-        var type = types[t];
+    types.forEach(function (type) {
         var vType = this.getVisualEntity(type, 'assettype');
         result.push(vType);
 
         //process instances of type
         var instances = type.Assets;
-        if (!instances) continue;
+        if (!instances) return;
         instances = instances.Asset;
-        if (!instances) continue;
-        for (var i in instances) {
-            var instance = instances[i];
+        if (!instances) return;
+        instances.forEach(function (instance) {
             var vInstance = this.getVisualEntity(instance, 'asset');
             vType.children.push(vInstance);
 
@@ -1050,8 +1037,8 @@ xCobieUtils.prototype.getAssetTypes = function (data) {
             assignment.name = tr(assignment.id);
             assignment.assignments.push(vType);
             vInstance.assignments.push(assignment);
-        }
-    }
+        }, this);
+    }, this);
 
     return result;
 };
@@ -1062,6 +1049,9 @@ xCobieUtils.prototype.getProperties = function (entity) {
     var result = [];
 
     for (var a in entity) {
+        if (!entity.hasOwnProperty(a)) {
+            continue;
+        }
         var attr = entity[a];
         var valStr = this.getValueString(attr);
 
@@ -1070,7 +1060,7 @@ xCobieUtils.prototype.getProperties = function (entity) {
 
         var nameStr = tr(a);
         result.push(new xVisualProperty({ name: nameStr, value: valStr, id: a }));
-    }
+    };
     return result;
 };
 
@@ -1081,15 +1071,16 @@ xCobieUtils.prototype.getAttributes = function (entity) {
     var result = [];
     var attributes = null;
     for (var a in entity) {
+        if (!entity.hasOwnProperty(a)) {
+            continue;
+        }
         if (entity[a].Attribute) {
             attributes = entity[a].Attribute;
             break;
         }
     }
     if (!attributes) return result;
-    for (var a in attributes) {
-        var attribute = attributes[a];
-
+    attributes.forEach(function (attribute) {
         result.push(new xVisualAttribute({
             name: attribute.AttributeName,
             description: attribute.AttributeDescription,
@@ -1098,7 +1089,7 @@ xCobieUtils.prototype.getAttributes = function (entity) {
             category: attribute.AttributeCategory,
             issues: attribute.AttributeIssues ? this.getAttributes(attribute.AttributeIssues) : []
         }));
-    }
+    }, this);
     return result;
 };
 
@@ -1108,6 +1099,9 @@ xCobieUtils.prototype.getAssignments = function (entity, type) {
     var result = [];
 
     for (var attr in entity) {
+        if (!entity.hasOwnProperty(attr)) {
+            continue;
+        }
         var collection = new xVisualAssignmentSet();
         //assignment collection
         var r = new RegExp('^(' + type + ')(.*)(assignments)$', 'i');
@@ -1115,9 +1109,15 @@ xCobieUtils.prototype.getAssignments = function (entity, type) {
             collection.id = attr.replace(r, '$2');
             collection.name = tr(collection.id + 's');
             for (var a in entity[attr]) {
-                var assignmentSet = entity[attr][a]
+                if (!entity[attr].hasOwnProperty(a)) {
+                    continue;
+                }
+                var assignmentSet = entity[attr][a];
                 var name = a.replace('Assignment', '').toLowerCase();
                 for (var a in assignmentSet) {
+                    if (assignmentSet.hasOwnProperty(a)) {
+                        continue;
+                    }
                     var assignment = assignmentSet[a];
                     var vAssignment = this.getVisualEntity(assignment, name);
                     vAssignment.isKey = true;
@@ -1134,7 +1134,7 @@ xCobieUtils.prototype.getAssignments = function (entity, type) {
             collection.assignments.push(vEntity);
         }
 
-        if (collection.assignments.length != 0) {
+        if (collection.assignments.length !== 0) {
             result.push(collection);
         }
     }
@@ -1147,6 +1147,9 @@ xCobieUtils.prototype.getDocuments = function (entity, type) {
     var result = [];
 
     for (var attr in entity) {
+        if (!entity.hasOwnProperty(attr)) {
+            continue;
+        }
         var r = new RegExp('^(' + type + ')(documents)$', 'i');
         if (r.test(attr)) {
             var documents = entity[attr].Document
@@ -1167,6 +1170,9 @@ xCobieUtils.prototype.getIssues = function (entity) {
     var result = [];
 
     for (var attr in entity) {
+        if (!entity.hasOwnProperty(attr)) {
+            continue;
+        }
         if (entity[attr].Issue) {
             var issues = entity[attr].Issue
             for (var i = 0; i < issues.length; i++) {
