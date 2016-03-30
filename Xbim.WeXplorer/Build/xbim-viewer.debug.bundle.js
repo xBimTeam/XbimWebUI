@@ -487,10 +487,11 @@ function xModelHandle(gl, model, fpt) {
 
     this.region = model.regions[0];
     //set the most populated region
-    for (var i in model.regions) {
-        var region = model.regions[i];
-        if (region.population > this.region.population) this.region = region;
-    }
+    model.regions.forEach(function (region) {
+        if (region.population > this.region.population) {
+            this.region = region;
+        }
+    }, this);
     //set default region if no region is defined. This shouldn't ever happen if model contains any geometry.
     if (typeof (this.region) == 'undefined') {
         this.region = {
@@ -589,16 +590,15 @@ xModelHandle.prototype.drawProduct = function (ID) {
     //gl.drawArrays(gl.TRIANGLES, map.spans[i][0], map.spans[i][1] - map.spans[i][0]);
 
     if (map != null) {
-        for (var i in map.spans) {
-            var span = map.spans[i];
+        map.spans.forEach(function (span) {
             gl.drawArrays(gl.TRIANGLES, span[0], span[1] - span[0]);
-        }
+        }, this);
     }
 };
 
 xModelHandle.prototype.getProductMap = function (ID) {
-        var map = this._model.productMap[ID];
-        if (typeof (map) !== "undefined") return map;
+    var map = this._model.productMap[ID];
+    if (typeof (map) !== "undefined") return map;
     return null;
 };
 
@@ -632,7 +632,7 @@ xModelHandle.prototype.feedGPU = function () {
     model.products = null;
     model.transformations = null;
     model.styleIndices = null;
-    
+
     model.vertices = null;
     model.matrices = null;
 
@@ -713,7 +713,7 @@ xModelHandle.prototype.getState = function (id) {
     var span = map.spans[0];
     if (typeof (span) == "undefined") return null;
 
-    return this._model.states[span[0]*2];
+    return this._model.states[span[0] * 2];
 }
 
 xModelHandle.prototype.getStyle = function (id) {
@@ -724,7 +724,7 @@ xModelHandle.prototype.getStyle = function (id) {
     var span = map.spans[0];
     if (typeof (span) == "undefined") return null;
 
-    return this._model.states[span[0]*2 + 1];
+    return this._model.states[span[0] * 2 + 1];
 }
 
 xModelHandle.prototype.setState = function (state, args) {
@@ -750,16 +750,14 @@ xModelHandle.prototype.setState = function (state, args) {
 
     //shift +1 if it is an overlay colour style or 0 if it is a state.
     var shift = state <= 225 ? 1 : 0;
-    for (var i in maps) {
-        var map = maps[i];
-        for (var j in map.spans) {
-            var span = map.spans[j]
+    maps.forEach(function (map) {
+        map.spans.forEach(function (span) {
             //set state or style
             for (var k = span[0]; k < span[1]; k++) {
-                this._model.states[k*2 + shift] = state;
+                this._model.states[k * 2 + shift] = state;
             }
-        }
-    }
+        }, this);
+    }, this);
 
     //buffer data to GPU
     this._bufferData(this.stateBuffer, this._model.states);
