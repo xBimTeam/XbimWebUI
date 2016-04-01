@@ -12,10 +12,6 @@ xTriangulatedShape.prototype.parse = function (binReader) {
     self.normals = new Uint8Array(numOfTriangles * 6);
     //indices for incremental adding of indices and normals
     var iIndex = 0;
-
-    if (numVertices === 0 || numOfTriangles === 0)
-        return;
-
     var readIndex;
     if (numVertices <= 0xFF) {
         readIndex = function (count) { return binReader.readByte(count); };
@@ -28,6 +24,10 @@ xTriangulatedShape.prototype.parse = function (binReader) {
     }
     
     var numFaces = binReader.readInt32();
+
+    if (numVertices === 0 || numOfTriangles === 0)
+        return;
+
     for (var i = 0; i < numFaces; i++) {
         var numTrianglesInFace = binReader.readInt32();
         if (numTrianglesInFace == 0) continue;
