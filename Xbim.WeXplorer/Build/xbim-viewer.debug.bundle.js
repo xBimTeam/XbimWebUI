@@ -272,7 +272,7 @@ xModelGeometry.prototype.parse = function (binReader) {
     this.normals = new Uint8Array(numTriangles * 6);
     this.indices = new Float32Array(numTriangles * 3);
     this.styleIndices = new Uint16Array(numTriangles * 3);
-    this.styles = new Uint8Array(square(1, numStyles * 4));
+    this.styles = new Uint8Array(square(1, (numStyles + 1) * 4)); //+1 is for a default style
     this.products = new Float32Array(numTriangles * 3);
     this.states = new Uint8Array(numTriangles * 3 * 2); //place for state and restyling
     this.transformations = new Float32Array(numTriangles * 3);
@@ -307,7 +307,8 @@ xModelGeometry.prototype.parse = function (binReader) {
         }
         return null;
     };
-    for (var iStyle = 0; iStyle < numStyles; iStyle++) {
+    var iStyle = 0;
+    for (iStyle; iStyle < numStyles; iStyle++) {
         var styleId = br.readInt32();
         var R = br.readFloat32() * 255;
         var G = br.readFloat32() * 255;
@@ -316,6 +317,10 @@ xModelGeometry.prototype.parse = function (binReader) {
         this.styles.set([R, G, B, A], iStyle * 4);
         styleMap.push({ id: styleId, index: iStyle, transparent: A < 254 });
     }
+    this.styles.set([255, 255, 255, 255], iStyle * 4);
+    var defaultStyle = { id: -1, index: iStyle, transparent: A < 254 }
+    styleMap.push(defaultStyle);
+
     for (var i = 0; i < numProducts ; i++) {
         var productLabel = br.readInt32();
         var prodType = br.readInt16();
@@ -349,7 +354,7 @@ xModelGeometry.prototype.parse = function (binReader) {
 
             var styleItem = styleMap.getStyle(styleId);
             if (styleItem === null)
-                throw 'Style index not found.';
+                styleItem = defaultStyle;
 
             shapeList.push({
                 pLabel: prodLabel,
@@ -895,10 +900,6 @@ xTriangulatedShape.prototype.parse = function (binReader) {
     self.normals = new Uint8Array(numOfTriangles * 6);
     //indices for incremental adding of indices and normals
     var iIndex = 0;
-
-    if (numVertices === 0 || numOfTriangles === 0)
-        return;
-
     var readIndex;
     if (numVertices <= 0xFF) {
         readIndex = function (count) { return binReader.readByte(count); };
@@ -911,6 +912,10 @@ xTriangulatedShape.prototype.parse = function (binReader) {
     }
     
     var numFaces = binReader.readInt32();
+
+    if (numVertices === 0 || numOfTriangles === 0)
+        return;
+
     for (var i = 0; i < numFaces; i++) {
         var numTrianglesInFace = binReader.readInt32();
         if (numTrianglesInFace == 0) continue;
