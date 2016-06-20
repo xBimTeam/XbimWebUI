@@ -42,7 +42,7 @@ function xViewer(canvas) {
     */
     this.perspectiveCamera = {
         /** @member {Number} PerspectiveCamera#fov - Field of view*/
-        fov: 95,
+        fov: 45,
         /** @member {Number} PerspectiveCamera#near - Near cutting plane*/
         near: 0,
         /** @member {Number} PerspectiveCamera#far - Far cutting plane*/
@@ -498,7 +498,7 @@ xViewer.prototype.setCameraTarget = function (prodId) {
     var setDistance = function (bBox) {
         var size = Math.max(bBox[3], bBox[4], bBox[5]);
         var ratio = Math.max(viewer._width, viewer._height) / Math.min(viewer._width, viewer._height);
-        viewer._distance = size / Math.tan(viewer.perspectiveCamera.fov * Math.PI / 360.0) * ratio * 1.0;
+        viewer._distance = size / Math.tan(viewer.perspectiveCamera.fov * Math.PI / 180.0) * ratio * 1.0;
     }
 
     //set navigation origin and default distance to the product BBox
@@ -979,7 +979,7 @@ xViewer.prototype.draw = function () {
     //set up camera
     switch (this.camera) {
         case 'perspective':
-            mat4.perspective(this._pMatrix, this.perspectiveCamera.fov, this._width / this._height, this.perspectiveCamera.near, this.perspectiveCamera.far);
+            mat4.perspective(this._pMatrix, this.perspectiveCamera.fov * Math.PI / 180.0, this._width / this._height, this.perspectiveCamera.near, this.perspectiveCamera.far);
             break;
 
         case 'orthogonal':
@@ -987,7 +987,7 @@ xViewer.prototype.draw = function () {
             break;
 
         default:
-            mat4.perspective(this._pMatrix, this.perspectiveCamera.fov, this._width / this._height, this.perspectiveCamera.near, this.perspectiveCamera.far);
+            mat4.perspective(this._pMatrix, this.perspectiveCamera.fov * Math.PI / 180.0, this._width / this._height, this.perspectiveCamera.near, this.perspectiveCamera.far);
             break;
     }
 
