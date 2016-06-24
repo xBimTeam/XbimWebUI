@@ -1438,7 +1438,7 @@ xViewer.prototype._getSVGOverlay = function() {
 * this returns [[0,0,0],[0,0,0]];
 *
 * @function xViewer#getClip
-* @return  {[Number[],Number[]]} Point and normal defining current clipping plane
+* @return  {Number[][]} Point and normal defining current clipping plane
 */
 xViewer.prototype.getClip = function () {
     var cp = this.clippingPlane;
