@@ -1115,7 +1115,7 @@ xCobieUtils.prototype.getAssignments = function (entity, type) {
                 var assignmentSet = entity[attr][a];
                 var name = a.replace('Assignment', '').toLowerCase();
                 for (var a in assignmentSet) {
-                    if (assignmentSet.hasOwnProperty(a)) {
+                    if (!assignmentSet.hasOwnProperty(a)) {
                         continue;
                     }
                     var assignment = assignmentSet[a];

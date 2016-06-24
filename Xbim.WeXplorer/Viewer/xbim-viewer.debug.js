@@ -118,10 +118,11 @@ function xViewer(canvas) {
 
     /** 
     * Clipping plane [a, b, c, d] defined as normal equation of the plane ax + by + cz + d = 0. [0,0,0,0] is for no clipping plane.
-    * @member {Number[]} xViewer#_clippingPlane
-    * @private
+    * @member {Number[]} xViewer#clippingPlane
     */
-    this._clippingPlane = [0, 0, 0, 0];
+    this.clippingPlane = [0, 0, 0, 0];
+
+    this._lastClippingPoint = [0, 0, 0];
 
 
     //*************************** Do all the set up of WebGL **************************
@@ -164,7 +165,7 @@ function xViewer(canvas) {
     //this object is used to identify if anything changed before two frames (hence if it is necessary to redraw)
     this._lastStates = {};
     this._visualStateAttributes = ["perspectiveCamera", "orthogonalCamera", "camera", "background", "lightA", "lightB",
-        "renderingMode", "_clippingPlane", "_mvMatrix", "_pMatrix", "_distance", "_origin", "highlightingColour"];
+        "renderingMode", "clippingPlane", "_mvMatrix", "_pMatrix", "_distance", "_origin", "highlightingColour"];
     this._stylingChanged = true;
 
     //this is to indicate that user has done some interaction
@@ -996,7 +997,7 @@ xViewer.prototype.draw = function () {
     gl.uniformMatrix4fv(this._mvMatrixUniformPointer, false, this._mvMatrix);
     gl.uniform4fv(this._lightAUniformPointer, new Float32Array(this.lightA));
     gl.uniform4fv(this._lightBUniformPointer, new Float32Array(this.lightB));
-    gl.uniform4fv(this._clippingPlaneUniformPointer, new Float32Array(this._clippingPlane));
+    gl.uniform4fv(this._clippingPlaneUniformPointer, new Float32Array(this.clippingPlane));
 
     //use normal colour representation (1 would cause shader to use colour coding of IDs)
     gl.uniform1i(this._colorCodingUniformPointer, 0);
@@ -1388,7 +1389,7 @@ xViewer.prototype._enableTextSelection = function () {
     document.documentElement.style['user-select'] = 'text';
 };
 
-xViewer.prototype._getSVGOverlay = function () {
+xViewer.prototype._getSVGOverlay = function() {
     //check support for SVG
     if (!document.implementation.hasFeature("http://www.w3.org/TR/SVG11/feature#BasicStructure", "1.1")) return false;
     var ns = "http://www.w3.org/2000/svg";
@@ -1430,7 +1431,37 @@ xViewer.prototype._getSVGOverlay = function () {
     svg.setAttribute('height', this._height);
 
     return svg;
-}
+};
+
+/**
+* This method can be used to get parameter of the current clipping plane. If no clipping plane is active
+* this returns [[0,0,0],[0,0,0]];
+*
+* @function xViewer#getClip
+* @return  {[Number[],Number[]]} Point and normal defining current clipping plane
+*/
+xViewer.prototype.getClip = function () {
+    var cp = this.clippingPlane;
+    if (cp.every(function(e) { return e === 0; })) {
+        return [[0, 0, 0], [0, 0, 0]];
+    }
+
+    var normal = vec3.normalize([0.0 ,0.0, 0.0], [cp[0], cp[1], cp[2]]);
+
+    //test if the last clipping point fits in the condition
+    var lp = this._lastClippingPoint;
+    var test = lp[0] * cp[0] + lp[1] * cp[1] + lp[2] * cp[2] + cp[3];
+    if (Math.abs(test) < 1e-5) {
+        return [lp, normal];
+    }
+
+    //find the point on the plane
+    var x = cp[0] !== 0 ? -1.0 * cp[3] / cp[0] : 0.0;
+    var y = cp[1] !== 0 ? -1.0 * cp[3] / cp[1] : 0.0;
+    var z = cp[2] !== 0 ? -1.0 * cp[3] / cp[2] : 0.0;
+
+    return [[x,y,z], normal];
+};
 
 /**
 * Use this method to clip the model. If you call the function with no arguments interactive clipping will start. This is based on SVG overlay
@@ -1446,12 +1477,15 @@ xViewer.prototype._getSVGOverlay = function () {
 xViewer.prototype.clip = function (point, normal) {
 
     //non interactive clipping, all information is there
-    if (typeof (point) != 'undefined' && typeof (normal) != 'undefined')
-    {
+    if (typeof (point) != 'undefined' && typeof (normal) != 'undefined') {
+
+        this._lastClippingPoint = point;
+
+        //compute normal equation of the plane
         var d = 0.0 - normal[0] * point[0] - normal[1] * point[1] - normal[2] * point[2];
 
         //set clipping plane
-        this._clippingPlane = [normal[0], normal[1], normal[2], d]
+        this.clippingPlane = [normal[0], normal[1], normal[2], d]
 
         /**
         * Occurs when model is clipped. This event has empty object.
@@ -1595,7 +1629,7 @@ xViewer.prototype.stopClipping = function() {};
 * @fires xViewer#unclipped
 */
 xViewer.prototype.unclip = function () {
-    this._clippingPlane = [0, 0, 0, 0];
+    this.clippingPlane = [0, 0, 0, 0];
     /**
       * Occurs when clipping of the model is dismissed. This event has empty object.
       *
