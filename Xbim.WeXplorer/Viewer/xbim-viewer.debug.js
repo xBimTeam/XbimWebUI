@@ -492,7 +492,7 @@ xViewer.prototype.setCameraPosition = function (coordinates) {
 * This method doesn't affect the view itself but it has an impact on navigation. Navigation origin is used as a center for orbiting and it is used
 * if you call functions like {@link xViewer.show show()} or {@link xViewer#zoomTo zoomTo()}.
 * @function xViewer#setCameraTarget
-* @param {Number} prodId [optional] Product ID. You can get ID either from semantic structure of the model or from {@link xViewer#pick pick event}.
+* @param {Number} prodId [optional] Product ID. You can get ID either from semantic structure of the model or from {@link xViewer#event:pick pick event}.
 * @return {Bool} True if the target exists and is set, False otherwise
 */
 xViewer.prototype.setCameraTarget = function (prodId) {
@@ -553,12 +553,12 @@ xViewer.prototype.set = function (settings) {
 /**
 * This method is used to load model data into viewer. Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data. Any other type of argument will throw an exception.
 * Region extend is determined based on the region of the model
-* Default view if 'front'. If you want to define different view you have to set it up in handler of {@link xViewer#loaded loaded} event. <br>
+* Default view if 'front'. If you want to define different view you have to set it up in handler of {@link xViewer#event:loaded loaded} event. <br>
 * You can load more than one model if they occupy the same space, use the same scale and have unique product IDs. Duplicated IDs won't affect 
 * visualization itself but would cause unexpected user interaction (picking, zooming, ...)
 * @function xViewer#load
 * @param {String | Blob | File} model - Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data.
-* @param {Any} tag [optional] - Tag to be used to identify the model in {@link xViewer#loaded loaded} event.
+* @param {Any} tag [optional] - Tag to be used to identify the model in {@link xViewer#event:loaded loaded} event.
 * @fires xViewer#loaded
 */
 xViewer.prototype.load = function (model, tag) {
@@ -628,7 +628,7 @@ xViewer.prototype.load = function (model, tag) {
 /**
  * Unloads model from the GPU. This action is not reversable.
  * 
- * @param {Number} modelId - ID of the model which you can get from {@link xViewer#loaded loaded} event.
+ * @param {Number} modelId - ID of the model which you can get from {@link xViewer#event:loaded loaded} event.
  */
 xViewer.prototype.unload = function (modelId) {
     var handle = this._handles.filter(function (h) { return h.id === modelId }).pop();
@@ -1330,7 +1330,7 @@ xViewer.prototype._getID = function (x, y) {
 * This function is bound to browser framerate of the screen so it will stop consuming any resources if you switch to another tab.
 *
 * @function xViewer#start
-* @param {Number} id [optional] - Optional ID of the model to be stopped. You can get this ID from {@link xViewer#loaded loaded} event.
+* @param {Number} id [optional] - Optional ID of the model to be stopped. You can get this ID from {@link xViewer#event:loaded loaded} event.
 */
 xViewer.prototype.start = function (id) {
     if (typeof (id) !== "undefined") {
@@ -1377,7 +1377,7 @@ xViewer.prototype.start = function (id) {
 * switch animation of the model on again by calling {@link xViewer#start start()}.
 *
 * @function xViewer#stop
-* @param {Number} id [optional] - Optional ID of the model to be stopped. You can get this ID from {@link xViewer#loaded loaded} event.
+* @param {Number} id [optional] - Optional ID of the model to be stopped. You can get this ID from {@link xViewer#event:loaded loaded} event.
 */
 xViewer.prototype.stop = function (id) {
     if (typeof (id) == "undefined") {
@@ -1394,12 +1394,13 @@ xViewer.prototype.stop = function (id) {
 };
 
 /**
-* Use this method to register to events of the viewer like {@link xViewer#pick pick}, {@link xViewer#mouseDown mouseDown}, {@link xViewer#loaded loaded} and others. You can define arbitrary number
-* of event handlers for any event. You can remove handler by calling {@link xViewer#off off()} method.
-*
-* @function xViewer#on
-* @param {String} eventName - Name of the event you would like to listen to.
-* @param {Object} callback - Callback handler of the event which will consume arguments and perform any custom action.
+ * Use this method to register to events of the viewer like {@link xViewer#event:pick pick}, {@link xViewer#event:mouseDown mouseDown}, 
+ * {@link xViewer#event:loaded loaded} and others. You can define arbitrary number
+ * of event handlers for any event. You can remove handler by calling {@link xViewer#off off()} method.
+ *
+ * @function xViewer#on
+ * @param {String} eventName - Name of the event you would like to listen to.
+ * @param {Object} callback - Callback handler of the event which will consume arguments and perform any custom action.
 */
 xViewer.prototype.on = function (eventName, callback) {
     var events = this._events;
