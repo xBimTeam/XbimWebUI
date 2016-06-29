@@ -223,6 +223,8 @@ xModelGeometry.prototype.parse = function (binReader) {
     if (!br.getIsEOF()) {
         //throw 'Binary reader is not at the end of the file.';
     }
+
+    this.transparentIndex = iIndexForward;
 };
 
 //Source has to be either URL of wexBIM file or Blob representing wexBIM file

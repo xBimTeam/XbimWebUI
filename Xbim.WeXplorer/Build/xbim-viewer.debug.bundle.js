@@ -431,6 +431,8 @@ xModelGeometry.prototype.parse = function (binReader) {
     if (!br.getIsEOF()) {
         //throw 'Binary reader is not at the end of the file.';
     }
+
+    this.transparentIndex = iIndexForward;
 };
 
 //Source has to be either URL of wexBIM file or Blob representing wexBIM file
@@ -465,7 +467,16 @@ function xModelHandle(gl, model, fpt) {
     this._gl = gl;
     this._model = model;
     this._fpt = fpt;
-    this._id = xModelHandle._instancesNum++;
+
+    /**
+     * unique ID which can be used to identify this handle 
+     */
+    this.id = xModelHandle._instancesNum++;
+
+    /**
+     * indicates if this model should be used in a rendering loop or not.
+     */
+    this.stopped = false;
 
     this.count = model.indices.length;
 
@@ -507,6 +518,9 @@ function xModelHandle(gl, model, fpt) {
     }
 }
 
+/**
+ * Static counter to keep unique ID of the model handles
+ */
 xModelHandle._instancesNum = 0;
 
 //this function sets this model as an active one
@@ -530,6 +544,8 @@ xModelHandle._instancesNum = 0;
 //	styleTextureSizeUniform: null,
 //};
 xModelHandle.prototype.setActive = function (pointers) {
+    if (this.stopped) return;
+
     var gl = this._gl;
     //set predefined textures
     if (this.vertexTextureSize > 0) {
@@ -581,13 +597,34 @@ xModelHandle.prototype.setActive = function (pointers) {
 };
 
 //this function must be called AFTER 'setActive()' function which sets up active buffers and uniforms
-xModelHandle.prototype.draw = function () {
+xModelHandle.prototype.draw = function (mode) {
+    if (this.stopped) return;
+
     var gl = this._gl;
-    //draw image frame
-    gl.drawArrays(gl.TRIANGLES, 0, this.count);
+
+    if (typeof (mode) === "undefined") {
+        //draw image frame
+        gl.drawArrays(gl.TRIANGLES, 0, this.count);
+        return;
+    }
+
+    if (mode === "solid") {
+        gl.drawArrays(gl.TRIANGLES, 0, this._model.transparentIndex);
+        return;
+    }
+
+    if (mode === "transparent") {
+        gl.drawArrays(gl.TRIANGLES, this._model.transparentIndex, this.count - this._model.transparentIndex);
+        return;
+    }
+    
 };
 
+
+
 xModelHandle.prototype.drawProduct = function (ID) {
+    if (this.stopped) return;
+
     var gl = this._gl;
     var map = this.getProductMap(ID);
 
@@ -605,6 +642,22 @@ xModelHandle.prototype.getProductMap = function (ID) {
     var map = this._model.productMap[ID];
     if (typeof (map) !== "undefined") return map;
     return null;
+};
+
+xModelHandle.prototype.unload = function () {
+    var gl = this._gl;
+
+    gl.deleteTexture(this.vertexTexture);
+    gl.deleteTexture(this.matrixTexture);
+    gl.deleteTexture(this.styleTexture);
+    gl.deleteTexture(this.stateStyleTexture);
+
+    gl.deleteBuffer(this.normalBuffer);
+    gl.deleteBuffer(this.indexBuffer);
+    gl.deleteBuffer(this.productBuffer);
+    gl.deleteBuffer(this.styleBuffer);
+    gl.deleteBuffer(this.stateBuffer);
+    gl.deleteBuffer(this.transformationBuffer);
 };
 
 xModelHandle.prototype.feedGPU = function () {
@@ -1135,10 +1188,12 @@ function xViewer(canvas) {
     this._height = this._canvas.height = this._canvas.offsetHeight;
 
     this._geometryLoaded = false;
+    //number of active models is used to indicate that ste state has changed
+    this._numberOfActiveModels = 0;
     //this object is used to identify if anything changed before two frames (hence if it is necessary to redraw)
     this._lastStates = {};
     this._visualStateAttributes = ["perspectiveCamera", "orthogonalCamera", "camera", "background", "lightA", "lightB",
-        "renderingMode", "clippingPlane", "_mvMatrix", "_pMatrix", "_distance", "_origin", "highlightingColour"];
+        "renderingMode", "clippingPlane", "_mvMatrix", "_pMatrix", "_distance", "_origin", "highlightingColour", "_numberOfActiveModels"];
     this._stylingChanged = true;
 
     //this is to indicate that user has done some interaction
@@ -1529,9 +1584,10 @@ xViewer.prototype.set = function (settings) {
 * visualization itself but would cause unexpected user interaction (picking, zooming, ...)
 * @function xViewer#load
 * @param {String | Blob | File} model - Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data.
+* @param {Any} tag [optional] - Tag to be used to identify the model in {@link xViewer#loaded loaded} event.
 * @fires xViewer#loaded
 */
-xViewer.prototype.load = function (model) {
+xViewer.prototype.load = function (model, tag) {
     if (typeof (model) == 'undefined') throw 'You have to speficy model to load.';
     if (typeof(model) != 'string' && !(model instanceof Blob) && !(model instanceof File))
         throw 'Model has to be specified either as a URL to wexBIM file or Blob object representing the wexBIM file.';
@@ -1542,6 +1598,7 @@ xViewer.prototype.load = function (model) {
     geometry.onloaded = function () {
         var handle = new xModelHandle(viewer._gl, geometry, viewer._fpt != null);
         viewer._handles.push(handle);
+
         handle.stateStyle = viewer._stateStyles;
         handle.feedGPU();
 
@@ -1549,38 +1606,43 @@ xViewer.prototype.load = function (model) {
         var meter = handle._model.meter;
         gl.uniform1f(viewer._meterUniformPointer, meter);
 
-        //set centre and default distance based on the most populated region in the model
-        viewer.setCameraTarget();
+        //only set camera parameters and the view if this is the first model
+        if (viewer._handles.length === 1) {
+            //set centre and default distance based on the most populated region in the model
+            viewer.setCameraTarget();
 
-        //set perspective camera near and far based on 1 meter dimension and size of the model
-        var region = handle.region;
-        var maxSize = Math.max(region.bbox[3], region.bbox[4], region.bbox[5]);
-        viewer.perspectiveCamera.far = maxSize * 50;
-        viewer.perspectiveCamera.near = meter/10.0;
+            //set perspective camera near and far based on 1 meter dimension and size of the model
+            var region = handle.region;
+            var maxSize = Math.max(region.bbox[3], region.bbox[4], region.bbox[5]);
+            viewer.perspectiveCamera.far = maxSize * 50;
+            viewer.perspectiveCamera.near = meter / 10.0;
 
-        //set orthogonalCamera boundaries so that it makes a sense
-        viewer.orthogonalCamera.far = viewer.perspectiveCamera.far;
-        viewer.orthogonalCamera.near = viewer.perspectiveCamera.near;
-        var ratio = 1.8;
-        viewer.orthogonalCamera.top = maxSize / ratio;
-        viewer.orthogonalCamera.bottom = maxSize / ratio * -1;
-        viewer.orthogonalCamera.left = maxSize / ratio * -1 * viewer._width / viewer._height;
-        viewer.orthogonalCamera.right = maxSize / ratio * viewer._width / viewer._height;
+            //set orthogonalCamera boundaries so that it makes a sense
+            viewer.orthogonalCamera.far = viewer.perspectiveCamera.far;
+            viewer.orthogonalCamera.near = viewer.perspectiveCamera.near;
+            var ratio = 1.8;
+            viewer.orthogonalCamera.top = maxSize / ratio;
+            viewer.orthogonalCamera.bottom = maxSize / ratio * -1;
+            viewer.orthogonalCamera.left = maxSize / ratio * -1 * viewer._width / viewer._height;
+            viewer.orthogonalCamera.right = maxSize / ratio * viewer._width / viewer._height;
 
-        //set default view
-        viewer.setCameraTarget();
-        var dist = Math.sqrt(viewer._distance * viewer._distance / 3.0);
-        viewer.setCameraPosition([region.centre[0] + dist * -1.0, region.centre[1] + dist * -1.0, region.centre[2] + dist]);
-
+            //set default view
+            viewer.setCameraTarget();
+            var dist = Math.sqrt(viewer._distance * viewer._distance / 3.0);
+            viewer.setCameraPosition([region.centre[0] + dist * -1.0, region.centre[1] + dist * -1.0, region.centre[2] + dist]);
+        }
 
         /**
-        * Occurs when geometry model is loaded into the viewer. This event has empty object.
-        *
-        * @event xViewer#loaded
-        * @type {object}
-        * 
+         * Occurs when geometry model is loaded into the viewer. This event returns object containing ID of the model.
+         * This ID can later be used to unload or temporarily stop the model.
+         * 
+         * @event xViewer#loaded
+         * @type {object}
+         * @param {Number} id - model ID
+         * @param {Any} tag - tag which was passed to 'xViewer.load()' function
+         * 
         */
-        viewer._fire('loaded', {})
+        viewer._fire('loaded', {id: handle.id, tag: tag})
         viewer._geometryLoaded = true;
     };
     geometry.onerror = function (msg) {
@@ -1588,6 +1650,29 @@ xViewer.prototype.load = function (model) {
     }
     geometry.load(model);
 };
+
+/**
+ * Unloads model from the GPU. This action is not reversable.
+ * 
+ * @param {Number} modelId - ID of the model which you can get from {@link xViewer#loaded loaded} event.
+ */
+xViewer.prototype.unload = function (modelId) {
+    var handle = this._handles.filter(function (h) { return h.id === modelId }).pop();
+    if (typeof (handle) === "undefined") throw "Model with id: " + modelId + " doesn't exist or was unloaded already."
+
+    //stop for start so it doesn't interfere with the rendering loop
+    handle.stopped = true;
+
+    //remove from the array
+    var index = this._handles.indexOf(handle);
+    this._handles.splice(index, 1);
+    this._numberOfActiveModels = this._handles.length;
+
+    //unload and delete
+    handle.unload();
+    delete handle;
+};
+
 
 //this function should be only called once during initialization
 //or when shader set-up changes
@@ -1989,16 +2074,20 @@ xViewer.prototype.draw = function () {
         gl.uniform1i(this._renderingModeUniformPointer, 1);
         gl.disable(gl.CULL_FACE);
         this._handles.forEach(function (handle) {
-            handle.setActive(this._pointers);
-            handle.draw();
+            if (!handle.stopped) {
+                handle.setActive(this._pointers);
+                handle.draw("solid");
+            }
         }, this);
 
         //transparent objects should have only one side so that they are even more transparent.
         gl.uniform1i(this._renderingModeUniformPointer, 2);
         gl.enable(gl.CULL_FACE);
         this._handles.forEach(function (handle) {
-            handle.setActive(this._pointers);
-            handle.draw();
+            if (!handle.stopped) {
+                handle.setActive(this._pointers);
+                handle.draw("transparent");
+            }
         }, this);
         gl.uniform1i(this._renderingModeUniformPointer, 0);
     }
@@ -2006,9 +2095,20 @@ xViewer.prototype.draw = function () {
         gl.uniform1i(this._renderingModeUniformPointer, 0);
         gl.disable(gl.CULL_FACE);
 
+        //two runs, first for solids from all models, second for transparent objects from all models
+        //this makes sure that transparent objects are always rendered at the end.
         this._handles.forEach(function (handle) {
-            handle.setActive(this._pointers);
-            handle.draw();
+            if (!handle.stopped) {
+                handle.setActive(this._pointers);
+                handle.draw("solid");
+            }
+        }, this);
+
+        this._handles.forEach(function (handle) {
+            if (!handle.stopped) {
+                handle.setActive(this._pointers);
+                handle.draw("transparent");
+            }
         }, this);
     }
     
@@ -2198,8 +2298,10 @@ xViewer.prototype._getID = function (x, y) {
 
     //render colour coded image using latest buffered data
     this._handles.forEach(function (handle) {
-        handle.setActive(this._pointers);
-        handle.draw();
+        if (!handle.stopped) {
+            handle.setActive(this._pointers);
+            handle.draw();
+        }
     }, this);
 
     //call all after-drawId plugins
@@ -2254,8 +2356,19 @@ xViewer.prototype._getID = function (x, y) {
 * This function is bound to browser framerate of the screen so it will stop consuming any resources if you switch to another tab.
 *
 * @function xViewer#start
+* @param {Number} id [optional] - Optional ID of the model to be stopped. You can get this ID from {@link xViewer#loaded loaded} event.
 */
-xViewer.prototype.start = function () {
+xViewer.prototype.start = function (id) {
+    if (typeof (id) !== "undefined") {
+        var model = this._handles.filter(function (h) { return h.id === id; }).pop();
+        if (typeof (model) === "undefined")
+            throw "Model doesn't exist.";
+
+        model.stopped = false;
+        this._numberOfActiveModels++;
+        return;
+    }
+
     this._isRunning = true;
     var viewer = this;
     var lastTime = new Date();
@@ -2290,9 +2403,20 @@ xViewer.prototype.start = function () {
 * switch animation of the model on again by calling {@link xViewer#start start()}.
 *
 * @function xViewer#stop
+* @param {Number} id [optional] - Optional ID of the model to be stopped. You can get this ID from {@link xViewer#loaded loaded} event.
 */
-xViewer.prototype.stop = function () {
-    this._isRunning = false;
+xViewer.prototype.stop = function (id) {
+    if (typeof (id) == "undefined") {
+        this._isRunning = false;
+        return;
+    }
+
+    var model = this._handles.filter(function (h) { return h.id === id; }).pop();
+    if (typeof (model) === "undefined")
+        throw "Model doesn't exist.";
+
+    model.stopped = true;
+    this._numberOfActiveModels--;
 };
 
 /**
@@ -2411,7 +2535,7 @@ xViewer.prototype._getSVGOverlay = function() {
 * this returns [[0,0,0],[0,0,0]];
 *
 * @function xViewer#getClip
-* @return  {[Number[],Number[]]} Point and normal defining current clipping plane
+* @return  {Number[][]} Point and normal defining current clipping plane
 */
 xViewer.prototype.getClip = function () {
     var cp = this.clippingPlane;

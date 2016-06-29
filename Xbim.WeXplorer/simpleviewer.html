@@ -56,47 +56,87 @@
 				Framerate (FPS): <span id="fps"></span> 
 			</div>
 		    <div>
-                <input type="file" id="input" accept=".wexbim" />
+		        <input type="file" id="input" accept=".wexbim"/>
+		    </div>
+		    <div id="models">
+		        
 		    </div>
 		    <div id="errLog" style="color: red">
 		        
 		    </div>
 		</div>
 		<canvas id="xBIM-viewer"></canvas>
-		<script type="text/javascript">
-			var viewer = new xViewer("xBIM-viewer");
-			viewer.background = [255, 255, 255];
-			viewer.on("error", function (arg) {
-			    var container = viewer._canvas.parentNode;
-			    if (container) {
-			        //preppend error report
-			        container.innerHTML = "<pre style='color:red;'>" + arg.message + "</pre>" + container.innerHTML;
-			    }
-			});
-			viewer.on("pick", function(arg){
-				var span = document.getElementById("id");
-				if (span){
-					span.innerHTML = arg.id;
-				}
-			});
-			viewer.on("fps", function(fps){
-				var span = document.getElementById("fps");
-				if (span){
-					span.innerHTML = fps;
-				}
-			});
+	<script type="text/javascript">
+        var models = [];
 
-			$("#input").change(function () {
-			    if (!input.files) return;
+	    var viewer = new xViewer("xBIM-viewer");
+	    viewer.background = [255, 255, 255];
+	    viewer.on("error", function (arg) {
+	        var container = viewer._canvas.parentNode;
+	        if (container) {
+	            //preppend error report
+	            container.innerHTML = "<pre style='color:red;'>" + arg.message + "</pre>" + container.innerHTML;
+	        }
+	    });
+	    viewer.on("pick", function(arg){
+	        var span = document.getElementById("id");
+	        if (span){
+	            span.innerHTML = arg.id;
+	        }
+	    });
+        viewer.on("loaded", function(model) {
+            models.push({id: model.id, name: model.tag, stopped: false});
+            refreshModelsPanel();
+        });
+	    viewer.on("fps", function(fps){
+	        var span = document.getElementById("fps");
+	        if (span){
+	            span.innerHTML = fps;
+	        }
+	    });
 
-			    var file = this.files[0];
-			    if (!file) return;
+	    $("#input").change(function () {
+	        if (!input.files) return;
 
-			    viewer.load(file);
-			    viewer.start();
-			});
-			
-		</script>
+	        var file = this.files[0];
+	        if (!file) return;
+
+	        viewer.load(file, file.name);
+	        viewer.start();
+	    });
+
+        function refreshModelsPanel() {
+            var html = "";
+            models.forEach(function(m) {
+                html += "<div> " + m.name + "&nbsp;";
+                html += "<button onclick='unload(" + m.id + ")'> Unload </button>";
+                if (m.stopped)
+                    html += " <button onclick='start(" + m.id + ")'> Start </button> ";
+                else
+                    html += " <button onclick='stop(" + m.id + ")'> Stop </button> ";
+                html += "</div>";
+            });
+            $("#models").html(html);
+        }
+        function unload(id) {
+            viewer.unload(id);
+            models = models.filter(function (m) { return m.id !== id });
+            refreshModelsPanel();
+        }
+        function stop(id) {
+            viewer.stop(id);
+            var model = models.filter(function (m) { return m.id === id }).pop();
+            model.stopped = true;
+            refreshModelsPanel();
+        }
+
+        function start(id) {
+            viewer.start(id);
+            var model = models.filter(function (m) { return m.id === id }).pop();
+            model.stopped = false;
+            refreshModelsPanel();
+	    }
+	</script>
 	</body>
 	
 </html>

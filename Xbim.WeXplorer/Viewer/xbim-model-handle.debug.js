@@ -12,7 +12,16 @@ function xModelHandle(gl, model, fpt) {
     this._gl = gl;
     this._model = model;
     this._fpt = fpt;
-    this._id = xModelHandle._instancesNum++;
+
+    /**
+     * unique ID which can be used to identify this handle 
+     */
+    this.id = xModelHandle._instancesNum++;
+
+    /**
+     * indicates if this model should be used in a rendering loop or not.
+     */
+    this.stopped = false;
 
     this.count = model.indices.length;
 
@@ -54,6 +63,9 @@ function xModelHandle(gl, model, fpt) {
     }
 }
 
+/**
+ * Static counter to keep unique ID of the model handles
+ */
 xModelHandle._instancesNum = 0;
 
 //this function sets this model as an active one
@@ -77,6 +89,8 @@ xModelHandle._instancesNum = 0;
 //	styleTextureSizeUniform: null,
 //};
 xModelHandle.prototype.setActive = function (pointers) {
+    if (this.stopped) return;
+
     var gl = this._gl;
     //set predefined textures
     if (this.vertexTextureSize > 0) {
@@ -128,13 +142,34 @@ xModelHandle.prototype.setActive = function (pointers) {
 };
 
 //this function must be called AFTER 'setActive()' function which sets up active buffers and uniforms
-xModelHandle.prototype.draw = function () {
+xModelHandle.prototype.draw = function (mode) {
+    if (this.stopped) return;
+
     var gl = this._gl;
-    //draw image frame
-    gl.drawArrays(gl.TRIANGLES, 0, this.count);
+
+    if (typeof (mode) === "undefined") {
+        //draw image frame
+        gl.drawArrays(gl.TRIANGLES, 0, this.count);
+        return;
+    }
+
+    if (mode === "solid") {
+        gl.drawArrays(gl.TRIANGLES, 0, this._model.transparentIndex);
+        return;
+    }
+
+    if (mode === "transparent") {
+        gl.drawArrays(gl.TRIANGLES, this._model.transparentIndex, this.count - this._model.transparentIndex);
+        return;
+    }
+    
 };
 
+
+
 xModelHandle.prototype.drawProduct = function (ID) {
+    if (this.stopped) return;
+
     var gl = this._gl;
     var map = this.getProductMap(ID);
 
@@ -152,6 +187,22 @@ xModelHandle.prototype.getProductMap = function (ID) {
     var map = this._model.productMap[ID];
     if (typeof (map) !== "undefined") return map;
     return null;
+};
+
+xModelHandle.prototype.unload = function () {
+    var gl = this._gl;
+
+    gl.deleteTexture(this.vertexTexture);
+    gl.deleteTexture(this.matrixTexture);
+    gl.deleteTexture(this.styleTexture);
+    gl.deleteTexture(this.stateStyleTexture);
+
+    gl.deleteBuffer(this.normalBuffer);
+    gl.deleteBuffer(this.indexBuffer);
+    gl.deleteBuffer(this.productBuffer);
+    gl.deleteBuffer(this.styleBuffer);
+    gl.deleteBuffer(this.stateBuffer);
+    gl.deleteBuffer(this.transformationBuffer);
 };
 
 xModelHandle.prototype.feedGPU = function () {
