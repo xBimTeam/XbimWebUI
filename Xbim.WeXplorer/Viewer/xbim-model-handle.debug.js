@@ -381,3 +381,45 @@ xModelHandle.prototype.resetStyles = function () {
     //buffer data to GPU
     this._bufferData(this.stateBuffer, this._model.states);
 };
+
+xModelHandle.prototype.getModelState = function() {
+    var result = [];
+    var products = this._model.productMap; 
+    for (var i in products) {
+        if (!products.hasOwnProperty(i)) {
+            continue;
+        }
+        var map = products[i];
+        var span = map.spans[0];
+        if (typeof (span) == "undefined") continue;
+
+        var state = this._model.states[span[0] * 2];
+        var style = this._model.states[span[0] * 2 + 1];
+
+        result.push([map.productID, state + (style << 8)]);
+    }
+    return result;  
+};
+
+xModelHandle.prototype.restoreModelState = function (state) {
+    state.forEach(function (s) {
+        var id = s[0];
+        var style = s[1] >> 8;
+        var state = s[1] - (style << 8);
+
+        var map = this.getProductMap(id);
+        if (map != null) {
+            map.spans.forEach(function (span) {
+                //set state or style
+                for (var k = span[0]; k < span[1]; k++) {
+                    this._model.states[k * 2] = state;
+                    this._model.states[k * 2 + 1] = style;
+                }
+            }, this);
+        }
+
+    }, this);
+
+    //buffer data to GPU
+    this._bufferData(this.stateBuffer, this._model.states);
+};

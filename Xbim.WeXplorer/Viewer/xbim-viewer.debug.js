@@ -406,6 +406,35 @@ xViewer.prototype.resetStates = function (hideSpaces) {
     this._stylingChanged = true;
 };
 
+/**
+ * Gets complete model state and style. Resulting object can be used to restore the state later on.
+ * 
+ * @param {Number} id - Model ID which you can get from {@link xViewer#event:loaded loaded} event.
+ * @returns {Array} - Array representing model state in compact form suitable for serialization
+ */
+xViewer.prototype.getModelState = function (id) {
+    var handle = this._handles[id];
+    if (typeof (handle) === "undefined") {
+        throw "Model doesn't exist";
+    }
+
+    return handle.getModelState();
+};
+
+/**
+ * Restores model state from the data previously captured with {@link xViewer#getModelState getModelState()} function
+ * @param {Number} id - ID of the model
+ * @param {Array} state - State of the model as obtained from {@link xViewer#getModelState getModelState()} function
+ */
+xViewer.prototype.restoreModelState = function (id, state) {
+    var handle = this._handles[id];
+    if (typeof (handle) === "undefined") {
+        throw "Model doesn't exist";
+    }
+
+    handle.restoreModelState(state);
+    this._stylingChanged = true;
+};
 
 /**
 * Use this method for restyling of the model. This doesn't change the default appearance of the products so you can think about it as an overlay. You can 
