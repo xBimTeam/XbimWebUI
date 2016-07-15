@@ -122,24 +122,25 @@ vec3 getVertexPosition(){
 }
 
 void main(void) {
+	int state = int(floor(aState[0] + 0.5));
+	vDiscard = 0.0;
+
+	//HIDDEN state or first stage of xray rendering and no style state
+	if (state == 254 || (uRenderingMode == 1 && !(state == 253 || state == 252)) || (uRenderingMode == 2 && (state == 253 || state == 252)))
+	{
+		vDiscard = 1.0;
+		vFrontColor = vec4(0.0, 0.0, 0.0, 0.0);
+		vBackColor = vec4(0.0, 0.0, 0.0, 0.0);
+		vPosition = vec3(0.0, 0.0, 0.0);
+		gl_Position = vec4(0.0, 0.0, 0.0, 1.0);
+		return;
+	}
+	
 	//transform data to simulate camera perspective and position
 	vec3 vertex = getVertexPosition();
 	vec3 normal = getNormal();
 	vec3 backNormal = normal * -1.0;
 
-	int state = int(floor(aState[0] + 0.5));
-	int restyle = int(floor(aState[1] + 0.5));
-	//HIDDEN state or first stage of xray rendering and no style state
-	if (state == 254 || (uRenderingMode == 1 && !(state == 253 || state == 252)) || (uRenderingMode == 2 && (state == 253 || state == 252)))
-	{
-		vDiscard = 1.0;
-		return;
-	}
-	else
-	{
-		vDiscard = 0.0;
-	}
-	
 	if (uColorCoding){
 		vec4 idColor = getIdColor();
 		vFrontColor = idColor;
@@ -168,10 +169,8 @@ void main(void) {
 		//offset semitransparent triangles
 		if (baseColor.a < 0.98 && uRenderingMode == 0)
 		{
-			mat4 transpose = mat4(1);
 			vec3 trans = -0.002 * uMeter * normalize(normal);
-			transpose[3] = vec4(trans,1.0);
-			vertex = vec3(transpose * vec4(vertex, 1.0));
+			vertex = vertex + trans;
 		}
 		
 		//transform colour to simulate lighting
