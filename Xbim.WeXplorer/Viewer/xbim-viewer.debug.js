@@ -1615,6 +1615,7 @@ xViewer.prototype.clip = function (point, normal) {
         var r = svg.getBoundingClientRect();
         position.x = event.clientX - r.left;
         position.y = event.clientY - r.top;
+        position.angle = 0.0;
 
         //create very long vertical line going through the point
         g = document.createElementNS(ns, "g");
@@ -1644,38 +1645,38 @@ xViewer.prototype.clip = function (point, normal) {
         viewer._enableTextSelection();
 
 
-
         //get inverse transformation
         var transform = mat4.create();
         mat4.multiply(transform, viewer._pMatrix, viewer._mvMatrix);
         var inverse = mat4.create();
         mat4.invert(inverse, transform);
 
-        //get navigation origin in GL CS to set up sensible Z values
-        var origin = vec3.create();
-        vec3.transformMat4(origin, viewer._origin, transform);
-
-        //get normalized coordinates of both points in WebGL CS
+        //get normalized coordinates the point in WebGL CS
         var x1 = position.x / (viewer._width / 2.0) - 1.0;
         var y1 = 1.0 - position.y / (viewer._height / 2.0);
-        var z1 = origin[2];
+        var z1 = 0.0;
 
-        var x2 = (event.clientX - r.left) / (viewer._width / 2.0) - 1.0;
-        var y2 = 1.0 - (event.clientY - r.top) / (viewer._height / 2.0); // GL has different orientation and origin of Y axis
-        var z2 = origin[2];
+        //Point in WCS
+        var P = vec3.create();
+        vec3.transformMat4(P, [x1, y1, z1], inverse);
 
-        //get points in WCS
-        var X = vec3.create();
-        var Y = vec3.create();
+        //Compute second point on normal
+        var angle = position.angle * Math.PI / 180.0 ;
+        var x2 = x1 + Math.cos(angle);
+        var y2 = y1 + Math.sin(angle);
+        var z2 = z1;
 
-        vec3.transformMat4(X, [x1, y1, z1], inverse);
-        vec3.transformMat4(Y, [x2, y2, z2], inverse);
+        var P2 = vec3.create();
+        vec3.transformMat4(P2, [x2, y2, z2], inverse);
 
-        //compute general form of the equation of the plane
-        var normal = vec3.create();
-        vec3.subtract(normal, X, Y);
 
-        viewer.clip(X, normal);
+        //transform normal vector to WCS
+        var N = vec3.create();
+        vec3.subtract(N, P2, P);
+        var NN = vec3.create();
+        vec3.normalize(NN, N);
+        
+        viewer.clip(P, NN);
 
         //clean
         svg.parentNode.removeChild(svg);
@@ -1695,6 +1696,10 @@ xViewer.prototype.clip = function (point, normal) {
         var dX = x - position.x;
         var dY = y - position.y;
         var angle = Math.atan2(dX, dY) * -180.0 / Math.PI + 90.0;
+
+        //round to 5 DEG
+        angle = Math.round(angle / 5.0) * 5.0
+        position.angle = 360.0 - angle;
 
         g.setAttribute('transform', 'rotate(' + angle + ' ' + position.x + ' ' + position.y + ')');
     }

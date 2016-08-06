@@ -2670,9 +2670,16 @@ xViewer.prototype.clip = function (point, normal) {
     var ns = "http://www.w3.org/2000/svg";
     var svg = this._getSVGOverlay();
     var viewer = this;
+    var start = {};
     var position = {};
     var down = false;
     var g = {};
+
+    var setPosition = function(event) {
+        var r = svg.getBoundingClientRect();
+        position.x = event.clientX - r.left;
+        position.y = event.clientY - r.top;
+    };
 
     var handleMouseDown = function (event) {
         if (down) return;
@@ -2681,8 +2688,9 @@ xViewer.prototype.clip = function (point, normal) {
         viewer._disableTextSelection();
 
         var r = svg.getBoundingClientRect();
-        position.x = event.clientX - r.left;
-        position.y = event.clientY - r.top;
+        start.x = event.clientX - r.left;
+        start.y = event.clientY - r.top;
+        setPosition(event);
 
         //create very long vertical line going through the point
         g = document.createElementNS(ns, "g");
@@ -2693,9 +2701,9 @@ xViewer.prototype.clip = function (point, normal) {
         g.appendChild(line);
 
         line.setAttribute('style', "stroke:rgb(255,0,0);stroke-width:2");
-        line.setAttribute('x1', position.x);
+        line.setAttribute('x1', start.x);
         line.setAttribute('y1', 99999);
-        line.setAttribute('x2', position.x);
+        line.setAttribute('x2', start.x);
         line.setAttribute('y2', -99999);
     };
 
@@ -2704,7 +2712,7 @@ xViewer.prototype.clip = function (point, normal) {
 
         //check if the points are not identical. 
         var r = svg.getBoundingClientRect();
-        if (position.x == event.clientX - r.left && position.y == event.clientY - r.top) {
+        if (start.x == event.clientX - r.left && start.y == event.clientY - r.top) {
             return;
         }
 
@@ -2724,8 +2732,8 @@ xViewer.prototype.clip = function (point, normal) {
         vec3.transformMat4(origin, viewer._origin, transform);
 
         //get normalized coordinates of both points in WebGL CS
-        var x1 = position.x / (viewer._width / 2.0) - 1.0;
-        var y1 = 1.0 - position.y / (viewer._height / 2.0);
+        var x1 = start.x / (viewer._width / 2.0) - 1.0;
+        var y1 = 1.0 - start.y / (viewer._height / 2.0);
         var z1 = origin[2];
 
         var x2 = (event.clientX - r.left) / (viewer._width / 2.0) - 1.0;
@@ -2755,16 +2763,15 @@ xViewer.prototype.clip = function (point, normal) {
     var handleMouseMove = function (event) {
         if (!down) return;
 
-        var r = svg.getBoundingClientRect();
-        var x = event.clientX - r.left;
-        var y = event.clientY - r.top;
+        //set x,y position from event
+        setPosition(event);
 
         //rotate
-        var dX = x - position.x;
-        var dY = y - position.y;
+        var dX = position.x - start.x;
+        var dY = position.y - start.y;
         var angle = Math.atan2(dX, dY) * -180.0 / Math.PI + 90.0;
 
-        g.setAttribute('transform', 'rotate(' + angle + ' ' + position.x + ' ' + position.y + ')');
+        g.setAttribute('transform', 'rotate(' + angle + ' ' + start.x + ' ' + start.y + ')');
     }
 
     //this._canvas.parentNode.appendChild(svg);
