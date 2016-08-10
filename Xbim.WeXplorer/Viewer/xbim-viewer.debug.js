@@ -498,11 +498,12 @@ xViewer.prototype.resetStyles = function () {
 * @param {Number} prodID - Product ID. You can get this value either from semantic structure of the model or by listening to {@link xViewer#event:pick pick} event.
 */
 xViewer.prototype.getProductType = function (prodId) {
+    var pType = null;
     this._handles.forEach(function (handle) {
         var map = handle.getProductMap(prodId);
-        if (map) return map.type;
-        return null;
+        if (map) pType = map.type;
     }, this);
+    return pType;
 };
 
 /**
