@@ -81,10 +81,6 @@ vec2 getTextureCoordinates(int index, int size)
 
 
 vec4 getColor(){
-	if (uRenderingMode == 2){
-		return vec4(0.0, 0.0, 0.3, 0.5); //x-ray semitransparent light blue colour
-	}
-	
 	int restyle = int(floor(aState[1] + 0.5));
 	if (restyle > 224){
 		int index = int (floor(aStyleIndex + 0.5));
@@ -125,8 +121,8 @@ void main(void) {
 	int state = int(floor(aState[0] + 0.5));
 	vDiscard = 0.0;
 
-	//HIDDEN state or first stage of xray rendering and no style state
-	if (state == 254 || (uRenderingMode == 1 && !(state == 253 || state == 252)) || (uRenderingMode == 2 && (state == 253 || state == 252)))
+	//HIDDEN state or xray rendering and no selection or 'x-ray visible' state
+	if (state == 254)
 	{
 		vDiscard = 1.0;
 		vFrontColor = vec4(0.0, 0.0, 0.0, 0.0);
@@ -164,7 +160,21 @@ void main(void) {
 		float backLightWeighting = backLightWeightA + backLightWeightB + 0.4;
 		
 		//get base color or set highlighted colour
-		vec4 baseColor = state == 253 ? uHighlightColour : getColor();
+		vec4 baseColor = vec4(1.0, 1.0, 1.0, 1.0);
+		if (uRenderingMode == 2){ //x-ray mode 
+			if (state == 252){ //x-ray visible
+				baseColor = getColor();
+			}
+			else{
+				baseColor = vec4(0.0, 0.0, 0.3, 0.5); //x-ray semitransparent light blue colour
+			}
+		}
+		if (state == 253) { //highlighted
+			baseColor = uHighlightColour;
+		}
+		if (uRenderingMode != 2 && state != 253){
+			baseColor = getColor();
+		}
 		
 		//offset semitransparent triangles
 		if (baseColor.a < 0.98 && uRenderingMode == 0)

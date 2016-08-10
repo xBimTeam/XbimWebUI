@@ -375,13 +375,14 @@ xViewer.prototype.setState = function (state, target) {
 * @param {Number} id - Id of the product. You would typicaly get the id from {@link xViewer#event:pick pick event} or similar event.
 */
 xViewer.prototype.getState = function (id) {
+    var state = null;
     this._handles.forEach(function (handle) {
-        var state = handle.getState(id);
+        state = handle.getState(id);
         if (state !== null) {
-            return state;
+            return;
         }
     }, this);
-    return null;
+    return state;
 };
 
 /**
@@ -1075,7 +1076,7 @@ xViewer.prototype.draw = function () {
     if (this.renderingMode == 'x-ray')
     {
         //two passes - first one for non-transparent objects, second one for all the others
-        gl.uniform1i(this._renderingModeUniformPointer, 1);
+        gl.uniform1i(this._renderingModeUniformPointer, 2);
         gl.disable(gl.CULL_FACE);
         this._handles.forEach(function (handle) {
             if (!handle.stopped) {
@@ -1655,29 +1656,31 @@ xViewer.prototype.clip = function (point, normal) {
         //get normalized coordinates the point in WebGL CS
         var x1 = position.x / (viewer._width / 2.0) - 1.0;
         var y1 = 1.0 - position.y / (viewer._height / 2.0);
-        var z1 = 0.0;
 
-        //Point in WCS
-        var P = vec3.create();
-        vec3.transformMat4(P, [x1, y1, z1], inverse);
+        //First point in WCS
+        var A = vec3.create();
+        vec3.transformMat4(A, [x1, y1, -1], inverse); //near clipping plane
 
-        //Compute second point on normal
+        //Second point in WCS
+        var B = vec3.create();
+        vec3.transformMat4(B, [x1, y1, 1], inverse); //far clipping plane
+
+        //Compute third point on plane
         var angle = position.angle * Math.PI / 180.0 ;
         var x2 = x1 + Math.cos(angle);
         var y2 = y1 + Math.sin(angle);
-        var z2 = z1;
 
-        var P2 = vec3.create();
-        vec3.transformMat4(P2, [x2, y2, z2], inverse);
+        //Third point in WCS
+        var C = vec3.create();
+        vec3.transformMat4(C, [x2, y2, 1], inverse); // far clipping plane
 
 
-        //transform normal vector to WCS
-        var N = vec3.create();
-        vec3.subtract(N, P2, P);
-        var NN = vec3.create();
-        vec3.normalize(NN, N);
+        //Compute normal in WCS
+        var BA = vec3.subtract(vec3.create(), A, B);
+        var BC = vec3.subtract(vec3.create(), C, B);
+        var N = vec3.cross(vec3.create(), BA, BC);
         
-        viewer.clip(P, NN);
+        viewer.clip(B, N);
 
         //clean
         svg.parentNode.removeChild(svg);
@@ -1700,7 +1703,7 @@ xViewer.prototype.clip = function (point, normal) {
 
         //round to 5 DEG
         angle = Math.round(angle / 5.0) * 5.0
-        position.angle = 360.0 - angle;
+        position.angle = 360.0 - angle + 90;
 
         g.setAttribute('transform', 'rotate(' + angle + ' ' + position.x + ' ' + position.y + ')');
     }
