@@ -375,13 +375,14 @@ xViewer.prototype.setState = function (state, target) {
 * @param {Number} id - Id of the product. You would typicaly get the id from {@link xViewer#event:pick pick event} or similar event.
 */
 xViewer.prototype.getState = function (id) {
+    var state = null;
     this._handles.forEach(function (handle) {
-        var state = handle.getState(id);
+        state = handle.getState(id);
         if (state !== null) {
-            return state;
+            return;
         }
     }, this);
-    return null;
+    return state;
 };
 
 /**
@@ -1075,7 +1076,7 @@ xViewer.prototype.draw = function () {
     if (this.renderingMode == 'x-ray')
     {
         //two passes - first one for non-transparent objects, second one for all the others
-        gl.uniform1i(this._renderingModeUniformPointer, 1);
+        gl.uniform1i(this._renderingModeUniformPointer, 2);
         gl.disable(gl.CULL_FACE);
         this._handles.forEach(function (handle) {
             if (!handle.stopped) {
@@ -1616,6 +1617,7 @@ xViewer.prototype.clip = function (point, normal) {
         var r = svg.getBoundingClientRect();
         position.x = event.clientX - r.left;
         position.y = event.clientY - r.top;
+        position.angle = 0.0;
 
         //create very long vertical line going through the point
         g = document.createElementNS(ns, "g");
@@ -1645,38 +1647,40 @@ xViewer.prototype.clip = function (point, normal) {
         viewer._enableTextSelection();
 
 
-
         //get inverse transformation
         var transform = mat4.create();
         mat4.multiply(transform, viewer._pMatrix, viewer._mvMatrix);
         var inverse = mat4.create();
         mat4.invert(inverse, transform);
 
-        //get navigation origin in GL CS to set up sensible Z values
-        var origin = vec3.create();
-        vec3.transformMat4(origin, viewer._origin, transform);
-
-        //get normalized coordinates of both points in WebGL CS
+        //get normalized coordinates the point in WebGL CS
         var x1 = position.x / (viewer._width / 2.0) - 1.0;
         var y1 = 1.0 - position.y / (viewer._height / 2.0);
-        var z1 = origin[2];
 
-        var x2 = (event.clientX - r.left) / (viewer._width / 2.0) - 1.0;
-        var y2 = 1.0 - (event.clientY - r.top) / (viewer._height / 2.0); // GL has different orientation and origin of Y axis
-        var z2 = origin[2];
+        //First point in WCS
+        var A = vec3.create();
+        vec3.transformMat4(A, [x1, y1, -1], inverse); //near clipping plane
 
-        //get points in WCS
-        var X = vec3.create();
-        var Y = vec3.create();
+        //Second point in WCS
+        var B = vec3.create();
+        vec3.transformMat4(B, [x1, y1, 1], inverse); //far clipping plane
 
-        vec3.transformMat4(X, [x1, y1, z1], inverse);
-        vec3.transformMat4(Y, [x2, y2, z2], inverse);
+        //Compute third point on plane
+        var angle = position.angle * Math.PI / 180.0 ;
+        var x2 = x1 + Math.cos(angle);
+        var y2 = y1 + Math.sin(angle);
 
-        //compute general form of the equation of the plane
-        var normal = vec3.create();
-        vec3.subtract(normal, X, Y);
+        //Third point in WCS
+        var C = vec3.create();
+        vec3.transformMat4(C, [x2, y2, 1], inverse); // far clipping plane
 
-        viewer.clip(X, normal);
+
+        //Compute normal in WCS
+        var BA = vec3.subtract(vec3.create(), A, B);
+        var BC = vec3.subtract(vec3.create(), C, B);
+        var N = vec3.cross(vec3.create(), BA, BC);
+        
+        viewer.clip(B, N);
 
         //clean
         svg.parentNode.removeChild(svg);
@@ -1696,6 +1700,10 @@ xViewer.prototype.clip = function (point, normal) {
         var dX = x - position.x;
         var dY = y - position.y;
         var angle = Math.atan2(dX, dY) * -180.0 / Math.PI + 90.0;
+
+        //round to 5 DEG
+        angle = Math.round(angle / 5.0) * 5.0
+        position.angle = 360.0 - angle + 90;
 
         g.setAttribute('transform', 'rotate(' + angle + ' ' + position.x + ' ' + position.y + ')');
     }
