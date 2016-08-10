@@ -228,6 +228,35 @@ xNavigationCube.prototype.init = function (xviewer) {
         }
     }, true);
 
+    self._drag = false;
+
+    xviewer._canvas.addEventListener('mousedown', function (event) {
+        startX = event.clientX;
+        startY = event.clientY;
+
+        //get coordinates within canvas (with the right orientation)
+        var r = xviewer._canvas.getBoundingClientRect();
+        var viewX = startX - r.left;
+        var viewY = xviewer._height - (startY - r.top);
+
+        //this is for picking
+        var id = xviewer._getID(viewX, viewY);
+
+        if (id >= self.TOP && id <= self.BACK_LEFT) {
+            //change viewer navigation mode to be 'orbit'
+            self._drag = true;
+            self._originalNavigation = viewer.navigationMode;
+            viewer.navigationMode = "orbit";
+        }
+    }, true);
+
+    window.addEventListener('mouseup', function (event) {
+        if (self._drag === true) {
+            viewer.navigationMode = self._originalNavigation;
+        }
+        self._drag = false;
+    }, true);
+
     this._initialized = true;
 
 }
