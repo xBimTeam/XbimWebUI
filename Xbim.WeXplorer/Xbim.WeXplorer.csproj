@@ -21,6 +21,7 @@
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
     <TypeScriptToolsVersion>1.0</TypeScriptToolsVersion>
+    <UseGlobalApplicationHostFile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -167,6 +168,7 @@
     <Content Include="Viewer\fragment_shader.c" />
     <Content Include="Build\gl-matrix.min.js" />
     <Content Include="Libs\gl-matrix.js" />
+    <Content Include="Viewer\xbim-product-inheritance.debug.js" />
     <Content Include="Viewer\vertex_shader.c" />
     <Content Include="Viewer\vertex_shader_noFPT.c" />
     <Content Include="Libs\webgl-utils.js" />
