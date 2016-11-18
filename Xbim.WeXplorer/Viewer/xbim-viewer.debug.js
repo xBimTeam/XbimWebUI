@@ -1179,7 +1179,7 @@ xViewer.prototype.zoomTo = function (id) {
     vec3.scale(translation, dir, this._distance);
     vec3.add(eye, translation, this._origin);
 
-    mat4.lookAt(this._mvMatrix, eye, this._origin, [0, 0, 1])
+    mat4.lookAt(this._mvMatrix, eye, this._origin, [0, 0, 1]);
     return true;
 };
 

@@ -63,9 +63,8 @@ All licences are included in full under the Licences\3rd Party solution folder.
 
 ## Support & Help
 
-Please use the Discussion forum at http://xbim.codeplex.com/discussions to ask any questions.
-Alternatively use the Issue Tracker to raise any bugs relating to Xbim.
+Please use [GitHub issues](https://github.com/xBimTeam/XbimWebUI/issues) to ask any questions.
 
 ## Getting Involved
 
-If you'd like to get involved and contribute to this project, please contact the Project Coordinator, [Steve Lockley](https://www.codeplex.com/site/users/view/SteveLockley).
+If you'd like to get involved and contribute to this project, please contact the Project Coordinator, [Steve Lockley](https://github.com/SteveLockley).
