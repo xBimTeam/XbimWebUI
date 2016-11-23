@@ -51,7 +51,7 @@ xModelGeometry.prototype.parse = function (binReader) {
         if (count == 0) return 0;
         var byteLength = count * arity;
         var imgSide = Math.ceil(Math.sqrt(byteLength / 4));
-        //clamp to arity
+        //clamp to parity
         while ((imgSide * 4) % arity != 0) {
             imgSide++
         }

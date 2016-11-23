@@ -5,7 +5,7 @@
 * @name xViewer
 * @constructor
 * @classdesc This is the main and the only class you need to load and render IFC models in wexBIM format. This viewer is part of
-* xBIM toolkit which can be used to create wexBIM files from IFC, ifcZIP and ifcXML. WexBIM files are highly optimalized for
+* xBIM toolkit which can be used to create wexBIM files from IFC, ifcZIP and ifcXML. WexBIM files are highly optimized for
 * transmition over internet and rendering performance. Viewer uses WebGL technology for hardware accelerated 3D rendering and SVG for
 * certain kinds of user interaction. This means that it won't work with obsolete and non-standard-compliant browsers like IE10 and less.
 *
@@ -76,18 +76,18 @@ function xViewer(canvas) {
     };
 
     /**
-    * Type of camera to be used. Available values are <strong>'perspective'</strong> and <strong>'orthogonal'</strong> You can change this value at any time with instant efect.
+    * Type of camera to be used. Available values are <strong>'perspective'</strong> and <strong>'orthogonal'</strong> You can change this value at any time with instant effect.
     * @member {string} xViewer#camera
     */
     this.camera = 'perspective';
 
     /**
-    * Array of four integers between 0 and 255 representing RGBA colour components. This defines background colour of the viewer. You can change this value at any time with instant efect.
+    * Array of four integers between 0 and 255 representing RGBA colour components. This defines background colour of the viewer. You can change this value at any time with instant effect.
     * @member {Number[]} xViewer#background
     */
     this.background = [230, 230, 230, 255];
     /**
-    * Array of four integers between 0 and 255 representing RGBA colour components. This defines colour for highlighted elements. You can change this value at any time with instant efect.
+    * Array of four integers between 0 and 255 representing RGBA colour components. This defines colour for highlighted elements. You can change this value at any time with instant effect.
     * @member {Number[]} xViewer#highlightingColour
     */
     this.highlightingColour = [255, 173, 33, 255];
@@ -103,7 +103,7 @@ function xViewer(canvas) {
     this.lightB = [0, -500000, 50000, 0.2];
 
     /**
-    * Switch between different navidation modes for left mouse button. Allowed values: <strong> 'pan', 'zoom', 'orbit' (or 'fixed-orbit') , 'free-orbit' and 'none'</strong>. Default value is <strong>'orbit'</strong>;
+    * Switch between different navigation modes for left mouse button. Allowed values: <strong> 'pan', 'zoom', 'orbit' (or 'fixed-orbit') , 'free-orbit' and 'none'</strong>. Default value is <strong>'orbit'</strong>;
     * @member {String} xViewer#navigationMode
     */
     this.navigationMode = 'orbit';
@@ -111,7 +111,7 @@ function xViewer(canvas) {
     /**
     * Switch between different rendering modes. Allowed values: <strong> 'normal', 'x-ray'</strong>. Default value is <strong>'normal'</strong>;
     * Only products with state set to state.HIGHLIGHTED or xState.XRAYVISIBLE will be rendered highlighted or in a normal colours. All other products
-    * will be rendered semitransparent and singlesided.
+    * will be rendered semi-transparent and single sided.
     * @member {String} xViewer#renderingMode
     */
     this.renderingMode = 'normal';
@@ -145,13 +145,13 @@ function xViewer(canvas) {
 
     //set up DEPTH_TEST and BLEND so that transparent objects look right
     //this is not 100% perfect as it would be necessary to sort all objects from back to
-    //front when rendering them. We have sacrified this for the sake of performance.
-    //Objects with no transparency in their default style are drawn first and semitransparent last.
+    //front when rendering them. We have sacrificed this for the sake of performance.
+    //Objects with no transparency in their default style are drawn first and semi-transparent last.
     //This gives 90% right when there is not too much of transparency. It may not look right if you
     //have a look through two windows or if you have a look from inside of the building out.
     //It is granted to be alright when looking from outside of the building inside through one
-    //semitransparent object like curtain wall panel or window which is the case most of the time.
-    //This is known limitation but there is no plan to change this behavior.
+    //semi-transparent object like curtain wall panel or window which is the case most of the time.
+    //This is known limitation but there is no plan to change this behaviour.
     gl.enable(gl.DEPTH_TEST);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     gl.enable(gl.BLEND);
@@ -162,7 +162,7 @@ function xViewer(canvas) {
     this._height = this._canvas.height = this._canvas.offsetHeight;
 
     this._geometryLoaded = false;
-    //number of active models is used to indicate that ste state has changed
+    //number of active models is used to indicate that state has changed
     this._numberOfActiveModels = 0;
     //this object is used to identify if anything changed before two frames (hence if it is necessary to redraw)
     this._lastStates = {};
@@ -174,7 +174,7 @@ function xViewer(canvas) {
     this._userAction = true;
 
     //dictionary of named events which can be registered and unregistered by using '.on('eventname', callback)'
-    // and '.off('eventname', callback)'. Registered callbacks are triggered by the viewer when important events occure.
+    // and '.off('eventname', callback)'. Registered call-backs are triggered by the viewer when important events occur.
     this._events = {};
 
     //array of plugins which can implement certain methods which get called at certain points like before draw, after draw and others.
@@ -212,34 +212,34 @@ function xViewer(canvas) {
     //This is a switch which can stop animation.
     this._isRunning = true;
 
-    //********************** Run all the init functions *****************************
+    //********************** Run all the initialize functions *****************************
     //compile shaders for use
     this._initShaders();
-    //init vertex attribute and uniform pointers
+    //initialize vertex attribute and uniform pointers
     this._initAttributesAndUniforms();
-    //init mouse events to capture user interaction
+    //initialize mouse events to capture user interaction
     this._initMouseEvents();
 };
 
 /**
 * This is a static function which should always be called before xViewer is instantiated.
-* It will check all prerequisities of the viewer and will report all issues. If Prerequisities.errors contain
+* It will check all prerequisites of the viewer and will report all issues. If Prerequisities.errors contain
 * any messages viewer won't work. If Prerequisities.warnings contain any messages it will work but some
-* functions may be restricted or may not work or it may have poor erformance.
+* functions may be restricted or may not work or it may have poor performance.
 * @function xViewer.check
-* @return {Prerequisities}
+* @return {Prerequisites}
 */
 xViewer.check = function () {
     /**
-    * This is a structure reporting errors and warnings about prerequisities of {@link xViewer xViewer}. It is result of {@link xViewer.checkPrerequisities checkPrerequisities()} static method.
+    * This is a structure reporting errors and warnings about prerequisites of {@link xViewer xViewer}. It is result of {@link xViewer.checkPrerequisities checkPrerequisities()} static method.
     *
-    * @name Prerequisities
+    * @name Prerequisites
     * @class
     */
     var result = {
         /**
         * If this array contains any warnings xViewer will work but it might be slow or may not support full functionality.
-        * @member {string[]}  Prerequisities#warnings
+        * @member {string[]}  Prerequisites#warnings
         */
         warnings: [],
         /**
@@ -247,20 +247,20 @@ xViewer.check = function () {
         * You can use messages in this array to report problems to user. However, user won't probably 
         * be able to do to much with it except trying to use different browser. IE10- are not supported for example. 
         * The latest version of IE should be all right.
-        * @member {string[]}  Prerequisities#errors
+        * @member {string[]}  Prerequisites#errors
         */
         errors: [],
         /**
         * If false xViewer won't work at all or won't work as expected. 
-        * You can use messages in {@link Prerequisities#errors errors array} to report problems to user. However, user won't probably 
+        * You can use messages in {@link Prerequisites#errors errors array} to report problems to user. However, user won't probably 
         * be able to do to much with it except trying to use different browser. IE10- are not supported for example. 
         * The latest version of IE should be all right.
-        * @member {string[]}  Prerequisities#noErrors
+        * @member {string[]}  Prerequisites#noErrors
         */
         noErrors: false,
         /**
-        * If false xViewer will work but it might be slow or may not support full functionality. Use {@link Prerequisities#warnings warnings array} to report problems.
-        * @member {string[]}  Prerequisities#noWarnings
+        * If false xViewer will work but it might be slow or may not support full functionality. Use {@link Prerequisites#warnings warnings array} to report problems.
+        * @member {string[]}  Prerequisites#noWarnings
         */
         noWarnings: false
     };
@@ -372,7 +372,7 @@ xViewer.prototype.setState = function (state, target) {
 * with one of values from {@link xState xState} enumeration. 0xFF is the default value.
 *
 * @function xViewer#getState
-* @param {Number} id - Id of the product. You would typicaly get the id from {@link xViewer#event:pick pick event} or similar event.
+* @param {Number} id - Id of the product. You would typically get the id from {@link xViewer#event:pick pick event} or similar event.
 */
 xViewer.prototype.getState = function (id) {
     var state = null;
@@ -468,7 +468,7 @@ xViewer.prototype.setStyle = function (style, target) {
 * your custom colour which you have defined in {@link xViewer#defineStyle defineStyle()} function. 0xFF is the default value.
 *
 * @function xViewer#getStyle
-* @param {Number} id - Id of the product. You would typicaly get the id from {@link xViewer#event:pick pick event} or similar event.
+* @param {Number} id - Id of the product. You would typically get the id from {@link xViewer#event:pick pick event} or similar event.
 */
 xViewer.prototype.getStyle = function (id) {
     this._handles.forEach(function (handle) {
@@ -519,8 +519,8 @@ xViewer.prototype.setCameraPosition = function (coordinates) {
 }
 
 /**
-* This method sets navigation origin to the centroid of specified product's bounding box or to the center of model if no product ID is specified.
-* This method doesn't affect the view itself but it has an impact on navigation. Navigation origin is used as a center for orbiting and it is used
+* This method sets navigation origin to the centroid of specified product's bounding box or to the centre of model if no product ID is specified.
+* This method doesn't affect the view itself but it has an impact on navigation. Navigation origin is used as a centre for orbiting and it is used
 * if you call functions like {@link xViewer.show show()} or {@link xViewer#zoomTo zoomTo()}.
 * @function xViewer#setCameraTarget
 * @param {Number} prodId [optional] Product ID. You can get ID either from semantic structure of the model or from {@link xViewer#event:pick pick event}.
@@ -537,7 +537,7 @@ xViewer.prototype.setCameraTarget = function (prodId) {
 
     //set navigation origin and default distance to the product BBox
     if (typeof (prodId) != 'undefined' && prodId != null) {
-        //get product BBox and set it's center as a navigation origin
+        //get product BBox and set it's centre as a navigation origin
         var bbox = null;
         this._handles.every(function (handle) {
             var map = handle.getProductMap(prodId);
@@ -557,7 +557,7 @@ xViewer.prototype.setCameraTarget = function (prodId) {
     }
         //set navigation origin and default distance to the most populated region from the first model
     else {
-        //get region extent and set it's center as a navigation origin
+        //get region extent and set it's centre as a navigation origin
         var handle = this._handles[0];
         if (handle) {
             var region = handle.region
@@ -593,7 +593,7 @@ xViewer.prototype.set = function (settings) {
 * @fires xViewer#loaded
 */
 xViewer.prototype.load = function (model, tag) {
-    if (typeof (model) == 'undefined') throw 'You have to speficy model to load.';
+    if (typeof (model) == 'undefined') throw 'You have to specify model to load.';
     if (typeof(model) != 'string' && !(model instanceof Blob) && !(model instanceof File))
         throw 'Model has to be specified either as a URL to wexBIM file or Blob object representing the wexBIM file.';
     var gl = this._gl;
@@ -657,7 +657,7 @@ xViewer.prototype.load = function (model, tag) {
 };
 
 /**
- * Unloads model from the GPU. This action is not reversable.
+ * Unloads model from the GPU. This action is not reversible.
  * 
  * @param {Number} modelId - ID of the model which you can get from {@link xViewer#event:loaded loaded} event.
  */
@@ -1164,7 +1164,7 @@ xViewer.prototype.getCameraPosition = function () {
 * Use this method to zoom to specified element. If you don't specify a product ID it will zoom to full extent.
 * @function xViewer#zoomTo
 * @param {Number} [id] Product ID
-* @return {Bool} True if target exists and zoom was successfull, False otherwise
+* @return {Bool} True if target exists and zoom was successful, False otherwise
 */
 xViewer.prototype.zoomTo = function (id) {
     var found = this.setCameraTarget(id);
@@ -1281,7 +1281,7 @@ xViewer.prototype._getID = function (x, y) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
 
-    // attach renderebuffer and texture
+    // attach renderbuffer and texture
     gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderBuffer);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
 
@@ -1442,7 +1442,7 @@ xViewer.prototype.on = function (eventName, callback) {
 };
 
 /**
-* Use this method to unregisted handlers from events. You can add event handlers by calling the {@link xViewer#on on()} method.
+* Use this method to unregister handlers from events. You can add event handlers by calling the {@link xViewer#on on()} method.
 *
 * @function xViewer#off
 * @param {String} eventName - Name of the event
@@ -1574,7 +1574,7 @@ xViewer.prototype.getClip = function () {
 *
 * @function xViewer#clip
 * @param {Number[]} [point] - point in clipping plane
-* @param {Number[]} [normal] - normal pointing to the halfspace which will be hidden
+* @param {Number[]} [normal] - normal pointing to the half space which will be hidden
 * @fires xViewer#clipped
 */
 xViewer.prototype.clip = function (point, normal) {
