@@ -277,7 +277,7 @@ xModelHandle.prototype._bufferTexture = function (pointer, data, arity) {
     gl.bindTexture(gl.TEXTURE_2D, pointer);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false); //this is our convention
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);  //this should preserve values of alpha
-    gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);  //this should preserve values of colours
+    gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, 0);  //this should preserve values of colours
 
     if (fp) {
         //create new data buffer and fill it in with data

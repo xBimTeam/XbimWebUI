@@ -1,6 +1,6 @@
 
 
-/* Copyright (c) 2014, xBIM Team, Northumbria University. All rights reserved.
+/* Copyright (c) 2016, xBIM Team, Northumbria University. All rights reserved.
 
 This javascript library is part of xBIM project. It is provided under the same 
 Common Development and Distribution License (CDDL) as the xBIM Toolkit. For 
@@ -89,6 +89,8 @@ xBinaryReader.prototype.load = function (source) {
 };
 
 xBinaryReader.prototype.getIsEOF = function (type, count) {
+    if (typeof (this._position) === "undefined")
+        throw "Position is not defined";
     return this._position == this._buffer.byteLength;
 };
 
@@ -102,18 +104,6 @@ xBinaryReader.prototype.read = function (arity, count, ctor) {
     return count === 1 ?
         new ctor(this._buffer.slice(offset, offset + length))[0] :
         new ctor(this._buffer.slice(offset, offset + length));
-
-    /*The following code should also work and it should be more efficient as only a view on 
-    the underlying memory is created where data is properly alligned. But it seems like
-    underlying memory buffer is released even if other arrays are in fact a view of a part of it. This creates 
-    undefined values. It become visible as a wrong transformation of some of the mapped shapes*/
-
-    //if (offset % arity === 0) { //use just a view if the offset is multipliable by arity
-    //    result = new ctor(this._buffer, offset, count);
-    //} else { //slice part of the buffer to get the right size
-    //    result = new ctor(this._buffer.slice(offset, offset + length));
-    //}
-    //return count === 1 ?  result[0] : result;
 };
 
 xBinaryReader.prototype.readByte = function (count) {
@@ -158,7 +148,7 @@ xBinaryReader.prototype.readPoint = function (count) {
     var result = new Array(count);
     for (var i = 0; i < count; i++) {
         var offset = i * 3 * 4;
-        //only create new view on the buffer so that no new memmory is allocated
+        //only create new view on the buffer so that no new memory is allocated
         var point = new Float32Array(coords.buffer, offset, 3);
         result[i] = point;
     }
@@ -259,7 +249,7 @@ xModelGeometry.prototype.parse = function (binReader) {
         if (count == 0) return 0;
         var byteLength = count * arity;
         var imgSide = Math.ceil(Math.sqrt(byteLength / 4));
-        //clamp to arity
+        //clamp to parity
         while ((imgSide * 4) % arity != 0) {
             imgSide++
         }
@@ -732,7 +722,7 @@ xModelHandle.prototype._bufferTexture = function (pointer, data, arity) {
     gl.bindTexture(gl.TEXTURE_2D, pointer);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false); //this is our convention
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);  //this should preserve values of alpha
-    gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);  //this should preserve values of colours
+    gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, 0);  //this should preserve values of colours
 
     if (fp) {
         //create new data buffer and fill it in with data
@@ -885,78 +875,183 @@ var xProductInheritance = { name: "IfcProduct", id: 20, abs: true, children: [{ 
 * @enum {number}
 */
 var xProductType = {
-        IFCDISTRIBUTIONELEMENT: 44,
-        IFCDISTRIBUTIONFLOWELEMENT: 45,
-        IFCFLOWCONTROLLER: 121,
-        IFCELECTRICDISTRIBUTIONPOINT: 242,
-        IFCDISTRIBUTIONCONTROLELEMENT: 468,
-        IFCDISTRIBUTIONPORT: 178,
-        IFCENERGYCONVERSIONDEVICE: 175,
-        IFCFLOWFITTING: 467,
-        IFCFLOWMOVINGDEVICE: 502,
-        IFCFLOWSEGMENT: 574,
-        IFCFLOWSTORAGEDEVICE: 371,
-        IFCFLOWTERMINAL: 46,
-        IFCFLOWTREATMENTDEVICE: 425,
-        IFCCHAMFEREDGEFEATURE: 765,
-        IFCDISCRETEACCESSORY: 423,
-        IFCFASTENER: 535,
-        IFCMECHANICALFASTENER: 536,
-        IFCROUNDEDEDGEFEATURE: 766,
-        IFCSTRUCTURALCURVECONNECTION: 534,
-        IFCSTRUCTURALCURVEMEMBER: 224,
-        IFCSTRUCTURALCURVEMEMBERVARYING: 227,
-        IFCSTRUCTURALLINEARACTION: 463,
-        IFCSTRUCTURALLINEARACTIONVARYING: 464,
-        IFCSTRUCTURALPLANARACTION: 39,
-        IFCSTRUCTURALPLANARACTIONVARYING: 357,
-        IFCSTRUCTURALPOINTACTION: 356,
-        IFCSTRUCTURALPOINTCONNECTION: 533,
-        IFCSTRUCTURALPOINTREACTION: 354,
-        IFCSTRUCTURALSURFACECONNECTION: 264,
-        IFCSTRUCTURALSURFACEMEMBER: 420,
-        IFCSTRUCTURALSURFACEMEMBERVARYING: 421,
-        IFCFOOTING: 120,
-        IFCPILE: 572,
-        IFCREINFORCINGBAR: 571,
-        IFCREINFORCINGMESH: 531,
-        IFCTENDON: 261,
-        IFCTENDONANCHOR: 675,
-        IFCSTAIRFLIGHT: 25,
-        IFCBUILDINGELEMENTPART: 220,
-        IFCANNOTATION: 634,
-        IFCBUILDINGSTOREY: 459,
-        IFCGRID: 564,
-        IFCOPENINGELEMENT: 498,
-        IFCPROJECTIONELEMENT: 384,
-        IFCBEAM: 171,
-        IFCBUILDING: 169,
-        IFCBUILDINGELEMENTPROXY: 560,
-        IFCCOLUMN: 383,
-        IFCCOVERING: 382,
-        IFCCURTAINWALL: 456,
-        IFCDOOR: 213,
-        IFCELECTRICALELEMENT: 23,
-        IFCELEMENTASSEMBLY: 18,
-        IFCEQUIPMENTELEMENT: 212,
-        IFCFURNISHINGELEMENT: 253,
-        IFCMEMBER: 310,
-        IFCPLATE: 351,
-        IFCRAILING: 350,
-        IFCSITE: 349,
-        IFCSPACE: 454,
-        IFCTRANSPORTELEMENT: 416,
-        IFCVIRTUALELEMENT: 168,
-        IFCRAMP: 414,
-        IFCRAMPFLIGHT: 348,
-        IFCROOF: 347,
-        IFCSLAB: 99,
-        IFCSTAIR: 346,
-        IFCWALL: 452,
-        IFCWALLSTANDARDCASE: 453,
-        IFCWINDOW: 667,
-        IFCPROXY: 447
-};/*
+
+    IFCDISTRIBUTIONELEMENT: 44,
+    IFCDISTRIBUTIONFLOWELEMENT: 45,
+    IFCDISTRIBUTIONCHAMBERELEMENT: 180,
+    IFCENERGYCONVERSIONDEVICE: 175,
+    IFCAIRTOAIRHEATRECOVERY: 1097,
+    IFCBOILER: 1105,
+    IFCBURNER: 1109,
+    IFCCHILLER: 1119,
+    IFCCOIL: 1124,
+    IFCCONDENSER: 1132,
+    IFCCOOLEDBEAM: 1141,
+    IFCCOOLINGTOWER: 1142,
+    IFCENGINE: 1164,
+    IFCEVAPORATIVECOOLER: 1166,
+    IFCEVAPORATOR: 1167,
+    IFCHEATEXCHANGER: 1187,
+    IFCHUMIDIFIER: 1188,
+    IFCTUBEBUNDLE: 1305,
+    IFCUNITARYEQUIPMENT: 1310,
+    IFCELECTRICGENERATOR: 1160,
+    IFCELECTRICMOTOR: 1161,
+    IFCMOTORCONNECTION: 1216,
+    IFCSOLARDEVICE: 1270,
+    IFCTRANSFORMER: 1303,
+    IFCFLOWCONTROLLER: 121,
+    IFCELECTRICDISTRIBUTIONPOINT: 242,
+    IFCAIRTERMINALBOX: 1096,
+    IFCDAMPER: 1148,
+    IFCFLOWMETER: 1182,
+    IFCVALVE: 1311,
+    IFCELECTRICDISTRIBUTIONBOARD: 1157,
+    IFCELECTRICTIMECONTROL: 1162,
+    IFCPROTECTIVEDEVICE: 1235,
+    IFCSWITCHINGDEVICE: 1290,
+    IFCFLOWFITTING: 467,
+    IFCDUCTFITTING: 1153,
+    IFCPIPEFITTING: 1222,
+    IFCCABLECARRIERFITTING: 1111,
+    IFCCABLEFITTING: 1113,
+    IFCJUNCTIONBOX: 1195,
+    IFCFLOWMOVINGDEVICE: 502,
+    IFCCOMPRESSOR: 1131,
+    IFCFAN: 1177,
+    IFCPUMP: 1238,
+    IFCFLOWSEGMENT: 574,
+    IFCDUCTSEGMENT: 1154,
+    IFCPIPESEGMENT: 1223,
+    IFCCABLECARRIERSEGMENT: 1112,
+    IFCCABLESEGMENT: 1115,
+    IFCFLOWSTORAGEDEVICE: 371,
+    IFCTANK: 1293,
+    IFCELECTRICFLOWSTORAGEDEVICE: 1159,
+    IFCFLOWTERMINAL: 46,
+    IFCFIRESUPPRESSIONTERMINAL: 1179,
+    IFCSANITARYTERMINAL: 1262,
+    IFCSTACKTERMINAL: 1277,
+    IFCWASTETERMINAL: 1315,
+    IFCAIRTERMINAL: 1095,
+    IFCMEDICALDEVICE: 1212,
+    IFCSPACEHEATER: 1272,
+    IFCAUDIOVISUALAPPLIANCE: 1099,
+    IFCCOMMUNICATIONSAPPLIANCE: 1127,
+    IFCELECTRICAPPLIANCE: 1156,
+    IFCLAMP: 1198,
+    IFCLIGHTFIXTURE: 1199,
+    IFCOUTLET: 1219,
+    IFCFLOWTREATMENTDEVICE: 425,
+    IFCINTERCEPTOR: 1193,
+    IFCDUCTSILENCER: 1155,
+    IFCFILTER: 1178,
+    IFCDISTRIBUTIONCONTROLELEMENT: 468,
+    IFCPROTECTIVEDEVICETRIPPINGUNIT: 1236,
+    IFCACTUATOR: 1091,
+    IFCALARM: 1098,
+    IFCCONTROLLER: 1139,
+    IFCFLOWINSTRUMENT: 1181,
+    IFCSENSOR: 1264,
+    IFCUNITARYCONTROLELEMENT: 1308,
+    IFCDISCRETEACCESSORY: 423,
+    IFCFASTENER: 535,
+    IFCMECHANICALFASTENER: 536,
+    IFCREINFORCINGBAR: 571,
+    IFCREINFORCINGMESH: 531,
+    IFCTENDON: 261,
+    IFCTENDONANCHOR: 675,
+    IFCBUILDINGELEMENTPART: 220,
+    IFCMECHANICALFASTENER: 536,
+    IFCVIBRATIONISOLATOR: 1312,
+    IFCCHAMFEREDGEFEATURE: 765,
+    IFCROUNDEDEDGEFEATURE: 766,
+    IFCOPENINGELEMENT: 498,
+    IFCOPENINGSTANDARDCASE: 1217,
+    IFCVOIDINGFEATURE: 1313,
+    IFCPROJECTIONELEMENT: 384,
+    IFCSURFACEFEATURE: 1287,
+    IFCBUILDINGELEMENTPART: 220,
+    IFCREINFORCINGBAR: 571,
+    IFCREINFORCINGMESH: 531,
+    IFCTENDON: 261,
+    IFCTENDONANCHOR: 675,
+    IFCFOOTING: 120,
+    IFCPILE: 572,
+    IFCBEAM: 171,
+    IFCBEAMSTANDARDCASE: 1104,
+    IFCCOLUMN: 383,
+    IFCCOLUMNSTANDARDCASE: 1126,
+    IFCCURTAINWALL: 456,
+    IFCDOOR: 213,
+    IFCDOORSTANDARDCASE: 1151,
+    IFCMEMBER: 310,
+    IFCMEMBERSTANDARDCASE: 1214,
+    IFCPLATE: 351,
+    IFCPLATESTANDARDCASE: 1224,
+    IFCRAILING: 350,
+    IFCRAMP: 414,
+    IFCRAMPFLIGHT: 348,
+    IFCROOF: 347,
+    IFCSLAB: 99,
+    IFCSLABELEMENTEDCASE: 1268,
+    IFCSLABSTANDARDCASE: 1269,
+    IFCSTAIR: 346,
+    IFCSTAIRFLIGHT: 25,
+    IFCWALL: 452,
+    IFCWALLSTANDARDCASE: 453,
+    IFCWALLELEMENTEDCASE: 1314,
+    IFCWINDOW: 667,
+    IFCWINDOWSTANDARDCASE: 1316,
+    IFCBUILDINGELEMENTPROXY: 560,
+    IFCCOVERING: 382,
+    IFCCHIMNEY: 1120,
+    IFCSHADINGDEVICE: 1265,
+    IFCELEMENTASSEMBLY: 18,
+    IFCFURNISHINGELEMENT: 253,
+    IFCFURNITURE: 1184,
+    IFCSYSTEMFURNITUREELEMENT: 1291,
+    IFCTRANSPORTELEMENT: 416,
+    IFCVIRTUALELEMENT: 168,
+    IFCELECTRICALELEMENT: 23,
+    IFCEQUIPMENTELEMENT: 212,
+    IFCCIVILELEMENT: 1122,
+    IFCGEOGRAPHICELEMENT: 1185,
+    IFCDISTRIBUTIONPORT: 178,
+    IFCPROXY: 447,
+    IFCSTRUCTURALLINEARACTION: 463,
+    IFCSTRUCTURALLINEARACTIONVARYING: 464,
+    IFCSTRUCTURALPLANARACTION: 39,
+    IFCSTRUCTURALPLANARACTIONVARYING: 357,
+    IFCSTRUCTURALPOINTACTION: 356,
+    IFCSTRUCTURALCURVEACTION: 1279,
+    IFCSTRUCTURALLINEARACTION: 463,
+    IFCSTRUCTURALSURFACEACTION: 1284,
+    IFCSTRUCTURALPLANARACTION: 39,
+    IFCSTRUCTURALPOINTREACTION: 354,
+    IFCSTRUCTURALCURVEREACTION: 1280,
+    IFCSTRUCTURALSURFACEREACTION: 1285,
+    IFCSTRUCTURALCURVECONNECTION: 534,
+    IFCSTRUCTURALPOINTCONNECTION: 533,
+    IFCSTRUCTURALSURFACECONNECTION: 264,
+    IFCSTRUCTURALCURVEMEMBER: 224,
+    IFCSTRUCTURALCURVEMEMBERVARYING: 227,
+    IFCSTRUCTURALSURFACEMEMBER: 420,
+    IFCSTRUCTURALSURFACEMEMBERVARYING: 421,
+    IFCANNOTATION: 634,
+    IFCBUILDING: 169,
+    IFCBUILDINGSTOREY: 459,
+    IFCSITE: 349,
+    IFCSPACE: 454,
+    IFCGRID: 564,
+    IFCBUILDING: 169,
+    IFCBUILDINGSTOREY: 459,
+    IFCSITE: 349,
+    IFCSPACE: 454,
+    IFCEXTERNALSPATIALELEMENT: 1174,
+    IFCSPATIALZONE: 1275
+};
+/*
 * This file has been generated by spacker.exe utility. Do not change this file manualy as your changes
 * will get lost when the file is regenerated. Original content is located in *.c files.
 */
@@ -1073,7 +1168,7 @@ xTriangulatedShape.prototype.onloaded = function () { };
 * @name xViewer
 * @constructor
 * @classdesc This is the main and the only class you need to load and render IFC models in wexBIM format. This viewer is part of
-* xBIM toolkit which can be used to create wexBIM files from IFC, ifcZIP and ifcXML. WexBIM files are highly optimalized for
+* xBIM toolkit which can be used to create wexBIM files from IFC, ifcZIP and ifcXML. WexBIM files are highly optimized for
 * transmition over internet and rendering performance. Viewer uses WebGL technology for hardware accelerated 3D rendering and SVG for
 * certain kinds of user interaction. This means that it won't work with obsolete and non-standard-compliant browsers like IE10 and less.
 *
@@ -1144,18 +1239,18 @@ function xViewer(canvas) {
     };
 
     /**
-    * Type of camera to be used. Available values are <strong>'perspective'</strong> and <strong>'orthogonal'</strong> You can change this value at any time with instant efect.
+    * Type of camera to be used. Available values are <strong>'perspective'</strong> and <strong>'orthogonal'</strong> You can change this value at any time with instant effect.
     * @member {string} xViewer#camera
     */
     this.camera = 'perspective';
 
     /**
-    * Array of four integers between 0 and 255 representing RGBA colour components. This defines background colour of the viewer. You can change this value at any time with instant efect.
+    * Array of four integers between 0 and 255 representing RGBA colour components. This defines background colour of the viewer. You can change this value at any time with instant effect.
     * @member {Number[]} xViewer#background
     */
     this.background = [230, 230, 230, 255];
     /**
-    * Array of four integers between 0 and 255 representing RGBA colour components. This defines colour for highlighted elements. You can change this value at any time with instant efect.
+    * Array of four integers between 0 and 255 representing RGBA colour components. This defines colour for highlighted elements. You can change this value at any time with instant effect.
     * @member {Number[]} xViewer#highlightingColour
     */
     this.highlightingColour = [255, 173, 33, 255];
@@ -1171,7 +1266,7 @@ function xViewer(canvas) {
     this.lightB = [0, -500000, 50000, 0.2];
 
     /**
-    * Switch between different navidation modes for left mouse button. Allowed values: <strong> 'pan', 'zoom', 'orbit' (or 'fixed-orbit') , 'free-orbit' and 'none'</strong>. Default value is <strong>'orbit'</strong>;
+    * Switch between different navigation modes for left mouse button. Allowed values: <strong> 'pan', 'zoom', 'orbit' (or 'fixed-orbit') , 'free-orbit' and 'none'</strong>. Default value is <strong>'orbit'</strong>;
     * @member {String} xViewer#navigationMode
     */
     this.navigationMode = 'orbit';
@@ -1179,7 +1274,7 @@ function xViewer(canvas) {
     /**
     * Switch between different rendering modes. Allowed values: <strong> 'normal', 'x-ray'</strong>. Default value is <strong>'normal'</strong>;
     * Only products with state set to state.HIGHLIGHTED or xState.XRAYVISIBLE will be rendered highlighted or in a normal colours. All other products
-    * will be rendered semitransparent and singlesided.
+    * will be rendered semi-transparent and single sided.
     * @member {String} xViewer#renderingMode
     */
     this.renderingMode = 'normal';
@@ -1213,13 +1308,13 @@ function xViewer(canvas) {
 
     //set up DEPTH_TEST and BLEND so that transparent objects look right
     //this is not 100% perfect as it would be necessary to sort all objects from back to
-    //front when rendering them. We have sacrified this for the sake of performance.
-    //Objects with no transparency in their default style are drawn first and semitransparent last.
+    //front when rendering them. We have sacrificed this for the sake of performance.
+    //Objects with no transparency in their default style are drawn first and semi-transparent last.
     //This gives 90% right when there is not too much of transparency. It may not look right if you
     //have a look through two windows or if you have a look from inside of the building out.
     //It is granted to be alright when looking from outside of the building inside through one
-    //semitransparent object like curtain wall panel or window which is the case most of the time.
-    //This is known limitation but there is no plan to change this behavior.
+    //semi-transparent object like curtain wall panel or window which is the case most of the time.
+    //This is known limitation but there is no plan to change this behaviour.
     gl.enable(gl.DEPTH_TEST);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     gl.enable(gl.BLEND);
@@ -1230,7 +1325,7 @@ function xViewer(canvas) {
     this._height = this._canvas.height = this._canvas.offsetHeight;
 
     this._geometryLoaded = false;
-    //number of active models is used to indicate that ste state has changed
+    //number of active models is used to indicate that state has changed
     this._numberOfActiveModels = 0;
     //this object is used to identify if anything changed before two frames (hence if it is necessary to redraw)
     this._lastStates = {};
@@ -1242,7 +1337,7 @@ function xViewer(canvas) {
     this._userAction = true;
 
     //dictionary of named events which can be registered and unregistered by using '.on('eventname', callback)'
-    // and '.off('eventname', callback)'. Registered callbacks are triggered by the viewer when important events occure.
+    // and '.off('eventname', callback)'. Registered call-backs are triggered by the viewer when important events occur.
     this._events = {};
 
     //array of plugins which can implement certain methods which get called at certain points like before draw, after draw and others.
@@ -1280,34 +1375,34 @@ function xViewer(canvas) {
     //This is a switch which can stop animation.
     this._isRunning = true;
 
-    //********************** Run all the init functions *****************************
+    //********************** Run all the initialize functions *****************************
     //compile shaders for use
     this._initShaders();
-    //init vertex attribute and uniform pointers
+    //initialize vertex attribute and uniform pointers
     this._initAttributesAndUniforms();
-    //init mouse events to capture user interaction
+    //initialize mouse events to capture user interaction
     this._initMouseEvents();
 };
 
 /**
 * This is a static function which should always be called before xViewer is instantiated.
-* It will check all prerequisities of the viewer and will report all issues. If Prerequisities.errors contain
+* It will check all prerequisites of the viewer and will report all issues. If Prerequisities.errors contain
 * any messages viewer won't work. If Prerequisities.warnings contain any messages it will work but some
-* functions may be restricted or may not work or it may have poor erformance.
+* functions may be restricted or may not work or it may have poor performance.
 * @function xViewer.check
-* @return {Prerequisities}
+* @return {Prerequisites}
 */
 xViewer.check = function () {
     /**
-    * This is a structure reporting errors and warnings about prerequisities of {@link xViewer xViewer}. It is result of {@link xViewer.checkPrerequisities checkPrerequisities()} static method.
+    * This is a structure reporting errors and warnings about prerequisites of {@link xViewer xViewer}. It is result of {@link xViewer.checkPrerequisities checkPrerequisities()} static method.
     *
-    * @name Prerequisities
+    * @name Prerequisites
     * @class
     */
     var result = {
         /**
         * If this array contains any warnings xViewer will work but it might be slow or may not support full functionality.
-        * @member {string[]}  Prerequisities#warnings
+        * @member {string[]}  Prerequisites#warnings
         */
         warnings: [],
         /**
@@ -1315,20 +1410,20 @@ xViewer.check = function () {
         * You can use messages in this array to report problems to user. However, user won't probably 
         * be able to do to much with it except trying to use different browser. IE10- are not supported for example. 
         * The latest version of IE should be all right.
-        * @member {string[]}  Prerequisities#errors
+        * @member {string[]}  Prerequisites#errors
         */
         errors: [],
         /**
         * If false xViewer won't work at all or won't work as expected. 
-        * You can use messages in {@link Prerequisities#errors errors array} to report problems to user. However, user won't probably 
+        * You can use messages in {@link Prerequisites#errors errors array} to report problems to user. However, user won't probably 
         * be able to do to much with it except trying to use different browser. IE10- are not supported for example. 
         * The latest version of IE should be all right.
-        * @member {string[]}  Prerequisities#noErrors
+        * @member {string[]}  Prerequisites#noErrors
         */
         noErrors: false,
         /**
-        * If false xViewer will work but it might be slow or may not support full functionality. Use {@link Prerequisities#warnings warnings array} to report problems.
-        * @member {string[]}  Prerequisities#noWarnings
+        * If false xViewer will work but it might be slow or may not support full functionality. Use {@link Prerequisites#warnings warnings array} to report problems.
+        * @member {string[]}  Prerequisites#noWarnings
         */
         noWarnings: false
     };
@@ -1440,7 +1535,7 @@ xViewer.prototype.setState = function (state, target) {
 * with one of values from {@link xState xState} enumeration. 0xFF is the default value.
 *
 * @function xViewer#getState
-* @param {Number} id - Id of the product. You would typicaly get the id from {@link xViewer#event:pick pick event} or similar event.
+* @param {Number} id - Id of the product. You would typically get the id from {@link xViewer#event:pick pick event} or similar event.
 */
 xViewer.prototype.getState = function (id) {
     var state = null;
@@ -1536,7 +1631,7 @@ xViewer.prototype.setStyle = function (style, target) {
 * your custom colour which you have defined in {@link xViewer#defineStyle defineStyle()} function. 0xFF is the default value.
 *
 * @function xViewer#getStyle
-* @param {Number} id - Id of the product. You would typicaly get the id from {@link xViewer#event:pick pick event} or similar event.
+* @param {Number} id - Id of the product. You would typically get the id from {@link xViewer#event:pick pick event} or similar event.
 */
 xViewer.prototype.getStyle = function (id) {
     this._handles.forEach(function (handle) {
@@ -1587,8 +1682,8 @@ xViewer.prototype.setCameraPosition = function (coordinates) {
 }
 
 /**
-* This method sets navigation origin to the centroid of specified product's bounding box or to the center of model if no product ID is specified.
-* This method doesn't affect the view itself but it has an impact on navigation. Navigation origin is used as a center for orbiting and it is used
+* This method sets navigation origin to the centroid of specified product's bounding box or to the centre of model if no product ID is specified.
+* This method doesn't affect the view itself but it has an impact on navigation. Navigation origin is used as a centre for orbiting and it is used
 * if you call functions like {@link xViewer.show show()} or {@link xViewer#zoomTo zoomTo()}.
 * @function xViewer#setCameraTarget
 * @param {Number} prodId [optional] Product ID. You can get ID either from semantic structure of the model or from {@link xViewer#event:pick pick event}.
@@ -1605,7 +1700,7 @@ xViewer.prototype.setCameraTarget = function (prodId) {
 
     //set navigation origin and default distance to the product BBox
     if (typeof (prodId) != 'undefined' && prodId != null) {
-        //get product BBox and set it's center as a navigation origin
+        //get product BBox and set it's centre as a navigation origin
         var bbox = null;
         this._handles.every(function (handle) {
             var map = handle.getProductMap(prodId);
@@ -1625,7 +1720,7 @@ xViewer.prototype.setCameraTarget = function (prodId) {
     }
         //set navigation origin and default distance to the most populated region from the first model
     else {
-        //get region extent and set it's center as a navigation origin
+        //get region extent and set it's centre as a navigation origin
         var handle = this._handles[0];
         if (handle) {
             var region = handle.region
@@ -1661,62 +1756,14 @@ xViewer.prototype.set = function (settings) {
 * @fires xViewer#loaded
 */
 xViewer.prototype.load = function (model, tag) {
-    if (typeof (model) == 'undefined') throw 'You have to speficy model to load.';
+    if (typeof (model) == 'undefined') throw 'You have to specify model to load.';
     if (typeof(model) != 'string' && !(model instanceof Blob) && !(model instanceof File))
         throw 'Model has to be specified either as a URL to wexBIM file or Blob object representing the wexBIM file.';
-    var gl = this._gl;
     var viewer = this;
 
     var geometry = new xModelGeometry();
     geometry.onloaded = function () {
-        var handle = new xModelHandle(viewer._gl, geometry, viewer._fpt != null);
-        viewer._handles.push(handle);
-
-        handle.stateStyle = viewer._stateStyles;
-        handle.feedGPU();
-
-        //get one meter size from model and set it to shader
-        var meter = handle._model.meter;
-        gl.uniform1f(viewer._meterUniformPointer, meter);
-
-        //only set camera parameters and the view if this is the first model
-        if (viewer._handles.length === 1) {
-            //set centre and default distance based on the most populated region in the model
-            viewer.setCameraTarget();
-
-            //set perspective camera near and far based on 1 meter dimension and size of the model
-            var region = handle.region;
-            var maxSize = Math.max(region.bbox[3], region.bbox[4], region.bbox[5]);
-            viewer.perspectiveCamera.far = maxSize * 50;
-            viewer.perspectiveCamera.near = meter / 10.0;
-
-            //set orthogonalCamera boundaries so that it makes a sense
-            viewer.orthogonalCamera.far = viewer.perspectiveCamera.far;
-            viewer.orthogonalCamera.near = viewer.perspectiveCamera.near;
-            var ratio = 1.8;
-            viewer.orthogonalCamera.top = maxSize / ratio;
-            viewer.orthogonalCamera.bottom = maxSize / ratio * -1;
-            viewer.orthogonalCamera.left = maxSize / ratio * -1 * viewer._width / viewer._height;
-            viewer.orthogonalCamera.right = maxSize / ratio * viewer._width / viewer._height;
-
-            //set default view
-            viewer.setCameraTarget();
-            var dist = Math.sqrt(viewer._distance * viewer._distance / 3.0);
-            viewer.setCameraPosition([region.centre[0] + dist * -1.0, region.centre[1] + dist * -1.0, region.centre[2] + dist]);
-        }
-
-        /**
-         * Occurs when geometry model is loaded into the viewer. This event returns object containing ID of the model.
-         * This ID can later be used to unload or temporarily stop the model.
-         * 
-         * @event xViewer#loaded
-         * @type {object}
-         * @param {Number} id - model ID
-         * @param {Any} tag - tag which was passed to 'xViewer.load()' function
-         * 
-        */
-        viewer._fire('loaded', {id: handle.id, tag: tag})
-        viewer._geometryLoaded = true;
+        viewer._addHandle(geometry, tag);
     };
     geometry.onerror = function (msg) {
         viewer._error(msg);
@@ -1724,8 +1771,64 @@ xViewer.prototype.load = function (model, tag) {
     geometry.load(model);
 };
 
+//this is a private function used to add loaded geometry as a new handle and to set up camera and 
+//default view if this is the first geometry loaded
+xViewer.prototype._addHandle = function (geometry, tag) {
+    var viewer = this;
+    var gl = this._gl;
+
+    var handle = new xModelHandle(viewer._gl, geometry, viewer._fpt != null);
+    viewer._handles.push(handle);
+
+    handle.stateStyle = viewer._stateStyles;
+    handle.feedGPU();
+
+    //get one meter size from model and set it to shader
+    var meter = handle._model.meter;
+    gl.uniform1f(viewer._meterUniformPointer, meter);
+
+    //only set camera parameters and the view if this is the first model
+    if (viewer._handles.length === 1) {
+        //set centre and default distance based on the most populated region in the model
+        viewer.setCameraTarget();
+
+        //set perspective camera near and far based on 1 meter dimension and size of the model
+        var region = handle.region;
+        var maxSize = Math.max(region.bbox[3], region.bbox[4], region.bbox[5]);
+        viewer.perspectiveCamera.far = maxSize * 50;
+        viewer.perspectiveCamera.near = meter / 10.0;
+
+        //set orthogonalCamera boundaries so that it makes a sense
+        viewer.orthogonalCamera.far = viewer.perspectiveCamera.far;
+        viewer.orthogonalCamera.near = viewer.perspectiveCamera.near;
+        var ratio = 1.8;
+        viewer.orthogonalCamera.top = maxSize / ratio;
+        viewer.orthogonalCamera.bottom = maxSize / ratio * -1;
+        viewer.orthogonalCamera.left = maxSize / ratio * -1 * viewer._width / viewer._height;
+        viewer.orthogonalCamera.right = maxSize / ratio * viewer._width / viewer._height;
+
+        //set default view
+        viewer.setCameraTarget();
+        var dist = Math.sqrt(viewer._distance * viewer._distance / 3.0);
+        viewer.setCameraPosition([region.centre[0] + dist * -1.0, region.centre[1] + dist * -1.0, region.centre[2] + dist]);
+    }
+
+    /**
+     * Occurs when geometry model is loaded into the viewer. This event returns object containing ID of the model.
+     * This ID can later be used to unload or temporarily stop the model.
+     * 
+     * @event xViewer#loaded
+     * @type {object}
+     * @param {Number} id - model ID
+     * @param {Any} tag - tag which was passed to 'xViewer.load()' function
+     * 
+    */
+    viewer._fire('loaded', { id: handle.id, tag: tag })
+    viewer._geometryLoaded = true;
+};
+
 /**
- * Unloads model from the GPU. This action is not reversable.
+ * Unloads model from the GPU. This action is not reversible.
  * 
  * @param {Number} modelId - ID of the model which you can get from {@link xViewer#event:loaded loaded} event.
  */
@@ -2232,7 +2335,7 @@ xViewer.prototype.getCameraPosition = function () {
 * Use this method to zoom to specified element. If you don't specify a product ID it will zoom to full extent.
 * @function xViewer#zoomTo
 * @param {Number} [id] Product ID
-* @return {Bool} True if target exists and zoom was successfull, False otherwise
+* @return {Bool} True if target exists and zoom was successful, False otherwise
 */
 xViewer.prototype.zoomTo = function (id) {
     var found = this.setCameraTarget(id);
@@ -2349,7 +2452,7 @@ xViewer.prototype._getID = function (x, y) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
 
-    // attach renderebuffer and texture
+    // attach renderbuffer and texture
     gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderBuffer);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
 
@@ -2510,7 +2613,7 @@ xViewer.prototype.on = function (eventName, callback) {
 };
 
 /**
-* Use this method to unregisted handlers from events. You can add event handlers by calling the {@link xViewer#on on()} method.
+* Use this method to unregister handlers from events. You can add event handlers by calling the {@link xViewer#on on()} method.
 *
 * @function xViewer#off
 * @param {String} eventName - Name of the event
@@ -2642,7 +2745,7 @@ xViewer.prototype.getClip = function () {
 *
 * @function xViewer#clip
 * @param {Number[]} [point] - point in clipping plane
-* @param {Number[]} [normal] - normal pointing to the halfspace which will be hidden
+* @param {Number[]} [normal] - normal pointing to the half space which will be hidden
 * @fires xViewer#clipped
 */
 xViewer.prototype.clip = function (point, normal) {

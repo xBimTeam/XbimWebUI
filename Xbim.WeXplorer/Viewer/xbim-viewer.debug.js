@@ -596,64 +596,72 @@ xViewer.prototype.load = function (model, tag) {
     if (typeof (model) == 'undefined') throw 'You have to specify model to load.';
     if (typeof(model) != 'string' && !(model instanceof Blob) && !(model instanceof File))
         throw 'Model has to be specified either as a URL to wexBIM file or Blob object representing the wexBIM file.';
-    var gl = this._gl;
     var viewer = this;
 
     var geometry = new xModelGeometry();
     geometry.onloaded = function () {
-        var handle = new xModelHandle(viewer._gl, geometry, viewer._fpt != null);
-        viewer._handles.push(handle);
-
-        handle.stateStyle = viewer._stateStyles;
-        handle.feedGPU();
-
-        //get one meter size from model and set it to shader
-        var meter = handle._model.meter;
-        gl.uniform1f(viewer._meterUniformPointer, meter);
-
-        //only set camera parameters and the view if this is the first model
-        if (viewer._handles.length === 1) {
-            //set centre and default distance based on the most populated region in the model
-            viewer.setCameraTarget();
-
-            //set perspective camera near and far based on 1 meter dimension and size of the model
-            var region = handle.region;
-            var maxSize = Math.max(region.bbox[3], region.bbox[4], region.bbox[5]);
-            viewer.perspectiveCamera.far = maxSize * 50;
-            viewer.perspectiveCamera.near = meter / 10.0;
-
-            //set orthogonalCamera boundaries so that it makes a sense
-            viewer.orthogonalCamera.far = viewer.perspectiveCamera.far;
-            viewer.orthogonalCamera.near = viewer.perspectiveCamera.near;
-            var ratio = 1.8;
-            viewer.orthogonalCamera.top = maxSize / ratio;
-            viewer.orthogonalCamera.bottom = maxSize / ratio * -1;
-            viewer.orthogonalCamera.left = maxSize / ratio * -1 * viewer._width / viewer._height;
-            viewer.orthogonalCamera.right = maxSize / ratio * viewer._width / viewer._height;
-
-            //set default view
-            viewer.setCameraTarget();
-            var dist = Math.sqrt(viewer._distance * viewer._distance / 3.0);
-            viewer.setCameraPosition([region.centre[0] + dist * -1.0, region.centre[1] + dist * -1.0, region.centre[2] + dist]);
-        }
-
-        /**
-         * Occurs when geometry model is loaded into the viewer. This event returns object containing ID of the model.
-         * This ID can later be used to unload or temporarily stop the model.
-         * 
-         * @event xViewer#loaded
-         * @type {object}
-         * @param {Number} id - model ID
-         * @param {Any} tag - tag which was passed to 'xViewer.load()' function
-         * 
-        */
-        viewer._fire('loaded', {id: handle.id, tag: tag})
-        viewer._geometryLoaded = true;
+        viewer._addHandle(geometry, tag);
     };
     geometry.onerror = function (msg) {
         viewer._error(msg);
     }
     geometry.load(model);
+};
+
+//this is a private function used to add loaded geometry as a new handle and to set up camera and 
+//default view if this is the first geometry loaded
+xViewer.prototype._addHandle = function (geometry, tag) {
+    var viewer = this;
+    var gl = this._gl;
+
+    var handle = new xModelHandle(viewer._gl, geometry, viewer._fpt != null);
+    viewer._handles.push(handle);
+
+    handle.stateStyle = viewer._stateStyles;
+    handle.feedGPU();
+
+    //get one meter size from model and set it to shader
+    var meter = handle._model.meter;
+    gl.uniform1f(viewer._meterUniformPointer, meter);
+
+    //only set camera parameters and the view if this is the first model
+    if (viewer._handles.length === 1) {
+        //set centre and default distance based on the most populated region in the model
+        viewer.setCameraTarget();
+
+        //set perspective camera near and far based on 1 meter dimension and size of the model
+        var region = handle.region;
+        var maxSize = Math.max(region.bbox[3], region.bbox[4], region.bbox[5]);
+        viewer.perspectiveCamera.far = maxSize * 50;
+        viewer.perspectiveCamera.near = meter / 10.0;
+
+        //set orthogonalCamera boundaries so that it makes a sense
+        viewer.orthogonalCamera.far = viewer.perspectiveCamera.far;
+        viewer.orthogonalCamera.near = viewer.perspectiveCamera.near;
+        var ratio = 1.8;
+        viewer.orthogonalCamera.top = maxSize / ratio;
+        viewer.orthogonalCamera.bottom = maxSize / ratio * -1;
+        viewer.orthogonalCamera.left = maxSize / ratio * -1 * viewer._width / viewer._height;
+        viewer.orthogonalCamera.right = maxSize / ratio * viewer._width / viewer._height;
+
+        //set default view
+        viewer.setCameraTarget();
+        var dist = Math.sqrt(viewer._distance * viewer._distance / 3.0);
+        viewer.setCameraPosition([region.centre[0] + dist * -1.0, region.centre[1] + dist * -1.0, region.centre[2] + dist]);
+    }
+
+    /**
+     * Occurs when geometry model is loaded into the viewer. This event returns object containing ID of the model.
+     * This ID can later be used to unload or temporarily stop the model.
+     * 
+     * @event xViewer#loaded
+     * @type {object}
+     * @param {Number} id - model ID
+     * @param {Any} tag - tag which was passed to 'xViewer.load()' function
+     * 
+    */
+    viewer._fire('loaded', { id: handle.id, tag: tag })
+    viewer._geometryLoaded = true;
 };
 
 /**

@@ -73,6 +73,8 @@
     <Content Include="Browser\xbim-visual-templates.debug.js" />
     <Content Include="Build\xbim-browser.js" />
     <Content Include="Build\xbim-browser.min.js" />
+    <Content Include="Build\xbim-loader.debug.js" />
+    <Content Include="Build\xbim-loader.min.js" />
     <Content Include="Build\xbim-navigation-cube.js" />
     <Content Include="Build\xbim-navigation-cube.min.js" />
     <Content Include="Build\xbim-navigation-home.js" />

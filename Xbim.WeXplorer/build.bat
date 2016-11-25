@@ -42,3 +42,16 @@ type Plugins\NavigationHome\*.debug.js >> Build\xbim-navigation-home.js
 type Resources\xbim-disclaimer.txt > Build\xbim-navigation-home.min.js
 type Plugins\NavigationCube\*.debug.js | Utilities\jsmin.exe >> Build\xbim-navigation-home.min.js
 xcopy /y Build\xbim-navigation-home.js Resources\doctemplate\static\scripts
+
+rem Create build file for the loader
+type Resources\xbim-disclaimer.txt > Build\xbim-loader.debug.js
+type Viewer\xbim-binary-reader.debug.js >> Build\xbim-loader.debug.js
+type Viewer\xbim-model-geometry.debug.js >> Build\xbim-loader.debug.js
+type Viewer\xbim-triangulated-shape.debug.js >> Build\xbim-loader.debug.js
+type Viewer\xbim-state.debug.js >> Build\xbim-loader.debug.js
+type Viewer\xbim-product-type.debug.js >> Build\xbim-loader.debug.js
+
+rem Create minified build file for the loader
+type Resources\xbim-disclaimer.txt > Build\xbim-loader.min.js
+type Build\xbim-loader.debug.js | Utilities\jsmin.exe >> Build\xbim-loader.min.js
+

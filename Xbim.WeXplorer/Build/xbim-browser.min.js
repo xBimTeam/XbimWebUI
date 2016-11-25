@@ -1,6 +1,6 @@
 
 
-/* Copyright (c) 2014, xBIM Team, Northumbria University. All rights reserved.
+/* Copyright (c) 2016, xBIM Team, Northumbria University. All rights reserved.
 
 This javascript library is part of xBIM project. It is provided under the same 
 Common Development and Distribution License (CDDL) as the xBIM Toolkit. For 
