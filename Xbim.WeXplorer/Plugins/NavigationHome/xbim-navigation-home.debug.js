@@ -85,7 +85,7 @@ xNavigationHome.prototype.init = function (xviewer) {
     document.documentElement.appendChild(this._image);
 
     //add click event listener
-    image.addEventListener("click", function() {
+    self._image.addEventListener("click", function () {
         var viewer = self._viewer;
         //set target to full extent
         viewer.setCameraTarget();
@@ -99,20 +99,20 @@ xNavigationHome.prototype.init = function (xviewer) {
     });
 
     //set active state styling
-    image.addEventListener("mouseover", function () {
+    self._image.addEventListener("mouseover", function () {
         self._image.style.opacity = self.activeAlpha; //For real browsers;
         self._image.style.filter = "alpha(opacity=" + Math.round(self.activeAlpha * 100.0) + ")"; //For IE;
     });
 
     //set passive state styling
-    image.addEventListener("mouseleave", function () {
+    self._image.addEventListener("mouseleave", function () {
         self._image.style.opacity = self.passiveAlpha; //For real browsers;
         self._image.style.filter = "alpha(opacity=" + Math.round(self.passiveAlpha * 100.0) + ")"; //For IE;
     });
 
     //set initial styling
-    image.style.opacity = this.passiveAlpha; //For real browsers;
-    image.style.filter = "alpha(opacity=" + Math.round(this.passiveAlpha * 100.0) + ")"; //For IE;
+    self._image.style.opacity = this.passiveAlpha; //For real browsers;
+    self._image.style.filter = "alpha(opacity=" + Math.round(this.passiveAlpha * 100.0) + ")"; //For IE;
 }
 
 xNavigationHome.prototype._adjust = function() {
