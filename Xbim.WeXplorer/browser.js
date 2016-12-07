@@ -21,6 +21,14 @@
 
         $("#toolbar button").button();
 
+        $("#btnClip").click(function () {
+            viewer.clip();
+        });
+
+        $("#btnUnclip").click(function () {
+            viewer.unclip();
+        });
+
     }
     function reinitControls() {
         $("#semantic-model").accordion("refresh");
