@@ -20,7 +20,7 @@
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
-    <TypeScriptToolsVersion>1.0</TypeScriptToolsVersion>
+    <TypeScriptToolsVersion>2.0</TypeScriptToolsVersion>
     <UseGlobalApplicationHostFile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -164,6 +164,8 @@
     <Content Include="Resources\doctemplate\static\5_Colourful_building.live.html" />
     <Content Include="tests\data\LakesideRestaurant.json" />
     <Content Include="tests\data\SampleHouse.wexbim" />
+    <Content Include="package.json" />
+    <Content Include="tsconfig.json" />
     <None Include="Tutorials\1_Hello_building.md" />
     <Content Include="Resources\doctemplate\static\scripts\xbim-viewer.debug.bundle.js" />
     <Content Include="simpleviewer.html" />
