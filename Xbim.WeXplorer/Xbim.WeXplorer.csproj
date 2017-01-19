@@ -267,6 +267,17 @@
       <DependentUpon>Web.config</DependentUpon>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <TypeScriptCompile Include="Viewer\xbim-binary-reader.ts" />
+    <TypeScriptCompile Include="Viewer\xbim-model-geometry.ts" />
+    <TypeScriptCompile Include="Viewer\xbim-model-handle.ts" />
+    <TypeScriptCompile Include="Viewer\xbim-product-inheritance.ts" />
+    <TypeScriptCompile Include="Viewer\xbim-product-type.ts" />
+    <TypeScriptCompile Include="Viewer\xbim-shaders.ts" />
+    <TypeScriptCompile Include="Viewer\xbim-state.ts" />
+    <TypeScriptCompile Include="Viewer\xbim-triangulated-shape.ts" />
+    <TypeScriptCompile Include="Viewer\xbim-viewer.ts" />
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
