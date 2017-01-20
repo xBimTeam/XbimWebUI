@@ -237,9 +237,9 @@ export class xViewer {
     public _canvas: HTMLCanvasElement;
     public perspectiveCamera: { fov: number,near: number,far: number };
     public orthogonalCamera: { left: number, right: number, top: number, bottom: number, near: number, far: number }
-    private _width: number;
+    public _width: number;
     private width: number;
-    private _height: number;
+    public _height: number;
     private height: number;
     public _distance: number;
     public camera: 'perspective' | 'orthogonal';
@@ -253,7 +253,7 @@ export class xViewer {
     public highlightingColour: number[];
     public navigationMode: 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none';
     private _userAction: boolean;
-    private _shaderProgram: any;
+    public _shaderProgram: any;
     public _origin: number[];
     public lightA: number[];
     public lightB: number[];
@@ -273,8 +273,8 @@ export class xViewer {
     public renderingMode: 'normal' | 'x-ray';
     public clippingPlane: number[];
     private _lastClippingPoint: number[];
-    private _gl: any;
-    private _mvMatrix: any;
+    public _gl: any;
+    public _mvMatrix: any;
     private _fpt: any;
     private _pMatrix: any;
     private _pointers: any;
