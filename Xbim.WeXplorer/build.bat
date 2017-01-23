@@ -57,3 +57,4 @@ rem Create minified build file for the loader
 type Resources\xbim-disclaimer.txt > Build\xbim-loader.min.js
 type Build\xbim-loader.debug.js | Utilities\jsmin.exe >> Build\xbim-loader.min.js
 
+npm run webpack:browser
