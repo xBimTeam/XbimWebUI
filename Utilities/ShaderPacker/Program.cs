@@ -17,6 +17,11 @@ namespace ShaderPacker
             if (args.Length > 1)
                 output = args[1];
             var minify = args.Contains("-min");
+            var shaderVariableName = "xShaders";
+            if (args.Any(arg => arg.StartsWith("-variable:", StringComparison.InvariantCultureIgnoreCase)))
+            {
+                shaderVariableName = args.First(arg => arg.StartsWith("-variable:", StringComparison.InvariantCultureIgnoreCase)).Substring("-variable:".Length).Trim();
+            }
 
             var shaders = Directory.EnumerateFiles(basePath, "*.c", SearchOption.TopDirectoryOnly).ToArray();
             if (shaders.Length == 0)
@@ -39,15 +44,15 @@ namespace ShaderPacker
             var outputFullName = Path.Combine(basePath, output);
             if (emitTypescript)
             {
-                WriteTypeScriptFile(outputFullName, minify, shaders);
+                WriteTypeScriptFile(outputFullName, minify, shaders, shaderVariableName);
             }
             else
             {
-                WriteJavaScriptFile(outputFullName, minify, shaders);
+                WriteJavaScriptFile(outputFullName, minify, shaders, shaderVariableName);
             }
         }
 
-        private static void WriteJavaScriptFile(string outputFullName, bool minify, string[] shaders)
+        private static void WriteJavaScriptFile(string outputFullName, bool minify, string[] shaders, string shaderVariableName)
         {
             using (var tw = File.CreateText(outputFullName))
             {
@@ -57,7 +62,7 @@ namespace ShaderPacker
                 tw.WriteLine("*/");
 
                 //start object definition
-                tw.WriteLine("if (!window.xShaders) window.xShaders = {}");
+                tw.WriteLine($"if (!window.{shaderVariableName}) window.{shaderVariableName} = {{}}");
 
                 //get content of every shader and create JS property containing code content of the shader
                 foreach (var shader in shaders)
@@ -66,7 +71,7 @@ namespace ShaderPacker
                     if (shaderName != null)
                     {
                         shaderName = shaderName.Replace('.', '_');
-                        tw.Write("xShaders.{0} = {1}", shaderName, minify ? "\"" : "");
+                        tw.Write("{0}.{1} = {2}", shaderVariableName, shaderName, minify ? "\"" : "");
                     }
 
                     var lines = File.ReadAllLines(shader);
@@ -94,7 +99,7 @@ namespace ShaderPacker
             }
         }
 
-        private static void WriteTypeScriptFile(string outputFullName, bool minify, string[] shaders)
+        private static void WriteTypeScriptFile(string outputFullName, bool minify, string[] shaders, string shaderVariableName)
         {
             using (var tw = File.CreateText(outputFullName))
             {
@@ -104,7 +109,7 @@ namespace ShaderPacker
                 tw.WriteLine("*/");
 
                 //start object definition
-                tw.WriteLine("export var xShaders = {");
+                tw.WriteLine($"export var {shaderVariableName} = {{");
 
                 //get content of every shader and create JS property containing code content of the shader
                 for (var i = 0; i < shaders.Length; i++)

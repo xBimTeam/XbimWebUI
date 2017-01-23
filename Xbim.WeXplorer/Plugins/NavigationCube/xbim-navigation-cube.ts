@@ -1,6 +1,6 @@
 ﻿import { xViewer } from '../../Viewer/xbim-viewer';
 import { xCubeTextures } from './xbim-navigation-cube-textures';
-import { xShaders } from './xbim-navigation-cube-shaders';
+import { xCubeShaders } from './xbim-navigation-cube-shaders';
 var glMatrix = require('../../Libs/gl-matrix');
 
 export class xNavigationCube {
@@ -524,11 +524,11 @@ export class xNavigationCube {
 
         //fragment shader
         var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-        compile(fragmentShader, xShaders.cube_fshader);
+        compile(fragmentShader, xCubeShaders.cube_fshader);
 
         //vertex shader (the more complicated one)
         var vertexShader = gl.createShader(gl.VERTEX_SHADER);
-        compile(vertexShader, xShaders.cube_vshader);
+        compile(vertexShader, xCubeShaders.cube_vshader);
 
         //link program
         this._shader = gl.createProgram();

@@ -10,7 +10,7 @@ global['xTriangulatedShape'] = global['xTriangulatedShape'] ? global['xTriangula
 global['xViewer'] = global['xViewer'] ? global['xViewer'] :  require("./Viewer/xbim-viewer").xViewer;
 
 // Plugins
-global['xShaders'] = global['xShaders'] ? global['xShaders'] :  require('./Plugins/NavigationCube/xbim-navigation-cube-shaders').xShaders;
+global['xCubeShaders'] = global['xCubeShaders'] ? global['xCubeShaders'] :  require('./Plugins/NavigationCube/xbim-navigation-cube-shaders').xShaders;
 global['xCubeTextures'] = global['xCubeTextures'] ? global['xCubeTextures'] :  require('./Plugins/NavigationCube/xbim-navigation-cube-textures').xCubeTextures;
 global['xNavigationCube'] = global['xNavigationCube'] ? global['xNavigationCube'] :  require('./Plugins/NavigationCube/xbim-navigation-cube').xNavigationCube;
 global['xHomeTextures'] = global['xHomeTextures'] ? global['xHomeTextures'] :  require('./Plugins/NavigationHome/xbim-navigation-home-textures').xHomeTextures;
