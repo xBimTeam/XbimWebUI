@@ -166,6 +166,7 @@
     <Content Include="tests\data\SampleHouse.wexbim" />
     <Content Include="package.json" />
     <Content Include="tsconfig.json" />
+    <Content Include="webpack.config.js" />
     <Content Include="webpack.config.browser.js" />
     <None Include="Tutorials\1_Hello_building.md" />
     <Content Include="Resources\doctemplate\static\scripts\xbim-viewer.debug.bundle.js" />
@@ -279,6 +280,7 @@
     <TypeScriptCompile Include="Browser\xbim-visual-model.ts" />
     <TypeScriptCompile Include="Browser\xbim-visual-property.ts" />
     <TypeScriptCompile Include="Browser\xbim-visual-templates.ts" />
+    <TypeScriptCompile Include="index.ts" />
     <TypeScriptCompile Include="Plugins\NavigationCube\xbim-navigation-cube-shaders.ts" />
     <TypeScriptCompile Include="Plugins\NavigationCube\xbim-navigation-cube-textures.ts" />
     <TypeScriptCompile Include="Plugins\NavigationCube\xbim-navigation-cube.ts" />

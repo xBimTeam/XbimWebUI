@@ -7,7 +7,9 @@
     "webpack": "^1.13.2",
     "typescript": "^2.0.3"
   },
+  "main": "Build/xbim.bundle.js",
   "scripts": {
+    "webpack": "webpack && webpack --min",
     "webpack:browser": "webpack --config webpack.config.browser.js && webpack --config webpack.config.browser.js --min"
   }
 }
