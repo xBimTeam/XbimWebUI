@@ -1,7 +1,7 @@
 ﻿import { xViewer } from '../../Viewer/xbim-viewer';
 import { xCubeTextures } from './xbim-navigation-cube-textures';
 import { xShaders } from './xbim-navigation-cube-shaders';
-var glMatrix = require('../Libs/gl-matrix');
+var glMatrix = require('../../Libs/gl-matrix');
 
 export class xNavigationCube {
 

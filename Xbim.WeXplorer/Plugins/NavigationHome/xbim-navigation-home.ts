@@ -1,6 +1,6 @@
 ﻿import { xViewer } from '../../Viewer/xbim-viewer';
 import { xHomeTextures } from './xbim-navigation-home-textures';
-var glMatrix = require('../Libs/gl-matrix');
+var glMatrix = require('../../Libs/gl-matrix');
 
 export class xNavigationHome {
 
