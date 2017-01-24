@@ -183,3 +183,14 @@ UpgradeLog*.htm
 FakesAssemblies/
 
 .vs
+
+
+# Ignore generated JavaScript files that aren't meant to be published on their own
+Xbim.WeXplorer/Viewer/**/*.js
+Xbim.WeXplorer/Viewer/**/*.js.map
+Xbim.WeXplorer/Browser/**/*.js
+Xbim.WeXplorer/Browser/**/*.js.map
+Xbim.WeXplorer/Plugins/**/*.js
+Xbim.WeXplorer/Plugins/**/*.js.map
+Xbim.WeXplorer/webpack-browser-bundle.*
+Xbim.WeXplorer/webpack-browser-bundle.*
