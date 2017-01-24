@@ -151,8 +151,7 @@
     <Content Include="Resources\doctemplate\static\scripts\prettify\Apache-License-2.0.txt" />
     <Content Include="Resources\doctemplate\static\scripts\prettify\lang-css.js" />
     <Content Include="Resources\doctemplate\static\scripts\prettify\prettify.js" />
-    <Content Include="Resources\doctemplate\static\scripts\xbim-browser.js" />
-    <Content Include="Resources\doctemplate\static\scripts\xbim-navigation-cube.js" />
+    <Content Include="Resources\doctemplate\static\scripts\xbim.browser.bundle.js" />
     <Content Include="Resources\doctemplate\static\styles\jsdoc-default.css" />
     <Content Include="Resources\doctemplate\static\styles\prettify-jsdoc.css" />
     <Content Include="Resources\doctemplate\static\styles\prettify-tomorrow.css" />
@@ -168,8 +167,8 @@
     <Content Include="tsconfig.json" />
     <Content Include="webpack.config.js" />
     <Content Include="webpack.config.browser.js" />
+    <Content Include="Resources\doctemplate\static\scripts\xbim.browser.bundle.js.map" />
     <None Include="Tutorials\1_Hello_building.md" />
-    <Content Include="Resources\doctemplate\static\scripts\xbim-viewer.debug.bundle.js" />
     <Content Include="simpleviewer.html" />
     <Content Include="Viewer\fragment_shader.c" />
     <Content Include="Build\gl-matrix.min.js" />
