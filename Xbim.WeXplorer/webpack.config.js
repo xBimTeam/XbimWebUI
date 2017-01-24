@@ -1,4 +1,5 @@
 ﻿var webpack = require('webpack');
+var fs = require("fs");
 var minify = process.argv.indexOf('--min') >= 0;
 
 module.exports = {
@@ -20,8 +21,9 @@ module.exports = {
                     warnings: false
                 }
             })
-        ]
-        : [],
+        ] : [
+            new webpack.BannerPlugin(fs.readFileSync('./Resources/xbim-disclaimer.txt', 'utf8'), { raw: true })
+        ],
     resolve: {
         extensions: ['', '.ts', '.js']
     }

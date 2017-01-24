@@ -26,7 +26,17 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
-/******/ (function(modules) { // webpackBootstrap
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(typeof exports === 'object' && typeof module === 'object')
+		module.exports = factory();
+	else if(typeof define === 'function' && define.amd)
+		define([], factory);
+	else {
+		var a = factory();
+		for(var i in a) (typeof exports === 'object' ? exports : root)[i] = a[i];
+	}
+})(this, function() {
+return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
 /******/
@@ -72,35 +82,38 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(global) {// Viewer
-	global['xBinaryReader'] = global['xBinaryReader'] ? global['xBinaryReader'] : __webpack_require__(1).xBinaryReader;
-	global['xModelGeometry'] = global['xModelGeometry'] ? global['xModelGeometry'] : __webpack_require__(2).xModelGeometry;
-	global['xModelHandle'] = global['xModelHandle'] ? global['xModelHandle'] : __webpack_require__(6).xModelHandle;
-	global['xProductInheritance'] = global['xProductInheritance'] ? global['xProductInheritance'] : __webpack_require__(7).xProductInheritance;
-	global['xProductType'] = global['xProductType'] ? global['xProductType'] : __webpack_require__(4).xProductType;
-	global['xShaders'] = global['xShaders'] ? global['xShaders'] : __webpack_require__(8).xShaders;
-	global['xState'] = global['xState'] ? global['xState'] : __webpack_require__(3).xState;
-	global['xTriangulatedShape'] = global['xTriangulatedShape'] ? global['xTriangulatedShape'] : __webpack_require__(5).xTriangulatedShape;
-	global['xViewer'] = global['xViewer'] ? global['xViewer'] : __webpack_require__(9).xViewer;
+	"use strict";
+	function __export(m) {
+	    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+	}
+	// Viewer
+	__export(__webpack_require__(1));
+	__export(__webpack_require__(2));
+	__export(__webpack_require__(6));
+	__export(__webpack_require__(7));
+	__export(__webpack_require__(4));
+	__export(__webpack_require__(8));
+	__export(__webpack_require__(3));
+	__export(__webpack_require__(5));
+	__export(__webpack_require__(9));
 	// Plugins
-	global['xCubeShaders'] = global['xCubeShaders'] ? global['xCubeShaders'] : __webpack_require__(12).xShaders;
-	global['xCubeTextures'] = global['xCubeTextures'] ? global['xCubeTextures'] : __webpack_require__(13).xCubeTextures;
-	global['xNavigationCube'] = global['xNavigationCube'] ? global['xNavigationCube'] : __webpack_require__(14).xNavigationCube;
-	global['xHomeTextures'] = global['xHomeTextures'] ? global['xHomeTextures'] : __webpack_require__(15).xHomeTextures;
-	global['xNavigationHome'] = global['xNavigationHome'] ? global['xNavigationHome'] : __webpack_require__(16).xNavigationHome;
+	__export(__webpack_require__(12));
+	__export(__webpack_require__(13));
+	__export(__webpack_require__(14));
+	__export(__webpack_require__(15));
+	__export(__webpack_require__(16));
 	// Browser
-	global['xAttributeDictionary'] = global['xAttributeDictionary'] ? global['xAttributeDictionary'] : __webpack_require__(17).xAttributeDictionary;
-	global['xBrowser'] = global['xBrowser'] ? global['xBrowser'] : __webpack_require__(18).xBrowser;
-	global['xCobieUtils'] = global['xCobieUtils'] ? global['xCobieUtils'] : __webpack_require__(26).xCobieUtils;
-	global['xCobieUkUtils'] = global['xCobieUkUtils'] ? global['xCobieUkUtils'] : __webpack_require__(21).xCobieUkUtils;
-	global['xVisualAssignmentSet'] = global['xVisualAssignmentSet'] ? global['xVisualAssignmentSet'] : __webpack_require__(23).xVisualAssignmentSet;
-	global['xVisualAttribute'] = global['xVisualAttribute'] ? global['xVisualAttribute'] : __webpack_require__(24).xVisualAttribute;
-	global['xVisualEntity'] = global['xVisualEntity'] ? global['xVisualEntity'] : __webpack_require__(22).xVisualEntity;
-	global['xVisualModel'] = global['xVisualModel'] ? global['xVisualModel'] : __webpack_require__(20).xVisualModel;
-	global['xVisualProperty'] = global['xVisualProperty'] ? global['xVisualProperty'] : __webpack_require__(25).xVisualProperty;
-	global['xVisualTemplates'] = global['xVisualTemplates'] ? global['xVisualTemplates'] : __webpack_require__(19).xVisualTemplates;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
+	__export(__webpack_require__(17));
+	__export(__webpack_require__(18));
+	__export(__webpack_require__(26));
+	__export(__webpack_require__(21));
+	__export(__webpack_require__(23));
+	__export(__webpack_require__(24));
+	__export(__webpack_require__(22));
+	__export(__webpack_require__(20));
+	__export(__webpack_require__(25));
+	__export(__webpack_require__(19));
+
 
 /***/ },
 /* 1 */
@@ -11073,5 +11086,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
 /***/ }
-/******/ ]);
-//# sourceMappingURL=xbim.browser.bundle.js.map
+/******/ ])
+});
+;
+//# sourceMappingURL=xbim.bundle.js.map
