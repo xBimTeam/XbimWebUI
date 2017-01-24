@@ -21,7 +21,9 @@ bi-directional translation between IFC and COBie formats
 ## Getting Started
 
 You will need Visual Studio 2010 SP1 or newer to compile the Solution. To compile the SceneJSWebViewer sample
-project you will require ASP.NET MVC 3.0 to be installed. All solutions target .NET 4.0. The 4.0 Client profile
+project you will require ASP.NET MVC 3.0 to be installed. The web components are created in [TypeScript](http://www.typescriptlang.org).
+[npm](https://www.npmjs.com/) and [webpack](https://webpack.github.io) are used to compile the client side JavaScript libraries.
+All solutions target .NET 4.0. The 4.0 Client profile
 may be supported for some projects.
 
 
