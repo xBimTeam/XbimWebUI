@@ -7,6 +7,14 @@
     "webpack": "1.14.0",
     "typescript": "^2.0.3"
   },
+  "files": [
+    "Browser/*",
+    "Build/*",
+    "Plugins/*",
+    "Viewer/*",
+    "index.js*",
+    "index.ts"
+  ],
   "main": "Build/xbim.bundle.js",
   "scripts": {
     "webpack": "webpack && webpack --min",
