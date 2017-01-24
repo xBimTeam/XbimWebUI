@@ -33,7 +33,7 @@ Simple example...
 	<html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
 	    <title>Hello building!</title>
-	    <script src="js/xbim-viewer.debug.bundle.js"></script>
+	    <script src="js/xbim.browser.bundle.js"></script>
 	</head>
 	<body>
 	    <div id="content">

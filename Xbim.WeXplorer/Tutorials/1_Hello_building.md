@@ -10,7 +10,7 @@ No let's dig into the code:
     <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <title>Hello building!</title>
-        <script src="js/xbim-viewer.debug.bundle.js"></script>
+        <script src="js/xbim.browser.bundle.js"></script>
     </head>
     <body>
         <canvas id="viewer" width="500" height="300"></canvas>
@@ -22,7 +22,7 @@ No let's dig into the code:
     </body>
     </html>
 
-Well, this was pretty easy wasn't it? We just referenced the *xbim-viewer.debug.bundle.js* library, create {@link xViewer xViewer} object
+Well, this was pretty easy wasn't it? We just referenced the *xbim.browser.bundle.js* library, create {@link xViewer xViewer} object
 passing id of `<canvas>` element and start animation. This is it! Just make sure you are running from web server, not just 
 as a local file because xViewer uses AJAX to fetch the wexBIM data and some browsers impose CORS restrictions even on local
 HTML files. Also make sure you don't use IE less than 11 because you need to have support for WebGL. You will learn how to 
@@ -30,25 +30,22 @@ check prerequisites at the end of this tutorial. If it still doesn't work check 
 static content. If you don't want to install webserver only because of this I recommend [Mongoose](https://code.google.com/p/mongoose/). 
 Just drop it into the sample directory and run it. It will serve all files as a static content which is all you need for this tutorial.
 
-Now just a few words about deployment. We have referenced *xbim-viewer.debug.bundle.js* which contains *xbim-viewer.js* bundled 
+Now just a few words about deployment. We have referenced *xbim.browser.bundle.js* which contains *xbim-viewer.js* bundled 
 along with two dependant libraries *gl-matrix.js* and *webgl-utils.js*. These are the only external dependencies of the viewer.
 As you may have guessed from the name it is debug version. If you download this library it contains multiple 
 files for different types of deployment. Bundles are self-contained and are released as minified and debug version.
-You can also reference separate libraries if it makes better sense for your deployment. These are sensible combinations:
+The library itself is written with [TypeScript](http://www.typescriptlang.org), which is then compiled down to JavaScript
+and bundled as a single file to be used in a web browser.
+Either reference
 
-        <script src="js/xbim-viewer.debug.bundle.js"></script>
+        <script src="js/xbim.browser.bundle.js"></script>
 
 for debug bundled version (this will also add you intellisense support in VS if your IDE of choice) or
 
-        <script src="js/xbim-viewer.min.bundle.js"></script>
+        <script src="js/xbim.browser.bundle.min.js"></script>
 
-for minified version (this will probably be your choice for release) or
-
-        <script src="js/gl-matrix.min.js.js"></script>
-        <script src="js/webgl-utils.min.js"></script>
-        <script src="js/xbim-viewer.min.js"></script>
-
-if you prefer to have it all separated. 
+for minified version (this will probably be your choice for release).
+If you're using a module loader (and don't yet use TypeScript), you can reference *xbim.bundle.js* or *xbim.bundle.min.js* for an UMD bundled module.
 
 Right, this is about enough for the first tutorial. So if you feel fresh you can jump right into the next one where you will learn 
 how to check that the browser is actually able to render the model in {@tutorial 2_Safe_Hello_building}. It'll look the same as this example so you can have a look on [live
