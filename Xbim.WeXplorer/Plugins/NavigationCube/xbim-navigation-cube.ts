@@ -24,7 +24,7 @@ export class xNavigationCube {
      *
      * @param {Image} [image = null] - optional image to be used for a cube texture.
     */
-    constructor(image) {
+    constructor(image?) {
         this._image = image;
     }
 
