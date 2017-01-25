@@ -24,7 +24,7 @@ export class xBrowser {
     * @param {string} [lang] - language code. This framework contains dictionary for parameters and attributes. It will be used for COBie processing and rendering. If your language or culture is not available default values are "en", "uk"
     * @param {string} [culture] - culture code. Default combination of language and culture is "en", "uk".
     */
-    constructor(lang, culture) {
+    constructor(lang?, culture?) {
     this._lang = lang;
     this._culture = culture;
     this._templates = {};
