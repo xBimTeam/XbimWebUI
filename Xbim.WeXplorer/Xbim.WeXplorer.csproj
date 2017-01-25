@@ -61,9 +61,13 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="browser.js" />
+    <Content Include="Build\xbim.browser.bundle.css" />
     <Content Include="Build\xbim.browser.bundle.js" />
+    <Content Include="Build\xbim.browser.bundle.min.css" />
     <Content Include="Build\xbim.browser.bundle.min.js" />
+    <Content Include="Build\xbim.bundle.css" />
     <Content Include="Build\xbim.bundle.js" />
+    <Content Include="Build\xbim.bundle.min.css" />
     <Content Include="Build\xbim.bundle.min.js" />
     <Content Include="index.html" />
     <Content Include="Libs\gl-matrix.min.js" />
@@ -151,6 +155,10 @@
     <Content Include="Build\xbim.browser.bundle.min.js.map" />
     <Content Include="Build\xbim.bundle.js.map" />
     <Content Include="Build\xbim.bundle.min.js.map" />
+    <Content Include="Build\xbim.browser.bundle.css.map" />
+    <Content Include="Build\xbim.browser.bundle.min.css.map" />
+    <Content Include="Build\xbim.bundle.css.map" />
+    <Content Include="Build\xbim.bundle.min.css.map" />
     <None Include="Tutorials\1_Hello_building.md" />
     <Content Include="simpleviewer.html" />
     <Content Include="Viewer\fragment_shader.c" />

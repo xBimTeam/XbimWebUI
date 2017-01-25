@@ -31,10 +31,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 		module.exports = factory();
 	else if(typeof define === 'function' && define.amd)
 		define([], factory);
-	else {
-		var a = factory();
-		for(var i in a) (typeof exports === 'object' ? exports : root)[i] = a[i];
-	}
+	else if(typeof exports === 'object')
+		exports["xbim-webui"] = factory();
+	else
+		root["xbim-webui"] = factory();
 })(this, function() {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
@@ -82,41 +82,50 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
+	__webpack_require__(1);
+	__webpack_require__(28);
+	module.exports = __webpack_require__(30);
+
+
+/***/ },
+/* 1 */
+/***/ function(module, exports, __webpack_require__) {
+
 	"use strict";
 	function __export(m) {
 	    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 	}
 	// Viewer
-	__export(__webpack_require__(1));
 	__export(__webpack_require__(2));
-	__export(__webpack_require__(6));
-	__export(__webpack_require__(7));
-	__export(__webpack_require__(4));
-	__export(__webpack_require__(8));
 	__export(__webpack_require__(3));
+	__export(__webpack_require__(7));
+	__export(__webpack_require__(8));
 	__export(__webpack_require__(5));
 	__export(__webpack_require__(9));
+	__export(__webpack_require__(4));
+	__export(__webpack_require__(6));
+	__export(__webpack_require__(10));
 	// Plugins
-	__export(__webpack_require__(12));
 	__export(__webpack_require__(13));
 	__export(__webpack_require__(14));
 	__export(__webpack_require__(15));
 	__export(__webpack_require__(16));
-	// Browser
 	__export(__webpack_require__(17));
+	// Browser
 	__export(__webpack_require__(18));
-	__export(__webpack_require__(26));
-	__export(__webpack_require__(21));
-	__export(__webpack_require__(23));
-	__export(__webpack_require__(24));
-	__export(__webpack_require__(22));
-	__export(__webpack_require__(20));
-	__export(__webpack_require__(25));
 	__export(__webpack_require__(19));
+	__export(__webpack_require__(27));
+	__export(__webpack_require__(22));
+	__export(__webpack_require__(24));
+	__export(__webpack_require__(25));
+	__export(__webpack_require__(23));
+	__export(__webpack_require__(21));
+	__export(__webpack_require__(26));
+	__export(__webpack_require__(20));
 
 
 /***/ },
-/* 1 */
+/* 2 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -299,14 +308,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 2 */
+/* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var xbim_state_1 = __webpack_require__(3);
-	var xbim_product_type_1 = __webpack_require__(4);
-	var xbim_triangulated_shape_1 = __webpack_require__(5);
-	var xbim_binary_reader_1 = __webpack_require__(1);
+	var xbim_state_1 = __webpack_require__(4);
+	var xbim_product_type_1 = __webpack_require__(5);
+	var xbim_triangulated_shape_1 = __webpack_require__(6);
+	var xbim_binary_reader_1 = __webpack_require__(2);
 	var xModelGeometry = (function () {
 	    function xModelGeometry() {
 	        this.meter = 1000;
@@ -523,7 +532,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 3 */
+/* 4 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -542,7 +551,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 4 */
+/* 5 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -718,11 +727,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 5 */
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var xbim_binary_reader_1 = __webpack_require__(1);
+	var xbim_binary_reader_1 = __webpack_require__(2);
 	var xTriangulatedShape = (function () {
 	    function xTriangulatedShape() {
 	        //This would load only shape data from binary file
@@ -807,11 +816,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 6 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var xbim_state_1 = __webpack_require__(3);
+	var xbim_state_1 = __webpack_require__(4);
 	//this class holds pointers to textures, uniforms and data buffers which 
 	//make up a model in GPU
 	var xModelHandle = (function () {
@@ -1192,7 +1201,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 7 */
+/* 8 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -1607,7 +1616,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 8 */
+/* 9 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -1623,17 +1632,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var xbim_state_1 = __webpack_require__(3);
-	var xbim_product_type_1 = __webpack_require__(4);
-	var xbim_model_geometry_1 = __webpack_require__(2);
-	var xbim_model_handle_1 = __webpack_require__(6);
-	var xbim_shaders_1 = __webpack_require__(8);
-	var glMatrix = __webpack_require__(10);
-	__webpack_require__(11);
+	var xbim_state_1 = __webpack_require__(4);
+	var xbim_product_type_1 = __webpack_require__(5);
+	var xbim_model_geometry_1 = __webpack_require__(3);
+	var xbim_model_handle_1 = __webpack_require__(7);
+	var xbim_shaders_1 = __webpack_require__(9);
+	var glMatrix = __webpack_require__(11);
+	__webpack_require__(12);
 	var xViewer = (function () {
 	    /**
 	    * This is constructor of the xBIM Viewer. It gets HTMLCanvasElement or string ID as an argument. Viewer will than be initialized
@@ -3190,7 +3199,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -7488,7 +7497,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports) {
 
 	/*
@@ -7669,7 +7678,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -7684,7 +7693,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -7694,13 +7703,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var xbim_navigation_cube_textures_1 = __webpack_require__(13);
-	var xbim_navigation_cube_shaders_1 = __webpack_require__(12);
-	var glMatrix = __webpack_require__(10);
+	var xbim_navigation_cube_textures_1 = __webpack_require__(14);
+	var xbim_navigation_cube_shaders_1 = __webpack_require__(13);
+	var glMatrix = __webpack_require__(11);
 	var xNavigationCube = (function () {
 	    /**
 	     * This is constructor of the Navigation Cube plugin for {@link xViewer xBIM Viewer}. It gets optional Image as an argument.
@@ -9000,7 +9009,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -9010,12 +9019,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var xbim_navigation_home_textures_1 = __webpack_require__(15);
-	var glMatrix = __webpack_require__(10);
+	var xbim_navigation_home_textures_1 = __webpack_require__(16);
+	var glMatrix = __webpack_require__(11);
 	var xNavigationHome = (function () {
 	    /**
 	     * This is constructor of the Home plugin for {@link xViewer xBIM Viewer}. It gets optional Image object as an argument. If no image
@@ -9156,7 +9165,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -9294,14 +9303,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 18 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var xbim_visual_templates_1 = __webpack_require__(19);
-	var xbim_visual_model_1 = __webpack_require__(20);
-	var xbim_cobieuk_utils_1 = __webpack_require__(21);
-	var xbim_cobie_utils_1 = __webpack_require__(26);
+	var xbim_visual_templates_1 = __webpack_require__(20);
+	var xbim_visual_model_1 = __webpack_require__(21);
+	var xbim_cobieuk_utils_1 = __webpack_require__(22);
+	var xbim_cobie_utils_1 = __webpack_require__(27);
 	var xBrowser = (function () {
 	    /**
 	    * This is the main class you need to use to render semantic structure of the building model
@@ -9937,7 +9946,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 19 */
+/* 20 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -10012,7 +10021,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 20 */
+/* 21 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -10074,16 +10083,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 21 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var xbim_visual_entity_1 = __webpack_require__(22);
-	var xbim_visual_model_1 = __webpack_require__(20);
-	var xbim_attribute_dictionary_1 = __webpack_require__(17);
-	var xbim_visual_assignment_set_1 = __webpack_require__(23);
-	var xbim_visual_attribute_1 = __webpack_require__(24);
-	var xbim_visual_property_1 = __webpack_require__(25);
+	var xbim_visual_entity_1 = __webpack_require__(23);
+	var xbim_visual_model_1 = __webpack_require__(21);
+	var xbim_attribute_dictionary_1 = __webpack_require__(18);
+	var xbim_visual_assignment_set_1 = __webpack_require__(24);
+	var xbim_visual_attribute_1 = __webpack_require__(25);
+	var xbim_visual_property_1 = __webpack_require__(26);
 	var xCobieUkUtils = (function () {
 	    function xCobieUkUtils(lang, culture) {
 	        this._contacts = [];
@@ -10518,7 +10527,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 22 */
+/* 23 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -10567,7 +10576,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 23 */
+/* 24 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -10592,7 +10601,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 24 */
+/* 25 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -10628,7 +10637,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 25 */
+/* 26 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -10658,16 +10667,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 26 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var xbim_visual_entity_1 = __webpack_require__(22);
-	var xbim_visual_model_1 = __webpack_require__(20);
-	var xbim_attribute_dictionary_1 = __webpack_require__(17);
-	var xbim_visual_assignment_set_1 = __webpack_require__(23);
-	var xbim_visual_attribute_1 = __webpack_require__(24);
-	var xbim_visual_property_1 = __webpack_require__(25);
+	var xbim_visual_entity_1 = __webpack_require__(23);
+	var xbim_visual_model_1 = __webpack_require__(21);
+	var xbim_attribute_dictionary_1 = __webpack_require__(18);
+	var xbim_visual_assignment_set_1 = __webpack_require__(24);
+	var xbim_visual_attribute_1 = __webpack_require__(25);
+	var xbim_visual_property_1 = __webpack_require__(26);
 	var xCobieUtils = (function () {
 	    function xCobieUtils(lang, culture) {
 	        this.settings = {
@@ -11084,6 +11093,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	}());
 	exports.xCobieUtils = xCobieUtils;
 
+
+/***/ },
+/* 28 */
+/***/ function(module, exports) {
+
+	// removed by extract-text-webpack-plugin
+
+/***/ },
+/* 29 */,
+/* 30 */
+/***/ function(module, exports) {
+
+	// removed by extract-text-webpack-plugin
 
 /***/ }
 /******/ ])
