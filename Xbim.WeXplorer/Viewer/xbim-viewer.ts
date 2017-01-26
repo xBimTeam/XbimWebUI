@@ -4,7 +4,6 @@ import { xModelGeometry } from './xbim-model-geometry';
 import { xModelHandle } from './xbim-model-handle';
 import { xShaders } from './xbim-shaders';
 var glMatrix = require('../Libs/gl-matrix');
-declare var window: any; // TODO
 import '../Libs/webgl-utils';
 declare var WebGLUtils;
 
@@ -350,14 +349,13 @@ export class xViewer {
         }
 
         //check FileReader and Blob support
-        if (!window
-            .File ||
-            !window.FileReader ||
+        if (!window['File'] ||
+            !window['FileReader'] ||
             !window.Blob) result.errors.push("Browser doesn't support 'File', 'FileReader' or 'Blob' objects.");
 
 
         //check for typed arrays
-        if (!window.Int32Array || !window.Float32Array)
+        if (!window['Int32Array'] || !window['Float32Array'])
             result.errors
                 .push("Browser doesn't support TypedArrays. These are crucial for binary parsing and for comunication with GPU.");
 
@@ -766,7 +764,7 @@ export class xViewer {
 
         //unload and delete
         handle.unload();
-        //delete handle; // TODO
+        //delete handle; // TODO -> TS1102 error: delete cannot be called for a variable in strict mode -> is it necessary here / are there any other references left?
     }
 
     //this function should be only called once during initialization
@@ -1528,7 +1526,8 @@ export class xViewer {
             }
 
             if (viewer._isRunning) {
-                window.requestAnimFrame(tick)
+                // requestAnimFrame is globally attached to the window by the webgl utils
+                window['requestAnimFrame'](tick)
                 viewer.draw()
             }
         }

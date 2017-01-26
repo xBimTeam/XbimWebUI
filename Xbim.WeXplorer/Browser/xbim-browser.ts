@@ -3,7 +3,7 @@ import { xVisualModel } from './xbim-visual-model';
 import { xCobieUkUtils } from './xbim-cobieuk-utils';
 import { xCobieUtils } from './xbim-cobie-utils';
 
-// TODO
+// '$' and 'jQuery' must be globally available, e.g. by simple loading the jQuery library separately or by using the webpack provide plugin
 declare var $, jQuery: any;
 
 export class xBrowser {

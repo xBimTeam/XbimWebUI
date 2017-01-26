@@ -478,7 +478,7 @@ export class xNavigationCube {
         //extract just a rotation from model-view matrix
         var rotation = glMatrix.mat3.fromMat4(glMatrix.mat3
             .create(),
-            this.viewer._mvMatrix); // TODO Check -> fromMat4(mat3) -> Is this correct?
+            this.viewer._mvMatrix);
         gl.uniformMatrix4fv(this._pMatrixUniformPointer, false, pMatrix);
         gl.uniformMatrix3fv(this._rotationUniformPointer, false, rotation);
         gl.uniform1f(this._alphaUniformPointer, this._alpha);

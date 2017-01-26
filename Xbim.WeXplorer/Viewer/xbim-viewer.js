@@ -269,13 +269,12 @@ var xViewer = (function () {
             }
         }
         //check FileReader and Blob support
-        if (!window
-            .File ||
-            !window.FileReader ||
+        if (!window['File'] ||
+            !window['FileReader'] ||
             !window.Blob)
             result.errors.push("Browser doesn't support 'File', 'FileReader' or 'Blob' objects.");
         //check for typed arrays
-        if (!window.Int32Array || !window.Float32Array)
+        if (!window['Int32Array'] || !window['Float32Array'])
             result.errors
                 .push("Browser doesn't support TypedArrays. These are crucial for binary parsing and for comunication with GPU.");
         //check SVG support
@@ -647,7 +646,7 @@ var xViewer = (function () {
         this._numberOfActiveModels = this._handles.length;
         //unload and delete
         handle.unload();
-        //delete handle; // TODO
+        //delete handle; // TODO -> TS1102 error: delete cannot be called for a variable in strict mode -> is it necessary here / are there any other references left?
     };
     //this function should be only called once during initialization
     //or when shader set-up changes
@@ -1260,7 +1259,8 @@ var xViewer = (function () {
                 viewer._fire('fps', Math.floor(fps));
             }
             if (viewer._isRunning) {
-                window.requestAnimFrame(tick);
+                // requestAnimFrame is globally attached to the window by the webgl utils
+                window['requestAnimFrame'](tick);
                 viewer.draw();
             }
         }

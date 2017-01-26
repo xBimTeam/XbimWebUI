@@ -1906,13 +1906,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	        }
 	        //check FileReader and Blob support
-	        if (!window
-	            .File ||
-	            !window.FileReader ||
+	        if (!window['File'] ||
+	            !window['FileReader'] ||
 	            !window.Blob)
 	            result.errors.push("Browser doesn't support 'File', 'FileReader' or 'Blob' objects.");
 	        //check for typed arrays
-	        if (!window.Int32Array || !window.Float32Array)
+	        if (!window['Int32Array'] || !window['Float32Array'])
 	            result.errors
 	                .push("Browser doesn't support TypedArrays. These are crucial for binary parsing and for comunication with GPU.");
 	        //check SVG support
@@ -2284,7 +2283,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this._numberOfActiveModels = this._handles.length;
 	        //unload and delete
 	        handle.unload();
-	        //delete handle; // TODO
+	        //delete handle; // TODO -> TS1102 error: delete cannot be called for a variable in strict mode -> is it necessary here / are there any other references left?
 	    };
 	    //this function should be only called once during initialization
 	    //or when shader set-up changes
@@ -2897,7 +2896,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	                viewer._fire('fps', Math.floor(fps));
 	            }
 	            if (viewer._isRunning) {
-	                window.requestAnimFrame(tick);
+	                // requestAnimFrame is globally attached to the window by the webgl utils
+	                window['requestAnimFrame'](tick);
 	                viewer.draw();
 	            }
 	        }
@@ -8730,7 +8730,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	        //extract just a rotation from model-view matrix
 	        var rotation = glMatrix.mat3.fromMat4(glMatrix.mat3
-	            .create(), this.viewer._mvMatrix); // TODO Check -> fromMat4(mat3) -> Is this correct?
+	            .create(), this.viewer._mvMatrix);
 	        gl.uniformMatrix4fv(this._pMatrixUniformPointer, false, pMatrix);
 	        gl.uniformMatrix3fv(this._rotationUniformPointer, false, rotation);
 	        gl.uniform1f(this._alphaUniformPointer, this._alpha);
