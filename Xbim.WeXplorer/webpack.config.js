@@ -21,7 +21,11 @@ module.exports = {
     devtool: 'source-map',
     module: {
         loaders: [
-            { test: /\.ts$/, loaders: ['ts-loader'] },
+            { test: /\.ts$/, loaders: ['ts-loader?' + JSON.stringify({
+                compilerOptions: {
+                    declaration: false
+                }
+            })] },
             { test: /\.css$/, loader: extractCSS.extract(['css-loader']) }
         ]
     },

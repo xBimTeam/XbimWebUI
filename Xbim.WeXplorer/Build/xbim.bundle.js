@@ -2545,8 +2545,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	                var deltaY = event.touches[0].clientY - lastTouchY_1;
 	                lastTouchX_1 = event.touches[0].clientX;
 	                lastTouchY_1 = event.touches[0].clientY;
-	                console.log(_this.navigationMode);
-	                _this.navigate(_this.navigationMode, deltaX, deltaY);
+	                // force-setting navigation mode to 'free-orbit' currently for touch navigation since regular orbit
+	                // feels awkward and un-intuitive on touch devices
+	                _this.navigate('free-orbit', deltaX, deltaY);
 	            }
 	            else if (event.touches.length === 2) {
 	                // touch move with two fingers -> zoom
