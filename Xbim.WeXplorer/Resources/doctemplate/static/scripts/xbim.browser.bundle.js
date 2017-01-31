@@ -72,38 +72,47 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
+	__webpack_require__(1);
+	__webpack_require__(28);
+	module.exports = __webpack_require__(30);
+
+
+/***/ },
+/* 1 */
+/***/ function(module, exports, __webpack_require__) {
+
 	/* WEBPACK VAR INJECTION */(function(global) {// Viewer
-	global['xBinaryReader'] = global['xBinaryReader'] ? global['xBinaryReader'] : __webpack_require__(1).xBinaryReader;
-	global['xModelGeometry'] = global['xModelGeometry'] ? global['xModelGeometry'] : __webpack_require__(2).xModelGeometry;
-	global['xModelHandle'] = global['xModelHandle'] ? global['xModelHandle'] : __webpack_require__(6).xModelHandle;
-	global['xProductInheritance'] = global['xProductInheritance'] ? global['xProductInheritance'] : __webpack_require__(7).xProductInheritance;
-	global['xProductType'] = global['xProductType'] ? global['xProductType'] : __webpack_require__(4).xProductType;
-	global['xShaders'] = global['xShaders'] ? global['xShaders'] : __webpack_require__(8).xShaders;
-	global['xState'] = global['xState'] ? global['xState'] : __webpack_require__(3).xState;
-	global['xTriangulatedShape'] = global['xTriangulatedShape'] ? global['xTriangulatedShape'] : __webpack_require__(5).xTriangulatedShape;
-	global['xViewer'] = global['xViewer'] ? global['xViewer'] : __webpack_require__(9).xViewer;
+	global['xBinaryReader'] = global['xBinaryReader'] ? global['xBinaryReader'] : __webpack_require__(2).xBinaryReader;
+	global['xModelGeometry'] = global['xModelGeometry'] ? global['xModelGeometry'] : __webpack_require__(3).xModelGeometry;
+	global['xModelHandle'] = global['xModelHandle'] ? global['xModelHandle'] : __webpack_require__(7).xModelHandle;
+	global['xProductInheritance'] = global['xProductInheritance'] ? global['xProductInheritance'] : __webpack_require__(8).xProductInheritance;
+	global['xProductType'] = global['xProductType'] ? global['xProductType'] : __webpack_require__(5).xProductType;
+	global['xShaders'] = global['xShaders'] ? global['xShaders'] : __webpack_require__(9).xShaders;
+	global['xState'] = global['xState'] ? global['xState'] : __webpack_require__(4).xState;
+	global['xTriangulatedShape'] = global['xTriangulatedShape'] ? global['xTriangulatedShape'] : __webpack_require__(6).xTriangulatedShape;
+	global['xViewer'] = global['xViewer'] ? global['xViewer'] : __webpack_require__(10).xViewer;
 	// Plugins
-	global['xCubeShaders'] = global['xCubeShaders'] ? global['xCubeShaders'] : __webpack_require__(12).xShaders;
-	global['xCubeTextures'] = global['xCubeTextures'] ? global['xCubeTextures'] : __webpack_require__(13).xCubeTextures;
-	global['xNavigationCube'] = global['xNavigationCube'] ? global['xNavigationCube'] : __webpack_require__(14).xNavigationCube;
-	global['xHomeTextures'] = global['xHomeTextures'] ? global['xHomeTextures'] : __webpack_require__(15).xHomeTextures;
-	global['xNavigationHome'] = global['xNavigationHome'] ? global['xNavigationHome'] : __webpack_require__(16).xNavigationHome;
+	global['xCubeShaders'] = global['xCubeShaders'] ? global['xCubeShaders'] : __webpack_require__(13).xShaders;
+	global['xCubeTextures'] = global['xCubeTextures'] ? global['xCubeTextures'] : __webpack_require__(14).xCubeTextures;
+	global['xNavigationCube'] = global['xNavigationCube'] ? global['xNavigationCube'] : __webpack_require__(15).xNavigationCube;
+	global['xHomeTextures'] = global['xHomeTextures'] ? global['xHomeTextures'] : __webpack_require__(16).xHomeTextures;
+	global['xNavigationHome'] = global['xNavigationHome'] ? global['xNavigationHome'] : __webpack_require__(17).xNavigationHome;
 	// Browser
-	global['xAttributeDictionary'] = global['xAttributeDictionary'] ? global['xAttributeDictionary'] : __webpack_require__(17).xAttributeDictionary;
-	global['xBrowser'] = global['xBrowser'] ? global['xBrowser'] : __webpack_require__(18).xBrowser;
-	global['xCobieUtils'] = global['xCobieUtils'] ? global['xCobieUtils'] : __webpack_require__(26).xCobieUtils;
-	global['xCobieUkUtils'] = global['xCobieUkUtils'] ? global['xCobieUkUtils'] : __webpack_require__(21).xCobieUkUtils;
-	global['xVisualAssignmentSet'] = global['xVisualAssignmentSet'] ? global['xVisualAssignmentSet'] : __webpack_require__(23).xVisualAssignmentSet;
-	global['xVisualAttribute'] = global['xVisualAttribute'] ? global['xVisualAttribute'] : __webpack_require__(24).xVisualAttribute;
-	global['xVisualEntity'] = global['xVisualEntity'] ? global['xVisualEntity'] : __webpack_require__(22).xVisualEntity;
-	global['xVisualModel'] = global['xVisualModel'] ? global['xVisualModel'] : __webpack_require__(20).xVisualModel;
-	global['xVisualProperty'] = global['xVisualProperty'] ? global['xVisualProperty'] : __webpack_require__(25).xVisualProperty;
-	global['xVisualTemplates'] = global['xVisualTemplates'] ? global['xVisualTemplates'] : __webpack_require__(19).xVisualTemplates;
+	global['xAttributeDictionary'] = global['xAttributeDictionary'] ? global['xAttributeDictionary'] : __webpack_require__(18).xAttributeDictionary;
+	global['xBrowser'] = global['xBrowser'] ? global['xBrowser'] : __webpack_require__(19).xBrowser;
+	global['xCobieUtils'] = global['xCobieUtils'] ? global['xCobieUtils'] : __webpack_require__(27).xCobieUtils;
+	global['xCobieUkUtils'] = global['xCobieUkUtils'] ? global['xCobieUkUtils'] : __webpack_require__(22).xCobieUkUtils;
+	global['xVisualAssignmentSet'] = global['xVisualAssignmentSet'] ? global['xVisualAssignmentSet'] : __webpack_require__(24).xVisualAssignmentSet;
+	global['xVisualAttribute'] = global['xVisualAttribute'] ? global['xVisualAttribute'] : __webpack_require__(25).xVisualAttribute;
+	global['xVisualEntity'] = global['xVisualEntity'] ? global['xVisualEntity'] : __webpack_require__(23).xVisualEntity;
+	global['xVisualModel'] = global['xVisualModel'] ? global['xVisualModel'] : __webpack_require__(21).xVisualModel;
+	global['xVisualProperty'] = global['xVisualProperty'] ? global['xVisualProperty'] : __webpack_require__(26).xVisualProperty;
+	global['xVisualTemplates'] = global['xVisualTemplates'] ? global['xVisualTemplates'] : __webpack_require__(20).xVisualTemplates;
 	
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 1 */
+/* 2 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -286,14 +295,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
 /***/ },
-/* 2 */
+/* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var xbim_state_1 = __webpack_require__(3);
-	var xbim_product_type_1 = __webpack_require__(4);
-	var xbim_triangulated_shape_1 = __webpack_require__(5);
-	var xbim_binary_reader_1 = __webpack_require__(1);
+	var xbim_state_1 = __webpack_require__(4);
+	var xbim_product_type_1 = __webpack_require__(5);
+	var xbim_triangulated_shape_1 = __webpack_require__(6);
+	var xbim_binary_reader_1 = __webpack_require__(2);
 	var xModelGeometry = (function () {
 	    function xModelGeometry() {
 	        this.meter = 1000;
@@ -510,7 +519,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
 /***/ },
-/* 3 */
+/* 4 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -529,7 +538,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
 /***/ },
-/* 4 */
+/* 5 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -705,11 +714,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
 /***/ },
-/* 5 */
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var xbim_binary_reader_1 = __webpack_require__(1);
+	var xbim_binary_reader_1 = __webpack_require__(2);
 	var xTriangulatedShape = (function () {
 	    function xTriangulatedShape() {
 	        //This would load only shape data from binary file
@@ -794,11 +803,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
 /***/ },
-/* 6 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var xbim_state_1 = __webpack_require__(3);
+	var xbim_state_1 = __webpack_require__(4);
 	//this class holds pointers to textures, uniforms and data buffers which 
 	//make up a model in GPU
 	var xModelHandle = (function () {
@@ -1179,7 +1188,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
 /***/ },
-/* 7 */
+/* 8 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -1594,7 +1603,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
 /***/ },
-/* 8 */
+/* 9 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -1610,17 +1619,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var xbim_state_1 = __webpack_require__(3);
-	var xbim_product_type_1 = __webpack_require__(4);
-	var xbim_model_geometry_1 = __webpack_require__(2);
-	var xbim_model_handle_1 = __webpack_require__(6);
-	var xbim_shaders_1 = __webpack_require__(8);
-	var glMatrix = __webpack_require__(10);
-	__webpack_require__(11);
+	var xbim_state_1 = __webpack_require__(4);
+	var xbim_product_type_1 = __webpack_require__(5);
+	var xbim_model_geometry_1 = __webpack_require__(3);
+	var xbim_model_handle_1 = __webpack_require__(7);
+	var xbim_shaders_1 = __webpack_require__(9);
+	var glMatrix = __webpack_require__(11);
+	__webpack_require__(12);
 	var xViewer = (function () {
 	    /**
 	    * This is constructor of the xBIM Viewer. It gets HTMLCanvasElement or string ID as an argument. Viewer will than be initialized
@@ -1815,6 +1824,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 	        this._initAttributesAndUniforms();
 	        //initialize mouse events to capture user interaction
 	        this._initMouseEvents();
+	        //initialize touch events to capute user interaction on touch devices
+	        this._initTouchNavigationEvents();
+	        this._initTouchTapEvents();
 	    }
 	    /**
 	    * This is a static function which should always be called before xViewer is instantiated.
@@ -1884,13 +1896,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 	            }
 	        }
 	        //check FileReader and Blob support
-	        if (!window
-	            .File ||
-	            !window.FileReader ||
+	        if (!window['File'] ||
+	            !window['FileReader'] ||
 	            !window.Blob)
 	            result.errors.push("Browser doesn't support 'File', 'FileReader' or 'Blob' objects.");
 	        //check for typed arrays
-	        if (!window.Int32Array || !window.Float32Array)
+	        if (!window['Int32Array'] || !window['Float32Array'])
 	            result.errors
 	                .push("Browser doesn't support TypedArrays. These are crucial for binary parsing and for comunication with GPU.");
 	        //check SVG support
@@ -2262,7 +2273,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 	        this._numberOfActiveModels = this._handles.length;
 	        //unload and delete
 	        handle.unload();
-	        //delete handle; // TODO
+	        //delete handle; // TODO -> TS1102 error: delete cannot be called for a variable in strict mode -> is it necessary here / are there any other references left?
 	    };
 	    //this function should be only called once during initialization
 	    //or when shader set-up changes
@@ -2332,6 +2343,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 	        gl.enableVertexAttribArray(this._pointers.transformationAttrPointer);
 	    };
 	    xViewer.prototype._initMouseEvents = function () {
+	        var _this = this;
 	        var viewer = this;
 	        var mouseDown = false;
 	        var lastMouseX = null;
@@ -2341,7 +2353,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 	        var button = 'L';
 	        var id = -1;
 	        //set initial conditions so that different gestures can be identified
-	        function handleMouseDown(event) {
+	        var handleMouseDown = function (event) {
 	            mouseDown = true;
 	            lastMouseX = event.clientX;
 	            lastMouseY = event.clientY;
@@ -2377,22 +2389,22 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 	                    break;
 	            }
 	            viewer._disableTextSelection();
-	        }
-	        function handleMouseUp(event) {
+	        };
+	        var handleMouseUp = function (event) {
 	            mouseDown = false;
 	            var endX = event.clientX;
 	            var endY = event.clientY;
 	            var deltaX = Math.abs(endX - startX);
 	            var deltaY = Math.abs(endY - startY);
 	            //if it was a longer movement do not perform picking
-	            if (deltaX < 3 && deltaY < 3 && button == 'left') {
+	            if (deltaX < 3 && deltaY < 3 && button === 'left') {
 	                var handled = false;
 	                viewer._plugins.forEach(function (plugin) {
 	                    if (!plugin.onBeforePick) {
 	                        return;
 	                    }
 	                    handled = handled || plugin.onBeforePick(id);
-	                }, this);
+	                }, _this);
 	                /**
 	                * Occurs when user click on model.
 	                *
@@ -2404,12 +2416,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 	                    viewer._fire('pick', { id: id });
 	            }
 	            viewer._enableTextSelection();
-	        }
-	        function handleMouseMove(event) {
+	        };
+	        var handleMouseMove = function (event) {
 	            if (!mouseDown) {
 	                return;
 	            }
-	            if (viewer.navigationMode == 'none') {
+	            if (viewer.navigationMode === 'none') {
 	                return;
 	            }
 	            var newX = event.clientX;
@@ -2418,31 +2430,31 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 	            var deltaY = newY - lastMouseY;
 	            lastMouseX = newX;
 	            lastMouseY = newY;
-	            if (button == 'left') {
+	            if (button === 'left') {
 	                switch (viewer.navigationMode) {
 	                    case 'free-orbit':
-	                        navigate('free-orbit', deltaX, deltaY);
+	                        _this.navigate('free-orbit', deltaX, deltaY);
 	                        break;
 	                    case 'fixed-orbit':
 	                    case 'orbit':
-	                        navigate('orbit', deltaX, deltaY);
+	                        _this.navigate('orbit', deltaX, deltaY);
 	                        break;
 	                    case 'pan':
-	                        navigate('pan', deltaX, deltaY);
+	                        _this.navigate('pan', deltaX, deltaY);
 	                        break;
 	                    case 'zoom':
-	                        navigate('zoom', deltaX, deltaY);
+	                        _this.navigate('zoom', deltaX, deltaY);
 	                        break;
 	                    default:
 	                        break;
 	                }
 	            }
-	            if (button == 'middle') {
-	                navigate('pan', deltaX, deltaY);
+	            if (button === 'middle') {
+	                _this.navigate('pan', deltaX, deltaY);
 	            }
-	        }
-	        function handleMouseScroll(event) {
-	            if (viewer.navigationMode == 'none') {
+	        };
+	        var handleMouseScroll = function (event) {
+	            if (viewer.navigationMode === 'none') {
 	                return;
 	            }
 	            if (event.stopPropagation) {
@@ -2451,62 +2463,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 	            if (event.preventDefault) {
 	                event.preventDefault();
 	            }
-	            function sign(x) {
+	            var sign = function (x) {
 	                x = +x; // convert to a number
 	                if (x === 0 || isNaN(x))
 	                    return x;
 	                return x > 0 ? 1 : -1;
-	            }
+	            };
 	            //deltaX and deltaY have very different values in different web browsers so fixed value is used for constant functionality.
-	            navigate('zoom', sign(event.deltaX) * -1.0, sign(event.deltaY) * -1.0);
-	        }
-	        function navigate(type, deltaX, deltaY) {
-	            if (!viewer._handles || !viewer._handles[0])
-	                return;
-	            //translation in WCS is position from [0, 0, 0]
-	            var origin = viewer._origin;
-	            var camera = viewer.getCameraPosition();
-	            //get origin coordinates in view space
-	            var mvOrigin = glMatrix.vec3.transformMat4(glMatrix.vec3.create(), origin, viewer._mvMatrix);
-	            //movement factor needs to be dependant on the distance but one meter is a minimum so that movement wouldn't stop when camera is in 0 distance from navigation origin
-	            var distanceVec = glMatrix.vec3.subtract(glMatrix.vec3.create(), origin, camera);
-	            var distance = Math.max(glMatrix.vec3.length(distanceVec), viewer._handles[0]._model.meter);
-	            //move to the navigation origin in view space
-	            var transform = glMatrix.mat4.translate(glMatrix.mat4.create(), glMatrix.mat4.create(), mvOrigin);
-	            //function for conversion from degrees to radians
-	            function degToRad(deg) {
-	                return deg * Math.PI / 180.0;
-	            }
-	            switch (type) {
-	                case 'free-orbit':
-	                    transform = glMatrix.mat4.rotate(glMatrix.mat4.create(), transform, degToRad(deltaY / 4), [1, 0, 0]);
-	                    transform = glMatrix.mat4.rotate(glMatrix.mat4.create(), transform, degToRad(deltaX / 4), [0, 1, 0]);
-	                    break;
-	                case 'fixed-orbit':
-	                case 'orbit':
-	                    glMatrix.mat4.rotate(transform, transform, degToRad(deltaY / 4), [1, 0, 0]);
-	                    //z rotation around model z axis
-	                    var mvZ = glMatrix.vec3.transformMat3(glMatrix.vec3.create(), [0, 0, 1], glMatrix.mat3.fromMat4(glMatrix.mat3.create(), viewer._mvMatrix));
-	                    mvZ = glMatrix.vec3.normalize(glMatrix.vec3.create(), mvZ);
-	                    transform = glMatrix.mat4.rotate(glMatrix.mat4.create(), transform, degToRad(deltaX / 4), mvZ);
-	                    break;
-	                case 'pan':
-	                    glMatrix.mat4.translate(transform, transform, [deltaX * distance / 150, 0, 0]);
-	                    glMatrix.mat4.translate(transform, transform, [0, (-1.0 * deltaY) * distance / 150, 0]);
-	                    break;
-	                case 'zoom':
-	                    glMatrix.mat4.translate(transform, transform, [0, 0, deltaX * distance / 20]);
-	                    glMatrix.mat4.translate(transform, transform, [0, 0, deltaY * distance / 20]);
-	                    break;
-	                default:
-	                    break;
-	            }
-	            //reverse the translation in view space and leave only navigation changes
-	            var translation = glMatrix.vec3.negate(glMatrix.vec3.create(), mvOrigin);
-	            transform = glMatrix.mat4.translate(glMatrix.mat4.create(), transform, translation);
-	            //apply transformation in right order
-	            viewer._mvMatrix = glMatrix.mat4.multiply(glMatrix.mat4.create(), transform, viewer._mvMatrix);
-	        }
+	            _this.navigate('zoom', sign(event.deltaX) * -1.0, sign(event.deltaY) * -1.0);
+	        };
 	        //watch resizing of canvas every 500ms
 	        var elementHeight = viewer.height;
 	        var elementWidth = viewer.width;
@@ -2517,10 +2482,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 	            }
 	        }, 500);
 	        //attach callbacks
-	        this._canvas.addEventListener('mousedown', handleMouseDown, true);
-	        this._canvas.addEventListener('wheel', handleMouseScroll, true);
-	        window.addEventListener('mouseup', handleMouseUp, true);
-	        window.addEventListener('mousemove', handleMouseMove, true);
+	        this._canvas.addEventListener('mousedown', function (event) { return handleMouseDown(event); }, true);
+	        this._canvas.addEventListener('wheel', function (event) { return handleMouseScroll(event); }, true);
+	        window.addEventListener('mouseup', function (event) { return handleMouseUp(event); }, true);
+	        window.addEventListener('mousemove', function (event) { return handleMouseMove(event); }, true);
 	        this._canvas.addEventListener('mousemove', function () {
 	            viewer._userAction = true;
 	        }, true);
@@ -2532,6 +2497,208 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 	        * @param {Number} id - product ID of the element or null if there wasn't any product under mouse
 	        */
 	        this._canvas.addEventListener('dblclick', function () { viewer._fire('dblclick', { id: id }); }, true);
+	    };
+	    xViewer.prototype._initTouchNavigationEvents = function () {
+	        var _this = this;
+	        var lastTouchX_1;
+	        var lastTouchY_1;
+	        var lastTouchX_2;
+	        var lastTouchY_2;
+	        var lastTouchX_3;
+	        var lastTouchY_3;
+	        var handleTouchStart = function (event) {
+	            event.preventDefault();
+	            if (event.touches.length >= 1) {
+	                lastTouchX_1 = event.touches[0].clientX;
+	                lastTouchY_1 = event.touches[0].clientY;
+	            }
+	            if (event.touches.length >= 2) {
+	                lastTouchX_2 = event.touches[1].clientX;
+	                lastTouchY_2 = event.touches[1].clientY;
+	            }
+	            if (event.touches.length >= 3) {
+	                lastTouchX_3 = event.touches[2].clientX;
+	                lastTouchY_3 = event.touches[2].clientY;
+	            }
+	        };
+	        var handleTouchMove = function (event) {
+	            event.preventDefault();
+	            if (_this.navigationMode === 'none' || !event.touches) {
+	                return;
+	            }
+	            if (event.touches.length === 1) {
+	                // touch move with single finger -> orbit
+	                var deltaX = event.touches[0].clientX - lastTouchX_1;
+	                var deltaY = event.touches[0].clientY - lastTouchY_1;
+	                lastTouchX_1 = event.touches[0].clientX;
+	                lastTouchY_1 = event.touches[0].clientY;
+	                // force-setting navigation mode to 'free-orbit' currently for touch navigation since regular orbit
+	                // feels awkward and un-intuitive on touch devices
+	                _this.navigate('free-orbit', deltaX, deltaY);
+	            }
+	            else if (event.touches.length === 2) {
+	                // touch move with two fingers -> zoom
+	                var distanceBefore = Math.sqrt((lastTouchX_1 - lastTouchX_2) * (lastTouchX_1 - lastTouchX_2) +
+	                    (lastTouchY_1 - lastTouchY_2) * (lastTouchY_1 - lastTouchY_2));
+	                lastTouchX_1 = event.touches[0].clientX;
+	                lastTouchY_1 = event.touches[0].clientY;
+	                lastTouchX_2 = event.touches[1].clientX;
+	                lastTouchY_2 = event.touches[1].clientY;
+	                var distanceAfter = Math.sqrt((lastTouchX_1 - lastTouchX_2) * (lastTouchX_1 - lastTouchX_2) +
+	                    (lastTouchY_1 - lastTouchY_2) * (lastTouchY_1 - lastTouchY_2));
+	                if (distanceBefore > distanceAfter) {
+	                    _this.navigate('zoom', -1, -1); // Zooming out, fingers are getting closer together
+	                }
+	                else {
+	                    _this.navigate('zoom', 1, 1); // zooming in, fingers are getting further apart
+	                }
+	            }
+	            else if (event.touches.length === 3) {
+	                // touch move with three fingers -> pan
+	                var directionX = ((event.touches[0]
+	                    .clientX +
+	                    event.touches[1].clientX +
+	                    event.touches[2].clientX) /
+	                    3) -
+	                    ((lastTouchX_1 + lastTouchX_2 + lastTouchX_3) / 3);
+	                var directionY = ((event.touches[0]
+	                    .clientY +
+	                    event.touches[1].clientY +
+	                    event.touches[2].clientY) /
+	                    3) -
+	                    ((lastTouchY_1 + lastTouchY_2 + lastTouchY_3) / 3);
+	                lastTouchX_1 = event.touches[0].clientX;
+	                lastTouchY_1 = event.touches[0].clientY;
+	                lastTouchX_2 = event.touches[1].clientX;
+	                lastTouchY_2 = event.touches[1].clientY;
+	                lastTouchY_3 = event.touches[2].clientX;
+	                lastTouchY_3 = event.touches[2].clientY;
+	                // pan seems to be too fast, just adding a factor here
+	                var panFactor = 0.2;
+	                _this.navigate('pan', panFactor * directionX, panFactor * directionY);
+	            }
+	        };
+	        this._canvas.addEventListener('touchstart', function (event) { return handleTouchStart(event); }, true);
+	        this._canvas.addEventListener('touchmove', function (event) { return handleTouchMove(event); }, true);
+	    };
+	    xViewer.prototype._initTouchTapEvents = function () {
+	        var _this = this;
+	        var touchDown = false;
+	        var lastTouchX;
+	        var lastTouchY;
+	        var maximumLengthBetweenDoubleTaps = 200;
+	        var lastTap = new Date();
+	        var id = -1;
+	        //set initial conditions so that different gestures can be identified
+	        var handleTouchStart = function (event) {
+	            if (event.touches.length !== 1) {
+	                return;
+	            }
+	            touchDown = true;
+	            lastTouchX = event.touches[0].clientX;
+	            lastTouchY = event.touches[0].clientY;
+	            //get coordinates within canvas (with the right orientation)
+	            var r = _this._canvas.getBoundingClientRect();
+	            var viewX = lastTouchX - r.left;
+	            var viewY = _this._height - (lastTouchY - r.top);
+	            //this is for picking
+	            id = _this._getID(viewX, viewY);
+	            var now = new Date();
+	            var isDoubleTap = (now.getTime() - lastTap.getTime()) < maximumLengthBetweenDoubleTaps;
+	            if (isDoubleTap) {
+	                _this._fire('dblclick', { id: id });
+	            }
+	            ;
+	            lastTap = now;
+	            /**
+	            * Occurs when mousedown event happens on underlying canvas.
+	            *
+	            * @event xViewer#mouseDown
+	            * @type {object}
+	            * @param {Number} id - product ID of the element or null if there wasn't any product under mouse
+	            */
+	            _this._fire('mouseDown', { id: id });
+	            _this._disableTextSelection();
+	        };
+	        var handleTouchEnd = function (event) {
+	            if (!touchDown) {
+	                return;
+	            }
+	            touchDown = false;
+	            var endX = event.changedTouches[0].clientX;
+	            var endY = event.changedTouches[0].clientY;
+	            var deltaX = Math.abs(endX - lastTouchX);
+	            var deltaY = Math.abs(endY - lastTouchY);
+	            //if it was a longer movement do not perform picking
+	            if (deltaX < 3 && deltaY < 3) {
+	                var handled = false;
+	                _this._plugins.forEach(function (plugin) {
+	                    if (!plugin.onBeforePick) {
+	                        return;
+	                    }
+	                    handled = handled || plugin.onBeforePick(id);
+	                }, _this);
+	                /**
+	                * Occurs when user click on model.
+	                *
+	                * @event xViewer#pick
+	                * @type {object}
+	                * @param {Number} id - product ID of the element or null if there wasn't any product under mouse
+	                */
+	                if (!handled)
+	                    _this._fire('pick', { id: id });
+	            }
+	            _this._enableTextSelection();
+	        };
+	        this._canvas.addEventListener('touchstart', function (event) { return handleTouchStart(event); }, true);
+	        this._canvas.addEventListener('touchend', function (event) { return handleTouchEnd(event); }, true);
+	    };
+	    xViewer.prototype.navigate = function (type, deltaX, deltaY) {
+	        if (!this._handles || !this._handles[0])
+	            return;
+	        //translation in WCS is position from [0, 0, 0]
+	        var origin = this._origin;
+	        var camera = this.getCameraPosition();
+	        //get origin coordinates in view space
+	        var mvOrigin = glMatrix.vec3.transformMat4(glMatrix.vec3.create(), origin, this._mvMatrix);
+	        //movement factor needs to be dependant on the distance but one meter is a minimum so that movement wouldn't stop when camera is in 0 distance from navigation origin
+	        var distanceVec = glMatrix.vec3.subtract(glMatrix.vec3.create(), origin, camera);
+	        var distance = Math.max(glMatrix.vec3.length(distanceVec), this._handles[0]._model.meter);
+	        //move to the navigation origin in view space
+	        var transform = glMatrix.mat4.translate(glMatrix.mat4.create(), glMatrix.mat4.create(), mvOrigin);
+	        //function for conversion from degrees to radians
+	        function degToRad(deg) {
+	            return deg * Math.PI / 180.0;
+	        }
+	        switch (type) {
+	            case 'free-orbit':
+	                transform = glMatrix.mat4.rotate(glMatrix.mat4.create(), transform, degToRad(deltaY / 4), [1, 0, 0]);
+	                transform = glMatrix.mat4.rotate(glMatrix.mat4.create(), transform, degToRad(deltaX / 4), [0, 1, 0]);
+	                break;
+	            case 'fixed-orbit':
+	            case 'orbit':
+	                glMatrix.mat4.rotate(transform, transform, degToRad(deltaY / 4), [1, 0, 0]);
+	                //z rotation around model z axis
+	                var mvZ = glMatrix.vec3.transformMat3(glMatrix.vec3.create(), [0, 0, 1], glMatrix.mat3.fromMat4(glMatrix.mat3.create(), this._mvMatrix));
+	                mvZ = glMatrix.vec3.normalize(glMatrix.vec3.create(), mvZ);
+	                transform = glMatrix.mat4.rotate(glMatrix.mat4.create(), transform, degToRad(deltaX / 4), mvZ);
+	                break;
+	            case 'pan':
+	                glMatrix.mat4.translate(transform, transform, [deltaX * distance / 150, 0, 0]);
+	                glMatrix.mat4.translate(transform, transform, [0, (-1.0 * deltaY) * distance / 150, 0]);
+	                break;
+	            case 'zoom':
+	                glMatrix.mat4.translate(transform, transform, [0, 0, deltaX * distance / 20]);
+	                glMatrix.mat4.translate(transform, transform, [0, 0, deltaY * distance / 20]);
+	                break;
+	            default:
+	                break;
+	        }
+	        //reverse the translation in view space and leave only navigation changes
+	        var translation = glMatrix.vec3.negate(glMatrix.vec3.create(), mvOrigin);
+	        transform = glMatrix.mat4.translate(glMatrix.mat4.create(), transform, translation);
+	        //apply transformation in right order
+	        this._mvMatrix = glMatrix.mat4.multiply(glMatrix.mat4.create(), transform, this._mvMatrix);
 	    };
 	    /**
 	    * This is a static draw method. You can use it if you just want to render model once with no navigation and interaction.
@@ -2875,7 +3042,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 	                viewer._fire('fps', Math.floor(fps));
 	            }
 	            if (viewer._isRunning) {
-	                window.requestAnimFrame(tick);
+	                // requestAnimFrame is globally attached to the window by the webgl utils
+	                window['requestAnimFrame'](tick);
 	                viewer.draw();
 	            }
 	        }
@@ -3177,7 +3345,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -7475,7 +7643,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports) {
 
 	/*
@@ -7656,7 +7824,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -7671,7 +7839,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -7681,13 +7849,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var xbim_navigation_cube_textures_1 = __webpack_require__(13);
-	var xbim_navigation_cube_shaders_1 = __webpack_require__(12);
-	var glMatrix = __webpack_require__(10);
+	var xbim_navigation_cube_textures_1 = __webpack_require__(14);
+	var xbim_navigation_cube_shaders_1 = __webpack_require__(13);
+	var glMatrix = __webpack_require__(11);
 	var xNavigationCube = (function () {
 	    /**
 	     * This is constructor of the Navigation Cube plugin for {@link xViewer xBIM Viewer}. It gets optional Image as an argument.
@@ -8708,7 +8876,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 	        }
 	        //extract just a rotation from model-view matrix
 	        var rotation = glMatrix.mat3.fromMat4(glMatrix.mat3
-	            .create(), this.viewer._mvMatrix); // TODO Check -> fromMat4(mat3) -> Is this correct?
+	            .create(), this.viewer._mvMatrix);
 	        gl.uniformMatrix4fv(this._pMatrixUniformPointer, false, pMatrix);
 	        gl.uniformMatrix3fv(this._rotationUniformPointer, false, rotation);
 	        gl.uniform1f(this._alphaUniformPointer, this._alpha);
@@ -8987,7 +9155,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -8997,12 +9165,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var xbim_navigation_home_textures_1 = __webpack_require__(15);
-	var glMatrix = __webpack_require__(10);
+	var xbim_navigation_home_textures_1 = __webpack_require__(16);
+	var glMatrix = __webpack_require__(11);
 	var xNavigationHome = (function () {
 	    /**
 	     * This is constructor of the Home plugin for {@link xViewer xBIM Viewer}. It gets optional Image object as an argument. If no image
@@ -9143,7 +9311,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -9281,14 +9449,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
 /***/ },
-/* 18 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var xbim_visual_templates_1 = __webpack_require__(19);
-	var xbim_visual_model_1 = __webpack_require__(20);
-	var xbim_cobieuk_utils_1 = __webpack_require__(21);
-	var xbim_cobie_utils_1 = __webpack_require__(26);
+	var xbim_visual_templates_1 = __webpack_require__(20);
+	var xbim_visual_model_1 = __webpack_require__(21);
+	var xbim_cobieuk_utils_1 = __webpack_require__(22);
+	var xbim_cobie_utils_1 = __webpack_require__(27);
 	var xBrowser = (function () {
 	    /**
 	    * This is the main class you need to use to render semantic structure of the building model
@@ -9924,7 +10092,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
 /***/ },
-/* 19 */
+/* 20 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -9999,7 +10167,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
 /***/ },
-/* 20 */
+/* 21 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -10061,16 +10229,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
 /***/ },
-/* 21 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var xbim_visual_entity_1 = __webpack_require__(22);
-	var xbim_visual_model_1 = __webpack_require__(20);
-	var xbim_attribute_dictionary_1 = __webpack_require__(17);
-	var xbim_visual_assignment_set_1 = __webpack_require__(23);
-	var xbim_visual_attribute_1 = __webpack_require__(24);
-	var xbim_visual_property_1 = __webpack_require__(25);
+	var xbim_visual_entity_1 = __webpack_require__(23);
+	var xbim_visual_model_1 = __webpack_require__(21);
+	var xbim_attribute_dictionary_1 = __webpack_require__(18);
+	var xbim_visual_assignment_set_1 = __webpack_require__(24);
+	var xbim_visual_attribute_1 = __webpack_require__(25);
+	var xbim_visual_property_1 = __webpack_require__(26);
 	var xCobieUkUtils = (function () {
 	    function xCobieUkUtils(lang, culture) {
 	        this._contacts = [];
@@ -10505,7 +10673,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
 /***/ },
-/* 22 */
+/* 23 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -10554,7 +10722,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
 /***/ },
-/* 23 */
+/* 24 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -10579,7 +10747,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
 /***/ },
-/* 24 */
+/* 25 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -10615,7 +10783,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
 /***/ },
-/* 25 */
+/* 26 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -10645,16 +10813,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
 /***/ },
-/* 26 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var xbim_visual_entity_1 = __webpack_require__(22);
-	var xbim_visual_model_1 = __webpack_require__(20);
-	var xbim_attribute_dictionary_1 = __webpack_require__(17);
-	var xbim_visual_assignment_set_1 = __webpack_require__(23);
-	var xbim_visual_attribute_1 = __webpack_require__(24);
-	var xbim_visual_property_1 = __webpack_require__(25);
+	var xbim_visual_entity_1 = __webpack_require__(23);
+	var xbim_visual_model_1 = __webpack_require__(21);
+	var xbim_attribute_dictionary_1 = __webpack_require__(18);
+	var xbim_visual_assignment_set_1 = __webpack_require__(24);
+	var xbim_visual_attribute_1 = __webpack_require__(25);
+	var xbim_visual_property_1 = __webpack_require__(26);
 	var xCobieUtils = (function () {
 	    function xCobieUtils(lang, culture) {
 	        this.settings = {
@@ -11071,6 +11239,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 	}());
 	exports.xCobieUtils = xCobieUtils;
 
+
+/***/ },
+/* 28 */
+/***/ function(module, exports) {
+
+	// removed by extract-text-webpack-plugin
+
+/***/ },
+/* 29 */,
+/* 30 */
+/***/ function(module, exports) {
+
+	// removed by extract-text-webpack-plugin
 
 /***/ }
 /******/ ]);
