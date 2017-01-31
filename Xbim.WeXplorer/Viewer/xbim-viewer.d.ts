@@ -216,7 +216,10 @@ export declare class xViewer {
     unload(modelId: number): void;
     _initShaders(): void;
     _initAttributesAndUniforms(): void;
-    _initMouseEvents(): void;
+    private _initMouseEvents();
+    private _initTouchNavigationEvents();
+    private _initTouchTapEvents();
+    private navigate(type, deltaX, deltaY);
     /**
     * This is a static draw method. You can use it if you just want to render model once with no navigation and interaction.
     * If you want interactive model call {@link xViewer#start start()} method. {@link xViewer#frame Frame event} is fired when draw call is finished.

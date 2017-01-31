@@ -231,6 +231,9 @@ export class xViewer {
         this._initAttributesAndUniforms();
         //initialize mouse events to capture user interaction
         this._initMouseEvents();
+        //initialize touch events to capute user interaction on touch devices
+        this._initTouchNavigationEvents();
+        this._initTouchTapEvents();
     }
 
     public _canvas: HTMLCanvasElement;
@@ -843,7 +846,7 @@ export class xViewer {
         gl.enableVertexAttribArray(this._pointers.transformationAttrPointer);
     }
 
-    public _initMouseEvents() {
+    private _initMouseEvents() {
         var viewer = this;
 
         var mouseDown = false;
@@ -855,7 +858,7 @@ export class xViewer {
         var id = -1;
 
         //set initial conditions so that different gestures can be identified
-        function handleMouseDown(event) {
+        var handleMouseDown = (event: MouseEvent) => {
             mouseDown = true;
             lastMouseX = event.clientX;
             lastMouseY = event.clientY;
@@ -900,9 +903,9 @@ export class xViewer {
             }
 
             viewer._disableTextSelection();
-        }
+        };
 
-        function handleMouseUp(event) {
+        var handleMouseUp = (event: MouseEvent) => {
             mouseDown = false;
 
             var endX = event.clientX;
@@ -912,10 +915,10 @@ export class xViewer {
             var deltaY = Math.abs(endY - startY);
 
             //if it was a longer movement do not perform picking
-            if (deltaX < 3 && deltaY < 3 && button == 'left') {
+            if (deltaX < 3 && deltaY < 3 && button === 'left') {
 
                 var handled = false;
-                viewer._plugins.forEach(function(plugin) {
+                viewer._plugins.forEach((plugin) => {
                         if (!plugin.onBeforePick) {
                             return;
                         }
@@ -934,14 +937,14 @@ export class xViewer {
             }
 
             viewer._enableTextSelection();
-        }
+        };
 
-        function handleMouseMove(event) {
+        var handleMouseMove = (event: MouseEvent) => {
             if (!mouseDown) {
                 return;
             }
 
-            if (viewer.navigationMode == 'none') {
+            if (viewer.navigationMode === 'none') {
                 return;
             }
 
@@ -954,23 +957,23 @@ export class xViewer {
             lastMouseX = newX;
             lastMouseY = newY;
 
-            if (button == 'left') {
+            if (button === 'left') {
                 switch (viewer.navigationMode) {
                 case 'free-orbit':
-                    navigate('free-orbit', deltaX, deltaY);
+                        this.navigate('free-orbit', deltaX, deltaY);
                     break;
 
                 case 'fixed-orbit':
                 case 'orbit':
-                    navigate('orbit', deltaX, deltaY);
+                        this.navigate('orbit', deltaX, deltaY);
                     break;
 
                 case 'pan':
-                    navigate('pan', deltaX, deltaY);
+                        this.navigate('pan', deltaX, deltaY);
                     break;
 
                 case 'zoom':
-                    navigate('zoom', deltaX, deltaY);
+                        this.navigate('zoom', deltaX, deltaY);
                     break;
 
                 default:
@@ -978,14 +981,14 @@ export class xViewer {
 
                 }
             }
-            if (button == 'middle') {
-                navigate('pan', deltaX, deltaY);
+            if (button === 'middle') {
+                this.navigate('pan', deltaX, deltaY);
             }
 
-        }
+        };
 
-        function handleMouseScroll(event) {
-            if (viewer.navigationMode == 'none') {
+        var handleMouseScroll = (event: WheelEvent) => {
+            if (viewer.navigationMode === 'none') {
                 return;
             }
             if (event.stopPropagation) {
@@ -995,83 +998,23 @@ export class xViewer {
                 event.preventDefault();
             }
 
-            function sign(x) {
-                x = +x // convert to a number
+            var sign = (x: any) => {
+                x = +x; // convert to a number
                 if (x === 0 || isNaN(x))
-                    return x
-                return x > 0 ? 1 : -1
-            }
+                    return x;
+                return x > 0 ? 1 : -1;
+            };
 
             //deltaX and deltaY have very different values in different web browsers so fixed value is used for constant functionality.
-            navigate('zoom', sign(event.deltaX) * -1.0, sign(event.deltaY) * -1.0);
+            this.navigate('zoom', sign(event.deltaX) * -1.0, sign(event.deltaY) * -1.0);
         }
 
-        function navigate(type, deltaX, deltaY) {
-            if (!viewer._handles || !viewer._handles[0]) return;
-            //translation in WCS is position from [0, 0, 0]
-            var origin = viewer._origin;
-            var camera = viewer.getCameraPosition();
 
-            //get origin coordinates in view space
-            var mvOrigin = glMatrix.vec3.transformMat4(glMatrix.vec3.create(), origin, viewer._mvMatrix)
-
-            //movement factor needs to be dependant on the distance but one meter is a minimum so that movement wouldn't stop when camera is in 0 distance from navigation origin
-            var distanceVec = glMatrix.vec3.subtract(glMatrix.vec3.create(), origin, camera);
-            var distance = Math.max(glMatrix.vec3.length(distanceVec), viewer._handles[0]._model.meter);
-
-            //move to the navigation origin in view space
-            var transform = glMatrix.mat4.translate(glMatrix.mat4.create(), glMatrix.mat4.create(), mvOrigin)
-
-            //function for conversion from degrees to radians
-            function degToRad(deg) {
-                return deg * Math.PI / 180.0;
-            }
-
-            switch (type) {
-            case 'free-orbit':
-                transform = glMatrix.mat4.rotate(glMatrix.mat4.create(), transform, degToRad(deltaY / 4), [1, 0, 0]);
-                transform = glMatrix.mat4.rotate(glMatrix.mat4.create(), transform, degToRad(deltaX / 4), [0, 1, 0]);
-                break;
-
-            case 'fixed-orbit':
-            case 'orbit':
-                glMatrix.mat4.rotate(transform, transform, degToRad(deltaY / 4), [1, 0, 0]);
-
-                //z rotation around model z axis
-                var mvZ = glMatrix.vec3.transformMat3(glMatrix.vec3.create(),
-                    [0, 0, 1],
-                    glMatrix.mat3.fromMat4(glMatrix.mat3.create(), viewer._mvMatrix));
-                mvZ = glMatrix.vec3.normalize(glMatrix.vec3.create(), mvZ);
-                transform = glMatrix.mat4.rotate(glMatrix.mat4.create(), transform, degToRad(deltaX / 4), mvZ);
-
-                break;
-
-            case 'pan':
-                glMatrix.mat4.translate(transform, transform, [deltaX * distance / 150, 0, 0]);
-                glMatrix.mat4.translate(transform, transform, [0, (-1.0 * deltaY) * distance / 150, 0]);
-                break;
-
-            case 'zoom':
-                glMatrix.mat4.translate(transform, transform, [0, 0, deltaX * distance / 20]);
-                glMatrix.mat4.translate(transform, transform, [0, 0, deltaY * distance / 20]);
-                break;
-
-            default:
-                break;
-            }
-
-            //reverse the translation in view space and leave only navigation changes
-            var translation = glMatrix.vec3.negate(glMatrix.vec3.create(), mvOrigin);
-            transform = glMatrix.mat4.translate(glMatrix.mat4.create(), transform, translation);
-
-            //apply transformation in right order
-            viewer._mvMatrix = glMatrix.mat4.multiply(glMatrix.mat4.create(), transform, viewer._mvMatrix);
-        }
 
         //watch resizing of canvas every 500ms
         var elementHeight = viewer.height;
         var elementWidth = viewer.width;
-        setInterval(function() {
+        setInterval(() => {
                 if (viewer._canvas.offsetHeight !== elementHeight || viewer._canvas.offsetWidth !== elementWidth) {
                     elementHeight = viewer._height = viewer._canvas.height = viewer._canvas.offsetHeight;
                     elementWidth = viewer._width = viewer._canvas.width = viewer._canvas.offsetWidth;
@@ -1081,13 +1024,13 @@ export class xViewer {
 
 
         //attach callbacks
-        this._canvas.addEventListener('mousedown', handleMouseDown, true);
-        this._canvas.addEventListener('wheel', handleMouseScroll, true);
-        window.addEventListener('mouseup', handleMouseUp, true);
-        window.addEventListener('mousemove', handleMouseMove, true);
+        this._canvas.addEventListener('mousedown', (event) => handleMouseDown(event), true);
+        this._canvas.addEventListener('wheel', (event) => handleMouseScroll(event), true);
+        window.addEventListener('mouseup', (event) => handleMouseUp(event), true);
+        window.addEventListener('mousemove', (event) => handleMouseMove(event), true);
 
         this._canvas.addEventListener('mousemove',
-            function() {
+            () => {
                 viewer._userAction = true;
             },
             true);
@@ -1100,7 +1043,244 @@ export class xViewer {
         * @type {object}
         * @param {Number} id - product ID of the element or null if there wasn't any product under mouse
         */
-        this._canvas.addEventListener('dblclick', function() { viewer._fire('dblclick', { id: id }); }, true);
+        this._canvas.addEventListener('dblclick', () => { viewer._fire('dblclick', { id: id }); }, true);
+    }
+
+    private _initTouchNavigationEvents() {
+
+        var lastTouchX_1: number;
+        var lastTouchY_1: number;
+        var lastTouchX_2: number;
+        var lastTouchY_2: number;
+        var lastTouchX_3: number;
+        var lastTouchY_3: number;
+
+
+        var handleTouchStart = (event: TouchEvent) => {
+            event.preventDefault();
+            if (event.touches.length >= 1) {
+                lastTouchX_1 = event.touches[0].clientX;
+                lastTouchY_1 = event.touches[0].clientY;
+            }
+            if (event.touches.length >= 2) {
+                lastTouchX_2 = event.touches[1].clientX;
+                lastTouchY_2 = event.touches[1].clientY;
+            }
+            if (event.touches.length >= 3) {
+                lastTouchX_3 = event.touches[2].clientX;
+                lastTouchY_3 = event.touches[2].clientY;
+            }
+        };
+
+        var handleTouchMove = (event: TouchEvent) => {
+            event.preventDefault();
+            if (this.navigationMode === 'none' || !event.touches) {
+                return;
+            }
+            if (event.touches.length === 1) {
+                // touch move with single finger -> orbit
+                var deltaX = event.touches[0].clientX - lastTouchX_1;
+                var deltaY = event.touches[0].clientY - lastTouchY_1;
+                lastTouchX_1 = event.touches[0].clientX;
+                lastTouchY_1 = event.touches[0].clientY;
+                // force-setting navigation mode to 'free-orbit' currently for touch navigation since regular orbit
+                // feels awkward and un-intuitive on touch devices
+                this.navigate('free-orbit', deltaX, deltaY);
+            } else if (event.touches.length === 2) {
+                // touch move with two fingers -> zoom
+                var distanceBefore = Math.sqrt((lastTouchX_1 - lastTouchX_2) * (lastTouchX_1 - lastTouchX_2) +
+                    (lastTouchY_1 - lastTouchY_2) * (lastTouchY_1 - lastTouchY_2));
+                lastTouchX_1 = event.touches[0].clientX;
+                lastTouchY_1 = event.touches[0].clientY;
+                lastTouchX_2 = event.touches[1].clientX;
+                lastTouchY_2 = event.touches[1].clientY;
+                var distanceAfter = Math.sqrt((lastTouchX_1 - lastTouchX_2) * (lastTouchX_1 - lastTouchX_2) +
+                    (lastTouchY_1 - lastTouchY_2) * (lastTouchY_1 - lastTouchY_2));
+                if (distanceBefore > distanceAfter) {
+                    this.navigate('zoom', -1, -1); // Zooming out, fingers are getting closer together
+
+                } else {
+                    this.navigate('zoom', 1, 1); // zooming in, fingers are getting further apart
+                }
+            } else if (event.touches.length === 3) {
+                // touch move with three fingers -> pan
+                var directionX = ((event.touches[0]
+                            .clientX +
+                            event.touches[1].clientX +
+                            event.touches[2].clientX) /
+                        3) -
+                    ((lastTouchX_1 + lastTouchX_2 + lastTouchX_3) / 3);
+                var directionY = ((event.touches[0]
+                            .clientY +
+                            event.touches[1].clientY +
+                            event.touches[2].clientY) /
+                        3) -
+                    ((lastTouchY_1 + lastTouchY_2 + lastTouchY_3) / 3);
+                lastTouchX_1 = event.touches[0].clientX;
+                lastTouchY_1 = event.touches[0].clientY;
+                lastTouchX_2 = event.touches[1].clientX;
+                lastTouchY_2 = event.touches[1].clientY;
+                lastTouchY_3 = event.touches[2].clientX;
+                lastTouchY_3 = event.touches[2].clientY;
+                // pan seems to be too fast, just adding a factor here
+                var panFactor = 0.2;
+
+                this.navigate('pan', panFactor * directionX, panFactor * directionY);
+            }
+        }
+
+        this._canvas.addEventListener('touchstart', (event) => handleTouchStart(event), true);
+        this._canvas.addEventListener('touchmove', (event) => handleTouchMove(event), true);
+    }
+
+    private _initTouchTapEvents() {
+        var touchDown = false;
+        var lastTouchX: number;
+        var lastTouchY: number;
+        var maximumLengthBetweenDoubleTaps = 200;
+        var lastTap = new Date();
+
+        var id = -1;
+
+        //set initial conditions so that different gestures can be identified
+        var handleTouchStart = (event: TouchEvent) => {
+            if (event.touches.length !== 1) {
+                return;
+            }
+
+
+            touchDown = true;
+            lastTouchX = event.touches[0].clientX;
+            lastTouchY = event.touches[0].clientY;
+            //get coordinates within canvas (with the right orientation)
+            var r = this._canvas.getBoundingClientRect();
+            var viewX = lastTouchX - r.left;
+            var viewY = this._height - (lastTouchY - r.top);
+
+            //this is for picking
+            id = this._getID(viewX, viewY);
+
+            var now = new Date();
+            var isDoubleTap = (now.getTime() - lastTap.getTime()) < maximumLengthBetweenDoubleTaps;
+            if (isDoubleTap) {
+                this._fire('dblclick', { id: id });
+            };
+            lastTap = now;
+
+            /**
+            * Occurs when mousedown event happens on underlying canvas.
+            *
+            * @event xViewer#mouseDown
+            * @type {object}
+            * @param {Number} id - product ID of the element or null if there wasn't any product under mouse
+            */
+            this._fire('mouseDown', { id: id });
+
+            this._disableTextSelection();
+        };
+
+        var handleTouchEnd = (event: TouchEvent) => {
+            if (!touchDown) {
+                return;
+            }
+            touchDown = false;
+
+            var endX = event.changedTouches[0].clientX;
+            var endY = event.changedTouches[0].clientY;
+
+            var deltaX = Math.abs(endX - lastTouchX);
+            var deltaY = Math.abs(endY - lastTouchY);
+
+            //if it was a longer movement do not perform picking
+            if (deltaX < 3 && deltaY < 3) {
+
+                var handled = false;
+                this._plugins.forEach((plugin) => {
+                    if (!plugin.onBeforePick) {
+                        return;
+                    }
+                    handled = handled || plugin.onBeforePick(id);
+                },
+                    this);
+
+                /**
+                * Occurs when user click on model.
+                *
+                * @event xViewer#pick
+                * @type {object}
+                * @param {Number} id - product ID of the element or null if there wasn't any product under mouse
+                */
+                if (!handled) this._fire('pick', { id: id });
+            }
+
+            this._enableTextSelection();
+        };
+
+
+        this._canvas.addEventListener('touchstart', (event) => handleTouchStart(event), true);
+        this._canvas.addEventListener('touchend', (event) => handleTouchEnd(event), true);
+    }
+
+    private navigate(type, deltaX, deltaY) {
+        if (!this._handles || !this._handles[0]) return;
+        //translation in WCS is position from [0, 0, 0]
+        var origin = this._origin;
+        var camera = this.getCameraPosition();
+
+        //get origin coordinates in view space
+        var mvOrigin = glMatrix.vec3.transformMat4(glMatrix.vec3.create(), origin, this._mvMatrix);
+
+        //movement factor needs to be dependant on the distance but one meter is a minimum so that movement wouldn't stop when camera is in 0 distance from navigation origin
+        var distanceVec = glMatrix.vec3.subtract(glMatrix.vec3.create(), origin, camera);
+        var distance = Math.max(glMatrix.vec3.length(distanceVec), this._handles[0]._model.meter);
+
+        //move to the navigation origin in view space
+        var transform = glMatrix.mat4.translate(glMatrix.mat4.create(), glMatrix.mat4.create(), mvOrigin)
+
+        //function for conversion from degrees to radians
+        function degToRad(deg) {
+            return deg * Math.PI / 180.0;
+        }
+
+        switch (type) {
+        case 'free-orbit':
+            transform = glMatrix.mat4.rotate(glMatrix.mat4.create(), transform, degToRad(deltaY / 4), [1, 0, 0]);
+            transform = glMatrix.mat4.rotate(glMatrix.mat4.create(), transform, degToRad(deltaX / 4), [0, 1, 0]);
+            break;
+
+        case 'fixed-orbit':
+        case 'orbit':
+            glMatrix.mat4.rotate(transform, transform, degToRad(deltaY / 4), [1, 0, 0]);
+
+            //z rotation around model z axis
+            var mvZ = glMatrix.vec3.transformMat3(glMatrix.vec3.create(),
+                [0, 0, 1],
+                glMatrix.mat3.fromMat4(glMatrix.mat3.create(), this._mvMatrix));
+            mvZ = glMatrix.vec3.normalize(glMatrix.vec3.create(), mvZ);
+            transform = glMatrix.mat4.rotate(glMatrix.mat4.create(), transform, degToRad(deltaX / 4), mvZ);
+
+            break;
+
+        case 'pan':
+            glMatrix.mat4.translate(transform, transform, [deltaX * distance / 150, 0, 0]);
+            glMatrix.mat4.translate(transform, transform, [0, (-1.0 * deltaY) * distance / 150, 0]);
+            break;
+
+        case 'zoom':
+            glMatrix.mat4.translate(transform, transform, [0, 0, deltaX * distance / 20]);
+            glMatrix.mat4.translate(transform, transform, [0, 0, deltaY * distance / 20]);
+            break;
+
+        default:
+            break;
+        }
+
+        //reverse the translation in view space and leave only navigation changes
+        var translation = glMatrix.vec3.negate(glMatrix.vec3.create(), mvOrigin);
+        transform = glMatrix.mat4.translate(glMatrix.mat4.create(), transform, translation);
+
+        //apply transformation in right order
+        this._mvMatrix = glMatrix.mat4.multiply(glMatrix.mat4.create(), transform, this._mvMatrix);
     }
 
     /**
