@@ -151,14 +151,6 @@
     <Content Include="webpack.config.js" />
     <Content Include="webpack.config.browser.js" />
     <Content Include="Resources\doctemplate\static\scripts\xbim.browser.bundle.js.map" />
-    <Content Include="Build\xbim.browser.bundle.js.map" />
-    <Content Include="Build\xbim.browser.bundle.min.js.map" />
-    <Content Include="Build\xbim.bundle.js.map" />
-    <Content Include="Build\xbim.bundle.min.js.map" />
-    <Content Include="Build\xbim.browser.bundle.css.map" />
-    <Content Include="Build\xbim.browser.bundle.min.css.map" />
-    <Content Include="Build\xbim.bundle.css.map" />
-    <Content Include="Build\xbim.bundle.min.css.map" />
     <None Include="Tutorials\1_Hello_building.md" />
     <Content Include="simpleviewer.html" />
     <Content Include="Viewer\fragment_shader.c" />
