@@ -20,11 +20,12 @@ bi-directional translation between IFC and COBie formats
 
 ## Getting Started
 
-You will need Visual Studio 2010 SP1 or newer to compile the Solution. To compile the SceneJSWebViewer sample
+You will need Visual Studio 2015 Update 3 or newer to compile the Solution. To compile the SceneJSWebViewer sample
 project you will require ASP.NET MVC 3.0 to be installed. The web components are created in [TypeScript](http://www.typescriptlang.org).
 [npm](https://www.npmjs.com/) and [webpack](https://webpack.github.io) are used to compile the client side JavaScript libraries.
-All solutions target .NET 4.0. The 4.0 Client profile
-may be supported for some projects.
+Since TypeScript compilation in the Visual Studio solution is enabled, the [TypeScript for Visual Studio 2015](http://www.typescriptlang.org/#download-links)
+extension must be installed at least in version 2.0.
+All solutions target .NET 4.0. The 4.0 Client profile may be supported for some projects.
 
 
 Xbim is a software library, and is currently deployed with a number of sample applications to demonstrate its capabilities
