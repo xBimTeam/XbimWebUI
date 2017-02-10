@@ -1,0 +1,96 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Eventful building</title>
+    <link href="styles/jsdoc-default.css" rel="stylesheet" />
+    <script src="scripts/xbim.bundle.js"></script>
+</head>
+<body>
+    <div id="main">
+        <section>
+            <canvas id="viewer" width="500" height="300"></canvas>
+            <div>
+                Frames per second: <span id="fps">0</span>
+            </div>
+            <div>
+                You have picked product <strong><span id="productId"></span></strong>
+            </div>
+            <div id="errors"></div>
+
+
+            <script type="text/javascript">
+                var check = xViewer.check();
+                if (check.noErrors) {
+                    var viewer = new xViewer('viewer');
+                    viewer.on('loaded', function () {
+                        //Hide any loaders you have used to keep your user excited 
+                        //while their precious models are being processed and loaded
+                        //and start the animation.
+                        viewer.start();
+                    });
+
+                    viewer.on('error', function (arg) {
+                        var container = document.getElementById('errors');
+                        if (container) {
+                            //preppend error report
+                            container.innerHTML = "<pre style='color:red;'>" + arg.message + "</pre> <br />" + container.innerHTML;
+                        }
+                    });
+
+                    viewer.on('fps', function (fps) {
+                        var span = document.getElementById('fps');
+                        if (span) {
+                            span.innerHTML = fps;
+                        }
+                    });
+                    
+                    var timer = 0;
+                    viewer.on('pick', function (args) {
+                        var id = args.id;
+
+                        var span = document.getElementById('productId');
+                        if (span) {
+                            span.innerHTML = id;
+                        }
+
+                        //you can use ID for funny things like hiding or 
+                        //recolouring which will be covered in one of the next tutorials
+
+                        var time = (new Date()).getTime();
+                        if (time - timer < 200)
+                            viewer.zoomTo(id);
+                        timer = time;
+                     
+                    });
+                    viewer.on('mouseDown', function (args) {
+                        viewer.setCameraTarget(args.id);
+                    });
+                    viewer.load('data/SampleHouse.wexbim');
+                }
+                else {
+                    var msg = document.getElementById('msg');
+                    msg.innerHTML = '';
+                    for (var i in check.errors) {
+                        var error = check.errors[i];
+                        msg.innerHTML += "<div style='color: red;'>" + error + "</div>";
+                    }
+                }
+            </script>
+
+            <br />
+            <br />
+            <div id="msg">
+                <p>
+                    Use left mouse button for orbiting, scroll button for zooming and press middle/scroll button for panning.
+                </p>
+                <p>
+                    Double click to zoom to element
+                </p>
+            </div>
+            <div>
+                <a href="tutorial-3_Eventful_building.html">Back to tutorial</a>
+            </div>
+        </section>
+    </div>    
+</body>
+</html>

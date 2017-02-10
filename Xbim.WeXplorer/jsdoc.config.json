@@ -1,7 +1,7 @@
 {
    "opts":{
       "tutorials":"Tutorials",
-      "destination":"..\\..\\XbimWebUI.Docs",
+      "destination":"docs",
       "template":"Resources/doctemplate"
    },
    "tags":{

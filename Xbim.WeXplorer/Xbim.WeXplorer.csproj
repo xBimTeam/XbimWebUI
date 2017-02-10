@@ -135,7 +135,7 @@
     <Content Include="Resources\doctemplate\static\scripts\prettify\Apache-License-2.0.txt" />
     <Content Include="Resources\doctemplate\static\scripts\prettify\lang-css.js" />
     <Content Include="Resources\doctemplate\static\scripts\prettify\prettify.js" />
-    <Content Include="Resources\doctemplate\static\scripts\xbim.browser.bundle.js" />
+    <Content Include="Resources\doctemplate\static\scripts\xbim.bundle.js" />
     <Content Include="Resources\doctemplate\static\styles\jsdoc-default.css" />
     <Content Include="Resources\doctemplate\static\styles\prettify-jsdoc.css" />
     <Content Include="Resources\doctemplate\static\styles\prettify-tomorrow.css" />
@@ -152,7 +152,8 @@
     <Content Include="webpack.config.js" />
     <Content Include="webpack.config.viewer.js" />
     <Content Include="webpack.config.browser.js" />
-    <Content Include="Resources\doctemplate\static\scripts\xbim.browser.bundle.js.map" />
+    <Content Include="jsdoc.config.json" />
+    <Content Include="Resources\doctemplate\static\scripts\xbim.bundle.js.map" />
     <None Include="Tutorials\1_Hello_building.md" />
     <Content Include="simpleviewer.html" />
     <Content Include="Viewer\fragment_shader.c" />
@@ -165,8 +166,6 @@
     <Content Include="tests\qunit-1.15.0.js" />
     <Content Include="tests\tests.html" />
     <Content Include="tests\tests.js" />
-    <Content Include="Utilities\jsmin.exe" />
-    <Content Include="Utilities\NuGet.exe" />
     <Content Include="Utilities\spacker.exe" />
     <Content Include="viewer3D.html" />
     <Content Include="Web.config" />

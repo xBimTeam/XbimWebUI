@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Tutorial: Hello building!</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+	
+		<h1 class="page-title">Tutorial: Hello building!</h1>
+    
+    <section>
+
+<header>
+    
+
+    <!-- <h2>Hello building!</h2> -->
+</header>
+
+<article>
+    <h2>﻿Live example <a href="1_Hello_building.live.html">here</a></h2><p>In this tutorial you will learn how to create the most basic and straightforward viewer. 
+It won't do anything except showing the building. It will only use the built-in navigation
+of the viewer and will not respond to any events. You can have a look <a href="1_Hello_building.live.html">here</a> for live example.
+No let's dig into the code:</p>
+<pre class="prettyprint source"><code>&lt;!DOCTYPE html>
+&lt;html xmlns=&quot;http://www.w3.org/1999/xhtml&quot;>
+&lt;head>
+    &lt;title>Hello building!&lt;/title>
+    &lt;script src=&quot;js/xbim.browser.bundle.js&quot;>&lt;/script>
+&lt;/head>
+&lt;body>
+    &lt;canvas id=&quot;viewer&quot; width=&quot;500&quot; height=&quot;300&quot;>&lt;/canvas>
+    &lt;script type=&quot;text/javascript&quot;>
+        var viewer = new xViewer('viewer');
+        viewer.load('data/SampleHouse.wexbim');
+        viewer.start();
+    &lt;/script>
+&lt;/body>
+&lt;/html></code></pre><p>Well, this was pretty easy wasn't it? We just referenced the <em>xbim.browser.bundle.js</em> library, create <a href="xViewer.html">xViewer</a> object
+passing id of <code>&lt;canvas&gt;</code> element and start animation. This is it! Just make sure you are running from web server, not just 
+as a local file because xViewer uses AJAX to fetch the wexBIM data and some browsers impose CORS restrictions even on local
+HTML files. Also make sure you don't use IE less than 11 because you need to have support for WebGL. You will learn how to 
+check prerequisites at the end of this tutorial. If it still doesn't work check your webserver is serving wexBIM file as a
+static content. If you don't want to install webserver only because of this I recommend <a href="https://code.google.com/p/mongoose/">Mongoose</a>. 
+Just drop it into the sample directory and run it. It will serve all files as a static content which is all you need for this tutorial.</p>
+<p>Now just a few words about deployment. We have referenced <em>xbim.browser.bundle.js</em> which contains <em>xbim-viewer.js</em> bundled 
+along with two dependant libraries <em>gl-matrix.js</em> and <em>webgl-utils.js</em>. These are the only external dependencies of the viewer.
+As you may have guessed from the name it is debug version. If you download this library it contains multiple 
+files for different types of deployment. Bundles are self-contained and are released as minified and debug version.
+The library itself is written with <a href="http://www.typescriptlang.org">TypeScript</a>, which is then compiled down to JavaScript
+and bundled as a single file to be used in a web browser.
+Either reference</p>
+<pre class="prettyprint source"><code>    &lt;script src=&quot;js/xbim.browser.bundle.js&quot;>&lt;/script></code></pre><p>for debug bundled version (this will also add you intellisense support in VS if your IDE of choice) or</p>
+<pre class="prettyprint source"><code>    &lt;script src=&quot;js/xbim.browser.bundle.min.js&quot;>&lt;/script></code></pre><p>for minified version (this will probably be your choice for release).
+If you're using a module loader (and don't yet use TypeScript), you can reference <em>xbim.bundle.js</em> or <em>xbim.bundle.min.js</em> for an UMD bundled module.</p>
+<p>Right, this is about enough for the first tutorial. So if you feel fresh you can jump right into the next one where you will learn 
+how to check that the browser is actually able to render the model in <a href="tutorial-2_Safe_Hello_building.html">Safe 'Hello building!'</a>. It'll look the same as this example so you can have a look on <a href="1_Hello_building.live.html">live
+show here</a></p>
+</article>
+
+</section>
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="OrthogonalCamera.html">OrthogonalCamera</a></li><li><a href="PerspectiveCamera.html">PerspectiveCamera</a></li><li><a href="Prerequisites.html">Prerequisites</a></li><li><a href="xBrowser.html">xBrowser</a></li><li><a href="xNavigationCube.html">xNavigationCube</a></li><li><a href="xNavigationHome.html">xNavigationHome</a></li><li><a href="xViewer.html">xViewer</a></li><li><a href="xVisualAssignmentSet.html">xVisualAssignmentSet</a></li><li><a href="xVisualAttribute.html">xVisualAttribute</a></li><li><a href="xVisualEntity.html">xVisualEntity</a></li><li><a href="xVisualModel.html">xVisualModel</a></li><li><a href="xVisualProperty.html">xVisualProperty</a></li></ul><h3>Events</h3><ul><li><a href="xBrowser.html#event:entityActive">entityActive</a></li><li><a href="xBrowser.html#event:entityClick">entityClick</a></li><li><a href="xBrowser.html#event:entityDblclick">entityDblclick</a></li><li><a href="xBrowser.html#event:entityMouseDown">entityMouseDown</a></li><li><a href="xBrowser.html#event:entityMouseMove">entityMouseMove</a></li><li><a href="xBrowser.html#event:entityMouseUp">entityMouseUp</a></li><li><a href="xBrowser.html#event:entityTouch">entityTouch</a></li><li><a href="xBrowser.html#event:loaded">loaded</a></li><li><a href="xViewer.html#event:clipped">clipped</a></li><li><a href="xViewer.html#event:dblclick">dblclick</a></li><li><a href="xViewer.html#event:error">error</a></li><li><a href="xViewer.html#event:fps">fps</a></li><li><a href="xViewer.html#event:frame">frame</a></li><li><a href="xViewer.html#event:loaded">loaded</a></li><li><a href="xViewer.html#event:mouseDown">mouseDown</a></li><li><a href="xViewer.html#event:mouseDown">mouseDown</a></li><li><a href="xViewer.html#event:pick">pick</a></li><li><a href="xViewer.html#event:pick">pick</a></li><li><a href="xViewer.html#event:unclipped">unclipped</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-1_Hello_building.html">Hello building!</a></li><li><a href="tutorial-2_Safe_Hello_building.html">Safe 'Hello building!'</a></li><li><a href="tutorial-3_Eventful_building.html">Eventful building</a></li><li><a href="tutorial-4_Building_seen_from_everywhere.html">Building seen from everywhere ...</a></li><li><a href="tutorial-5_Colourful_building.html">Colourful building</a></li><li><a href="tutorial-6_Building_described.html">Building described</a></li></ul><h3>Global</h3><ul><li><a href="global.html#xProductType">xProductType</a></li><li><a href="global.html#xState">xState</a></li></ul>
+</nav>
+
+<br clear="both">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0</a> on Fri Feb 10 2017 17:17:16 GMT+0100 (W. Europe Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

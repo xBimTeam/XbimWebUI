@@ -1,0 +1,42 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Hello building!</title>
+    <link href="styles/jsdoc-default.css" rel="stylesheet" />
+    <script src="scripts/xbim.bundle.js"></script>
+</head>
+<body>
+    <div id="main">
+        <section>
+            <canvas id="viewer" width="500" height="300"></canvas>
+            <script type="text/javascript">
+                var check = xViewer.check();
+                if (check.noErrors) {
+                    var viewer = new xViewer('viewer');
+                    viewer.load('data/SampleHouse.wexbim');
+                    viewer.start();
+                }
+                else {
+                    var msg = document.getElementById('msg');
+                    msg.innerHTML = '';
+                    for (var i in check.errors) {
+                        var error = check.errors[i];
+                        msg.innerHTML += "<div style='color: red;'>" + error + "</div>";
+                    }
+                }
+            </script>
+
+            <br />
+            <br />
+            <div id="msg">
+                Use left mouse button for orbiting, scroll button for zooming and press middle/scroll button for panning.
+            </div>
+            <div>
+                <a href="tutorial-1_Hello_building.html">Back to tutorial 1</a>
+                <br />
+                <a href="tutorial-2_Safe_Hello_building.html">Back to tutorial 2</a>
+            </div>
+        </section>
+    </div>    
+</body>
+</html>

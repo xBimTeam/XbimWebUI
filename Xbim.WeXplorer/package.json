@@ -7,7 +7,8 @@
     "css-loader": "0.26.1",
     "extract-text-webpack-plugin": "1.0.1",
     "webpack": "1.14.0",
-    "typescript": "^2.0.3"
+    "typescript": "^2.0.3",
+    "jsdoc": "3.3.0"
   },
   "files": [
     "Browser/*",
@@ -21,6 +22,7 @@
   ],
   "scripts": {
     "webpack": "webpack && webpack --min && webpack --config webpack.config.viewer.js && webpack --config webpack.config.viewer.js --min && webpack --config webpack.config.browser.js && webpack --config webpack.config.browser.js --min",
-    "webpack:watch": "webpack --watch"
+    "webpack:watch": "webpack --watch",
+    "jsdoc": "jsdoc -c jsdoc.config.json"
   }
 }

@@ -1,0 +1,111 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Building seen from everywhere</title>
+    <link href="styles/jsdoc-default.css" rel="stylesheet" />
+    <link href="styles/xviewer-styles.css" rel="stylesheet" />
+    <script src="scripts/xbim.bundle.js"></script>
+</head>
+<body>
+    <div id="main">
+        <div>
+            <div class="xviewer-control">
+                <button onclick="Recolour()">Recolour by type</button>
+                <button onclick="if (viewer) viewer.resetStyles();">Reset styles</button>
+                <script type="text/javascript">
+                    function Recolour() {
+                        if (!viewer) return;
+                        var index = 0;
+                        for (var i in xProductType) {
+                            var type = xProductType[i];
+                            var colour = [Math.random() * 255, Math.random() * 255, Math.random() * 255, 255];
+                            viewer.defineStyle(index, colour);
+                            viewer.setStyle(index, type);
+                            index++;
+                        }
+                    };
+                </script>
+            </div>
+            <div class="xviewer-control">
+                Click action:
+                <select id="cmbSelection">
+                    <option value="noAction">No action</option>
+                    <option value="select">Select</option>
+                    <option value="hide">Hide</option>
+                </select>
+                <button onclick="if (viewer) viewer.resetStates()">Reset</button>
+                <script type="text/javascript">
+                    function initHighlighting() {
+                        viewer.on('pick', function (args) {
+                            var cmb = document.getElementById('cmbSelection');
+                            var option = cmb.value;
+                            switch (option) {
+                                case 'select':
+                                    viewer.setState(xState.HIGHLIGHTED, [args.id]);
+                                    break;
+                                case 'hide':
+                                    viewer.setState(xState.HIDDEN, [args.id]);
+                                    break;
+                                default:
+                                    break;
+                            }
+                        });
+                    };
+                </script>
+            </div>
+        </div>
+
+        <canvas id="viewer" width="500" height="300"></canvas>
+        <div>
+            You have picked a product: <span id="productId">model</span>.
+        </div>
+        <div id="errors"></div>
+
+
+        <script type="text/javascript">
+
+                var check = xViewer.check();
+                var viewer = null;
+                var pickedId = null;
+                if (check.noErrors) {
+                    viewer = new xViewer('viewer');
+                    viewer.on('loaded', function () {
+                        initHighlighting();
+                        viewer.start();
+                    });
+
+                    viewer.on('error', function (arg) {
+                        var container = document.getElementById('errors');
+                        if (container) {
+                            //preppend error report
+                            container.innerHTML = "<pre style='color:red;'>" + arg.message + "</pre> <br />" + container.innerHTML;
+                        }
+                    });
+
+                    viewer.on('pick', function (args) {
+                        var id = args.id;
+                        var span = document.getElementById('productId');
+                        if (span) {
+                            span.innerHTML = id ? id : 'model';
+                        }
+
+                    });
+                    viewer.load('data/SampleHouse.wexbim');
+                }
+                else {
+                    var msg = document.getElementById('errors');
+                    for (var i in check.errors) {
+                        var error = check.errors[i];
+                        msg.innerHTML += "<pre style='color: red;'>" + error + "</pre> <br />";
+                    }
+                }
+        </script>
+
+        <br />
+        <br />
+        <div>
+            <a href="tutorial-5_Colourful_building.html">Back to tutorial</a>
+        </div>
+    </div>
+</body>
+</html>
