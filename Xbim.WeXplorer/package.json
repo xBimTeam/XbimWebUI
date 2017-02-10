@@ -15,13 +15,12 @@
     "Plugins/*",
     "Viewer/*",
     "Libs/*",
-    "index.js*",
-    "index.ts",
-    "index.d.ts"
+    "*.js*",
+    "*.ts",
+    "*.d.ts"
   ],
   "scripts": {
-    "webpack": "webpack && webpack --min",
-    "webpack:watch": "webpack --watch",
-    "webpack:browser": "webpack --config webpack.config.browser.js && webpack --config webpack.config.browser.js --min"
+    "webpack": "webpack && webpack --min && webpack --config webpack.config.viewer.js && webpack --config webpack.config.viewer.js --min && webpack --config webpack.config.browser.js && webpack --config webpack.config.browser.js --min",
+    "webpack:watch": "webpack --watch"
   }
 }

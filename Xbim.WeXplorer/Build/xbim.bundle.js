@@ -26,17 +26,7 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
-(function webpackUniversalModuleDefinition(root, factory) {
-	if(typeof exports === 'object' && typeof module === 'object')
-		module.exports = factory();
-	else if(typeof define === 'function' && define.amd)
-		define([], factory);
-	else if(typeof exports === 'object')
-		exports["xbim-webui"] = factory();
-	else
-		root["xbim-webui"] = factory();
-})(this, function() {
-return /******/ (function(modules) { // webpackBootstrap
+/******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
 /******/
@@ -83,7 +73,8 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
 	__webpack_require__(1);
-	__webpack_require__(28);
+	__webpack_require__(13);
+	__webpack_require__(19);
 	module.exports = __webpack_require__(30);
 
 
@@ -91,38 +82,17 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 1 */
 /***/ function(module, exports, __webpack_require__) {
 
-	"use strict";
-	function __export(m) {
-	    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-	}
-	// Viewer
-	__export(__webpack_require__(2));
-	__export(__webpack_require__(3));
-	__export(__webpack_require__(7));
-	__export(__webpack_require__(8));
-	__export(__webpack_require__(5));
-	__export(__webpack_require__(9));
-	__export(__webpack_require__(4));
-	__export(__webpack_require__(6));
-	__export(__webpack_require__(10));
-	// Plugins
-	__export(__webpack_require__(13));
-	__export(__webpack_require__(14));
-	__export(__webpack_require__(15));
-	__export(__webpack_require__(16));
-	__export(__webpack_require__(17));
-	// Browser
-	__export(__webpack_require__(18));
-	__export(__webpack_require__(19));
-	__export(__webpack_require__(27));
-	__export(__webpack_require__(22));
-	__export(__webpack_require__(24));
-	__export(__webpack_require__(25));
-	__export(__webpack_require__(23));
-	__export(__webpack_require__(21));
-	__export(__webpack_require__(26));
-	__export(__webpack_require__(20));
-
+	/* WEBPACK VAR INJECTION */(function(global) {global['xBinaryReader'] = global['xBinaryReader'] ? global['xBinaryReader'] : __webpack_require__(2).xBinaryReader;
+	global['xModelGeometry'] = global['xModelGeometry'] ? global['xModelGeometry'] : __webpack_require__(3).xModelGeometry;
+	global['xModelHandle'] = global['xModelHandle'] ? global['xModelHandle'] : __webpack_require__(7).xModelHandle;
+	global['xProductInheritance'] = global['xProductInheritance'] ? global['xProductInheritance'] : __webpack_require__(8).xProductInheritance;
+	global['xProductType'] = global['xProductType'] ? global['xProductType'] : __webpack_require__(5).xProductType;
+	global['xShaders'] = global['xShaders'] ? global['xShaders'] : __webpack_require__(9).xShaders;
+	global['xState'] = global['xState'] ? global['xState'] : __webpack_require__(4).xState;
+	global['xTriangulatedShape'] = global['xTriangulatedShape'] ? global['xTriangulatedShape'] : __webpack_require__(6).xTriangulatedShape;
+	global['xViewer'] = global['xViewer'] ? global['xViewer'] : __webpack_require__(10).xViewer;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
 /* 2 */
@@ -7838,6 +7808,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 13 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(global) {global['xCubeShaders'] = global['xCubeShaders'] ? global['xCubeShaders'] : __webpack_require__(14).xShaders;
+	global['xCubeTextures'] = global['xCubeTextures'] ? global['xCubeTextures'] : __webpack_require__(15).xCubeTextures;
+	global['xNavigationCube'] = global['xNavigationCube'] ? global['xNavigationCube'] : __webpack_require__(16).xNavigationCube;
+	global['xHomeTextures'] = global['xHomeTextures'] ? global['xHomeTextures'] : __webpack_require__(17).xHomeTextures;
+	global['xNavigationHome'] = global['xNavigationHome'] ? global['xNavigationHome'] : __webpack_require__(18).xNavigationHome;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
+
+/***/ },
+/* 14 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -7852,7 +7834,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -7862,12 +7844,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var xbim_navigation_cube_textures_1 = __webpack_require__(14);
-	var xbim_navigation_cube_shaders_1 = __webpack_require__(13);
+	var xbim_navigation_cube_textures_1 = __webpack_require__(15);
+	var xbim_navigation_cube_shaders_1 = __webpack_require__(14);
 	var glMatrix = __webpack_require__(11);
 	var xNavigationCube = (function () {
 	    /**
@@ -9168,7 +9150,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -9178,11 +9160,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var xbim_navigation_home_textures_1 = __webpack_require__(16);
+	var xbim_navigation_home_textures_1 = __webpack_require__(17);
 	var glMatrix = __webpack_require__(11);
 	var xNavigationHome = (function () {
 	    /**
@@ -9324,7 +9306,24 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 18 */
+/* 19 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(global) {global['xAttributeDictionary'] = global['xAttributeDictionary'] ? global['xAttributeDictionary'] : __webpack_require__(20).xAttributeDictionary;
+	global['xBrowser'] = global['xBrowser'] ? global['xBrowser'] : __webpack_require__(21).xBrowser;
+	global['xCobieUtils'] = global['xCobieUtils'] ? global['xCobieUtils'] : __webpack_require__(29).xCobieUtils;
+	global['xCobieUkUtils'] = global['xCobieUkUtils'] ? global['xCobieUkUtils'] : __webpack_require__(24).xCobieUkUtils;
+	global['xVisualAssignmentSet'] = global['xVisualAssignmentSet'] ? global['xVisualAssignmentSet'] : __webpack_require__(26).xVisualAssignmentSet;
+	global['xVisualAttribute'] = global['xVisualAttribute'] ? global['xVisualAttribute'] : __webpack_require__(27).xVisualAttribute;
+	global['xVisualEntity'] = global['xVisualEntity'] ? global['xVisualEntity'] : __webpack_require__(25).xVisualEntity;
+	global['xVisualModel'] = global['xVisualModel'] ? global['xVisualModel'] : __webpack_require__(23).xVisualModel;
+	global['xVisualProperty'] = global['xVisualProperty'] ? global['xVisualProperty'] : __webpack_require__(28).xVisualProperty;
+	global['xVisualTemplates'] = global['xVisualTemplates'] ? global['xVisualTemplates'] : __webpack_require__(22).xVisualTemplates;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
+
+/***/ },
+/* 20 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -9462,14 +9461,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 19 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var xbim_visual_templates_1 = __webpack_require__(20);
-	var xbim_visual_model_1 = __webpack_require__(21);
-	var xbim_cobieuk_utils_1 = __webpack_require__(22);
-	var xbim_cobie_utils_1 = __webpack_require__(27);
+	var xbim_visual_templates_1 = __webpack_require__(22);
+	var xbim_visual_model_1 = __webpack_require__(23);
+	var xbim_cobieuk_utils_1 = __webpack_require__(24);
+	var xbim_cobie_utils_1 = __webpack_require__(29);
 	var xBrowser = (function () {
 	    /**
 	    * This is the main class you need to use to render semantic structure of the building model
@@ -10105,7 +10104,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 20 */
+/* 22 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -10180,7 +10179,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 21 */
+/* 23 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -10242,16 +10241,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 22 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var xbim_visual_entity_1 = __webpack_require__(23);
-	var xbim_visual_model_1 = __webpack_require__(21);
-	var xbim_attribute_dictionary_1 = __webpack_require__(18);
-	var xbim_visual_assignment_set_1 = __webpack_require__(24);
-	var xbim_visual_attribute_1 = __webpack_require__(25);
-	var xbim_visual_property_1 = __webpack_require__(26);
+	var xbim_visual_entity_1 = __webpack_require__(25);
+	var xbim_visual_model_1 = __webpack_require__(23);
+	var xbim_attribute_dictionary_1 = __webpack_require__(20);
+	var xbim_visual_assignment_set_1 = __webpack_require__(26);
+	var xbim_visual_attribute_1 = __webpack_require__(27);
+	var xbim_visual_property_1 = __webpack_require__(28);
 	var xCobieUkUtils = (function () {
 	    function xCobieUkUtils(lang, culture) {
 	        this._contacts = [];
@@ -10686,7 +10685,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 23 */
+/* 25 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -10735,7 +10734,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 24 */
+/* 26 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -10760,7 +10759,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 25 */
+/* 27 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -10796,7 +10795,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 26 */
+/* 28 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -10826,16 +10825,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 27 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var xbim_visual_entity_1 = __webpack_require__(23);
-	var xbim_visual_model_1 = __webpack_require__(21);
-	var xbim_attribute_dictionary_1 = __webpack_require__(18);
-	var xbim_visual_assignment_set_1 = __webpack_require__(24);
-	var xbim_visual_attribute_1 = __webpack_require__(25);
-	var xbim_visual_property_1 = __webpack_require__(26);
+	var xbim_visual_entity_1 = __webpack_require__(25);
+	var xbim_visual_model_1 = __webpack_require__(23);
+	var xbim_attribute_dictionary_1 = __webpack_require__(20);
+	var xbim_visual_assignment_set_1 = __webpack_require__(26);
+	var xbim_visual_attribute_1 = __webpack_require__(27);
+	var xbim_visual_property_1 = __webpack_require__(28);
 	var xCobieUtils = (function () {
 	    function xCobieUtils(lang, culture) {
 	        this.settings = {
@@ -11254,20 +11253,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 28 */
-/***/ function(module, exports) {
-
-	// removed by extract-text-webpack-plugin
-
-/***/ },
-/* 29 */,
 /* 30 */
 /***/ function(module, exports) {
 
 	// removed by extract-text-webpack-plugin
 
 /***/ }
-/******/ ])
-});
-;
+/******/ ]);
 //# sourceMappingURL=xbim.bundle.js.map

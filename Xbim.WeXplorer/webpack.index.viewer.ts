@@ -1,0 +1,9 @@
+﻿global['xBinaryReader'] = global['xBinaryReader'] ? global['xBinaryReader'] : require("./Viewer/xbim-binary-reader").xBinaryReader;
+global['xModelGeometry'] = global['xModelGeometry'] ? global['xModelGeometry'] : require("./Viewer/xbim-model-geometry").xModelGeometry;
+global['xModelHandle'] = global['xModelHandle'] ? global['xModelHandle'] : require("./Viewer/xbim-model-handle").xModelHandle;
+global['xProductInheritance'] = global['xProductInheritance'] ? global['xProductInheritance'] : require("./Viewer/xbim-product-inheritance").xProductInheritance;
+global['xProductType'] = global['xProductType'] ? global['xProductType'] : require("./Viewer/xbim-product-type").xProductType;
+global['xShaders'] = global['xShaders'] ? global['xShaders'] : require("./Viewer/xbim-shaders").xShaders;
+global['xState'] = global['xState'] ? global['xState'] : require("./Viewer/xbim-state").xState;
+global['xTriangulatedShape'] = global['xTriangulatedShape'] ? global['xTriangulatedShape'] : require("./Viewer/xbim-triangulated-shape").xTriangulatedShape;
+global['xViewer'] = global['xViewer'] ? global['xViewer'] : require("./Viewer/xbim-viewer").xViewer;

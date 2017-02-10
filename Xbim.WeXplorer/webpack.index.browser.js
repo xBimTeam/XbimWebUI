@@ -1,0 +1,11 @@
+global['xAttributeDictionary'] = global['xAttributeDictionary'] ? global['xAttributeDictionary'] : require('./Browser/xbim-attribute-dictionary').xAttributeDictionary;
+global['xBrowser'] = global['xBrowser'] ? global['xBrowser'] : require('./Browser/xbim-browser').xBrowser;
+global['xCobieUtils'] = global['xCobieUtils'] ? global['xCobieUtils'] : require('./Browser/xbim-cobie-utils').xCobieUtils;
+global['xCobieUkUtils'] = global['xCobieUkUtils'] ? global['xCobieUkUtils'] : require('./Browser/xbim-cobieuk-utils').xCobieUkUtils;
+global['xVisualAssignmentSet'] = global['xVisualAssignmentSet'] ? global['xVisualAssignmentSet'] : require('./Browser/xbim-visual-assignment-set').xVisualAssignmentSet;
+global['xVisualAttribute'] = global['xVisualAttribute'] ? global['xVisualAttribute'] : require('./Browser/xbim-visual-attribute').xVisualAttribute;
+global['xVisualEntity'] = global['xVisualEntity'] ? global['xVisualEntity'] : require('./Browser/xbim-visual-entity').xVisualEntity;
+global['xVisualModel'] = global['xVisualModel'] ? global['xVisualModel'] : require('./Browser/xbim-visual-model').xVisualModel;
+global['xVisualProperty'] = global['xVisualProperty'] ? global['xVisualProperty'] : require('./Browser/xbim-visual-property').xVisualProperty;
+global['xVisualTemplates'] = global['xVisualTemplates'] ? global['xVisualTemplates'] : require('./Browser/xbim-visual-templates').xVisualTemplates;
+//# sourceMappingURL=webpack.index.browser.js.map
