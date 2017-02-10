@@ -1,7 +1,7 @@
 {
    "opts":{
       "tutorials":"Tutorials",
-      "destination":"docs",
+      "destination":"..\\docs",
       "template":"Resources/doctemplate"
    },
    "tags":{
