@@ -1,4 +1,5 @@
-﻿var webpack = require('webpack');
+﻿/// <binding ProjectOpened='Watch - Development' />
+var webpack = require('webpack');
 var fs = require("fs");
 var minify = process.argv.indexOf('--min') >= 0;
 var ExtractTextPlugin = require('extract-text-webpack-plugin');

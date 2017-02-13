@@ -298,7 +298,7 @@
   </ProjectExtensions>
   <PropertyGroup>
     <PostBuildEvent>cd "$(ProjectDir)"
-build.bat</PostBuildEvent>
+if $(ConfigurationName) == Release build.bat</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <PreBuildEvent>
