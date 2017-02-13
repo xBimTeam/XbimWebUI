@@ -2,17 +2,16 @@
 var fs = require("fs");
 var minify = process.argv.indexOf('--min') >= 0;
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
-var extractCSS = new ExtractTextPlugin(minify ? 'xbim.browser.bundle.min.css' : 'xbim.browser.bundle.css');
+var extractCSS = new ExtractTextPlugin(minify ? 'xbim.browser.min.css' : 'xbim.browser.css');
 
 module.exports = {
     entry: [
-        './webpack-browser-bundle',
-        './Resources/doctemplate/static/styles/xbrowser-styles.css',
-        './Resources/doctemplate/static/styles/xviewer-styles.css'
+        './webpack.index.browser.ts',
+        './Browser/xbim-browser.css',
     ],
     output: {
         path: './Build',
-        filename: minify ? 'xbim.browser.bundle.min.js' : 'xbim.browser.bundle.js'
+        filename: minify ? 'xbim.browser.min.js' : 'xbim.browser.js'
     },
     devtool: 'source-map',
     module: {

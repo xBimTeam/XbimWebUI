@@ -10,7 +10,7 @@ No let's dig into the code:
     <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <title>Hello building!</title>
-        <script src="js/xbim.browser.bundle.js"></script>
+        <script src="js/xbim.bundle.js"></script>
     </head>
     <body>
         <canvas id="viewer" width="500" height="300"></canvas>
@@ -38,11 +38,11 @@ The library itself is written with [TypeScript](http://www.typescriptlang.org), 
 and bundled as a single file to be used in a web browser.
 Either reference
 
-        <script src="js/xbim.browser.bundle.js"></script>
+        <script src="js/xbim.bundle.js"></script>
 
 for debug bundled version (this will also add you intellisense support in VS if your IDE of choice) or
 
-        <script src="js/xbim.browser.bundle.min.js"></script>
+        <script src="js/xbim.bundle.min.js"></script>
 
 for minified version (this will probably be your choice for release).
 If you're using a module loader (and don't yet use TypeScript), you can reference *xbim.bundle.js* or *xbim.bundle.min.js* for an UMD bundled module.

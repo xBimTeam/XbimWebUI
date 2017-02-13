@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Home</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+	
+    
+
+
+
+    
+
+
+    <h3> </h3>
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+<section>
+  <article>
+    <h1>﻿xBIM WeXplorer</h1><p>WeXplorer is the visualization part of xBIM toolkit that deals with visualization of IFC data on web using preprocessed wexBIM file. 
+It uses cutting edge web technologies like WebGL so it is not supposed to work in old browsers but should work very well with Chrome or 
+Mozzilla since 2011, IE11 and others with support for this technology. Use xBIM Essentials and xBIM Geometry to create optimized and 
+compressed wexBIM files for visualization. WeXplorer also contains <a href="xBrowser.html">xBrowser</a> for visualization of COBieLite data from JSON.</p>
+<p>The main classes which exposes all necessary API calls are <a href="xViewer.html">xViewer</a> for 3D visualization and <a href="xBrowser.html">xBrowser</a> for
+visualization of semantic data from COBie. These are the only two class you need to load and render IFC models in wexBIM format and to browse
+related semantic data. If you have a WebGL enabled browser and you are looking at this documentation fron web, you should be able to see an
+example of 3D browser at the very bottom of this page.</p>
+<p>This viewer is part of xBIM toolkit which can be used to create wexBIM files from IFC, ifcZIP and ifcXML. WexBIM files are highly optimized for
+transmition over internet and rendering performance. Viewer uses WebGL technology for hardware accelerated 3D rendering and SVG for
+certain kinds of user interaction. This means that it won't work with obsolete and non-standard-compliant browsers like IE10 and less.
+COBieLite JSON files can also be created using <a href="https://github.com/xBimTeam/XbimExchange">xBIM</a>. </p>
+<h2>xBIM</h2><p><a href="https://github.com/xBimTeam">xBIM</a> is an <a href="http://www.openbim.org">Open Source Toolkit</a> for developing IFC based applications (BuildingSmart Data model). 
+It provides full support for reading and writing geometry, topology and data in accordance with the Ifc2x3 schema.
+xBIM reads and writes IFC, IfcXMl and IfcZip formats. The xBIM project provides packages to convert IFC models to COBie 
+spreadsheets in both UK and US cultures as well as a range of 3D viewing controls for use with Windows forms, WPF, WEBGL and OpenGL platforms.
+IOS and Android versions are under development.</p>
+<h2>Simple example...</h2><pre class="prettyprint source"><code>&lt;!DOCTYPE html>
+&lt;html xmlns=&quot;http://www.w3.org/1999/xhtml&quot;>
+&lt;head>
+    &lt;title>Hello building!&lt;/title>
+    &lt;script src=&quot;js/xbim.browser.bundle.js&quot;>&lt;/script>
+&lt;/head>
+&lt;body>
+    &lt;div id=&quot;content&quot;>
+        &lt;canvas id=&quot;viewer&quot; width=&quot;500&quot; height=&quot;300&quot;>&lt;/canvas>
+        &lt;script type=&quot;text/javascript&quot;>
+            var viewer = new xViewer('viewer');
+            viewer.load('data/SampleHouse.wexbim');
+            viewer.start();
+        &lt;/script>
+    &lt;/div>    
+&lt;/body>
+&lt;/html></code></pre><p>You can find more examples in tutorials or try to find your answers in the API documentation.</p>
+  </article>
+  <div id="viewer-container">Your browser doesn't support WebGL</div>
+  <script src="scripts/xbim.browser.bundle.js"></script>
+  <script type="text/javascript">
+    var check = xViewer.check();
+    if (check.noErrors)
+    {
+    var canvas = document.createElement('canvas');
+    var container = document.getElementById('viewer-container');
+    container.innerHTML = '';
+    var errHtml = "<strong style='color:red;'> Ooops! I wanted to show you sample model :-( Your browser supports WebGL but it seems you are not running this page from web server but as a local file. That is absolutely all right but you are not able to see the model here and you won't be able to see any live examples from tutorials because of Cross Origin Resource Sharing (CORS) policy of your browser. </strong>";
+
+    //set container style
+    container.style['margin-left'] = 'auto';
+    container.style['margin-right'] = 'auto';
+    container.style['width'] = '60%';
+
+
+    container.appendChild(canvas);
+    canvas.width = container.offsetWidth;
+    canvas.height = container.offsetWidth * 6.0 / 9.0;
+
+    var viewer = new xViewer(canvas);
+    viewer.on('loaded', function(){
+    viewer.setCameraPosition([-15000, -15000, 15000]);
+    viewer.start();
+    });
+    viewer.on('error', function(){
+    container.innerHTML = errHtml;
+    });
+    try{
+    viewer.load('data/SampleHouse.wexbim');
+    var cube = new xNavigationCube();
+    cube.passiveAlpha = 1.0;
+    viewer.addPlugin(cube);
+    
+    }
+    catch (e)
+    {
+    container.innerHTML = errHtml;
+    }
+    }
+  </script>
+</section>
+
+
+
+
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="OrthogonalCamera.html">OrthogonalCamera</a></li><li><a href="PerspectiveCamera.html">PerspectiveCamera</a></li><li><a href="Prerequisites.html">Prerequisites</a></li><li><a href="xBrowser.html">xBrowser</a></li><li><a href="xNavigationCube.html">xNavigationCube</a></li><li><a href="xNavigationHome.html">xNavigationHome</a></li><li><a href="xViewer.html">xViewer</a></li><li><a href="xVisualAssignmentSet.html">xVisualAssignmentSet</a></li><li><a href="xVisualAttribute.html">xVisualAttribute</a></li><li><a href="xVisualEntity.html">xVisualEntity</a></li><li><a href="xVisualModel.html">xVisualModel</a></li><li><a href="xVisualProperty.html">xVisualProperty</a></li></ul><h3>Events</h3><ul><li><a href="xBrowser.html#event:entityActive">entityActive</a></li><li><a href="xBrowser.html#event:entityClick">entityClick</a></li><li><a href="xBrowser.html#event:entityDblclick">entityDblclick</a></li><li><a href="xBrowser.html#event:entityMouseDown">entityMouseDown</a></li><li><a href="xBrowser.html#event:entityMouseMove">entityMouseMove</a></li><li><a href="xBrowser.html#event:entityMouseUp">entityMouseUp</a></li><li><a href="xBrowser.html#event:entityTouch">entityTouch</a></li><li><a href="xBrowser.html#event:loaded">loaded</a></li><li><a href="xViewer.html#event:clipped">clipped</a></li><li><a href="xViewer.html#event:dblclick">dblclick</a></li><li><a href="xViewer.html#event:error">error</a></li><li><a href="xViewer.html#event:fps">fps</a></li><li><a href="xViewer.html#event:frame">frame</a></li><li><a href="xViewer.html#event:loaded">loaded</a></li><li><a href="xViewer.html#event:mouseDown">mouseDown</a></li><li><a href="xViewer.html#event:mouseDown">mouseDown</a></li><li><a href="xViewer.html#event:pick">pick</a></li><li><a href="xViewer.html#event:pick">pick</a></li><li><a href="xViewer.html#event:unclipped">unclipped</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-1_Hello_building.html">Hello building!</a></li><li><a href="tutorial-2_Safe_Hello_building.html">Safe 'Hello building!'</a></li><li><a href="tutorial-3_Eventful_building.html">Eventful building</a></li><li><a href="tutorial-4_Building_seen_from_everywhere.html">Building seen from everywhere ...</a></li><li><a href="tutorial-5_Colourful_building.html">Colourful building</a></li><li><a href="tutorial-6_Building_described.html">Building described</a></li></ul><h3>Global</h3><ul><li><a href="global.html#xProductType">xProductType</a></li><li><a href="global.html#xState">xState</a></li></ul>
+</nav>
+
+<br clear="both">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0</a> on Fri Feb 10 2017 17:17:16 GMT+0100 (W. Europe Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

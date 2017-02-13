@@ -23,7 +23,7 @@ and non-standard-compliant browser not supported. So, if we update our example f
     <head>
         <title>Hello building!</title>
         <link href="css/layout.css" rel="stylesheet" />
-        <script src="js/xbim.browser.bundle.js"></script>
+        <script src="js/xbim.bundle.js"></script>
     </head>
     <body>
         <div id="content">

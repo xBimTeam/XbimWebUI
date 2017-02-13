@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
   <metadata>
     <id>XbimWebUI</id>
-    <version>0.1.41</version>
+    <version>0.2.0</version>
     <title>xBIM WeXplorer</title>
     <authors>xBIM team</authors>
     <owners>Martin Černý, Steve Lockley</owners>
@@ -20,7 +20,7 @@
       IOS and Android versions are under development.
     </description>
     <summary>Web vizualization part of the .Net toolkit for developing BIM applications based on the IFC standard. Essential support for the Ifc data model</summary>
-    <releaseNotes>Initial release</releaseNotes>
+    <releaseNotes>Refactoring to typescript thanks to Georg Dangl</releaseNotes>
     <language>en-GB</language>
     <tags>WebGL, BIM, IFC, IfcXml, IfcZip, COBie, .Net, C#, BuildingSmart</tags>
   </metadata>

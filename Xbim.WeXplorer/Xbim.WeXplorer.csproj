@@ -61,14 +61,15 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="browser.js" />
-    <Content Include="Build\xbim.browser.bundle.css" />
-    <Content Include="Build\xbim.browser.bundle.js" />
-    <Content Include="Build\xbim.browser.bundle.min.css" />
-    <Content Include="Build\xbim.browser.bundle.min.js" />
-    <Content Include="Build\xbim.bundle.css" />
+    <Content Include="Browser\xbim-browser.css" />
+    <Content Include="Build\xbim.browser.css" />
+    <Content Include="Build\xbim.browser.js" />
+    <Content Include="Build\xbim.browser.min.js" />
     <Content Include="Build\xbim.bundle.js" />
-    <Content Include="Build\xbim.bundle.min.css" />
     <Content Include="Build\xbim.bundle.min.js" />
+    <Content Include="Build\xbim.viewer.js" />
+    <Content Include="Build\xbim.viewer.min.js" />
+    <Content Include="index.css" />
     <Content Include="index.html" />
     <Content Include="Libs\gl-matrix.min.js" />
     <Content Include="Libs\jquery-ui-styles\images\ui-bg_flat_0_aaaaaa_40x100.png" />
@@ -134,7 +135,7 @@
     <Content Include="Resources\doctemplate\static\scripts\prettify\Apache-License-2.0.txt" />
     <Content Include="Resources\doctemplate\static\scripts\prettify\lang-css.js" />
     <Content Include="Resources\doctemplate\static\scripts\prettify\prettify.js" />
-    <Content Include="Resources\doctemplate\static\scripts\xbim.browser.bundle.js" />
+    <Content Include="Resources\doctemplate\static\scripts\xbim.bundle.js" />
     <Content Include="Resources\doctemplate\static\styles\jsdoc-default.css" />
     <Content Include="Resources\doctemplate\static\styles\prettify-jsdoc.css" />
     <Content Include="Resources\doctemplate\static\styles\prettify-tomorrow.css" />
@@ -149,24 +150,22 @@
     <Content Include="package.json" />
     <Content Include="tsconfig.json" />
     <Content Include="webpack.config.js" />
+    <Content Include="webpack.config.viewer.js" />
     <Content Include="webpack.config.browser.js" />
-    <Content Include="Resources\doctemplate\static\scripts\xbim.browser.bundle.js.map" />
+    <Content Include="jsdoc.config.json" />
+    <Content Include="Resources\doctemplate\static\scripts\xbim.bundle.js.map" />
     <None Include="Tutorials\1_Hello_building.md" />
     <Content Include="simpleviewer.html" />
     <Content Include="Viewer\fragment_shader.c" />
-    <Content Include="Build\gl-matrix.min.js" />
     <Content Include="Libs\gl-matrix.js" />
     <Content Include="Viewer\vertex_shader.c" />
     <Content Include="Viewer\vertex_shader_noFPT.c" />
     <Content Include="Libs\webgl-utils.js" />
-    <Content Include="Build\webgl-utils.min.js" />
     <Content Include="Resources\xbim-disclaimer.txt" />
     <Content Include="tests\qunit-1.15.0.css" />
     <Content Include="tests\qunit-1.15.0.js" />
     <Content Include="tests\tests.html" />
     <Content Include="tests\tests.js" />
-    <Content Include="Utilities\jsmin.exe" />
-    <Content Include="Utilities\NuGet.exe" />
     <Content Include="Utilities\spacker.exe" />
     <Content Include="viewer3D.html" />
     <Content Include="Web.config" />
@@ -252,13 +251,14 @@
     <TypeScriptCompile Include="Browser\xbim-visual-model.ts" />
     <TypeScriptCompile Include="Browser\xbim-visual-property.ts" />
     <TypeScriptCompile Include="Browser\xbim-visual-templates.ts" />
-    <TypeScriptCompile Include="index.ts" />
+    <TypeScriptCompile Include="webpack.index.plugins.ts" />
+    <TypeScriptCompile Include="webpack.index.browser.ts" />
+    <TypeScriptCompile Include="webpack.index.viewer.ts" />
     <TypeScriptCompile Include="Plugins\NavigationCube\xbim-navigation-cube-shaders.ts" />
     <TypeScriptCompile Include="Plugins\NavigationCube\xbim-navigation-cube-textures.ts" />
     <TypeScriptCompile Include="Plugins\NavigationCube\xbim-navigation-cube.ts" />
     <TypeScriptCompile Include="Plugins\NavigationHome\xbim-navigation-home-textures.ts" />
     <TypeScriptCompile Include="Plugins\NavigationHome\xbim-navigation-home.ts" />
-    <TypeScriptCompile Include="webpack-browser-bundle.ts" />
     <TypeScriptCompile Include="Viewer\xbim-binary-reader.ts" />
     <TypeScriptCompile Include="Viewer\xbim-model-geometry.ts" />
     <TypeScriptCompile Include="Viewer\xbim-model-handle.ts" />
@@ -269,6 +269,7 @@
     <TypeScriptCompile Include="Viewer\xbim-triangulated-shape.ts" />
     <TypeScriptCompile Include="Viewer\xbim-viewer.ts" />
   </ItemGroup>
+  <ItemGroup />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>

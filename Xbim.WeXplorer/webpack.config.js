@@ -2,30 +2,29 @@
 var fs = require("fs");
 var minify = process.argv.indexOf('--min') >= 0;
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
-var extractCSS = new ExtractTextPlugin(minify ? 'xbim.bundle.min.css' : 'xbim.bundle.css');
+var extractCSS = new ExtractTextPlugin(minify ? 'xbim.browser.min.css' : 'xbim.browser.css');
 
 module.exports = {
-    entry: {
-        index: [
-            './index.ts',
-            './Resources/doctemplate/static/styles/xbrowser-styles.css',
-            './Resources/doctemplate/static/styles/xviewer-styles.css'
-        ]
-    },
+    entry: [
+            './webpack.index.viewer.ts',
+            './webpack.index.plugins.ts',
+            './webpack.index.browser.ts',
+        './Resources/doctemplate/static/styles/xbrowser-styles.css',
+    ],
     output: {
         path: './Build',
-        filename: minify ? 'xbim.bundle.min.js' : 'xbim.bundle.js',
-        libraryTarget: 'umd',
-        library: 'xbim-webui'
+        filename: minify ? 'xbim.bundle.min.js' : 'xbim.bundle.js'
     },
     devtool: 'source-map',
     module: {
         loaders: [
-            { test: /\.ts$/, loaders: ['ts-loader?' + JSON.stringify({
-                compilerOptions: {
-                    declaration: false
-                }
-            })] },
+            {
+                test: /\.ts$/, loaders: ['ts-loader?' + JSON.stringify({
+                    compilerOptions: {
+                        declaration: false
+                    }
+                })]
+            },
             { test: /\.css$/, loader: extractCSS.extract(['css-loader']) }
         ]
     },
