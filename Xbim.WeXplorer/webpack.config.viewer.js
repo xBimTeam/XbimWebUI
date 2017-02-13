@@ -21,7 +21,9 @@ module.exports = {
             { test: /\.ts$/, loaders: ['ts-loader?' + JSON.stringify({
                 compilerOptions: {
                     declaration: false
-                }
+                },
+                visualStudioErrorFormat: true,
+                //transpileOnly: true
             })] }
         ]
     },

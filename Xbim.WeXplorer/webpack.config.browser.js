@@ -20,7 +20,9 @@ module.exports = {
                 test: /\.ts$/, loaders: ['ts-loader?' + JSON.stringify({
                     compilerOptions: {
                         declaration: false
-                    }
+                    },
+                    visualStudioErrorFormat: true,
+                    //transpileOnly: true
                 })]
             },
             { test: /\.css$/, loader: extractCSS.extract(['css-loader']) }

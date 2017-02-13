@@ -154,6 +154,7 @@
     <Content Include="webpack.config.browser.js" />
     <Content Include="jsdoc.config.json" />
     <Content Include="Resources\doctemplate\static\scripts\xbim.bundle.js.map" />
+    <Content Include="build_before.bat" />
     <None Include="Tutorials\1_Hello_building.md" />
     <Content Include="simpleviewer.html" />
     <Content Include="Viewer\fragment_shader.c" />
@@ -192,7 +193,7 @@
     <Content Include="tests\data\TwoProxy.wexbim" />
     <Content Include="tests\data\TwoWallsTwoColour.ifc" />
     <Content Include="tests\data\TwoWallsTwoColour.wexbim" />
-    <Content Include="build.bat" />
+    <Content Include="build_after.bat" />
     <Content Include="Resources\README.md" />
     <Content Include="Resources\doctemplate\README.md" />
     <Content Include="Resources\doctemplate\static\fonts\OpenSans-Bold-webfont.eot" />
@@ -298,11 +299,11 @@
   </ProjectExtensions>
   <PropertyGroup>
     <PostBuildEvent>cd "$(ProjectDir)"
-build.bat</PostBuildEvent>
+build_after.bat</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PreBuildEvent>
-    </PreBuildEvent>
+    <PreBuildEvent>cd "$(ProjectDir)"
+build_before.bat</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
