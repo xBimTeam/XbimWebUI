@@ -24,7 +24,7 @@ You will need Visual Studio 2015 Update 3 or newer to compile the Solution. To c
 project you will require ASP.NET MVC 3.0 to be installed. The web components are created in [TypeScript](http://www.typescriptlang.org).
 [npm](https://www.npmjs.com/) and [webpack](https://webpack.github.io) are used to compile the client side JavaScript libraries.
 Since TypeScript compilation in the Visual Studio solution is enabled, the [TypeScript for Visual Studio 2015](http://www.typescriptlang.org/#download-links)
-extension must be installed at least in version 2.0.
+extension must be installed at least in version 2.0. Information how to debug and build the solution using webpack [is located here](WEBPACK.md).
 All solutions target .NET 4.0. The 4.0 Client profile may be supported for some projects.
 
 
