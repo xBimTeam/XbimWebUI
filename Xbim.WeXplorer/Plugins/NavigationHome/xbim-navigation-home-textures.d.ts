@@ -1,3 +1,5 @@
-export declare var xHomeTextures: {
-    en: string;
-};
+declare namespace Xbim.Viewer.Plugins {
+    var xHomeTextures: {
+        en: string;
+    };
+}

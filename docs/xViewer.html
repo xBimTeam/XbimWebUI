@@ -1140,188 +1140,6 @@ before draw, after draw etc. This makes it possible to implement functionality t
     
         
 
-        <h4 class="name" id="clip"><span class="type-signature"></span>clip<span class="signature">(point<span class="signature-attributes">opt</span>, normal<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
-
-        
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        <p>Use this method to clip the model. If you call the function with no arguments interactive clipping will start. This is based on SVG overlay
-so SVG support is necessary for it. But as WebGL is more advanced technology than SVG it is sound assumption that it is present in the browser.
-Use <a href="xViewer.html#.check">xViewer.check()</a> to make sure it is supported at the very beginning of using of xViewer. Use <a href="xViewer.html#unclip">unclip()</a> method to
-unset clipping plane.</p>
-    </div>
-    
-
-    
-
-    
-
-    
-
-    
-        <h5>Parameters:</h5>
-        
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-        <th>Attributes</th>
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>point</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Array.&lt;Number></span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-
-            <td class="description last"><p>point in clipping plane</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>normal</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Array.&lt;Number></span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-
-            <td class="description last"><p>normal pointing to the half space which will be hidden</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-    
-
-    
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-    
-
-    
-    <h5>Fires:</h5>
-    <ul>
-        <li><a href="xViewer.html#event:clipped">xViewer#event:clipped</a></li>
-    </ul>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dd>
-
-        
-            
-<dt>
-    
-        
-
         <h4 class="name" id="defineStyle"><span class="type-signature"></span>defineStyle<span class="signature">(index, colour)</span><span class="type-signature"></span></h4>
 
         
@@ -1642,110 +1460,6 @@ If you want interactive model call <a href="xViewer.html#start">start()</a> meth
     
         
 
-        <h4 class="name" id="getClip"><span class="type-signature"></span>getClip<span class="signature">()</span><span class="type-signature"> &rarr; {Array.&lt;Array.&lt;Number>>}</span></h4>
-
-        
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        <p>This method can be used to get parameter of the current clipping plane. If no clipping plane is active
-this returns [[0,0,0],[0,0,0]];</p>
-    </div>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <h5>Returns:</h5>
-    
-            
-<div class="param-desc">
-    <p>Point and normal defining current clipping plane</p>
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">Array.&lt;Array.&lt;Number>></span>
-
-
-    </dd>
-</dl>
-
-        
-
-    
-</dd>
-
-        
-            
-<dt>
-    
-        
-
         <h4 class="name" id="getProductType"><span class="type-signature"></span>getProductType<span class="signature">(prodID)</span><span class="type-signature"> &rarr; {Number}</span></h4>
 
         
@@ -1865,7 +1579,7 @@ this returns [[0,0,0],[0,0,0]];</p>
     
             
 <div class="param-desc">
-    <p>Product type ID. This is either null if no type is identified or one of <a href="global.html#xProductType">type ids</a>.</p>
+    <p>Product type ID. This is either null if no type is identified or one of type ids.</p>
 </div>
 
 
@@ -1903,7 +1617,7 @@ this returns [[0,0,0],[0,0,0]];</p>
     
     <div class="description">
         <p>Use this function to get state of the products in the model. You can compare result of this function
-with one of values from <a href="global.html#xState">xState</a> enumeration. 0xFF is the default value.</p>
+with one of values from xState enumeration. 0xFF is the default value.</p>
     </div>
     
 
@@ -3408,8 +3122,8 @@ if you call functions like show() or <a href="xViewer.html#zoomTo">zoomTo()</a>.
 
     
     <div class="description">
-        <p>You can use this function to change state of products in the model. State has to have one of values from <a href="global.html#xState">xState</a> enumeration.
-Target is either enumeration from <a href="global.html#xProductType">xProductType</a> or array of product IDs. If you specify type it will effect all elements of the type.</p>
+        <p>You can use this function to change state of products in the model. State has to have one of values from xState enumeration.
+Target is either enumeration from xProductType or array of product IDs. If you specify type it will effect all elements of the type.</p>
     </div>
     
 
@@ -3461,7 +3175,7 @@ Target is either enumeration from <a href="global.html#xProductType">xProductTyp
 
             
 
-            <td class="description last"><p>One of <a href="global.html#xState">xState</a> enumeration values.</p></td>
+            <td class="description last"><p>One of xState enumeration values.</p></td>
         </tr>
 
     
@@ -3487,7 +3201,7 @@ Target is either enumeration from <a href="global.html#xProductType">xProductTyp
 
             
 
-            <td class="description last"><p>Target of the change. It can either be array of product IDs or product type from <a href="global.html#xProductType">xProductType</a>.</p></td>
+            <td class="description last"><p>Target of the change. It can either be array of product IDs or product type from xProductType.</p></td>
         </tr>
 
     
@@ -3639,7 +3353,7 @@ Use <a href="xViewer.html#defineStyle">defineStyle()</a> to define styling first
 
             
 
-            <td class="description last"><p>Target of the change. It can either be array of product IDs or product type from <a href="global.html#xProductType">xProductType</a>.</p></td>
+            <td class="description last"><p>Target of the change. It can either be array of product IDs or product type from xProductType.</p></td>
         </tr>
 
     
@@ -4098,174 +3812,6 @@ switch animation of the model on again by calling <a href="xViewer.html#start">s
     
         
 
-        <h4 class="name" id="stopClipping"><span class="type-signature"></span>stopClipping<span class="signature">()</span><span class="type-signature"></span></h4>
-
-        
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        <p>This method is only active when interactive clipping is active. It stops interactive clipping operation.</p>
-    </div>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dd>
-
-        
-            
-<dt>
-    
-        
-
-        <h4 class="name" id="unclip"><span class="type-signature"></span>unclip<span class="signature">()</span><span class="type-signature"></span></h4>
-
-        
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        <p>This method will cancel any clipping plane if it is defined. Use <a href="xViewer.html#clip">clip()</a>
-method to define clipping by point and normal of the plane or interactively if you call it with no arguments.</p>
-    </div>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-    
-
-    
-    <h5>Fires:</h5>
-    <ul>
-        <li><a href="xViewer.html#event:unclipped">xViewer#event:unclipped</a></li>
-    </ul>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dd>
-
-        
-            
-<dt>
-    
-        
-
         <h4 class="name" id="zoomTo"><span class="type-signature"></span>zoomTo<span class="signature">(id<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {Bool}</span></h4>
 
         
@@ -4432,97 +3978,6 @@ method to define clipping by point and normal of the plane or interactively if y
         <h3 class="subsection-title">Events</h3>
 
         <dl>
-            
-<dt>
-    
-        
-
-        <h4 class="name" id="event:clipped">clipped</h4>
-
-        
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        <p>Occurs when model is clipped. This event has empty object.</p>
-    </div>
-    
-
-    
-
-    
-        <h5>Type:</h5>
-        <ul>
-            <li>
-                
-<span class="param-type">object</span>
-
-
-            </li>
-        </ul>
-    
-
-    
-
-    
-
-    
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dd>
-
-        
             
 <dt>
     
@@ -5701,97 +5156,6 @@ This ID can later be used to unload or temporarily stop the model.</p>
     
 </dd>
 
-        
-            
-<dt>
-    
-        
-
-        <h4 class="name" id="event:unclipped">unclipped</h4>
-
-        
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        <p>Occurs when clipping of the model is dismissed. This event has empty object.</p>
-    </div>
-    
-
-    
-
-    
-        <h5>Type:</h5>
-        <ul>
-            <li>
-                
-<span class="param-type">object</span>
-
-
-            </li>
-        </ul>
-    
-
-    
-
-    
-
-    
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dd>
-
         </dl>
     
 </article>
@@ -5804,13 +5168,13 @@ This ID can later be used to unload or temporarily stop the model.</p>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="OrthogonalCamera.html">OrthogonalCamera</a></li><li><a href="PerspectiveCamera.html">PerspectiveCamera</a></li><li><a href="Prerequisites.html">Prerequisites</a></li><li><a href="xBrowser.html">xBrowser</a></li><li><a href="xNavigationCube.html">xNavigationCube</a></li><li><a href="xNavigationHome.html">xNavigationHome</a></li><li><a href="xViewer.html">xViewer</a></li><li><a href="xVisualAssignmentSet.html">xVisualAssignmentSet</a></li><li><a href="xVisualAttribute.html">xVisualAttribute</a></li><li><a href="xVisualEntity.html">xVisualEntity</a></li><li><a href="xVisualModel.html">xVisualModel</a></li><li><a href="xVisualProperty.html">xVisualProperty</a></li></ul><h3>Events</h3><ul><li><a href="xBrowser.html#event:entityActive">entityActive</a></li><li><a href="xBrowser.html#event:entityClick">entityClick</a></li><li><a href="xBrowser.html#event:entityDblclick">entityDblclick</a></li><li><a href="xBrowser.html#event:entityMouseDown">entityMouseDown</a></li><li><a href="xBrowser.html#event:entityMouseMove">entityMouseMove</a></li><li><a href="xBrowser.html#event:entityMouseUp">entityMouseUp</a></li><li><a href="xBrowser.html#event:entityTouch">entityTouch</a></li><li><a href="xBrowser.html#event:loaded">loaded</a></li><li><a href="xViewer.html#event:clipped">clipped</a></li><li><a href="xViewer.html#event:dblclick">dblclick</a></li><li><a href="xViewer.html#event:error">error</a></li><li><a href="xViewer.html#event:fps">fps</a></li><li><a href="xViewer.html#event:frame">frame</a></li><li><a href="xViewer.html#event:loaded">loaded</a></li><li><a href="xViewer.html#event:mouseDown">mouseDown</a></li><li><a href="xViewer.html#event:mouseDown">mouseDown</a></li><li><a href="xViewer.html#event:pick">pick</a></li><li><a href="xViewer.html#event:pick">pick</a></li><li><a href="xViewer.html#event:unclipped">unclipped</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-1_Hello_building.html">Hello building!</a></li><li><a href="tutorial-2_Safe_Hello_building.html">Safe 'Hello building!'</a></li><li><a href="tutorial-3_Eventful_building.html">Eventful building</a></li><li><a href="tutorial-4_Building_seen_from_everywhere.html">Building seen from everywhere ...</a></li><li><a href="tutorial-5_Colourful_building.html">Colourful building</a></li><li><a href="tutorial-6_Building_described.html">Building described</a></li></ul><h3>Global</h3><ul><li><a href="global.html#xProductType">xProductType</a></li><li><a href="global.html#xState">xState</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="OrthogonalCamera.html">OrthogonalCamera</a></li><li><a href="PerspectiveCamera.html">PerspectiveCamera</a></li><li><a href="Prerequisites.html">Prerequisites</a></li><li><a href="xNavigationCube.html">xNavigationCube</a></li><li><a href="xNavigationHome.html">xNavigationHome</a></li><li><a href="xViewer.html">xViewer</a></li></ul><h3>Events</h3><ul><li><a href="xViewer.html#event:dblclick">dblclick</a></li><li><a href="xViewer.html#event:error">error</a></li><li><a href="xViewer.html#event:fps">fps</a></li><li><a href="xViewer.html#event:frame">frame</a></li><li><a href="xViewer.html#event:loaded">loaded</a></li><li><a href="xViewer.html#event:mouseDown">mouseDown</a></li><li><a href="xViewer.html#event:mouseDown">mouseDown</a></li><li><a href="xViewer.html#event:pick">pick</a></li><li><a href="xViewer.html#event:pick">pick</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-1_Hello_building.html">Hello building!</a></li><li><a href="tutorial-2_Safe_Hello_building.html">Safe 'Hello building!'</a></li><li><a href="tutorial-3_Eventful_building.html">Eventful building</a></li><li><a href="tutorial-4_Building_seen_from_everywhere.html">Building seen from everywhere ...</a></li><li><a href="tutorial-5_Colourful_building.html">Colourful building</a></li><li><a href="tutorial-6_Building_described.html">Building described</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0</a> on Fri Feb 10 2017 17:17:16 GMT+0100 (W. Europe Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0</a> on Tue Feb 14 2017 08:42:22 GMT+0100 (W. Europe Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

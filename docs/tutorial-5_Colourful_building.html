@@ -37,7 +37,7 @@ a look on full sample demo <a href="5_Colourful_building.live.html">here</a>.</p
 but I've done it this way for the sake of clarity and simplicity. You are ancouraged to follow 
 <a href="http://www.w3.org/wiki/The_principles_of_unobtrusive_JavaScript">these guidlines</a> to write sustainable
 and clear web applications.</p>
-<p>First of all it is necessary to define your styles. There is simple function <a href="xViewer.html#defineStyle">defineStyle()</a> to do that.
+<p>First of all it is necessary to define your styles. There is simple function defineStyle() to do that.
 You can define up to 224 styles. Because I don't have any results to show let's make it random. We'll define new colour for every
 product type in the following code:</p>
 <pre class="prettyprint source"><code>&lt;button onclick=&quot;Recolour()&quot;>Recolour by type&lt;/button>
@@ -55,7 +55,7 @@ product type in the following code:</p>
         }
     };
 &lt;/script></code></pre><p>This is it. You can extend this example as you wish. Just define 0 - 224 colour styles and set them as an overlay style to product
-or to type of products. If you want to reset styles to their default use <a href="xViewer.html#resetStyles">resetStyles()</a> function.</p>
+or to type of products. If you want to reset styles to their default use resetStyles() function.</p>
 <p>There is one more visual feature of the viewer and that is highlighting. You can think about it as a selection but it is not that
 clever. It leaves all the eventual selection logic up to you. This is just a visual representation. It is hence ruther <em>state</em> than <em>style</em>.
 You can use it exactly the same way as you did in the last tutorial '<a href="tutorial-4_Building_seen_from_everywhere.html">Building seen from everywhere ...</a>':</p>
@@ -91,13 +91,13 @@ And if you discard selection you still have a valid results representation. You 
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="OrthogonalCamera.html">OrthogonalCamera</a></li><li><a href="PerspectiveCamera.html">PerspectiveCamera</a></li><li><a href="Prerequisites.html">Prerequisites</a></li><li><a href="xBrowser.html">xBrowser</a></li><li><a href="xNavigationCube.html">xNavigationCube</a></li><li><a href="xNavigationHome.html">xNavigationHome</a></li><li><a href="xViewer.html">xViewer</a></li><li><a href="xVisualAssignmentSet.html">xVisualAssignmentSet</a></li><li><a href="xVisualAttribute.html">xVisualAttribute</a></li><li><a href="xVisualEntity.html">xVisualEntity</a></li><li><a href="xVisualModel.html">xVisualModel</a></li><li><a href="xVisualProperty.html">xVisualProperty</a></li></ul><h3>Events</h3><ul><li><a href="xBrowser.html#event:entityActive">entityActive</a></li><li><a href="xBrowser.html#event:entityClick">entityClick</a></li><li><a href="xBrowser.html#event:entityDblclick">entityDblclick</a></li><li><a href="xBrowser.html#event:entityMouseDown">entityMouseDown</a></li><li><a href="xBrowser.html#event:entityMouseMove">entityMouseMove</a></li><li><a href="xBrowser.html#event:entityMouseUp">entityMouseUp</a></li><li><a href="xBrowser.html#event:entityTouch">entityTouch</a></li><li><a href="xBrowser.html#event:loaded">loaded</a></li><li><a href="xViewer.html#event:clipped">clipped</a></li><li><a href="xViewer.html#event:dblclick">dblclick</a></li><li><a href="xViewer.html#event:error">error</a></li><li><a href="xViewer.html#event:fps">fps</a></li><li><a href="xViewer.html#event:frame">frame</a></li><li><a href="xViewer.html#event:loaded">loaded</a></li><li><a href="xViewer.html#event:mouseDown">mouseDown</a></li><li><a href="xViewer.html#event:mouseDown">mouseDown</a></li><li><a href="xViewer.html#event:pick">pick</a></li><li><a href="xViewer.html#event:pick">pick</a></li><li><a href="xViewer.html#event:unclipped">unclipped</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-1_Hello_building.html">Hello building!</a></li><li><a href="tutorial-2_Safe_Hello_building.html">Safe 'Hello building!'</a></li><li><a href="tutorial-3_Eventful_building.html">Eventful building</a></li><li><a href="tutorial-4_Building_seen_from_everywhere.html">Building seen from everywhere ...</a></li><li><a href="tutorial-5_Colourful_building.html">Colourful building</a></li><li><a href="tutorial-6_Building_described.html">Building described</a></li></ul><h3>Global</h3><ul><li><a href="global.html#xProductType">xProductType</a></li><li><a href="global.html#xState">xState</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="OrthogonalCamera.html">OrthogonalCamera</a></li><li><a href="PerspectiveCamera.html">PerspectiveCamera</a></li><li><a href="Prerequisites.html">Prerequisites</a></li><li><a href="Viewer.html">Viewer</a></li><li><a href="xNavigationCube.html">xNavigationCube</a></li><li><a href="xNavigationHome.html">xNavigationHome</a></li></ul><h3>Events</h3><ul><li><a href="Viewer.html#event:dblclick">dblclick</a></li><li><a href="Viewer.html#event:error">error</a></li><li><a href="Viewer.html#event:fps">fps</a></li><li><a href="Viewer.html#event:frame">frame</a></li><li><a href="Viewer.html#event:loaded">loaded</a></li><li><a href="Viewer.html#event:mouseDown">mouseDown</a></li><li><a href="Viewer.html#event:mouseDown">mouseDown</a></li><li><a href="Viewer.html#event:pick">pick</a></li><li><a href="Viewer.html#event:pick">pick</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-1_Hello_building.html">Hello building!</a></li><li><a href="tutorial-2_Safe_Hello_building.html">Safe 'Hello building!'</a></li><li><a href="tutorial-3_Eventful_building.html">Eventful building</a></li><li><a href="tutorial-4_Building_seen_from_everywhere.html">Building seen from everywhere ...</a></li><li><a href="tutorial-5_Colourful_building.html">Colourful building</a></li><li><a href="tutorial-6_Building_described.html">Building described</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0</a> on Fri Feb 10 2017 17:17:16 GMT+0100 (W. Europe Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0</a> on Tue Feb 14 2017 13:50:32 GMT+0100 (W. Europe Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

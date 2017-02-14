@@ -61,7 +61,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="browser.js" />
-    <Content Include="Browser\xbim-browser.css" />
     <Content Include="Build\xbim.browser.css" />
     <Content Include="Build\xbim.browser.js" />
     <Content Include="Build\xbim.browser.min.js" />
@@ -69,8 +68,6 @@
     <Content Include="Build\xbim.bundle.min.js" />
     <Content Include="Build\xbim.viewer.js" />
     <Content Include="Build\xbim.viewer.min.js" />
-    <Content Include="index.css" />
-    <Content Include="index.html" />
     <Content Include="Libs\gl-matrix.min.js" />
     <Content Include="Libs\jquery-ui-styles\images\ui-bg_flat_0_aaaaaa_40x100.png" />
     <Content Include="Libs\jquery-ui-styles\images\ui-bg_flat_75_ffffff_40x100.png" />
@@ -86,12 +83,8 @@
     <Content Include="Libs\jquery-ui-styles\images\ui-icons_888888_256x240.png" />
     <Content Include="Libs\jquery-ui-styles\images\ui-icons_cd0a0a_256x240.png" />
     <Content Include="Libs\jquery-ui-styles\jquery-ui.css" />
-    <Content Include="Libs\jquery-ui.js" />
     <Content Include="Libs\jquery-ui-styles\jquery-ui.min.css" />
-    <Content Include="Libs\jquery-ui.min.js" />
     <Content Include="Libs\jquery.js" />
-    <Content Include="Libs\jstree.js" />
-    <Content Include="Libs\jstree.min.js" />
     <Content Include="Libs\microtemplating.js" />
     <Content Include="Libs\jstree-styles\32px.png" />
     <Content Include="Libs\jstree-styles\40px.png" />
@@ -149,9 +142,6 @@
     <Content Include="tests\data\SampleHouse.wexbim" />
     <Content Include="package.json" />
     <Content Include="tsconfig.json" />
-    <Content Include="webpack.config.js" />
-    <Content Include="webpack.config.viewer.js" />
-    <Content Include="webpack.config.browser.js" />
     <Content Include="jsdoc.config.json" />
     <Content Include="Resources\doctemplate\static\scripts\xbim.bundle.js.map" />
     <Content Include="build_before.bat" />
@@ -160,7 +150,6 @@
     <Content Include="Viewer\fragment_shader.c" />
     <Content Include="Libs\gl-matrix.js" />
     <Content Include="Viewer\vertex_shader.c" />
-    <Content Include="Viewer\vertex_shader_noFPT.c" />
     <Content Include="Libs\webgl-utils.js" />
     <Content Include="Resources\xbim-disclaimer.txt" />
     <Content Include="tests\qunit-1.15.0.css" />
@@ -168,12 +157,13 @@
     <Content Include="tests\tests.html" />
     <Content Include="tests\tests.js" />
     <Content Include="Utilities\spacker.exe" />
-    <Content Include="viewer3D.html" />
+    <Content Include="index.html" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Libs\cobielite_core.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <TypeScriptCompile Include="Viewer\xbim-node-product-shape.ts" />
+    <TypeScriptCompile Include="Viewer\xbim-wexbim-stream.ts" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="tests\data\FourWalls.ifc" />
@@ -242,19 +232,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="Browser\xbim-attribute-dictionary.ts" />
-    <TypeScriptCompile Include="Browser\xbim-browser.ts" />
-    <TypeScriptCompile Include="Browser\xbim-cobie-utils.ts" />
-    <TypeScriptCompile Include="Browser\xbim-cobieuk-utils.ts" />
-    <TypeScriptCompile Include="Browser\xbim-visual-assignment-set.ts" />
-    <TypeScriptCompile Include="Browser\xbim-visual-attribute.ts" />
-    <TypeScriptCompile Include="Browser\xbim-visual-entity.ts" />
-    <TypeScriptCompile Include="Browser\xbim-visual-model.ts" />
-    <TypeScriptCompile Include="Browser\xbim-visual-property.ts" />
-    <TypeScriptCompile Include="Browser\xbim-visual-templates.ts" />
-    <TypeScriptCompile Include="webpack.index.plugins.ts" />
-    <TypeScriptCompile Include="webpack.index.browser.ts" />
-    <TypeScriptCompile Include="webpack.index.viewer.ts" />
+    <TypeScriptCompile Include="index.ts" />
+    <TypeScriptCompile Include="Libs\gl-matrix.d.ts" />
+    <TypeScriptCompile Include="Libs\webgl-utils.d.ts" />
     <TypeScriptCompile Include="Plugins\NavigationCube\xbim-navigation-cube-shaders.ts" />
     <TypeScriptCompile Include="Plugins\NavigationCube\xbim-navigation-cube-textures.ts" />
     <TypeScriptCompile Include="Plugins\NavigationCube\xbim-navigation-cube.ts" />
@@ -263,14 +243,22 @@
     <TypeScriptCompile Include="Viewer\xbim-binary-reader.ts" />
     <TypeScriptCompile Include="Viewer\xbim-model-geometry.ts" />
     <TypeScriptCompile Include="Viewer\xbim-model-handle.ts" />
+    <TypeScriptCompile Include="Viewer\xbim-node-shape.ts" />
     <TypeScriptCompile Include="Viewer\xbim-product-inheritance.ts" />
     <TypeScriptCompile Include="Viewer\xbim-product-type.ts" />
     <TypeScriptCompile Include="Viewer\xbim-shaders.ts" />
     <TypeScriptCompile Include="Viewer\xbim-state.ts" />
     <TypeScriptCompile Include="Viewer\xbim-triangulated-shape.ts" />
     <TypeScriptCompile Include="Viewer\xbim-viewer.ts" />
+    <TypeScriptCompile Include="Viewer\xbim-node.ts" />
+    <TypeScriptCompile Include="Viewer\xbim-node-product.ts" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\Utilities\ShaderPacker\ShaderPacker.csproj">
+      <Project>{95b208e8-3dd5-48b9-a9a2-2b25b01947dd}</Project>
+      <Name>ShaderPacker</Name>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>

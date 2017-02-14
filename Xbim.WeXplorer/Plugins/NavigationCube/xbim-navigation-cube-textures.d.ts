@@ -1,3 +1,5 @@
-export declare var xCubeTextures: {
-    en: string;
-};
+declare namespace Xbim.Viewer.Plugins {
+    var CubeTextures: {
+        en: string;
+    };
+}

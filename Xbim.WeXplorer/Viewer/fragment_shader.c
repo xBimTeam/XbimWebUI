@@ -1,6 +1,10 @@
 precision mediump float;
 
-uniform vec4 uClippingPlane;
+uniform vec4 uClippingPlaneA;
+uniform vec4 uClippingPlaneB;
+uniform bool uClippingA;
+uniform bool uClippingB;
+
 
 varying vec4 vFrontColor;
 varying vec4 vBackColor;
@@ -14,16 +18,29 @@ void main(void) {
 	if ( vDiscard > 0.001) discard;
 	
 	//test if clipping plane is defined
-	if (length(uClippingPlane) > 0.001)
+	if (uClippingA)
 	{
 		//clipping test
-		vec4 p = uClippingPlane;
+		vec4 p = uClippingPlaneA;
 		vec3 x = vPosition;
 		float distance = (dot(p.xyz, x) + p.w) / length(p.xyz);
 		if (distance < 0.0){
 			discard;
 		}
 		
+	}
+
+	//test if clipping plane is defined
+	if (uClippingB)
+	{
+		//clipping test
+		vec4 p = uClippingPlaneB;
+		vec3 x = vPosition;
+		float distance = (dot(p.xyz, x) + p.w) / length(p.xyz);
+		if (distance < 0.0) {
+			discard;
+		}
+
 	}
 	
 	//fix wrong normals (supposing the orientation of vertices is correct but normals are flipped)

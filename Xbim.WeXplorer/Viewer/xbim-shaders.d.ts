@@ -1,5 +1,6 @@
-export declare var xShaders: {
-    fragment_shader: string;
-    vertex_shader: string;
-    vertex_shader_noFPT: string;
-};
+declare namespace Xbim.Viewer {
+    var Shaders: {
+        fragment_shader: string;
+        vertex_shader: string;
+    };
+}
