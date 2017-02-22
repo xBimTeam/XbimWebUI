@@ -162,10 +162,13 @@
                 Rendering mode:
                 <br />
                 <label>
-                    <input type="radio" name="radioRenderingMode" value="normal" checked="checked" onchange="viewer.renderingMode = 'normal';"/> Normal
+                    <input type="radio" name="radioRenderingMode" value="normal" checked="checked" onchange="viewer.renderingMode = Xbim.Viewer.RenderingMode.NORMAL;"/> Normal
                 </label>
                 <label>
-                    <input type="radio" name="radioRenderingMode" value="xray" onchange="viewer.renderingMode = 'x-ray';" /> X-Ray
+                    <input type="radio" name="radioRenderingMode" value="xray" onchange="viewer.renderingMode = Xbim.Viewer.RenderingMode.XRAY;" /> X-Ray
+                </label>
+                <label>
+                    <input type="radio" name="radioRenderingMode" value="gray" onchange="viewer.renderingMode = Xbim.Viewer.RenderingMode.GRAYSCALE;" /> Grayscale
                 </label>
             </div>
 		</div>

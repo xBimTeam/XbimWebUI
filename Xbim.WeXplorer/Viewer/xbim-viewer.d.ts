@@ -36,6 +36,7 @@ declare namespace Xbim.Viewer {
         background: number[];
         private _isRunning;
         private _stateStyles;
+        private _stateStyleTexture;
         private _geometryLoaded;
         private _plugins;
         private _stylingChanged;
@@ -43,7 +44,7 @@ declare namespace Xbim.Viewer {
         highlightingColour: number[];
         navigationMode: 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none';
         private _userAction;
-        _shaderProgram: any;
+        _shaderProgram: WebGLProgram;
         _origin: number[];
         lightA: number[];
         lightB: number[];
@@ -59,11 +60,12 @@ declare namespace Xbim.Viewer {
         private _meterUniformPointer;
         private _renderingModeUniformPointer;
         private _highlightingColourUniformPointer;
+        private _stateStyleSamplerUniform;
         private _events;
         private _numberOfActiveModels;
         private _lastStates;
         private _visualStateAttributes;
-        renderingMode: 'normal' | 'x-ray';
+        renderingMode: RenderingMode;
         private _clippingPlaneA;
         private _clippingA;
         private _clippingPlaneB;
@@ -156,7 +158,7 @@ declare namespace Xbim.Viewer {
         * @param style - style defined in {@link Viewer#defineStyle defineStyle()} method
         * @param {Number[] | Number} target - Target of the change. It can either be array of product IDs or product type from {@link xProductType xProductType}.
         */
-        setStyle(style: any, target: number | number[]): void;
+        setStyle(style: number, target: number | number[]): void;
         /**
         * Use this function to get overriding colour style of the products in the model. The number you get is the index of
         * your custom colour which you have defined in {@link Viewer#defineStyle defineStyle()} function. 0xFF is the default value.
@@ -212,7 +214,7 @@ declare namespace Xbim.Viewer {
         * @fires Viewer#loaded
         */
         load(model: string | Blob | File, tag: any): void;
-        _addHandle(geometry: any, tag: any): void;
+        private addHandle(geometry, tag);
         /**
          * Unloads model from the GPU. This action is not reversible.
          *
@@ -220,7 +222,7 @@ declare namespace Xbim.Viewer {
          */
         unload(modelId: number): void;
         _initShaders(): void;
-        _initAttributesAndUniforms(): void;
+        private _initAttributesAndUniforms();
         private _initMouseEvents();
         private _initTouchNavigationEvents();
         private _initTouchTapEvents();
@@ -296,5 +298,25 @@ declare namespace Xbim.Viewer {
         private getSVGOverlay();
         clippingPlaneA: number[];
         clippingPlaneB: number[];
+    }
+    class ModelPointers {
+        NormalAttrPointer: number;
+        IndexlAttrPointer: number;
+        ProductAttrPointer: number;
+        StateAttrPointer: number;
+        StyleAttrPointer: number;
+        TransformationAttrPointer: number;
+        VertexSamplerUniform: WebGLUniformLocation;
+        MatrixSamplerUniform: WebGLUniformLocation;
+        StyleSamplerUniform: WebGLUniformLocation;
+        VertexTextureSizeUniform: WebGLUniformLocation;
+        MatrixTextureSizeUniform: WebGLUniformLocation;
+        StyleTextureSizeUniform: WebGLUniformLocation;
+        constructor(gl: WebGLRenderingContext, program: WebGLProgram);
+    }
+    enum RenderingMode {
+        NORMAL = 0,
+        GRAYSCALE = 1,
+        XRAY = 2,
     }
 }

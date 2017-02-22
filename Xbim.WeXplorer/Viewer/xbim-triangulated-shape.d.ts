@@ -1,10 +1,10 @@
 declare namespace Xbim.Viewer {
     class TriangulatedShape {
-        parse(binReader: any): void;
+        parse(binReader: BinaryReader): void;
         load: (source: any) => void;
-        vertices: any[];
+        vertices: Float32Array;
         indices: Uint32Array;
         normals: Uint8Array;
-        onloaded(): void;
+        onloaded: (shape: TriangulatedShape) => void;
     }
 }

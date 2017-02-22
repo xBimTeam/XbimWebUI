@@ -13,9 +13,9 @@ declare namespace Xbim.Viewer {
         productMap: {};
         regions: any[];
         transparentIndex: number;
-        parse(binReader: any): void;
+        parse(binReader: BinaryReader): void;
         load(source: any): void;
-        onloaded(): void;
-        onerror(message?: string): void;
+        onloaded: (geometry: ModelGeometry) => void;
+        onerror: (message?: string) => void;
     }
 }

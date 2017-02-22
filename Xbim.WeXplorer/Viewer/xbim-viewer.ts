@@ -116,7 +116,7 @@
             * will be rendered semi-transparent and single sided.
             * @member {String} Viewer#renderingMode
             */
-            this.renderingMode = 'normal';
+            this.renderingMode = RenderingMode.NORMAL;
             /** 
             * Clipping plane [a, b, c, d] defined as normal equation of the plane ax + by + cz + d = 0. [0,0,0,0] is for no clipping plane.
             * @member {Number[]} Viewer#clippingPlaneA
@@ -203,9 +203,6 @@
             //Models are loaded using 'load()' function.
             this._handles = [];
 
-            //This array keeps data for overlay styles.
-            this._stateStyles = new Uint8Array(15 * 15 * 4);
-
             //This is a switch which can stop animation.
             this._isRunning = true;
 
@@ -219,6 +216,19 @@
             //initialize touch events to capute user interaction on touch devices
             this._initTouchNavigationEvents();
             this._initTouchTapEvents();
+
+
+            //This array keeps data for overlay styles.
+            this._stateStyles = new Uint8Array(15 * 15 * 4);
+            this._stateStyleTexture = gl.createTexture();
+
+            //this texture has constant size and is bound at all times
+            gl.activeTexture(gl.TEXTURE4);
+            gl.bindTexture(gl.TEXTURE_2D, this._stateStyleTexture);
+            gl.uniform1i(this._stateStyleSamplerUniform, 4);
+
+            //this has a constant size 15 which is defined in vertex shader
+            ModelHandle.bufferTexture(gl, this._stateStyleTexture, this._stateStyles);
         }
 
         public _canvas: HTMLCanvasElement;
@@ -233,6 +243,7 @@
         public background: number[];
         private _isRunning: boolean;
         private _stateStyles: Uint8Array;
+        private _stateStyleTexture: WebGLTexture;
         private _geometryLoaded: boolean;
         private _plugins: any[];
         private _stylingChanged: boolean;
@@ -240,10 +251,11 @@
         public highlightingColour: number[];
         public navigationMode: 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none';
         private _userAction: boolean;
-        public _shaderProgram: any;
+        public _shaderProgram: WebGLProgram;
         public _origin: number[];
         public lightA: number[];
         public lightB: number[];
+
         private _mvMatrixUniformPointer: WebGLUniformLocation;
         private _pMatrixUniformPointer: WebGLUniformLocation;
         private _lightAUniformPointer: WebGLUniformLocation;
@@ -256,11 +268,14 @@
         private _meterUniformPointer: WebGLUniformLocation;
         private _renderingModeUniformPointer: WebGLUniformLocation;
         private _highlightingColourUniformPointer: WebGLUniformLocation;
+        private _stateStyleSamplerUniform: WebGLUniformLocation;
+
+
         private _events: any;
         private _numberOfActiveModels: number;
         private _lastStates: any;
         private _visualStateAttributes: string[];
-        public renderingMode: 'normal' | 'x-ray';
+        public renderingMode: RenderingMode;
         private _clippingPlaneA: number[];
         private _clippingA: boolean;
         private _clippingPlaneB: number[];
@@ -269,7 +284,7 @@
         public _mvMatrix: mat4;
         private _fpt: any;
         private _pMatrix: any;
-        private _pointers: any;
+        private _pointers: ModelPointers;
 
         /**
         * This is a static function which should always be called before Viewer is instantiated.
@@ -392,18 +407,16 @@
         public defineStyle(index: number, colour: number[]) {
             if (typeof (index) == 'undefined' || (index < 0 && index > 224)) throw 'Style index has to be defined as a number 0-224';
             if (typeof (colour) == 'undefined' || !colour.length || colour.length != 4) throw 'Colour must be defined as an array of 4 bytes';
-            this._stylingChanged = true;
 
             //set style to style texture via model handle
             var colData = new Uint8Array(colour);
             this._stateStyles.set(colData, index * 4);
 
-            //if there are some handles already set this style in there
-            this._handles.forEach(function (handle) {
-                handle.stateStyle = this._stateStyles;
-                handle.refreshStyles();
-            },
-                this);
+            //reset data in GPU
+            ModelHandle.bufferTexture(this._gl, this._stateStyleTexture, this._stateStyles);
+
+            //set flag
+            this._stylingChanged = true;
         }
 
         /**
@@ -505,7 +518,7 @@
         * @param style - style defined in {@link Viewer#defineStyle defineStyle()} method
         * @param {Number[] | Number} target - Target of the change. It can either be array of product IDs or product type from {@link xProductType xProductType}.
         */
-        public setStyle(style, target: number | number[]) {
+        public setStyle(style: number, target: number | number[]) {
             if (typeof (style) == 'undefined' || !(style >= 0 && style <= 225)
             ) throw 'Style has to be defined as 0 - 225 where 225 is for default style.';
             var c = [
@@ -664,7 +677,7 @@
 
             var geometry = new ModelGeometry();
             geometry.onloaded = function () {
-                viewer._addHandle(geometry, tag);
+                viewer.addHandle(geometry, tag);
             };
             geometry.onerror = function (msg) {
                 viewer.error(msg);
@@ -674,14 +687,13 @@
 
         //this is a private function used to add loaded geometry as a new handle and to set up camera and 
         //default view if this is the first geometry loaded
-        public _addHandle(geometry, tag) {
+        private addHandle(geometry, tag) {
             var viewer = this;
             var gl = this._gl;
 
-            var handle = new ModelHandle(viewer._gl, geometry, viewer._fpt != null);
+            var handle = new ModelHandle(viewer._gl, geometry);
             viewer._handles.push(handle);
 
-            handle.stateStyle = viewer._stateStyles;
             handle.feedGPU();
 
             //get one meter size from model and set it to shader
@@ -789,7 +801,7 @@
             gl.useProgram(this._shaderProgram);
         }
 
-        public _initAttributesAndUniforms() {
+        private _initAttributesAndUniforms(): void {
             var gl = this._gl;
 
             //create pointers to uniform variables for transformations
@@ -805,30 +817,11 @@
             this._meterUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uMeter');
             this._renderingModeUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uRenderingMode');
             this._highlightingColourUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uHighlightColour');
+            this._stateStyleSamplerUniform = gl.getUniformLocation(this._shaderProgram, 'uStateStyleSampler');
 
-            this._pointers = {
-                normalAttrPointer: gl.getAttribLocation(this._shaderProgram, 'aNormal'),
-                indexlAttrPointer: gl.getAttribLocation(this._shaderProgram, 'aVertexIndex'),
-                productAttrPointer: gl.getAttribLocation(this._shaderProgram, 'aProduct'),
-                stateAttrPointer: gl.getAttribLocation(this._shaderProgram, 'aState'),
-                styleAttrPointer: gl.getAttribLocation(this._shaderProgram, 'aStyleIndex'),
-                transformationAttrPointer: gl.getAttribLocation(this._shaderProgram, 'aTransformationIndex'),
-                vertexSamplerUniform: gl.getUniformLocation(this._shaderProgram, 'uVertexSampler'),
-                matrixSamplerUniform: gl.getUniformLocation(this._shaderProgram, 'uMatrixSampler'),
-                styleSamplerUniform: gl.getUniformLocation(this._shaderProgram, 'uStyleSampler'),
-                stateStyleSamplerUniform: gl.getUniformLocation(this._shaderProgram, 'uStateStyleSampler'),
-                vertexTextureSizeUniform: gl.getUniformLocation(this._shaderProgram, 'uVertexTextureSize'),
-                matrixTextureSizeUniform: gl.getUniformLocation(this._shaderProgram, 'uMatrixTextureSize'),
-                styleTextureSizeUniform: gl.getUniformLocation(this._shaderProgram, 'uStyleTextureSize')
-            };
+            this._pointers = new ModelPointers(gl, this._shaderProgram);
 
-            //enable vertex attributes arrays
-            gl.enableVertexAttribArray(this._pointers.normalAttrPointer);
-            gl.enableVertexAttribArray(this._pointers.indexlAttrPointer);
-            gl.enableVertexAttribArray(this._pointers.productAttrPointer);
-            gl.enableVertexAttribArray(this._pointers.stateAttrPointer);
-            gl.enableVertexAttribArray(this._pointers.styleAttrPointer);
-            gl.enableVertexAttribArray(this._pointers.transformationAttrPointer);
+
         }
 
         private _initMouseEvents() {
@@ -1339,6 +1332,11 @@
             gl.uniform4fv(this._lightAUniformPointer, new Float32Array(this.lightA));
             gl.uniform4fv(this._lightBUniformPointer, new Float32Array(this.lightB));
 
+            //overlay styles
+            gl.activeTexture(gl.TEXTURE4);
+            gl.bindTexture(gl.TEXTURE_2D, this._stateStyleTexture);
+            gl.uniform1i(this._stateStyleSamplerUniform, 4);
+
             //clipping
             gl.uniform1i(this._clippingAUniformPointer, this._clippingA ? 1 : 0);
             gl.uniform1i(this._clippingBUniformPointer, this._clippingB ? 1 : 0);
@@ -1361,10 +1359,11 @@
                         this.highlightingColour[3] / 255.0
                     ]));
 
+            gl.uniform1i(this._renderingModeUniformPointer, this.renderingMode);
+
             //check for x-ray mode
-            if (this.renderingMode == 'x-ray') {
+            if (this.renderingMode == RenderingMode.XRAY) {
                 //two passes - first one for non-transparent objects, second one for all the others
-                gl.uniform1i(this._renderingModeUniformPointer, 2);
                 gl.disable(gl.CULL_FACE);
                 this._handles.forEach(function (handle) {
                     if (!handle.stopped) {
@@ -1375,7 +1374,6 @@
                     this);
 
                 //transparent objects should have only one side so that they are even more transparent.
-                gl.uniform1i(this._renderingModeUniformPointer, 2);
                 gl.enable(gl.CULL_FACE);
                 this._handles.forEach(function (handle) {
                     if (!handle.stopped) {
@@ -1384,9 +1382,7 @@
                     }
                 },
                     this);
-                gl.uniform1i(this._renderingModeUniformPointer, 0);
             } else {
-                gl.uniform1i(this._renderingModeUniformPointer, 0);
                 gl.disable(gl.CULL_FACE);
 
                 //two runs, first for solids from all models, second for transparent objects from all models
@@ -1798,10 +1794,10 @@
             document.documentElement.style['user-select'] = 'text';
         }
 
-        private getSVGOverlay(): any {
+        private getSVGOverlay(): SVGElement {
             //check support for SVG
             if (!document.implementation
-                .hasFeature('http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1')) return false;
+                .hasFeature('http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1')) return null;
             var ns = 'http://www.w3.org/2000/svg';
 
             function getOffsetRect(elem) {
@@ -1828,7 +1824,7 @@
             }
 
             //create SVG overlay
-            var svg = document.createElementNS(ns, 'svg');
+            var svg = document.createElementNS(ns, 'svg') as SVGElement;
             //document.body.appendChild(svg);
 
             var cRect = getOffsetRect(this._canvas);
@@ -1860,5 +1856,54 @@
         public get clippingPlaneB(): number[] {
             return this._clippingPlaneA;
         }
+    }
+
+    export class ModelPointers {
+        public NormalAttrPointer: number;
+        public IndexlAttrPointer: number;
+        public ProductAttrPointer: number;
+        public StateAttrPointer: number;
+        public StyleAttrPointer: number;
+        public TransformationAttrPointer: number;
+
+        public VertexSamplerUniform: WebGLUniformLocation;
+        public MatrixSamplerUniform: WebGLUniformLocation;
+        public StyleSamplerUniform: WebGLUniformLocation;
+        public VertexTextureSizeUniform: WebGLUniformLocation;
+        public MatrixTextureSizeUniform: WebGLUniformLocation;
+        public StyleTextureSizeUniform: WebGLUniformLocation;
+
+        constructor(gl: WebGLRenderingContext, program: WebGLProgram) {
+
+            //get attribute pointers
+            this.NormalAttrPointer = gl.getAttribLocation(program, 'aNormal');
+            this.IndexlAttrPointer = gl.getAttribLocation(program, 'aVertexIndex');
+            this.ProductAttrPointer = gl.getAttribLocation(program, 'aProduct');
+            this.StateAttrPointer = gl.getAttribLocation(program, 'aState');
+            this.StyleAttrPointer = gl.getAttribLocation(program, 'aStyleIndex');
+            this.TransformationAttrPointer = gl.getAttribLocation(program, 'aTransformationIndex');
+
+            //get uniform pointers
+            this.VertexSamplerUniform = gl.getUniformLocation(program, 'uVertexSampler');
+            this.MatrixSamplerUniform = gl.getUniformLocation(program, 'uMatrixSampler');
+            this.StyleSamplerUniform = gl.getUniformLocation(program, 'uStyleSampler');
+            this.VertexTextureSizeUniform = gl.getUniformLocation(program, 'uVertexTextureSize');
+            this.MatrixTextureSizeUniform = gl.getUniformLocation(program, 'uMatrixTextureSize');
+            this.StyleTextureSizeUniform = gl.getUniformLocation(program, 'uStyleTextureSize')
+
+            //enable vertex attributes arrays
+            gl.enableVertexAttribArray(this.NormalAttrPointer);
+            gl.enableVertexAttribArray(this.IndexlAttrPointer);
+            gl.enableVertexAttribArray(this.ProductAttrPointer);
+            gl.enableVertexAttribArray(this.StateAttrPointer);
+            gl.enableVertexAttribArray(this.StyleAttrPointer);
+            gl.enableVertexAttribArray(this.TransformationAttrPointer);
+        }
+    }
+
+    export enum RenderingMode {
+        NORMAL = 0,
+        GRAYSCALE = 1,
+        XRAY = 2
     }
 }

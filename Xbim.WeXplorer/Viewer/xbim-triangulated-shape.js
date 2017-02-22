@@ -12,12 +12,11 @@ var Xbim;
                     br.onloaded = function () {
                         self.parse(br);
                         if (self.onloaded) {
-                            self.onloaded();
+                            self.onloaded(this);
                         }
                     };
                     br.load(source);
                 };
-                this.vertices = [];
             }
             //this will get xBinaryReader on the current position and will parse it's content to fill itself with vertices, normals and vertex indices
             TriangulatedShape.prototype.parse = function (binReader) {
@@ -25,7 +24,7 @@ var Xbim;
                 var version = binReader.readByte();
                 var numVertices = binReader.readInt32();
                 var numOfTriangles = binReader.readInt32();
-                self.vertices = binReader.readFloat32(numVertices * 3);
+                self.vertices = binReader.readFloat32Array(numVertices * 3);
                 //allocate memory of defined size (to avoid reallocation of memory)
                 self.indices = new Uint32Array(numOfTriangles * 3);
                 self.normals = new Uint8Array(numOfTriangles * 6);
@@ -33,13 +32,13 @@ var Xbim;
                 var iIndex = 0;
                 var readIndex;
                 if (numVertices <= 0xFF) {
-                    readIndex = function (count) { return binReader.readByte(count); };
+                    readIndex = function (count) { return binReader.readByteArray(count); };
                 }
                 else if (numVertices <= 0xFFFF) {
-                    readIndex = function (count) { return binReader.readUint16(count); };
+                    readIndex = function (count) { return binReader.readUint16Array(count); };
                 }
                 else {
-                    readIndex = function (count) { return binReader.readInt32(count); };
+                    readIndex = function (count) { return binReader.readInt32Array(count); };
                 }
                 var numFaces = binReader.readInt32();
                 if (numVertices === 0 || numOfTriangles === 0)
@@ -51,7 +50,7 @@ var Xbim;
                     var isPlanar = numTrianglesInFace > 0;
                     numTrianglesInFace = Math.abs(numTrianglesInFace);
                     if (isPlanar) {
-                        var normal = binReader.readByte(2);
+                        var normal = binReader.readByteArray(2);
                         //read and set all indices
                         var planarIndices = readIndex(3 * numTrianglesInFace);
                         self.indices.set(planarIndices, iIndex);
@@ -65,21 +64,18 @@ var Xbim;
                     else {
                         for (var j = 0; j < numTrianglesInFace; j++) {
                             self.indices[iIndex] = readIndex(); //a
-                            self.normals.set(binReader.readByte(2), iIndex * 2);
+                            self.normals.set(binReader.readByteArray(2), iIndex * 2);
                             iIndex++;
                             self.indices[iIndex] = readIndex(); //b
-                            self.normals.set(binReader.readByte(2), iIndex * 2);
+                            self.normals.set(binReader.readByteArray(2), iIndex * 2);
                             iIndex++;
                             self.indices[iIndex] = readIndex(); //c
-                            self.normals.set(binReader.readByte(2), iIndex * 2);
+                            self.normals.set(binReader.readByteArray(2), iIndex * 2);
                             iIndex++;
                         }
                     }
                 }
             };
-            //this function will get called when loading is finished.
-            //This won't get called after parse which is supposed to happen in large operation.
-            TriangulatedShape.prototype.onloaded = function () { };
             return TriangulatedShape;
         }());
         Viewer.TriangulatedShape = TriangulatedShape;

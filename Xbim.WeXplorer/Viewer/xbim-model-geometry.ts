@@ -29,7 +29,7 @@
         regions: any[];
         transparentIndex: number;
 
-        public parse(binReader) {
+        public parse(binReader: BinaryReader) {
             var br = binReader;
             var magicNumber = br.readInt32();
             if (magicNumber != 94132117) throw 'Magic number mismatch.';
@@ -87,8 +87,8 @@
             for (var i = 0; i < numRegions; i++) {
                 this.regions[i] = {
                     population: br.readInt32(),
-                    centre: br.readFloat32(3),
-                    bbox: br.readFloat32(6)
+                    centre: br.readFloat32Array(3),
+                    bbox: br.readFloat32Array(6)
                 }
             }
 
@@ -118,7 +118,7 @@
             for (var i = 0; i < numProducts; i++) {
                 var productLabel = br.readInt32();
                 var prodType = br.readInt16();
-                var bBox = br.readFloat32(6);
+                var bBox = br.readFloat32Array(6);
 
                 var map = {
                     productID: productLabel,
@@ -141,7 +141,7 @@
                     var transformation = null;
 
                     if (repetition > 1) {
-                        transformation = version === 1 ? br.readFloat32(16) : br.readFloat64(16);
+                        transformation = version === 1 ? br.readFloat32Array(16) : br.readFloat64Array(16);
                         this.matrices.set(transformation, iMatrix);
                         iMatrix += 16;
                     }
@@ -155,7 +155,7 @@
                         iLabel: instanceLabel,
                         style: styleItem.index,
                         transparent: styleItem.transparent,
-                        transform: transformation != null ? iTransform++ : 0xFFFF
+                        transform: transformation != null ? iTransform++ : -1
                     });
                 }
 
@@ -222,7 +222,7 @@
             }
 
             //binary reader should be at the end by now
-            if (!br.getIsEOF()) {
+            if (!br.isEOF()) {
                 //throw 'Binary reader is not at the end of the file.';
             }
 
@@ -237,7 +237,7 @@
             br.onloaded = function () {
                 self.parse(br);
                 if (self.onloaded) {
-                    self.onloaded();
+                    self.onloaded(this);
                 }
             };
             br.onerror = function (msg) {
@@ -246,9 +246,9 @@
             br.load(source);
         }
 
-        public onloaded() { }
+        public onloaded: (geometry: ModelGeometry) => void;
 
-        public onerror(message?: string) { }
+        public onerror: (message?: string) => void;
     }
 
 }

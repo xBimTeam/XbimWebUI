@@ -111,7 +111,7 @@ var Xbim;
                 * will be rendered semi-transparent and single sided.
                 * @member {String} Viewer#renderingMode
                 */
-                this.renderingMode = 'normal';
+                this.renderingMode = RenderingMode.NORMAL;
                 /**
                 * Clipping plane [a, b, c, d] defined as normal equation of the plane ax + by + cz + d = 0. [0,0,0,0] is for no clipping plane.
                 * @member {Number[]} Viewer#clippingPlaneA
@@ -179,8 +179,6 @@ var Xbim;
                 //Array of handles which can eventually contain handles to one or more models.
                 //Models are loaded using 'load()' function.
                 this._handles = [];
-                //This array keeps data for overlay styles.
-                this._stateStyles = new Uint8Array(15 * 15 * 4);
                 //This is a switch which can stop animation.
                 this._isRunning = true;
                 //********************** Run all the initialize functions *****************************
@@ -193,6 +191,15 @@ var Xbim;
                 //initialize touch events to capute user interaction on touch devices
                 this._initTouchNavigationEvents();
                 this._initTouchTapEvents();
+                //This array keeps data for overlay styles.
+                this._stateStyles = new Uint8Array(15 * 15 * 4);
+                this._stateStyleTexture = gl.createTexture();
+                //this texture has constant size and is bound at all times
+                gl.activeTexture(gl.TEXTURE4);
+                gl.bindTexture(gl.TEXTURE_2D, this._stateStyleTexture);
+                gl.uniform1i(this._stateStyleSamplerUniform, 4);
+                //this has a constant size 15 which is defined in vertex shader
+                Viewer_1.ModelHandle.bufferTexture(gl, this._stateStyleTexture, this._stateStyles);
             }
             /**
             * This is a static function which should always be called before Viewer is instantiated.
@@ -312,15 +319,13 @@ var Xbim;
                     throw 'Style index has to be defined as a number 0-224';
                 if (typeof (colour) == 'undefined' || !colour.length || colour.length != 4)
                     throw 'Colour must be defined as an array of 4 bytes';
-                this._stylingChanged = true;
                 //set style to style texture via model handle
                 var colData = new Uint8Array(colour);
                 this._stateStyles.set(colData, index * 4);
-                //if there are some handles already set this style in there
-                this._handles.forEach(function (handle) {
-                    handle.stateStyle = this._stateStyles;
-                    handle.refreshStyles();
-                }, this);
+                //reset data in GPU
+                Viewer_1.ModelHandle.bufferTexture(this._gl, this._stateStyleTexture, this._stateStyles);
+                //set flag
+                this._stylingChanged = true;
             };
             /**
             * You can use this function to change state of products in the model. State has to have one of values from {@link xState xState} enumeration.
@@ -560,7 +565,7 @@ var Xbim;
                 var viewer = this;
                 var geometry = new Viewer_1.ModelGeometry();
                 geometry.onloaded = function () {
-                    viewer._addHandle(geometry, tag);
+                    viewer.addHandle(geometry, tag);
                 };
                 geometry.onerror = function (msg) {
                     viewer.error(msg);
@@ -569,12 +574,11 @@ var Xbim;
             };
             //this is a private function used to add loaded geometry as a new handle and to set up camera and 
             //default view if this is the first geometry loaded
-            Viewer.prototype._addHandle = function (geometry, tag) {
+            Viewer.prototype.addHandle = function (geometry, tag) {
                 var viewer = this;
                 var gl = this._gl;
-                var handle = new Viewer_1.ModelHandle(viewer._gl, geometry, viewer._fpt != null);
+                var handle = new Viewer_1.ModelHandle(viewer._gl, geometry);
                 viewer._handles.push(handle);
-                handle.stateStyle = viewer._stateStyles;
                 handle.feedGPU();
                 //get one meter size from model and set it to shader
                 var meter = handle._model.meter;
@@ -680,28 +684,8 @@ var Xbim;
                 this._meterUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uMeter');
                 this._renderingModeUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uRenderingMode');
                 this._highlightingColourUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uHighlightColour');
-                this._pointers = {
-                    normalAttrPointer: gl.getAttribLocation(this._shaderProgram, 'aNormal'),
-                    indexlAttrPointer: gl.getAttribLocation(this._shaderProgram, 'aVertexIndex'),
-                    productAttrPointer: gl.getAttribLocation(this._shaderProgram, 'aProduct'),
-                    stateAttrPointer: gl.getAttribLocation(this._shaderProgram, 'aState'),
-                    styleAttrPointer: gl.getAttribLocation(this._shaderProgram, 'aStyleIndex'),
-                    transformationAttrPointer: gl.getAttribLocation(this._shaderProgram, 'aTransformationIndex'),
-                    vertexSamplerUniform: gl.getUniformLocation(this._shaderProgram, 'uVertexSampler'),
-                    matrixSamplerUniform: gl.getUniformLocation(this._shaderProgram, 'uMatrixSampler'),
-                    styleSamplerUniform: gl.getUniformLocation(this._shaderProgram, 'uStyleSampler'),
-                    stateStyleSamplerUniform: gl.getUniformLocation(this._shaderProgram, 'uStateStyleSampler'),
-                    vertexTextureSizeUniform: gl.getUniformLocation(this._shaderProgram, 'uVertexTextureSize'),
-                    matrixTextureSizeUniform: gl.getUniformLocation(this._shaderProgram, 'uMatrixTextureSize'),
-                    styleTextureSizeUniform: gl.getUniformLocation(this._shaderProgram, 'uStyleTextureSize')
-                };
-                //enable vertex attributes arrays
-                gl.enableVertexAttribArray(this._pointers.normalAttrPointer);
-                gl.enableVertexAttribArray(this._pointers.indexlAttrPointer);
-                gl.enableVertexAttribArray(this._pointers.productAttrPointer);
-                gl.enableVertexAttribArray(this._pointers.stateAttrPointer);
-                gl.enableVertexAttribArray(this._pointers.styleAttrPointer);
-                gl.enableVertexAttribArray(this._pointers.transformationAttrPointer);
+                this._stateStyleSamplerUniform = gl.getUniformLocation(this._shaderProgram, 'uStateStyleSampler');
+                this._pointers = new ModelPointers(gl, this._shaderProgram);
             };
             Viewer.prototype._initMouseEvents = function () {
                 var _this = this;
@@ -1106,6 +1090,10 @@ var Xbim;
                 gl.uniformMatrix4fv(this._mvMatrixUniformPointer, false, this._mvMatrix);
                 gl.uniform4fv(this._lightAUniformPointer, new Float32Array(this.lightA));
                 gl.uniform4fv(this._lightBUniformPointer, new Float32Array(this.lightB));
+                //overlay styles
+                gl.activeTexture(gl.TEXTURE4);
+                gl.bindTexture(gl.TEXTURE_2D, this._stateStyleTexture);
+                gl.uniform1i(this._stateStyleSamplerUniform, 4);
                 //clipping
                 gl.uniform1i(this._clippingAUniformPointer, this._clippingA ? 1 : 0);
                 gl.uniform1i(this._clippingBUniformPointer, this._clippingB ? 1 : 0);
@@ -1124,10 +1112,10 @@ var Xbim;
                     this.highlightingColour[2] / 255.0,
                     this.highlightingColour[3] / 255.0
                 ]));
+                gl.uniform1i(this._renderingModeUniformPointer, this.renderingMode);
                 //check for x-ray mode
-                if (this.renderingMode == 'x-ray') {
+                if (this.renderingMode == RenderingMode.XRAY) {
                     //two passes - first one for non-transparent objects, second one for all the others
-                    gl.uniform1i(this._renderingModeUniformPointer, 2);
                     gl.disable(gl.CULL_FACE);
                     this._handles.forEach(function (handle) {
                         if (!handle.stopped) {
@@ -1136,7 +1124,6 @@ var Xbim;
                         }
                     }, this);
                     //transparent objects should have only one side so that they are even more transparent.
-                    gl.uniform1i(this._renderingModeUniformPointer, 2);
                     gl.enable(gl.CULL_FACE);
                     this._handles.forEach(function (handle) {
                         if (!handle.stopped) {
@@ -1144,10 +1131,8 @@ var Xbim;
                             handle.draw('transparent');
                         }
                     }, this);
-                    gl.uniform1i(this._renderingModeUniformPointer, 0);
                 }
                 else {
-                    gl.uniform1i(this._renderingModeUniformPointer, 0);
                     gl.disable(gl.CULL_FACE);
                     //two runs, first for solids from all models, second for transparent objects from all models
                     //this makes sure that transparent objects are always rendered at the end.
@@ -1503,7 +1488,7 @@ var Xbim;
                 //check support for SVG
                 if (!document.implementation
                     .hasFeature('http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1'))
-                    return false;
+                    return null;
                 var ns = 'http://www.w3.org/2000/svg';
                 function getOffsetRect(elem) {
                     var box = elem.getBoundingClientRect();
@@ -1558,6 +1543,39 @@ var Xbim;
             return Viewer;
         }());
         Viewer_1.Viewer = Viewer;
+        var ModelPointers = (function () {
+            function ModelPointers(gl, program) {
+                //get attribute pointers
+                this.NormalAttrPointer = gl.getAttribLocation(program, 'aNormal');
+                this.IndexlAttrPointer = gl.getAttribLocation(program, 'aVertexIndex');
+                this.ProductAttrPointer = gl.getAttribLocation(program, 'aProduct');
+                this.StateAttrPointer = gl.getAttribLocation(program, 'aState');
+                this.StyleAttrPointer = gl.getAttribLocation(program, 'aStyleIndex');
+                this.TransformationAttrPointer = gl.getAttribLocation(program, 'aTransformationIndex');
+                //get uniform pointers
+                this.VertexSamplerUniform = gl.getUniformLocation(program, 'uVertexSampler');
+                this.MatrixSamplerUniform = gl.getUniformLocation(program, 'uMatrixSampler');
+                this.StyleSamplerUniform = gl.getUniformLocation(program, 'uStyleSampler');
+                this.VertexTextureSizeUniform = gl.getUniformLocation(program, 'uVertexTextureSize');
+                this.MatrixTextureSizeUniform = gl.getUniformLocation(program, 'uMatrixTextureSize');
+                this.StyleTextureSizeUniform = gl.getUniformLocation(program, 'uStyleTextureSize');
+                //enable vertex attributes arrays
+                gl.enableVertexAttribArray(this.NormalAttrPointer);
+                gl.enableVertexAttribArray(this.IndexlAttrPointer);
+                gl.enableVertexAttribArray(this.ProductAttrPointer);
+                gl.enableVertexAttribArray(this.StateAttrPointer);
+                gl.enableVertexAttribArray(this.StyleAttrPointer);
+                gl.enableVertexAttribArray(this.TransformationAttrPointer);
+            }
+            return ModelPointers;
+        }());
+        Viewer_1.ModelPointers = ModelPointers;
+        (function (RenderingMode) {
+            RenderingMode[RenderingMode["NORMAL"] = 0] = "NORMAL";
+            RenderingMode[RenderingMode["GRAYSCALE"] = 1] = "GRAYSCALE";
+            RenderingMode[RenderingMode["XRAY"] = 2] = "XRAY";
+        })(Viewer_1.RenderingMode || (Viewer_1.RenderingMode = {}));
+        var RenderingMode = Viewer_1.RenderingMode;
     })(Viewer = Xbim.Viewer || (Xbim.Viewer = {}));
 })(Xbim || (Xbim = {}));
 //# sourceMappingURL=xbim-viewer.js.map

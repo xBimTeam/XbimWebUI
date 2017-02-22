@@ -145,6 +145,8 @@
     <Content Include="jsdoc.config.json" />
     <Content Include="Resources\doctemplate\static\scripts\xbim.bundle.js.map" />
     <Content Include="build_before.bat" />
+    <Content Include="tests\data\envelop.wexbim" />
+    <Content Include="wexbimtest.html" />
     <None Include="Tutorials\1_Hello_building.md" />
     <Content Include="simpleviewer.html" />
     <Content Include="Viewer\fragment_shader.c" />
@@ -162,8 +164,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <TypeScriptCompile Include="Viewer\dictionary.ts" />
     <TypeScriptCompile Include="Viewer\xbim-node-product-shape.ts" />
+    <TypeScriptCompile Include="Viewer\xbim-wexbim-mesh.ts" />
     <TypeScriptCompile Include="Viewer\xbim-wexbim-stream.ts" />
+    <TypeScriptCompile Include="wexbimtest.ts" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="tests\data\FourWalls.ifc" />
