@@ -5,7 +5,18 @@
 		<title>xViewer</title>
 		<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
 
-        <script src="Build/xbim.bundle.js"></script>
+        <script src="Libs/gl-matrix.js"></script>
+        <script src="Libs/webgl-utils.js"></script>
+        <script src="Viewer/xbim-binary-reader.js"></script>
+        <script src="Viewer/xbim-model-geometry.js"></script>
+        <script src="Viewer/xbim-model-handle.js"></script>
+        <script src="Viewer/xbim-plugin-interface.js"></script>
+        <script src="Viewer/xbim-product-inheritance.js"></script>
+        <script src="Viewer/xbim-product-type.js"></script>
+        <script src="Viewer/xbim-shaders.js"></script>
+        <script src="Viewer/xbim-state.js"></script>
+        <script src="Viewer/xbim-triangulated-shape.js"></script>
+        <script src="Viewer/xbim-viewer.js"></script>
         <script src="Libs/jquery.js"></script>
 	    
         <style>
@@ -60,7 +71,7 @@
 	<script type="text/javascript">
         var models = [];
 
-	    var viewer = new xViewer("xBIM-viewer");
+	    var viewer = new Xbim.Viewer.Viewer("xBIM-viewer");
 	    viewer.background = [255, 255, 255];
 	    viewer.on("error", function (arg) {
 	        var container = viewer._canvas.parentNode;

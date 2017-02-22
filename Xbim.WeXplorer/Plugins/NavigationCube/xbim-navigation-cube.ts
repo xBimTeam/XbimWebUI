@@ -1,5 +1,5 @@
 ﻿namespace Xbim.Viewer.Plugins {
-    export class xNavigationCube {
+    export class NavigationCube implements IPlugin {
 
         /**
          * This is constructor of the Navigation Cube plugin for {@link Viewer xBIM Viewer}. It gets optional Image as an argument.
@@ -423,7 +423,8 @@
             this.setInactive();
         }
 
-        onBeforeGetId(id) { }
+        //return false because this doesn't catch any ID event
+        onBeforeGetId(id) { return false; }
 
         setActive() {
             var gl = this.viewer._gl;

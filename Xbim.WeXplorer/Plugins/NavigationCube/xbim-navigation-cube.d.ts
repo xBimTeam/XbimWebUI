@@ -1,5 +1,5 @@
 declare namespace Xbim.Viewer.Plugins {
-    class xNavigationCube {
+    class NavigationCube implements IPlugin {
         /**
          * This is constructor of the Navigation Cube plugin for {@link Viewer xBIM Viewer}. It gets optional Image as an argument.
          * The image will be used as a texture of the navigation cube. If you don't specify eny image default one will be used.
@@ -108,7 +108,7 @@ declare namespace Xbim.Viewer.Plugins {
         onAfterDraw(): void;
         onBeforeDrawId(): void;
         onAfterDrawId(): void;
-        onBeforeGetId(id: any): void;
+        onBeforeGetId(id: any): boolean;
         setActive(): WebGLRenderingContext;
         setInactive(): void;
         private draw();

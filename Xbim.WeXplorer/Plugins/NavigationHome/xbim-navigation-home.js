@@ -4,7 +4,7 @@ var Xbim;
     (function (Viewer) {
         var Plugins;
         (function (Plugins) {
-            var xNavigationHome = (function () {
+            var NavigationHome = (function () {
                 /**
                  * This is constructor of the Home plugin for {@link Viewer xBIM Viewer}. It gets optional Image object as an argument. If no image
                  * is specified there is a default one (which is not very prety).
@@ -19,7 +19,7 @@ var Xbim;
                  *
                  * @param {Image} [image = null] - optional image to be used for a button.
                 */
-                function xNavigationHome(image) {
+                function NavigationHome(image) {
                     /**
                     * Size of the the home button relative to the size of viewer canvas. This has to be a positive number between [0,1] Default value is 0.2.
                     * @member {Number} xNavigationHome#ratio
@@ -62,7 +62,7 @@ var Xbim;
                     //private variables
                     this._image = image;
                 }
-                xNavigationHome.prototype.init = function (xviewer) {
+                NavigationHome.prototype.init = function (xviewer) {
                     this._viewer = xviewer;
                     var self = this;
                     if (typeof (this._image) === "undefined") {
@@ -105,7 +105,7 @@ var Xbim;
                     self._image.style.opacity = this.passiveAlpha.toString(); //For real browsers;
                     self._image.style.filter = "alpha(opacity=" + Math.round(this.passiveAlpha * 100.0) + ")"; //For IE;
                 };
-                xNavigationHome.prototype._adjust = function () {
+                NavigationHome.prototype._adjust = function () {
                     var canvas = this._viewer._canvas;
                     function getOffsetRect(elem) {
                         var box = elem.getBoundingClientRect();
@@ -131,16 +131,16 @@ var Xbim;
                     this._image.style.left = Math.round(rect.left + rect.width * this.placementX) + "px";
                     this._image.style.top = Math.round(rect.top + rect.height * this.placementY) + "px";
                 };
-                xNavigationHome.prototype.onBeforeDraw = function () { };
-                xNavigationHome.prototype.onBeforePick = function (id) { };
-                xNavigationHome.prototype.onAfterDraw = function () { this._adjust(); };
-                xNavigationHome.prototype.onBeforeDrawId = function () { };
-                xNavigationHome.prototype.onAfterDrawId = function () { };
-                xNavigationHome.prototype.onBeforeGetId = function (id) { };
-                xNavigationHome.prototype.draw = function () { };
-                return xNavigationHome;
+                NavigationHome.prototype.onBeforeDraw = function () { };
+                NavigationHome.prototype.onBeforePick = function (id) { return false; };
+                NavigationHome.prototype.onAfterDraw = function () { this._adjust(); };
+                NavigationHome.prototype.onBeforeDrawId = function () { };
+                NavigationHome.prototype.onAfterDrawId = function () { };
+                NavigationHome.prototype.onBeforeGetId = function (id) { return false; };
+                NavigationHome.prototype.draw = function () { };
+                return NavigationHome;
             }());
-            Plugins.xNavigationHome = xNavigationHome;
+            Plugins.NavigationHome = NavigationHome;
         })(Plugins = Viewer.Plugins || (Viewer.Plugins = {}));
     })(Viewer = Xbim.Viewer || (Xbim.Viewer = {}));
 })(Xbim || (Xbim = {}));

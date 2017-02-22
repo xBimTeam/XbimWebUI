@@ -166,7 +166,7 @@ var Xbim;
                 // and '.off('eventname', callback)'. Registered call-backs are triggered by the viewer when important events occur.
                 this._events = {};
                 //array of plugins which can implement certain methods which get called at certain points like before draw, after draw and others.
-                this._plugins = [];
+                this._plugins = new Array();
                 //transformation matrices
                 this._mvMatrix = mat4.create(); //world matrix
                 this._pMatrix = mat4.create(); //camera matrix (this can be either perspective or orthogonal camera)

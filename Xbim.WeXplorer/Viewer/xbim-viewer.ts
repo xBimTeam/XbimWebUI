@@ -186,7 +186,7 @@
             this._events = {};
 
             //array of plugins which can implement certain methods which get called at certain points like before draw, after draw and others.
-            this._plugins = [];
+            this._plugins = new Array<IPlugin>();
 
             //transformation matrices
             this._mvMatrix = mat4.create(); //world matrix
@@ -245,7 +245,7 @@
         private _stateStyles: Uint8Array;
         private _stateStyleTexture: WebGLTexture;
         private _geometryLoaded: boolean;
-        private _plugins: any[];
+        private _plugins: IPlugin[];
         private _stylingChanged: boolean;
         private _handles: any[];
         public highlightingColour: number[];

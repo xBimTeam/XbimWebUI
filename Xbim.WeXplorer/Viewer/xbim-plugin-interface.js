@@ -1,0 +1,1 @@
+//# sourceMappingURL=xbim-plugin-interface.js.map

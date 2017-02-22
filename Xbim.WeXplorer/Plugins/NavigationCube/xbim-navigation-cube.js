@@ -4,7 +4,7 @@ var Xbim;
     (function (Viewer) {
         var Plugins;
         (function (Plugins) {
-            var xNavigationCube = (function () {
+            var NavigationCube = (function () {
                 /**
                  * This is constructor of the Navigation Cube plugin for {@link Viewer xBIM Viewer}. It gets optional Image as an argument.
                  * The image will be used as a texture of the navigation cube. If you don't specify eny image default one will be used.
@@ -24,7 +24,7 @@ var Xbim;
                  *
                  * @param {Image} [image = null] - optional image to be used for a cube texture.
                 */
-                function xNavigationCube(image) {
+                function NavigationCube(image) {
                     this.TOP = 1600000;
                     this.BOTTOM = 1600001;
                     this.LEFT = 1600002;
@@ -721,7 +721,7 @@ var Xbim;
                     ]);
                     this._image = image;
                 }
-                xNavigationCube.prototype.init = function (xviewer) {
+                NavigationCube.prototype.init = function (xviewer) {
                     var self = this;
                     this.viewer = xviewer;
                     var gl = this.viewer._gl;
@@ -845,8 +845,8 @@ var Xbim;
                     }, true);
                     this._initialized = true;
                 };
-                xNavigationCube.prototype.onBeforeDraw = function () { };
-                xNavigationCube.prototype.onBeforePick = function (id) {
+                NavigationCube.prototype.onBeforeDraw = function () { };
+                NavigationCube.prototype.onBeforePick = function (id) {
                     if (id >= this.TOP && id <= this.BACK_LEFT) {
                         var dir = vec3.create();
                         var distance = this.viewer._distance;
@@ -964,34 +964,35 @@ var Xbim;
                     }
                     return false;
                 };
-                xNavigationCube.prototype.onAfterDraw = function () {
+                NavigationCube.prototype.onAfterDraw = function () {
                     var gl = this.setActive();
                     //set uniform for colour coding to false
                     gl.uniform1i(this._colourCodingUniformPointer, 0);
                     this.draw();
                     this.setInactive();
                 };
-                xNavigationCube.prototype.onBeforeDrawId = function () { };
-                xNavigationCube.prototype.onAfterDrawId = function () {
+                NavigationCube.prototype.onBeforeDrawId = function () { };
+                NavigationCube.prototype.onAfterDrawId = function () {
                     var gl = this.setActive();
                     //set uniform for colour coding to false
                     gl.uniform1i(this._colourCodingUniformPointer, 1);
                     this.draw();
                     this.setInactive();
                 };
-                xNavigationCube.prototype.onBeforeGetId = function (id) { };
-                xNavigationCube.prototype.setActive = function () {
+                //return false because this doesn't catch any ID event
+                NavigationCube.prototype.onBeforeGetId = function (id) { return false; };
+                NavigationCube.prototype.setActive = function () {
                     var gl = this.viewer._gl;
                     //set own shader
                     gl.useProgram(this._shader);
                     return gl;
                 };
-                xNavigationCube.prototype.setInactive = function () {
+                NavigationCube.prototype.setInactive = function () {
                     var gl = this.viewer._gl;
                     //set viewer shader
                     gl.useProgram(this.viewer._shaderProgram);
                 };
-                xNavigationCube.prototype.draw = function () {
+                NavigationCube.prototype.draw = function () {
                     if (!this._initialized)
                         return;
                     var gl = this.viewer._gl;
@@ -1069,7 +1070,7 @@ var Xbim;
                     if (!cfEnabled)
                         gl.disable(gl.CULL_FACE);
                 };
-                xNavigationCube.prototype._initShader = function () {
+                NavigationCube.prototype._initShader = function () {
                     var gl = this.viewer._gl;
                     var viewer = this.viewer;
                     var compile = function (shader, code) {
@@ -1095,7 +1096,7 @@ var Xbim;
                         viewer.error('Could not initialise shaders for a navigation cube plugin');
                     }
                 };
-                xNavigationCube.prototype.ids = function () {
+                NavigationCube.prototype.ids = function () {
                     return new Float32Array([
                         this.FRONT,
                         this.FRONT,
@@ -1316,9 +1317,9 @@ var Xbim;
                     ]);
                 };
                 ;
-                return xNavigationCube;
+                return NavigationCube;
             }());
-            Plugins.xNavigationCube = xNavigationCube;
+            Plugins.NavigationCube = NavigationCube;
         })(Plugins = Viewer.Plugins || (Viewer.Plugins = {}));
     })(Viewer = Xbim.Viewer || (Xbim.Viewer = {}));
 })(Xbim || (Xbim = {}));

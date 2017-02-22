@@ -1,5 +1,5 @@
 ﻿namespace Xbim.Viewer.Plugins {
-    export class xNavigationHome {
+    export class NavigationHome implements IPlugin {
 
         /**
          * This is constructor of the Home plugin for {@link Viewer xBIM Viewer}. It gets optional Image object as an argument. If no image
@@ -163,7 +163,7 @@
 
         public onBeforeDraw() { }
 
-        public onBeforePick(id) { }
+        public onBeforePick(id: number) { return false;}
 
         public onAfterDraw() { this._adjust(); }
 
@@ -171,7 +171,7 @@
 
         public onAfterDrawId() { }
 
-        public onBeforeGetId(id) { }
+        public onBeforeGetId(id: number) { return false;}
 
         public draw() { }
     }

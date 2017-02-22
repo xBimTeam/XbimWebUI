@@ -10,4 +10,4 @@ declare var hideWalls: () => void;
 declare var resetWalls: () => void;
 declare var clip: () => void;
 declare var unclip: () => void;
-declare var cube: Xbim.Viewer.Plugins.xNavigationCube;
+declare var cube: Xbim.Viewer.Plugins.NavigationCube;

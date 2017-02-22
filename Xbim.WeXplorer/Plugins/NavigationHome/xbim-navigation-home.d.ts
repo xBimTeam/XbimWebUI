@@ -1,5 +1,5 @@
 declare namespace Xbim.Viewer.Plugins {
-    class xNavigationHome {
+    class NavigationHome implements IPlugin {
         /**
          * This is constructor of the Home plugin for {@link Viewer xBIM Viewer}. It gets optional Image object as an argument. If no image
          * is specified there is a default one (which is not very prety).
@@ -59,11 +59,11 @@ declare namespace Xbim.Viewer.Plugins {
         init(xviewer: Viewer): void;
         private _adjust();
         onBeforeDraw(): void;
-        onBeforePick(id: any): void;
+        onBeforePick(id: number): boolean;
         onAfterDraw(): void;
         onBeforeDrawId(): void;
         onAfterDrawId(): void;
-        onBeforeGetId(id: any): void;
+        onBeforeGetId(id: number): boolean;
         draw(): void;
     }
 }

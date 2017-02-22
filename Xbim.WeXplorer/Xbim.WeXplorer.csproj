@@ -166,6 +166,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <TypeScriptCompile Include="Viewer\dictionary.ts" />
     <TypeScriptCompile Include="Viewer\xbim-node-product-shape.ts" />
+    <TypeScriptCompile Include="Viewer\xbim-plugin-interface.ts" />
     <TypeScriptCompile Include="Viewer\xbim-wexbim-mesh.ts" />
     <TypeScriptCompile Include="Viewer\xbim-wexbim-stream.ts" />
     <TypeScriptCompile Include="wexbimtest.ts" />

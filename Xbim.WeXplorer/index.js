@@ -111,6 +111,6 @@ viewer.on("pick", function (args) {
     }
     //viewer.zoomTo(id);
 });
-var cube = new Xbim.Viewer.Plugins.xNavigationCube();
+var cube = new Xbim.Viewer.Plugins.NavigationCube();
 viewer.addPlugin(cube);
 //# sourceMappingURL=index.js.map
