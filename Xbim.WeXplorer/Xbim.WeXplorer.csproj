@@ -147,6 +147,7 @@
     <Content Include="build_before.bat" />
     <Content Include="tests\data\envelop.wexbim" />
     <Content Include="wexbimtest.html" />
+    <Content Include="tests\data\Clinic_MEP.wexbim" />
     <None Include="Tutorials\1_Hello_building.md" />
     <Content Include="simpleviewer.html" />
     <Content Include="Viewer\fragment_shader.c" />

@@ -15,7 +15,7 @@ varying float vDiscard;
 
 void main(void) {
 	//test if this fragment is to be discarded from vertex shader
-	if ( vDiscard > 0.001) discard;
+	if ( vDiscard > 0.5) discard;
 	
 	//test if clipping plane is defined
 	if (uClippingA)

@@ -194,5 +194,4 @@ void main(void) {
 	}
 	vPosition = vertex;
 	gl_Position = uPMatrix * uMVMatrix * vec4(vertex, 1.0);
-
 }
