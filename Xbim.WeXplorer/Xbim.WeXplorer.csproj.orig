@@ -299,7 +299,11 @@
   </ProjectExtensions>
   <PropertyGroup>
     <PostBuildEvent>cd "$(ProjectDir)"
-if $(ConfigurationName) == Release build_after.bat</PostBuildEvent>
+<<<<<<< HEAD
+build_after.bat</PostBuildEvent>
+=======
+if $(ConfigurationName) == Release build.bat</PostBuildEvent>
+>>>>>>> typescript
   </PropertyGroup>
   <PropertyGroup>
     <PreBuildEvent>cd "$(ProjectDir)"
