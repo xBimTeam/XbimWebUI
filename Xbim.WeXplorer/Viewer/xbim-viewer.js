@@ -1485,10 +1485,6 @@ var Xbim;
                 document.documentElement.style['user-select'] = 'text';
             };
             Viewer.prototype.getSVGOverlay = function () {
-                //check support for SVG
-                if (!document.implementation
-                    .hasFeature('http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1'))
-                    return null;
                 var ns = 'http://www.w3.org/2000/svg';
                 function getOffsetRect(elem) {
                     var box = elem.getBoundingClientRect();
@@ -1570,12 +1566,12 @@ var Xbim;
             return ModelPointers;
         }());
         Viewer_1.ModelPointers = ModelPointers;
+        var RenderingMode;
         (function (RenderingMode) {
             RenderingMode[RenderingMode["NORMAL"] = 0] = "NORMAL";
             RenderingMode[RenderingMode["GRAYSCALE"] = 1] = "GRAYSCALE";
             RenderingMode[RenderingMode["XRAY"] = 2] = "XRAY";
-        })(Viewer_1.RenderingMode || (Viewer_1.RenderingMode = {}));
-        var RenderingMode = Viewer_1.RenderingMode;
+        })(RenderingMode = Viewer_1.RenderingMode || (Viewer_1.RenderingMode = {}));
     })(Viewer = Xbim.Viewer || (Xbim.Viewer = {}));
 })(Xbim || (Xbim = {}));
 //# sourceMappingURL=xbim-viewer.js.map

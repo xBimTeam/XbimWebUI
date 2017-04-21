@@ -71,14 +71,14 @@ var Xbim;
             return Node;
         }());
         Viewer.Node = Node;
+        var NodeType;
         (function (NodeType) {
             NodeType[NodeType["SCENE"] = 0] = "SCENE";
             NodeType[NodeType["TYPE"] = 1] = "TYPE";
             NodeType[NodeType["PRODUCT"] = 2] = "PRODUCT";
             NodeType[NodeType["SHAPE"] = 3] = "SHAPE";
             NodeType[NodeType["NOTDEFINED"] = 4] = "NOTDEFINED";
-        })(Viewer.NodeType || (Viewer.NodeType = {}));
-        var NodeType = Viewer.NodeType;
+        })(NodeType = Viewer.NodeType || (Viewer.NodeType = {}));
     })(Viewer = Xbim.Viewer || (Xbim.Viewer = {}));
 })(Xbim || (Xbim = {}));
 //# sourceMappingURL=xbim-node.js.map

@@ -57,7 +57,7 @@ var Xbim;
             Object.defineProperty(WexBimMesh.prototype, "Faces", {
                 get: function () {
                     //start of vertices * space taken by vertices + the number of faces
-                    var facesOffset = this.VertexPos + (this.VertexCount * 3 * 4 /*sizeof(float)*/) + 4;
+                    var facesOffset = this.VertexPos + (this.VertexCount * 3 * 4 /*sizeof(float)*/) + 4 /*sizeof(int)*/;
                     var readIndex;
                     var sizeofIndex;
                     if (this.VertexCount <= 0xFF) {
@@ -110,7 +110,7 @@ var Xbim;
                 get: function () {
                     var result = new Uint32Array(this.TriangleCount * 3);
                     if (this.IsPlanar) {
-                        var indexOffset = this._offsetStart + 2 + 4;
+                        var indexOffset = this._offsetStart + 2 + 4 /*sizeof(int)*/;
                         for (var i = 0; i < this.TriangleCount; i++) {
                             indexOffset += (i * 3 * this._sizeofIndex); //skip the 2 bytes that are the packed normal
                             for (var j = 0; j < 3; j++) {
@@ -121,7 +121,7 @@ var Xbim;
                     else {
                         var indexSpan = this._sizeofIndex + 2;
                         var triangleSpan = 3 * indexSpan;
-                        var indexOffset = this._offsetStart + 4;
+                        var indexOffset = this._offsetStart + 4 /*sizeof(int)*/;
                         for (var i = 0; i < this.TriangleCount; i++) {
                             for (var j = 0; j < 3; j++) {
                                 result[i * 3 + j] = this._readIndex(this._view, indexOffset + (j * indexSpan));
@@ -137,7 +137,7 @@ var Xbim;
             Object.defineProperty(WexBimMeshFace.prototype, "Normals", {
                 get: function () {
                     var result = new Float32Array(this.TriangleCount * 3 * 3);
-                    var indexOffset = this._offsetStart + 4;
+                    var indexOffset = this._offsetStart + 4 /*sizeof(int)*/;
                     if (this.IsPlanar) {
                         var u = this._view.getUint8(indexOffset);
                         var v = this._view.getUint8(indexOffset + 1);

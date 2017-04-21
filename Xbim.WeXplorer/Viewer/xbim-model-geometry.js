@@ -190,6 +190,7 @@ var Xbim;
                 }
                 //binary reader should be at the end by now
                 if (!br.isEOF()) {
+                    //throw 'Binary reader is not at the end of the file.';
                 }
                 this.transparentIndex = iIndexForward;
             };

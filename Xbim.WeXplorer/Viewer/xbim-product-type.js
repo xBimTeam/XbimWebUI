@@ -7,6 +7,7 @@ var Xbim;
         * @readonly
         * @enum {number}
         */
+        var ProductType;
         (function (ProductType) {
             ProductType[ProductType["IFCDISTRIBUTIONELEMENT"] = 44] = "IFCDISTRIBUTIONELEMENT";
             ProductType[ProductType["IFCDISTRIBUTIONFLOWELEMENT"] = 45] = "IFCDISTRIBUTIONFLOWELEMENT";
@@ -170,8 +171,7 @@ var Xbim;
             ProductType[ProductType["IFCGRID"] = 564] = "IFCGRID";
             ProductType[ProductType["IFCEXTERNALSPATIALELEMENT"] = 1174] = "IFCEXTERNALSPATIALELEMENT";
             ProductType[ProductType["IFCSPATIALZONE"] = 1275] = "IFCSPATIALZONE";
-        })(Viewer.ProductType || (Viewer.ProductType = {}));
-        var ProductType = Viewer.ProductType;
+        })(ProductType = Viewer.ProductType || (Viewer.ProductType = {}));
     })(Viewer = Xbim.Viewer || (Xbim.Viewer = {}));
 })(Xbim || (Xbim = {}));
 //# sourceMappingURL=xbim-product-type.js.map

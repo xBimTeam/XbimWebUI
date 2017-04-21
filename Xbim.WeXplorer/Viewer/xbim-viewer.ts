@@ -1795,11 +1795,7 @@
         }
 
         private getSVGOverlay(): SVGElement {
-            //check support for SVG
-            if (!document.implementation
-                .hasFeature('http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1')) return null;
             var ns = 'http://www.w3.org/2000/svg';
-
             function getOffsetRect(elem) {
                 var box = elem.getBoundingClientRect();
 

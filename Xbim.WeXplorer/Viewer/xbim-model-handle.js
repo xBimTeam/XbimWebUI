@@ -338,12 +338,12 @@ var Xbim;
                 //buffer data to GPU
                 this.bufferData(this._stateBuffer, this._model.states);
             };
-            /**
-             * Static counter to keep unique ID of the model handles
-             */
-            ModelHandle._instancesNum = 0;
             return ModelHandle;
         }());
+        /**
+         * Static counter to keep unique ID of the model handles
+         */
+        ModelHandle._instancesNum = 0;
         Viewer.ModelHandle = ModelHandle;
     })(Viewer = Xbim.Viewer || (Xbim.Viewer = {}));
 })(Xbim || (Xbim = {}));

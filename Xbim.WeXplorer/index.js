@@ -9,10 +9,12 @@ var QueryString = function () {
         // If first entry with this name
         if (typeof queryString[pair[0]] === "undefined") {
             queryString[pair[0]] = pair[1];
+            // If second entry with this name
         }
         else if (typeof queryString[pair[0]] === "string") {
             var arr = [queryString[pair[0]], pair[1]];
             queryString[pair[0]] = arr;
+            // If third or later entry with this name
         }
         else {
             queryString[pair[0]].push(pair[1]);
