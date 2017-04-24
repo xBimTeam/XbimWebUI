@@ -29,7 +29,7 @@
 
 <article>
     <h2>Live example <a href="3_Eventful_building.live.html">here</a></h2><p>In this tutorial we'll have a look on events fired by the viewer on different occasions. 
-All of them are documented in <a href="xViewer.html">xViewer</a>. You can see full live example <a href="3_Eventful_building.live.html">here</a> 
+All of them are documented in xViewer. You can see full live example <a href="3_Eventful_building.live.html">here</a> 
 if you are running this tutorial from web server. Alsso make sure your webserver is set up to serve wexBIM files as
 a static content. If you don't want to set up any complex webserver I recommend <a href="https://code.google.com/p/mongoose/">Mongoose</a>. 
 Just run the executable in the executable in Docs folder and browse to tutorial or the live example.</p>
@@ -38,7 +38,7 @@ but I've done it this way for the sake of clarity and simplicity. You are ancour
 <a href="http://www.w3.org/wiki/The_principles_of_unobtrusive_JavaScript">these guidlines</a> to write sustainable
 and clear web applications.</p>
 <p>And now, let's dig into the code. It is pretty easy to register your handler with the following function:</p>
-<pre class="prettyprint source"><code>viewer.on('event_name', callback); //see documentation <a href="xViewer.html#on">here</a>.</code></pre><p>You can also remove handler with similar code if you are not interested in it any more:</p>
+<pre class="prettyprint source"><code>viewer.on('event_name', callback); //see documentation here.</code></pre><p>You can also remove handler with similar code if you are not interested in it any more:</p>
 <pre class="prettyprint source"><code>viewer.onRemove('event_name', callback); //see documentation here.</code></pre><p>We will show some of the most useful events you might want to watch in the following example. 
 It is based on the previous tutorial <a href="tutorial-2_Safe_Hello_building.html">Safe 'Hello building!'</a> so we won't list full
 page code but rather code snippets. To see a complete example have a look on the code of 
@@ -87,7 +87,7 @@ viewer.on('pick', function (args) {
 });
 viewer.on('mouseDown', function (args) {
     viewer.setCameraTarget(args.id);
-});</code></pre><p>So, let's have a look on the <a href="xViewer.html#event:loaded">loaded</a> event. It is the first one to occur 
+});</code></pre><p>So, let's have a look on the loaded event. It is the first one to occur 
 and you are likely to use it to hide any loader images you may have used to keep users attention.
 It is also better to start animation when model is loaded already. However, viewer won't crash
 if you start it at any time. </p>
@@ -96,7 +96,7 @@ if you start it at any time. </p>
     //while their precious models are being processed and loaded
     //and start the animation.
     viewer.start();
-});</code></pre><p><a href="xViewer.html#event:error">Error</a> is very important event to listen to and you should listen to it 
+});</code></pre><p>Error is very important event to listen to and you should listen to it 
 all the time. You should still use try-catch statements but this might report some useful
 information. It's up to you if you expose messages to user but you should watch it carefully.</p>
 <pre class="prettyprint source"><code>viewer.on('error', function (arg) {
@@ -105,7 +105,7 @@ information. It's up to you if you expose messages to user but you should watch 
         //preppend error report
         container.innerHTML = &quot;&lt;pre style='color:red;'>&quot; + arg.message + &quot;&lt;/pre> &lt;br />&quot; + container.innerHTML;
     }
-});</code></pre><p><a href="xViewer.html#event:fps">FPS</a> stands for 'frames per second'. This event is fired every 30<sup>th</sup> frame.
+});</code></pre><p>FPS stands for 'frames per second'. This event is fired every 30<sup>th</sup> frame.
 It is one of the performance indicators. Viewer's animation loop it bound to refresh of the browser screen
 so it won't usually exceed 60fps. If you get bellow about 15fps user experience starts to be a bit sluggish.</p>
 <pre class="prettyprint source"><code>viewer.on('fps', function (fps) {
@@ -113,7 +113,7 @@ so it won't usually exceed 60fps. If you get bellow about 15fps user experience 
     if (span) {
         span.innerHTML = fps;
     }
-});</code></pre><p><a href="xViewer.html#event:pick">Pick</a> is probably the most important user interaction event. It happens every time
+});</code></pre><p>Pick is probably the most important user interaction event. It happens every time
 when user clicks on the area of <code>&lt;canvas&gt;</code>. It's argument contains product ID which you can use for things
 like selection, restyling and other interactive operations. This example also implements simple double click
 handler which zooms to picked product. If user clicks out of the model ID is null.</p>
@@ -134,8 +134,8 @@ viewer.on('pick', function (args) {
         viewer.zoomTo(id);
     timer = time;
 
-});</code></pre><p><a href="xViewer.html#event:mouseDown">Mouse down</a> is another user interaction event. It happens every time when mouseDown event
-happens in <code>&lt;canvas&gt;</code>. It contains the same argument as <a href="xViewer.html#event:pick">pick</a> event which is product ID or null 
+});</code></pre><p>Mouse down is another user interaction event. It happens every time when mouseDown event
+happens in <code>&lt;canvas&gt;</code>. It contains the same argument as pick event which is product ID or null 
 if user clicks to empty space.</p>
 <pre class="prettyprint source"><code>viewer.on('mouseDown', function (args) {
     viewer.setCameraTarget(args.id);
@@ -147,13 +147,13 @@ if user clicks to empty space.</p>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="OrthogonalCamera.html">OrthogonalCamera</a></li><li><a href="PerspectiveCamera.html">PerspectiveCamera</a></li><li><a href="Prerequisites.html">Prerequisites</a></li><li><a href="xBrowser.html">xBrowser</a></li><li><a href="xNavigationCube.html">xNavigationCube</a></li><li><a href="xNavigationHome.html">xNavigationHome</a></li><li><a href="xViewer.html">xViewer</a></li><li><a href="xVisualAssignmentSet.html">xVisualAssignmentSet</a></li><li><a href="xVisualAttribute.html">xVisualAttribute</a></li><li><a href="xVisualEntity.html">xVisualEntity</a></li><li><a href="xVisualModel.html">xVisualModel</a></li><li><a href="xVisualProperty.html">xVisualProperty</a></li></ul><h3>Events</h3><ul><li><a href="xBrowser.html#event:entityActive">entityActive</a></li><li><a href="xBrowser.html#event:entityClick">entityClick</a></li><li><a href="xBrowser.html#event:entityDblclick">entityDblclick</a></li><li><a href="xBrowser.html#event:entityMouseDown">entityMouseDown</a></li><li><a href="xBrowser.html#event:entityMouseMove">entityMouseMove</a></li><li><a href="xBrowser.html#event:entityMouseUp">entityMouseUp</a></li><li><a href="xBrowser.html#event:entityTouch">entityTouch</a></li><li><a href="xBrowser.html#event:loaded">loaded</a></li><li><a href="xViewer.html#event:clipped">clipped</a></li><li><a href="xViewer.html#event:dblclick">dblclick</a></li><li><a href="xViewer.html#event:error">error</a></li><li><a href="xViewer.html#event:fps">fps</a></li><li><a href="xViewer.html#event:frame">frame</a></li><li><a href="xViewer.html#event:loaded">loaded</a></li><li><a href="xViewer.html#event:mouseDown">mouseDown</a></li><li><a href="xViewer.html#event:mouseDown">mouseDown</a></li><li><a href="xViewer.html#event:pick">pick</a></li><li><a href="xViewer.html#event:pick">pick</a></li><li><a href="xViewer.html#event:unclipped">unclipped</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-1_Hello_building.html">Hello building!</a></li><li><a href="tutorial-2_Safe_Hello_building.html">Safe 'Hello building!'</a></li><li><a href="tutorial-3_Eventful_building.html">Eventful building</a></li><li><a href="tutorial-4_Building_seen_from_everywhere.html">Building seen from everywhere ...</a></li><li><a href="tutorial-5_Colourful_building.html">Colourful building</a></li><li><a href="tutorial-6_Building_described.html">Building described</a></li></ul><h3>Global</h3><ul><li><a href="global.html#xProductType">xProductType</a></li><li><a href="global.html#xState">xState</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="OrthogonalCamera.html">OrthogonalCamera</a></li><li><a href="PerspectiveCamera.html">PerspectiveCamera</a></li><li><a href="Prerequisites.html">Prerequisites</a></li><li><a href="Viewer.html">Viewer</a></li><li><a href="xNavigationCube.html">xNavigationCube</a></li><li><a href="xNavigationHome.html">xNavigationHome</a></li></ul><h3>Events</h3><ul><li><a href="Viewer.html#event:dblclick">dblclick</a></li><li><a href="Viewer.html#event:error">error</a></li><li><a href="Viewer.html#event:fps">fps</a></li><li><a href="Viewer.html#event:frame">frame</a></li><li><a href="Viewer.html#event:loaded">loaded</a></li><li><a href="Viewer.html#event:mouseDown">mouseDown</a></li><li><a href="Viewer.html#event:mouseDown">mouseDown</a></li><li><a href="Viewer.html#event:pick">pick</a></li><li><a href="Viewer.html#event:pick">pick</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-1_Hello_building.html">Hello building!</a></li><li><a href="tutorial-2_Safe_Hello_building.html">Safe 'Hello building!'</a></li><li><a href="tutorial-3_Eventful_building.html">Eventful building</a></li><li><a href="tutorial-4_Building_seen_from_everywhere.html">Building seen from everywhere ...</a></li><li><a href="tutorial-5_Colourful_building.html">Colourful building</a></li><li><a href="tutorial-6_Building_described.html">Building described</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0</a> on Fri Feb 10 2017 17:17:16 GMT+0100 (W. Europe Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0</a> on Thu Apr 20 2017 16:36:14 GMT+0200 (W. Europe Summer Time)
 </footer>
 
 <script> prettyPrint(); </script>

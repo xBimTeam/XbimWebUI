@@ -5,9 +5,11 @@
 		<title>xViewer</title>
 		<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
 
-        <script src="Build/xbim.bundle.js"></script>
+        <script src="Libs/gl-matrix.js"></script>
+        <script src="Libs/webgl-utils.js"></script>
         <script src="Libs/jquery.js"></script>
-	    
+        <script src="Build/xbim-viewer.js"></script>
+
         <style>
             html, body {
                 height: 100%;
@@ -60,7 +62,7 @@
 	<script type="text/javascript">
         var models = [];
 
-	    var viewer = new xViewer("xBIM-viewer");
+	    var viewer = new Xbim.Viewer("xBIM-viewer");
 	    viewer.background = [255, 255, 255];
 	    viewer.on("error", function (arg) {
 	        var container = viewer._canvas.parentNode;

@@ -1,10 +1,11 @@
 "use strict";
-var xbim_visual_entity_1 = require('./xbim-visual-entity');
-var xbim_visual_model_1 = require('./xbim-visual-model');
-var xbim_attribute_dictionary_1 = require('./xbim-attribute-dictionary');
-var xbim_visual_assignment_set_1 = require('./xbim-visual-assignment-set');
-var xbim_visual_attribute_1 = require('./xbim-visual-attribute');
-var xbim_visual_property_1 = require('./xbim-visual-property');
+Object.defineProperty(exports, "__esModule", { value: true });
+var xbim_visual_entity_1 = require("./xbim-visual-entity");
+var xbim_visual_model_1 = require("./xbim-visual-model");
+var xbim_attribute_dictionary_1 = require("./xbim-attribute-dictionary");
+var xbim_visual_assignment_set_1 = require("./xbim-visual-assignment-set");
+var xbim_visual_attribute_1 = require("./xbim-visual-attribute");
+var xbim_visual_property_1 = require("./xbim-visual-property");
 var xCobieUkUtils = (function () {
     function xCobieUkUtils(lang, culture) {
         this._contacts = [];

@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var xAttributeDictionary = (function () {
     function xAttributeDictionary(lang, culture) {
         var dictionaries = [

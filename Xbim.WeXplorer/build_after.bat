@@ -1,5 +1,3 @@
-rem Generate all bundles of the complete project and of independent parts
-npm run webpack && ^
 
 rem Generate fresh documentation
 npm run jsdoc && ^

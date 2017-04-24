@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var xVisualModel = (function () {
     /**
     * Visual model containing preprocessed COBie data in more uniform form usable for templating and rendering

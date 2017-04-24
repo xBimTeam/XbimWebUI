@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 function xVisualTemplates() {
     return {
         property: '<%if (properties && properties.length > 0) {%>\

@@ -1,8 +1,9 @@
 "use strict";
-var xbim_visual_templates_1 = require('./xbim-visual-templates');
-var xbim_visual_model_1 = require('./xbim-visual-model');
-var xbim_cobieuk_utils_1 = require('./xbim-cobieuk-utils');
-var xbim_cobie_utils_1 = require('./xbim-cobie-utils');
+Object.defineProperty(exports, "__esModule", { value: true });
+var xbim_visual_templates_1 = require("./xbim-visual-templates");
+var xbim_visual_model_1 = require("./xbim-visual-model");
+var xbim_cobieuk_utils_1 = require("./xbim-cobieuk-utils");
+var xbim_cobie_utils_1 = require("./xbim-cobie-utils");
 var xBrowser = (function () {
     /**
     * This is the main class you need to use to render semantic structure of the building model

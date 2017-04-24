@@ -101,6 +101,11 @@ namespace ShaderPacker
 
         private static void WriteTypeScriptFile(string outputFullName, bool minify, string[] shaders, string shaderVariableName)
         {
+            var parts = shaderVariableName.Split('.').ToList();
+            var name = parts.Last();
+            parts.RemoveAt(parts.Count - 1);
+            var ns = string.Join(".", parts);
+
             using (var tw = File.CreateText(outputFullName))
             {
                 tw.WriteLine("/*");
@@ -109,7 +114,7 @@ namespace ShaderPacker
                 tw.WriteLine("*/");
 
                 //start object definition
-                tw.WriteLine($"export var {shaderVariableName} = {{");
+                tw.WriteLine($"export var {name} = {{");
 
                 //get content of every shader and create JS property containing code content of the shader
                 for (var i = 0; i < shaders.Length; i++)
@@ -119,7 +124,7 @@ namespace ShaderPacker
                     if (shaderName != null)
                     {
                         shaderName = shaderName.Replace('.', '_');
-                        tw.Write($"\t{shaderName}: ");
+                        tw.Write($"    {shaderName}: ");
                         if (minify)
                         {
                             tw.Write("'");

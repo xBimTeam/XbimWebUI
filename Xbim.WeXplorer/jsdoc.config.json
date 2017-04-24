@@ -9,17 +9,11 @@
    },
    "source":{
       "include":[
-        "Viewer\\xbim-viewer.js",
-        "Viewer\\xbim-state.js",
-        "Viewer\\xbim-product-type.js",
-		    "Browser\\xbim-browser.js",
-		    "Browser\\xbim-visual-assignment-set.js",
-		    "Browser\\xbim-visual-attribute.js",
-		    "Browser\\xbim-visual-entity.js",
-		    "Browser\\xbim-visual-model.js",
-		    "Browser\\xbim-visual-property.js",
-		    "Plugins\\NavigationCube\\xbim-navigation-cube.js",
-		    "Plugins\\NavigationHome\\xbim-navigation-home.js",
+        "Viewer\\viewer.js",
+        "Viewer\\state.js",
+        "Viewer\\product-type.js",
+		    "Plugins\\NavigationCube\\navigation-cube.js",
+		    "Plugins\\NavigationHome\\navigation-home.js",
         "Resources/README.md"
       ],
       "includePattern":".+\\.js(doc)?$",

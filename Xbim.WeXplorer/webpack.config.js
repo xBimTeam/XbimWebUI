@@ -2,19 +2,26 @@
 var webpack = require('webpack');
 var fs = require("fs");
 var minify = process.argv.indexOf('--min') >= 0;
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
-var extractCSS = new ExtractTextPlugin(minify ? 'xbim.browser.min.css' : 'xbim.browser.css');
+
+var entries = {};
+entries['xbim-viewer'] = './Viewer/viewer.ts';
+entries['xbim-browser'] = './Browser/browser.ts';
+entries['xbim-geometry-loader'] = './Viewer/workers/geometry-loader.ts';
+//entries['xbim-plugins'] = './webpack.index.plugins.ts';
 
 module.exports = {
-    entry: [
-            './webpack.index.viewer.ts',
-            './webpack.index.plugins.ts',
-            './webpack.index.browser.ts',
-        './Resources/doctemplate/static/styles/xbrowser-styles.css',
-    ],
+    devServer: {
+        contentBase: ".",
+        host: "localhost",
+        port: 9000
+    },
+    entry: entries,
     output: {
         path: './Build',
-        filename: minify ? 'xbim.bundle.min.js' : 'xbim.bundle.js'
+        library: 'Xbim',
+        libraryTarget: 'umd',
+        sourceMapFilename: minify ? '[name].min.js.map' : '[name].js.map',
+        filename: minify ? '[name].min.js' : '[name].js',
     },
     devtool: 'source-map',
     module: {
@@ -27,15 +34,12 @@ module.exports = {
                     visualStudioErrorFormat: true,
                     //transpileOnly: true
                 })]
-            },
-            { test: /\.css$/, loader: extractCSS.extract(['css-loader']) }
+            }
         ]
     },
-    plugins: [
-        extractCSS
-    ].concat(
-        minify
-        ? [
+    plugins:
+        minify ? [
+            new webpack.BannerPlugin(fs.readFileSync('./Resources/xbim-disclaimer.txt', 'utf8'), { raw: true }),
             new webpack.optimize.DedupePlugin(),
             new webpack.optimize.UglifyJsPlugin({
                 compress: {
@@ -45,7 +49,7 @@ module.exports = {
         ]
         : [
             new webpack.BannerPlugin(fs.readFileSync('./Resources/xbim-disclaimer.txt', 'utf8'), { raw: true })
-        ]),
+        ],
     resolve: {
         extensions: ['', '.ts', '.js']
     }

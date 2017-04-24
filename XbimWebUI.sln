@@ -9,15 +9,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Utilities", "Utilities", "{
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShaderPacker", "Utilities\ShaderPacker\ShaderPacker.csproj", "{95B208E8-3DD5-48B9-A9A2-2B25B01947DD}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "nuget", "nuget", "{D4EFC046-47AB-4BB9-81CA-72BA25DBECCA}"
-	ProjectSection(SolutionItems) = preProject
-		XbimWebUI.nuspec = XbimWebUI.nuspec
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4A0FD33A-26CB-4103-8D2C-479ACF252004}"
 	ProjectSection(SolutionItems) = preProject
 		README.md = README.md
 		WEBPACK.md = WEBPACK.md
+		XbimWebUI.nuspec = XbimWebUI.nuspec
 	EndProjectSection
 EndProject
 Global
