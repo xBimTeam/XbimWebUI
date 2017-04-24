@@ -4,7 +4,9 @@ var state_1 = require("./state");
 var product_type_1 = require("./product-type");
 var model_geometry_1 = require("./model-geometry");
 var model_handle_1 = require("./model-handle");
-var shaders_1 = require("./shaders");
+var shaders_1 = require("./shaders/shaders");
+var navigation_cube_1 = require("./plugins/NavigationCube/navigation-cube");
+var navigation_home_1 = require("./plugins/NavigationHome/navigation-home");
 var Viewer = (function () {
     /**
     * This is constructor of the xBIM Viewer. It gets HTMLCanvasElement or string ID as an argument. Viewer will than be initialized
@@ -30,6 +32,10 @@ var Viewer = (function () {
         }
         if (this._canvas == null) {
             throw 'You have to specify canvas either as an ID of HTML element or the element itself';
+        }
+        //dummy call to reference to make plugins linked in a bundle
+        if (typeof (navigation_cube_1.NavigationCube) === 'undefined' || typeof (navigation_home_1.NavigationHome) == 'undefined') {
+            throw new Error();
         }
         /**
         * This is a structure that holds settings of perspective camera.

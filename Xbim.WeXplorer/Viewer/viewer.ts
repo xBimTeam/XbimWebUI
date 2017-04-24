@@ -3,8 +3,10 @@ import { ProductType } from './product-type';
 import { ProductInheritance } from './product-inheritance';
 import { ModelGeometry } from './model-geometry';
 import { ModelHandle } from './model-handle';
-import { Shaders } from './shaders';
+import { Shaders } from './shaders/shaders';
 
+import { NavigationCube } from "./plugins/NavigationCube/navigation-cube";
+import { NavigationHome } from "./plugins/NavigationHome/navigation-home";
 
 export class Viewer {
 
@@ -33,6 +35,11 @@ export class Viewer {
         }
         if (this._canvas == null) {
             throw 'You have to specify canvas either as an ID of HTML element or the element itself';
+        }
+
+        //dummy call to reference to make plugins linked in a bundle
+        if (typeof (NavigationCube) === 'undefined' || typeof (NavigationHome) == 'undefined') {
+            throw new Error();
         }
 
         /**

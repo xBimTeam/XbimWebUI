@@ -13,6 +13,7 @@
   },
   "exclude": [
     "node_modules",
-    "wwwroot"
+    "wwwroot",
+    "./Viewer/workers/**/*"
   ]
 }

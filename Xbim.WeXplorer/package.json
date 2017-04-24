@@ -2,6 +2,7 @@
   "name": "xbim-webui",
   "version": "0.1.41",
   "devDependencies": {
+    "dts-bundle": "^0.7.2",
     "jsdoc": "3.3.0"
   },
   "files": [

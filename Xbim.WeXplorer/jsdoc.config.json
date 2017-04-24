@@ -12,8 +12,8 @@
         "Viewer\\viewer.js",
         "Viewer\\state.js",
         "Viewer\\product-type.js",
-		    "Plugins\\NavigationCube\\navigation-cube.js",
-		    "Plugins\\NavigationHome\\navigation-home.js",
+		    "Viewer\\plugins\\NavigationCube\\navigation-cube.js",
+		    "Viewer\\plugins\\NavigationHome\\navigation-home.js",
         "Resources/README.md"
       ],
       "includePattern":".+\\.js(doc)?$",
