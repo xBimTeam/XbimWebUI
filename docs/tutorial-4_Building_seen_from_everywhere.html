@@ -84,9 +84,9 @@ and implement different navigation yourself. Friendly API is not prepared for th
 in the very next release.</p>
 <h3>Clipping</h3><p>It happens quite often that user wants to see something deep inside the building. Navigation inside of the building might
 get complicated quite easily but if you can cut the building and see inside it makes user's life much easier. This is also built in
-the viewer by default. You can either set the clipping plane yourself with clip() method if you 
+the viewer by default. You can either set the clipping plane yourself with <a href="xViewer.html#clip">clip()</a> method if you 
 pass point on the plane and normal of the plane to the method or you can let user to define clipping plane interactively
-if you call the method with no arguments. Use unclip() method than to discard clipping entirely.</p>
+if you call the method with no arguments. Use <a href="xViewer.html#unclip">unclip()</a> method than to discard clipping entirely.</p>
 <pre class="prettyprint source"><code>&lt;button onclick=&quot;if (viewer) viewer.clip();&quot;>Interactive clipping&lt;/button>
 &lt;button onclick=&quot;if (viewer) viewer.unclip();&quot;>Unclip&lt;/button> 
 
@@ -150,7 +150,7 @@ are hidden by default unless you show them manualy.</p>
 of the engine and it is very useful if you need to visually highlight or isolate some objects in your model.
 It is particularly useful in combination with x-ray rendering mode where everything is rendered in semitransparent
 light blue except for the products which has a state <em>xState.HIGHLIGHTED</em> or <em>xState.XRAYVISIBLE</em>. To switch
-between normal and x-ray rendering mode just set renderingMode property of xViewer.</p>
+between normal and x-ray rendering mode just set renderingMode property of <a href="xViewer.html">xViewer</a>.</p>
 <pre class="prettyprint source"><code>&lt;div>
     Rendering mode
     &lt;label>
@@ -174,13 +174,13 @@ of the model which you can use to visualize results of the analyses as well as j
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="OrthogonalCamera.html">OrthogonalCamera</a></li><li><a href="PerspectiveCamera.html">PerspectiveCamera</a></li><li><a href="Prerequisites.html">Prerequisites</a></li><li><a href="Viewer.html">Viewer</a></li><li><a href="xNavigationCube.html">xNavigationCube</a></li><li><a href="xNavigationHome.html">xNavigationHome</a></li></ul><h3>Events</h3><ul><li><a href="Viewer.html#event:dblclick">dblclick</a></li><li><a href="Viewer.html#event:error">error</a></li><li><a href="Viewer.html#event:fps">fps</a></li><li><a href="Viewer.html#event:frame">frame</a></li><li><a href="Viewer.html#event:loaded">loaded</a></li><li><a href="Viewer.html#event:mouseDown">mouseDown</a></li><li><a href="Viewer.html#event:mouseDown">mouseDown</a></li><li><a href="Viewer.html#event:pick">pick</a></li><li><a href="Viewer.html#event:pick">pick</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-1_Hello_building.html">Hello building!</a></li><li><a href="tutorial-2_Safe_Hello_building.html">Safe 'Hello building!'</a></li><li><a href="tutorial-3_Eventful_building.html">Eventful building</a></li><li><a href="tutorial-4_Building_seen_from_everywhere.html">Building seen from everywhere ...</a></li><li><a href="tutorial-5_Colourful_building.html">Colourful building</a></li><li><a href="tutorial-6_Building_described.html">Building described</a></li></ul><h3>Global</h3><ul><li><a href="global.html#ProductType">ProductType</a></li><li><a href="global.html#State">State</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="OrthogonalCamera.html">OrthogonalCamera</a></li><li><a href="PerspectiveCamera.html">PerspectiveCamera</a></li><li><a href="Prerequisites.html">Prerequisites</a></li><li><a href="Viewer.html">Viewer</a></li><li><a href="xNavigationCube.html">xNavigationCube</a></li><li><a href="xNavigationHome.html">xNavigationHome</a></li></ul><h3>Events</h3><ul><li><a href="Viewer.html#event:dblclick">dblclick</a></li><li><a href="Viewer.html#event:error">error</a></li><li><a href="Viewer.html#event:fps">fps</a></li><li><a href="Viewer.html#event:frame">frame</a></li><li><a href="Viewer.html#event:loaded">loaded</a></li><li><a href="Viewer.html#event:mouseDown">mouseDown</a></li><li><a href="Viewer.html#event:mouseDown">mouseDown</a></li><li><a href="Viewer.html#event:pick">pick</a></li><li><a href="Viewer.html#event:pick">pick</a></li><li><a href="xViewer.html#event:clipped">clipped</a></li><li><a href="xViewer.html#event:unclipped">unclipped</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-1_Hello_building.html">Hello building!</a></li><li><a href="tutorial-2_Safe_Hello_building.html">Safe 'Hello building!'</a></li><li><a href="tutorial-3_Eventful_building.html">Eventful building</a></li><li><a href="tutorial-4_Building_seen_from_everywhere.html">Building seen from everywhere ...</a></li><li><a href="tutorial-5_Colourful_building.html">Colourful building</a></li><li><a href="tutorial-6_Building_described.html">Building described</a></li></ul><h3>Global</h3><ul><li><a href="global.html#ProductType">ProductType</a></li><li><a href="global.html#State">State</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0</a> on Mon Apr 24 2017 16:40:06 GMT+0200 (W. Europe Summer Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0</a> on Mon Apr 24 2017 17:05:01 GMT+0200 (W. Europe Summer Time)
 </footer>
 
 <script> prettyPrint(); </script>

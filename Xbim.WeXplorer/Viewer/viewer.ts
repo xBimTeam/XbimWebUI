@@ -294,6 +294,8 @@ export class Viewer {
     private _clippingA: boolean;
     private _clippingPlaneB: number[];
     private _clippingB: boolean;
+    private _lastClippingPoint: number[];
+
     public _gl: WebGLRenderingContext;
     public _mvMatrix: mat4;
     private _fpt: any;
@@ -1849,9 +1851,226 @@ export class Viewer {
         return svg;
     }
 
+    /**
+    * This method can be used to get parameter of the current clipping plane. If no clipping plane is active
+    * this returns [[0,0,0],[0,0,0]];
+    *
+    * @function xViewer#getClip
+    * @return  {Number[][]} Point and normal defining current clipping plane
+    */
+    public getClip(): number[][] {
+        var cp = this._clippingPlaneA;
+        if (!this._clippingA || cp.every((e) => { return e === 0; })) {
+            return [[0, 0, 0], [0, 0, 0]];
+        }
+
+        var normal = vec3.normalize(vec3.create(), [cp[0], cp[1], cp[2]]);
+
+        //test if the last clipping point fits in the condition
+        var lp = this._lastClippingPoint;
+        var test = lp[0] * cp[0] + lp[1] * cp[1] + lp[2] * cp[2] + cp[3];
+        if (Math.abs(test) < 1e-5) {
+            return [lp, [normal[0], normal[1], normal[2]]];
+        }
+
+        //find the point on the plane
+        var x = cp[0] !== 0 ? -1.0 * cp[3] / cp[0] : 0.0;
+        var y = cp[1] !== 0 ? -1.0 * cp[3] / cp[1] : 0.0;
+        var z = cp[2] !== 0 ? -1.0 * cp[3] / cp[2] : 0.0;
+
+        return [[x, y, z], [normal[0], normal[1], normal[2]]];
+    }
+
+    /**
+    * Use this method to clip the model. If you call the function with no arguments interactive clipping will start. This is based on SVG overlay
+    * so SVG support is necessary for it. But as WebGL is more advanced technology than SVG it is sound assumption that it is present in the browser.
+    * Use {@link xViewer.check xViewer.check()} to make sure it is supported at the very beginning of using of xViewer. Use {@link xViewer#unclip unclip()} method to 
+    * unset clipping plane.
+    *
+    * @function xViewer#clip
+    * @param {Number[]} [point] - point in clipping plane
+    * @param {Number[]} [normal] - normal pointing to the half space which will be hidden
+    * @fires xViewer#clipped
+    */
+    public clip(point?: number[], normal?: number[]) {
+
+        //non interactive clipping, all information is there
+        if (typeof (point) != 'undefined' && typeof (normal) != 'undefined') {
+
+            this._lastClippingPoint = point;
+
+            //compute normal equation of the plane
+            var d = 0.0 - normal[0] * point[0] - normal[1] * point[1] - normal[2] * point[2];
+
+            //set clipping plane
+            this.clippingPlaneA = [normal[0], normal[1], normal[2], d]
+
+            /**
+            * Occurs when model is clipped. This event has empty object.
+            *
+            * @event xViewer#clipped
+            * @type {object}
+            */
+            this.fire('clipped', {});
+            return;
+        }
+
+        //********************************************** Interactive clipping ********************************************//
+        var ns = 'http://www.w3.org/2000/svg';
+        var svg = this.getSVGOverlay();
+        var viewer = this;
+        var position: { x?: number, y?: number, angle?: number } = {};
+        var down = false;
+        var g: SVGElement;
+
+        var handleMouseDown = (event) => {
+            if (down) return;
+            down = true;
+
+            viewer.disableTextSelection();
+
+            var r = svg.getBoundingClientRect();
+            position.x = event.clientX - r.left;
+            position.y = event.clientY - r.top;
+            position.angle = 0.0;
+
+            //create very long vertical line going through the point
+            g = document.createElementNS(ns, 'g') as SVGElement;
+            g['setAttribute']('id', 'section');
+            svg.appendChild(g);
+
+            var line = document.createElementNS(ns, 'line');
+            g['appendChild'](line);
+
+            line.setAttribute('style', 'stroke:rgb(255,0,0);stroke-width:2');
+            line.setAttribute('x1', position.x.toString());
+            line.setAttribute('y1', '99999');
+            line.setAttribute('x2', position.x.toString());
+            line.setAttribute('y2', '-99999');
+        };
+
+        var handleMouseUp = (event) => {
+            if (!down) return;
+
+            //check if the points are not identical. 
+            var r = svg.getBoundingClientRect();
+            if (position.x == event.clientX - r.left && position.y == event.clientY - r.top) {
+                return;
+            }
+
+            down = false;
+            viewer.enableTextSelection();
+
+
+            //get inverse transformation
+            var transform = mat4.create();
+            mat4.multiply(transform, viewer._pMatrix, viewer._mvMatrix);
+            var inverse = mat4.create();
+            mat4.invert(inverse, transform);
+
+            //get normalized coordinates the point in WebGL CS
+            var x1 = position.x / (viewer._width / 2.0) - 1.0;
+            var y1 = 1.0 - position.y / (viewer._height / 2.0);
+
+            //First point in WCS
+            var A = vec3.create();
+            vec3.transformMat4(A, [x1, y1, -1], inverse); //near clipping plane
+
+            //Second point in WCS
+            var B = vec3.create();
+            vec3.transformMat4(B, [x1, y1, 1], inverse); //far clipping plane
+
+            //Compute third point on plane
+            var angle = position.angle * Math.PI / 180.0;
+            var x2 = x1 + Math.cos(angle);
+            var y2 = y1 + Math.sin(angle);
+
+            //Third point in WCS
+            var C = vec3.create();
+            vec3.transformMat4(C, [x2, y2, 1], inverse); // far clipping plane
+
+
+            //Compute normal in WCS
+            var BA = vec3.subtract(vec3.create(), A, B);
+            var BC = vec3.subtract(vec3.create(), C, B);
+            var N = vec3.cross(vec3.create(), BA, BC);
+
+            viewer.clip([B[0], B[1], B[2]], [N[0], N[1], N[2]]);
+
+            //clean
+            svg.parentNode.removeChild(svg);
+            svg.removeEventListener('mousedown', handleMouseDown, true);
+            window.removeEventListener('mouseup', handleMouseUp, true);
+            window.removeEventListener('mousemove', handleMouseMove, true);
+        };
+
+        var handleMouseMove = function (event) {
+            if (!down) return;
+
+            var r = svg.getBoundingClientRect();
+            var x = event.clientX - r.left;
+            var y = event.clientY - r.top;
+
+            //rotate
+            var dX = x - position.x;
+            var dY = y - position.y;
+            var angle = Math.atan2(dX, dY) * -180.0 / Math.PI + 90.0;
+
+            //round to 5 DEG
+            angle = Math.round(angle / 5.0) * 5.0
+            position.angle = 360.0 - angle + 90;
+
+            g['setAttribute']('transform', 'rotate(' + angle + ' ' + position.x + ' ' + position.y + ')');
+        }
+
+        //this._canvas.parentNode.appendChild(svg);
+        document.documentElement.appendChild(svg)
+        svg.addEventListener('mousedown', handleMouseDown, true);
+        window.addEventListener('mouseup', handleMouseUp, true);
+        window.addEventListener('mousemove', handleMouseMove, true);
+
+        this.stopClipping = function () {
+            svg.parentNode.removeChild(svg);
+            svg.removeEventListener('mousedown', handleMouseDown, true);
+            window.removeEventListener('mouseup', handleMouseUp, true);
+            window.removeEventListener('mousemove', handleMouseMove, true);
+            //clear also itself
+            viewer.stopClipping = function () { };
+        };
+    }
+
+    /**
+    * This method is only active when interactive clipping is active. It stops interactive clipping operation.
+    * 
+    * @function xViewer#stopClipping
+    */
+    //this is only a placeholder. It is actually created only when interactive clipping is active.
+    public stopClipping() { }
+
+    /**
+    * This method will cancel any clipping plane if it is defined. Use {@link xViewer#clip clip()} 
+    * method to define clipping by point and normal of the plane or interactively if you call it with no arguments.
+    * @function xViewer#unclip
+    * @fires xViewer#unclipped
+    */
+    public unclip(): void {
+        this.clippingPlaneA = null;
+    }
+
     public set clippingPlaneA(plane: number[]) {
         this._clippingPlaneA = plane;
         this._clippingA = plane != null;
+        if (this._clippingA) {
+            this.fire('clipped', {});
+        } else {
+            /**
+          * Occurs when clipping of the model is dismissed. This event has empty object.
+          *
+          * @event xViewer#unclipped
+          * @type {object}
+          */
+            this.fire('unclipped', {});
+        }
     }
 
     public get clippingPlaneA(): number[] {
@@ -1861,6 +2080,12 @@ export class Viewer {
     public set clippingPlaneB(plane: number[]) {
         this._clippingPlaneB = plane;
         this._clippingB = plane != null;
+        if (this._clippingA) {
+            this.fire('clipped', {});
+        } else {
+
+            this.fire('unclipped', {});
+        }
     }
 
     public get clippingPlaneB(): number[] {
