@@ -67,6 +67,8 @@
     <Content Include="Examples\BrowserExample\browser.css" />
     <Content Include="Examples\BrowserExample\browser.js" />
     <Content Include="Examples\BrowserExample\index.html" />
+    <Content Include="Examples\TsSingleModule\index.css" />
+    <Content Include="Examples\TsSingleModule\main.js" />
     <Content Include="Libs\gl-matrix\common.js" />
     <Content Include="Libs\gl-matrix\mat2.js" />
     <Content Include="Libs\gl-matrix\mat2d.js" />
@@ -77,6 +79,7 @@
     <Content Include="Libs\gl-matrix\vec3.js" />
     <Content Include="Libs\gl-matrix\vec4.js" />
     <Content Include="Libs\jquery-ui.js" />
+    <Content Include="Utilities\TypingsBundler.exe" />
     <Content Include="Viewer\browser\xbim-browser.css" />
     <Content Include="Build\gl-matrix.js" />
     <Content Include="Build\gl-matrix.min.js" />
@@ -112,6 +115,9 @@
     <Content Include="Libs\query-string.js" />
     <Content Include="Libs\system.js" />
     <Content Include="Libs\webgl-utils.min.js" />
+    <TypeScriptCompile Include="Build\xbim-browser.d.ts" />
+    <TypeScriptCompile Include="Build\xbim-geometry-loader.d.ts" />
+    <TypeScriptCompile Include="Build\xbim-viewer.d.ts" />
     <TypeScriptCompile Include="Viewer\matrix\common.ts" />
     <TypeScriptCompile Include="Viewer\matrix\vec3.ts" />
     <Content Include="Viewer\matrix\README.txt" />
@@ -295,6 +301,10 @@
     <TypeScriptCompile Include="Viewer\scene\node-product.ts" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Utilities\TypingsBundler\TypingsBundler.csproj">
+      <Project>{ae2105c3-2116-467d-ae13-4702cac6f6f3}</Project>
+      <Name>TypingsBundler</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Utilities\ShaderPacker\ShaderPacker.csproj">
       <Project>{95b208e8-3dd5-48b9-a9a2-2b25b01947dd}</Project>
       <Name>ShaderPacker</Name>
