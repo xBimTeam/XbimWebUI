@@ -60,6 +60,7 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Build\xbim-browser.css" />
     <Content Include="Build\xbim-browser.min.js" />
     <Content Include="Build\xbim-geometry-loader.js" />
     <Content Include="Build\xbim-geometry-loader.min.js" />
