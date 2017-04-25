@@ -1,12 +1,16 @@
-﻿﻿import { State } from './state';
+﻿import { State } from './state';
 import { ProductType } from './product-type';
 import { ProductInheritance } from './product-inheritance';
 import { ModelGeometry } from './model-geometry';
 import { ModelHandle } from './model-handle';
 import { Shaders } from './shaders/shaders';
 
-import { NavigationCube } from "./plugins/NavigationCube/navigation-cube";
-import { NavigationHome } from "./plugins/NavigationHome/navigation-home";
+//reexport these classes to make them available when viewer is the root package
+export { State } from './state';
+export { ProductType } from './product-type';
+export { ProductInheritance } from './product-inheritance';
+export { NavigationCube } from "./plugins/NavigationCube/navigation-cube";
+export { NavigationHome } from "./plugins/NavigationHome/navigation-home";
 
 export class Viewer {
 
@@ -35,11 +39,6 @@ export class Viewer {
         }
         if (this._canvas == null) {
             throw 'You have to specify canvas either as an ID of HTML element or the element itself';
-        }
-
-        //dummy call to reference to make plugins linked in a bundle
-        if (typeof (NavigationCube) === 'undefined' || typeof (NavigationHome) == 'undefined') {
-            throw new Error();
         }
 
         /**
@@ -673,6 +672,44 @@ export class Viewer {
             this[key] = settings[key];
         }
     };
+
+    /**
+    * This method is uses WebWorker if available to load model data into viewer.
+    * Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data. Any other type of argument will throw an exception.
+    * You can load more than one model if they occupy the same space, use the same scale and have unique product IDs. Duplicated IDs won't affect 
+    * visualization itself but would cause unexpected user interaction (picking, zooming, ...)
+    * @function Viewer#load
+    * @param {String} loaderUrl - Url of the 'xbim-geometry-loader.js' script which will be called as a worker
+    * @param {String | Blob | File} model - Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data.
+    * @param {Any} tag [optional] - Tag to be used to identify the model in {@link Viewer#event:loaded loaded} event.
+    * @fires Viewer#loaded
+    */
+    public loadAsync(loaderUrl: string, model: string | Blob | File, tag): void {
+        if (typeof (model) == 'undefined') throw 'You have to specify model to load.';
+        if (typeof (model) != 'string' && !(model instanceof Blob))
+            throw 'Model has to be specified either as a URL to wexBIM file or Blob object representing the wexBIM file.';
+        var self = this;
+
+        //fall back to synchronous loading if worker is not available
+        if (typeof (Worker) === 'undefined') {
+            this.load(model, tag);
+        }
+
+        var worker = new Worker(loaderUrl);
+        worker.onmessage = function (msg) {
+
+            console.log('Message received from worker');
+            var geometry = msg.data;
+            self.addHandle(geometry, tag);
+        }
+        worker.onerror = function (e) {
+            self.error(e.message);
+        };
+
+        worker.postMessage(model);
+        console.log('Message posted to worker');
+        return;
+    }
 
     /**
     * This method is used to load model data into viewer. Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data. Any other type of argument will throw an exception.

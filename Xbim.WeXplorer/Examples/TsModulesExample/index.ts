@@ -46,8 +46,8 @@ viewer.on("error", function (arg) {
     }
 });
 var model = "";
-if (typeof (QueryString["model"]) == "undefined") model = "tests/data/SampleHouse.wexbim";
-else model = "tests/data/" + QueryString["model"] + ".wexbim";
+if (typeof (QueryString["model"]) == "undefined") model = "/tests/data/SampleHouse.wexbim";
+else model = "/tests/data/" + QueryString["model"] + ".wexbim";
 viewer.show("back");
 viewer.on("pick", function (arg) {
     var span = document.getElementById("coords");

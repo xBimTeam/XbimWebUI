@@ -5,8 +5,17 @@ var product_type_1 = require("./product-type");
 var model_geometry_1 = require("./model-geometry");
 var model_handle_1 = require("./model-handle");
 var shaders_1 = require("./shaders/shaders");
+//reexport these classes to make them available when viewer is the root package
+var state_2 = require("./state");
+exports.State = state_2.State;
+var product_type_2 = require("./product-type");
+exports.ProductType = product_type_2.ProductType;
+var product_inheritance_1 = require("./product-inheritance");
+exports.ProductInheritance = product_inheritance_1.ProductInheritance;
 var navigation_cube_1 = require("./plugins/NavigationCube/navigation-cube");
+exports.NavigationCube = navigation_cube_1.NavigationCube;
 var navigation_home_1 = require("./plugins/NavigationHome/navigation-home");
+exports.NavigationHome = navigation_home_1.NavigationHome;
 var Viewer = (function () {
     /**
     * This is constructor of the xBIM Viewer. It gets HTMLCanvasElement or string ID as an argument. Viewer will than be initialized
@@ -32,10 +41,6 @@ var Viewer = (function () {
         }
         if (this._canvas == null) {
             throw 'You have to specify canvas either as an ID of HTML element or the element itself';
-        }
-        //dummy call to reference to make plugins linked in a bundle
-        if (typeof (navigation_cube_1.NavigationCube) === 'undefined' || typeof (navigation_home_1.NavigationHome) == 'undefined') {
-            throw new Error();
         }
         /**
         * This is a structure that holds settings of perspective camera.
@@ -555,6 +560,40 @@ var Viewer = (function () {
         }
     };
     ;
+    /**
+    * This method is uses WebWorker if available to load model data into viewer.
+    * Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data. Any other type of argument will throw an exception.
+    * You can load more than one model if they occupy the same space, use the same scale and have unique product IDs. Duplicated IDs won't affect
+    * visualization itself but would cause unexpected user interaction (picking, zooming, ...)
+    * @function Viewer#load
+    * @param {String} loaderUrl - Url of the 'xbim-geometry-loader.js' script which will be called as a worker
+    * @param {String | Blob | File} model - Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data.
+    * @param {Any} tag [optional] - Tag to be used to identify the model in {@link Viewer#event:loaded loaded} event.
+    * @fires Viewer#loaded
+    */
+    Viewer.prototype.loadAsync = function (loaderUrl, model, tag) {
+        if (typeof (model) == 'undefined')
+            throw 'You have to specify model to load.';
+        if (typeof (model) != 'string' && !(model instanceof Blob))
+            throw 'Model has to be specified either as a URL to wexBIM file or Blob object representing the wexBIM file.';
+        var self = this;
+        //fall back to synchronous loading if worker is not available
+        if (typeof (Worker) === 'undefined') {
+            this.load(model, tag);
+        }
+        var worker = new Worker(loaderUrl);
+        worker.onmessage = function (msg) {
+            console.log('Message received from worker');
+            var geometry = msg.data;
+            self.addHandle(geometry, tag);
+        };
+        worker.onerror = function (e) {
+            self.error(e.message);
+        };
+        worker.postMessage(model);
+        console.log('Message posted to worker');
+        return;
+    };
     /**
     * This method is used to load model data into viewer. Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data. Any other type of argument will throw an exception.
     * Region extend is determined based on the region of the model

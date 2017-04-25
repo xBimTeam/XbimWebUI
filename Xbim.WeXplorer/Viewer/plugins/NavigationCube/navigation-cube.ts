@@ -68,14 +68,14 @@ export class NavigationCube implements IPlugin {
     * Size of the cube relative to the size of viewer canvas. This has to be a positive number between [0,1] Default value is 0.15. 
     * @member {Number} xNavigationCube#ratio
     */
-    private ratio = 0.15;
+    public ratio = 0.15;
     /**
     * Active parts of the navigation cube are highlighted so that user can recognize which part is active. 
     * This should be a positive number between [0,2]. If the value is less than 1 active area is darker.
     * If the value is greater than 1 active area is lighter. Default value is 1.2. 
     * @member {Number} xNavigationCube#highlighting
     */
-    private highlighting = 1.2;
+    public highlighting = 1.2;
 
     /**
     * Navigation cube has two transparency states. One is when user hovers over the cube and the second when the cursor is anywhere else.
@@ -83,7 +83,7 @@ export class NavigationCube implements IPlugin {
     * when user hovers over. Default value is 1.0. 
     * @member {Number} xNavigationCube#activeAlpha
     */
-    private activeAlpha = 1.0;
+    public activeAlpha = 1.0;
 
     /**
     * Navigation cube has two transparency states. One is when user hovers over the cube and the second when the cursor is anywhere else.
@@ -91,14 +91,14 @@ export class NavigationCube implements IPlugin {
     * when user is not hovering over. Default value is 0.3. 
     * @member {Number} xNavigationCube#passiveAlpha
     */
-    private passiveAlpha = 0.7;
+    public passiveAlpha = 0.7;
 
     /**
     * It is possible to place navigation cube to any of the corners of the canvas using this property. Default value is cube.BOTTOM_RIGHT. 
     * Allowed values are cube.BOTTOM_RIGHT, cube.BOTTOM_LEFT, cube.TOP_RIGHT and cube.TOP_LEFT.
     * @member {Enum} xNavigationCube#position
     */
-    private position = this.BOTTOM_RIGHT;
+    public position = this.BOTTOM_RIGHT;
 
     private viewer: Viewer;
     private _shader: WebGLProgram;
@@ -128,9 +128,9 @@ export class NavigationCube implements IPlugin {
 
     private _originalNavigation: any;
 
-    public init(xviewer: Viewer) {
+    public init(viewer: Viewer) {
         var self = this;
-        this.viewer = xviewer;
+        this.viewer = viewer;
         var gl = this.viewer._gl;
 
         //create own shader 
@@ -207,25 +207,25 @@ export class NavigationCube implements IPlugin {
         //reset original shader program 
         gl.useProgram(this.viewer._shaderProgram);
 
-        xviewer._canvas.addEventListener('mousemove',
+        viewer._canvas.addEventListener('mousemove',
             function (event) {
                 var startX = event.clientX;
                 var startY = event.clientY;
 
                 //get coordinates within canvas (with the right orientation)
-                var r = xviewer._canvas.getBoundingClientRect();
+                var r = viewer._canvas.getBoundingClientRect();
                 var x = startX - r.left;
-                var y = xviewer._height - (startY - r.top);
+                var y = viewer._height - (startY - r.top);
 
                 //cube hasn't been drawn yet
                 if (!self._region) {
                     return;
                 }
 
-                let minX = self._region[0] * xviewer._width;
-                let maxX = self._region[2] * xviewer._width;
-                let minY = self._region[1] * xviewer._height;
-                let maxY = self._region[3] * xviewer._height;
+                let minX = self._region[0] * viewer._width;
+                let maxX = self._region[2] * viewer._width;
+                let minY = self._region[1] * viewer._height;
+                let maxY = self._region[3] * viewer._height;
 
                 if (x < minX || x > maxX || y < minY || y > maxY) {
                     self._alpha = self.passiveAlpha;
@@ -234,7 +234,7 @@ export class NavigationCube implements IPlugin {
                 }
 
                 //this is for picking
-                var id = xviewer.getID(x, y);
+                var id = viewer.getID(x, y);
 
                 if (id >= self.TOP && id <= self.BACK_LEFT) {
                     self._alpha = self.activeAlpha;
@@ -248,24 +248,24 @@ export class NavigationCube implements IPlugin {
 
         self._drag = false;
 
-        xviewer._canvas.addEventListener('mousedown',
+        viewer._canvas.addEventListener('mousedown',
             function (event) {
                 var startX = event.clientX;
                 var startY = event.clientY;
 
                 //get coordinates within canvas (with the right orientation)
-                var r = xviewer._canvas.getBoundingClientRect();
+                var r = viewer._canvas.getBoundingClientRect();
                 var viewX = startX - r.left;
-                var viewY = xviewer._height - (startY - r.top);
+                var viewY = viewer._height - (startY - r.top);
 
                 //this is for picking
-                var id = xviewer.getID(viewX, viewY);
+                var id = viewer.getID(viewX, viewY);
 
                 if (id >= self.TOP && id <= self.BACK_LEFT) {
                     //change viewer navigation mode to be 'orbit'
                     self._drag = true;
-                    self._originalNavigation = xviewer.navigationMode;
-                    xviewer.navigationMode = "orbit";
+                    self._originalNavigation = viewer.navigationMode;
+                    viewer.navigationMode = "orbit";
                 }
             },
             true);
@@ -273,7 +273,7 @@ export class NavigationCube implements IPlugin {
         window.addEventListener('mouseup',
             function (event) {
                 if (self._drag === true) {
-                    xviewer.navigationMode = self._originalNavigation;
+                    viewer.navigationMode = self._originalNavigation;
                 }
                 self._drag = false;
             },

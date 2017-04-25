@@ -719,9 +719,9 @@ var NavigationCube = (function () {
         ]);
         this._image = image;
     }
-    NavigationCube.prototype.init = function (xviewer) {
+    NavigationCube.prototype.init = function (viewer) {
         var self = this;
-        this.viewer = xviewer;
+        this.viewer = viewer;
         var gl = this.viewer._gl;
         //create own shader 
         this._shader = null;
@@ -787,28 +787,28 @@ var NavigationCube = (function () {
         }
         //reset original shader program 
         gl.useProgram(this.viewer._shaderProgram);
-        xviewer._canvas.addEventListener('mousemove', function (event) {
+        viewer._canvas.addEventListener('mousemove', function (event) {
             var startX = event.clientX;
             var startY = event.clientY;
             //get coordinates within canvas (with the right orientation)
-            var r = xviewer._canvas.getBoundingClientRect();
+            var r = viewer._canvas.getBoundingClientRect();
             var x = startX - r.left;
-            var y = xviewer._height - (startY - r.top);
+            var y = viewer._height - (startY - r.top);
             //cube hasn't been drawn yet
             if (!self._region) {
                 return;
             }
-            var minX = self._region[0] * xviewer._width;
-            var maxX = self._region[2] * xviewer._width;
-            var minY = self._region[1] * xviewer._height;
-            var maxY = self._region[3] * xviewer._height;
+            var minX = self._region[0] * viewer._width;
+            var maxX = self._region[2] * viewer._width;
+            var minY = self._region[1] * viewer._height;
+            var maxY = self._region[3] * viewer._height;
             if (x < minX || x > maxX || y < minY || y > maxY) {
                 self._alpha = self.passiveAlpha;
                 self._selection = 0;
                 return;
             }
             //this is for picking
-            var id = xviewer.getID(x, y);
+            var id = viewer.getID(x, y);
             if (id >= self.TOP && id <= self.BACK_LEFT) {
                 self._alpha = self.activeAlpha;
                 self._selection = id;
@@ -819,25 +819,25 @@ var NavigationCube = (function () {
             }
         }, true);
         self._drag = false;
-        xviewer._canvas.addEventListener('mousedown', function (event) {
+        viewer._canvas.addEventListener('mousedown', function (event) {
             var startX = event.clientX;
             var startY = event.clientY;
             //get coordinates within canvas (with the right orientation)
-            var r = xviewer._canvas.getBoundingClientRect();
+            var r = viewer._canvas.getBoundingClientRect();
             var viewX = startX - r.left;
-            var viewY = xviewer._height - (startY - r.top);
+            var viewY = viewer._height - (startY - r.top);
             //this is for picking
-            var id = xviewer.getID(viewX, viewY);
+            var id = viewer.getID(viewX, viewY);
             if (id >= self.TOP && id <= self.BACK_LEFT) {
                 //change viewer navigation mode to be 'orbit'
                 self._drag = true;
-                self._originalNavigation = xviewer.navigationMode;
-                xviewer.navigationMode = "orbit";
+                self._originalNavigation = viewer.navigationMode;
+                viewer.navigationMode = "orbit";
             }
         }, true);
         window.addEventListener('mouseup', function (event) {
             if (self._drag === true) {
-                xviewer.navigationMode = self._originalNavigation;
+                viewer.navigationMode = self._originalNavigation;
             }
             self._drag = false;
         }, true);

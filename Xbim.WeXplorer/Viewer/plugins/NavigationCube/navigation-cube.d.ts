@@ -53,34 +53,34 @@ export declare class NavigationCube implements IPlugin {
     * Size of the cube relative to the size of viewer canvas. This has to be a positive number between [0,1] Default value is 0.15.
     * @member {Number} xNavigationCube#ratio
     */
-    private ratio;
+    ratio: number;
     /**
     * Active parts of the navigation cube are highlighted so that user can recognize which part is active.
     * This should be a positive number between [0,2]. If the value is less than 1 active area is darker.
     * If the value is greater than 1 active area is lighter. Default value is 1.2.
     * @member {Number} xNavigationCube#highlighting
     */
-    private highlighting;
+    highlighting: number;
     /**
     * Navigation cube has two transparency states. One is when user hovers over the cube and the second when the cursor is anywhere else.
     * This is for the hovering shate and it should be a positive number between [0,1]. If the value is less than 1 cube will be semitransparent
     * when user hovers over. Default value is 1.0.
     * @member {Number} xNavigationCube#activeAlpha
     */
-    private activeAlpha;
+    activeAlpha: number;
     /**
     * Navigation cube has two transparency states. One is when user hovers over the cube and the second when the cursor is anywhere else.
     * This is for the non-hovering shate and it should be a positive number between [0,1]. If the value is less than 1 cube will be semitransparent
     * when user is not hovering over. Default value is 0.3.
     * @member {Number} xNavigationCube#passiveAlpha
     */
-    private passiveAlpha;
+    passiveAlpha: number;
     /**
     * It is possible to place navigation cube to any of the corners of the canvas using this property. Default value is cube.BOTTOM_RIGHT.
     * Allowed values are cube.BOTTOM_RIGHT, cube.BOTTOM_LEFT, cube.TOP_RIGHT and cube.TOP_LEFT.
     * @member {Enum} xNavigationCube#position
     */
-    private position;
+    position: number;
     private viewer;
     private _shader;
     private _alpha;
@@ -102,7 +102,7 @@ export declare class NavigationCube implements IPlugin {
     private _texture;
     private _drag;
     private _originalNavigation;
-    init(xviewer: Viewer): void;
+    init(viewer: Viewer): void;
     onBeforeDraw(): void;
     onBeforePick(id: any): boolean;
     onAfterDraw(): void;

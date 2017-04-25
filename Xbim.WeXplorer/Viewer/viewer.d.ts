@@ -1,3 +1,8 @@
+export { State } from './state';
+export { ProductType } from './product-type';
+export { ProductInheritance } from './product-inheritance';
+export { NavigationCube } from "./plugins/NavigationCube/navigation-cube";
+export { NavigationHome } from "./plugins/NavigationHome/navigation-home";
 export declare class Viewer {
     /**
     * This is constructor of the xBIM Viewer. It gets HTMLCanvasElement or string ID as an argument. Viewer will than be initialized
@@ -202,6 +207,18 @@ export declare class Viewer {
     * @param {Object} settings - Object containing key - value pairs
     */
     set(settings: any): void;
+    /**
+    * This method is uses WebWorker if available to load model data into viewer.
+    * Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data. Any other type of argument will throw an exception.
+    * You can load more than one model if they occupy the same space, use the same scale and have unique product IDs. Duplicated IDs won't affect
+    * visualization itself but would cause unexpected user interaction (picking, zooming, ...)
+    * @function Viewer#load
+    * @param {String} loaderUrl - Url of the 'xbim-geometry-loader.js' script which will be called as a worker
+    * @param {String | Blob | File} model - Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data.
+    * @param {Any} tag [optional] - Tag to be used to identify the model in {@link Viewer#event:loaded loaded} event.
+    * @fires Viewer#loaded
+    */
+    loadAsync(loaderUrl: string, model: string | Blob | File, tag: any): void;
     /**
     * This method is used to load model data into viewer. Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data. Any other type of argument will throw an exception.
     * Region extend is determined based on the region of the model

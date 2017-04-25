@@ -10,8 +10,6 @@ namespace TypingsBundler
 {
     class Program
     {
-        //private static Regex importExpression = new Regex("import\\s+\\{[\\s\\w,]+\\}\\s+from\\s+(\\w|\\.|-|_|\\\\)+?;");
-
         static void Main(string[] args)
         {
             var dir = args.Length == 0 ? @"..\Build" : args[0];
@@ -54,7 +52,7 @@ namespace TypingsBundler
                         var tData = File.ReadAllText(typing);
 
                         //remove eventual imports
-                        var importExpression = new Regex("import\\s+\\{(\\s|\\w|,)+\\}\\s+from\\s+(\\w|\\.|-|_|\\\\|/|'|\")+?;");
+                        var importExpression = new Regex("(import|export)\\s+\\{(\\s|\\w|,)+\\}\\s+from\\s+(\\w|\\.|-|_|\\\\|/|'|\")+?;");
                         tData = importExpression.Replace(tData, "");
 
 

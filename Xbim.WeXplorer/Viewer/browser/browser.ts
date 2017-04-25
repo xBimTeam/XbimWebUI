@@ -90,7 +90,7 @@ _compileTemplate (str) {
 * @param {string|HTMLElement} container - string ID of the contaier or HTMLElement representing container. Resulting HTML will be placed inside of this element. Be aware that this will erase any actual content of the container element.
 * @param {Bool} initTree - if true and jQuery UI is referenced tree will be rendered using UI icons as a collapsable tree control.
 */
-renderSpatialStructure (container, initTree) {
+public renderSpatialStructure (container, initTree) {
     if (!this._model) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
 
     this._renderTreeView(container, this._model.facility, initTree);
@@ -105,7 +105,7 @@ renderSpatialStructure (container, initTree) {
 * @param {string|HTMLElement} container - string ID of the contaier or HTMLElement representing container. Resulting HTML will be placed inside of this element. Be aware that this will erase any actual content of the container element.
 * @param {Bool} initTree - if true and jQuery UI is referenced tree will be rendered using UI icons as a collapsable tree control.
 */
-renderAssetTypes (container, initTree) {
+public renderAssetTypes (container, initTree) {
     if (!this._model) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
 
     this._renderTreeView(container, this._model.assetTypes, initTree);
@@ -119,7 +119,7 @@ renderAssetTypes (container, initTree) {
 * @function xBrowser#renderContacts
 * @param {string|HTMLElement} container - string ID of the contaier or HTMLElement representing container. Resulting HTML will be placed inside of this element. Be aware that this will erase any actual content of the container element.
 */
-renderContacts (container) {
+public renderContacts (container) {
     if (!this._model) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
     this._renderListView(container, this._model.contacts, this._templates.contact);
 };
@@ -133,7 +133,7 @@ renderContacts (container) {
 * @param {string|HTMLElement} container - string ID of the contaier or HTMLElement representing container. Resulting HTML will be placed inside of this element. Be aware that this will erase any actual content of the container element.
 * @param {Bool} initTree - if true and jQuery UI is referenced tree will be rendered using UI icons as a collapsable tree control.
 */
-renderSystems (container, initTree) {
+public renderSystems (container, initTree) {
     if (!this._model) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
     this._renderTreeView(container, this._model.systems, initTree);
 };
@@ -147,7 +147,7 @@ renderSystems (container, initTree) {
 * @param {string|HTMLElement} container - string ID of the contaier or HTMLElement representing container. Resulting HTML will be placed inside of this element. Be aware that this will erase any actual content of the container element.
 * @param {Bool} initTree - if true and jQuery UI is referenced tree will be rendered using UI icons as a collapsable tree control.
 */
-renderZones (container, initTree) {
+public renderZones (container, initTree) {
     if (!this._model) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
     this._renderTreeView(container, this._model.zones, initTree);
 };
@@ -170,7 +170,7 @@ renderZones (container, initTree) {
 * {@link xBrowser#event:entityActive entityActive} 
 * @param {string|HTMLElement} container - string ID of the contaier or HTMLElement representing container. Resulting HTML will be placed inside of this element. Be aware that this will erase any actual content of the container element.
 */
-renderAssignments (entity, container) {
+public renderAssignments (entity, container) {
     if (!this._model) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
     container = this._getContainer(container);
     container.innerHTML = "";
@@ -222,7 +222,7 @@ renderAssignments (entity, container) {
 * {@link xBrowser#event:entityActive entityActive} 
 * @param {string|HTMLElement} container - string ID of the contaier or HTMLElement representing container. Resulting HTML will be placed inside of this element. Be aware that this will erase any actual content of the container element.
 */
-renderDocuments (entity, container) {
+public renderDocuments (entity, container) {
     if (!entity) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
     var self = this;
     container = this._getContainer(container);
@@ -248,7 +248,7 @@ renderDocuments (entity, container) {
 * {@link xBrowser#event:entityActive entityActive} 
 * @param {string|HTMLElement} container - string ID of the contaier or HTMLElement representing container. Resulting HTML will be placed inside of this element. Be aware that this will erase any actual content of the container element.
 */
-renderIssues (entity, container) {
+public renderIssues (entity, container) {
     if (!entity) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
     var self = this;
     container = this._getContainer(container);
@@ -274,7 +274,7 @@ renderIssues (entity, container) {
 * {@link xBrowser#event:entityActive entityActive} 
 * @param {string|HTMLElement} container - string ID of the contaier or HTMLElement representing container. Resulting HTML will be placed inside of this element. Be aware that this will erase any actual content of the container element.
 */
-renderAttributes (entity, container) {
+public renderAttributes (entity, container) {
     if (!entity) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
     var self = this;
     container = this._getContainer(container);
@@ -296,7 +296,7 @@ renderAttributes (entity, container) {
 * {@link xBrowser#event:entityActive entityActive} 
 * @param {string|HTMLElement} container - string ID of the contaier or HTMLElement representing container. Resulting HTML will be placed inside of this element. Be aware that this will erase any actual content of the container element.
 */
-renderProperties (entity, container) {
+public renderProperties (entity, container) {
     if (!entity) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
     var self = this;
     container = this._getContainer(container);
@@ -321,7 +321,7 @@ renderProperties (entity, container) {
 * {@link xBrowser#event:entityActive entityActive} 
 * @param {string|HTMLElement} container - string ID of the contaier or HTMLElement representing container. Resulting HTML will be placed inside of this element. Be aware that this will erase any actual content of the container element.
 */
-renderPropertiesAttributes (entity, container) {
+public renderPropertiesAttributes (entity, container) {
     if (!entity) throw 'No data to be rendered. Use this function in an event handler of "loaded" event.';
     var self = this;
     container = this._getContainer(container);
