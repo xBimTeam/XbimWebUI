@@ -32,7 +32,7 @@
         <canvas id="viewer"></canvas>
         <script type="text/javascript">
             var viewer = new Viewer("viewer");
-            viewer.load("/tests/data/SampleHouse.wexbim");
+            viewer.loadAsync("/Build/xbim-geometry-loader.js", "/tests/data/SampleHouse.wexbim");
             viewer.start();
         </script>
 	</body>

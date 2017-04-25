@@ -1,8 +1,9 @@
 ﻿import { ModelGeometry } from "../model-geometry";
 
 //only run following script if this is created as a Worker
-if (this.WorkerGlobalScope && this instanceof WorkerGlobalScope) {
-    onmessage = function (e) {
+if (self && self instanceof DedicatedWorkerGlobalScope ) {
+    var worker = self as DedicatedWorkerGlobalScope;
+    worker.onmessage = function (e) {
         var model = e.data;
         var geometry = new ModelGeometry();
 
@@ -31,10 +32,10 @@ if (this.WorkerGlobalScope && this instanceof WorkerGlobalScope) {
                 }
 
                 //post the object and pass through all transferable objects
-                postMessage(msg, transferable);
-                close();
+                worker.postMessage(msg, transferable);
+                worker.close();
             } catch (e) {
-                close();
+                worker.close();
                 throw e;
             }
         };

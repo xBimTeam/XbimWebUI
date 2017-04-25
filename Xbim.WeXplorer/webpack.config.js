@@ -19,6 +19,14 @@ if (!isDevelop) {
     plugins.push(new webpack.optimize.UglifyJsPlugin( { compress: { warnings: false } }));
 }
 
+var tsLoader = 'ts-loader?' + JSON.stringify({
+    compilerOptions: {
+        declaration: false
+    },
+    visualStudioErrorFormat: true,
+    transpileOnly: true
+});
+
 module.exports = {
     devServer: {
         contentBase: ".",
@@ -38,14 +46,12 @@ module.exports = {
         rules: [
             {
                 test: /\.ts$/,
-                use: ['ts-loader?' + JSON.stringify({
-                    compilerOptions: {
-                        declaration: false
-                    },
-                    visualStudioErrorFormat: true,
-                    transpileOnly: true
-                })]
-            }
+                use: [tsLoader]
+            },
+            //{
+            //    test: /loader.ts$/,
+            //    use: [tsLoader,'worker-loader?inline=false']
+            //}
         ]
     },
     plugins: plugins,

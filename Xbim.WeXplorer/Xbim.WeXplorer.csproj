@@ -65,6 +65,7 @@
     <Content Include="Build\xbim-geometry-loader.min.js" />
     <Content Include="Build\xbim-shim.js" />
     <Content Include="Build\xbim-viewer.min.js" />
+    <Content Include="Examples\BasicJsExampleAsync\index.html" />
     <Content Include="Examples\BrowserExample\browser.css" />
     <Content Include="Examples\BrowserExample\browser.js" />
     <Content Include="Examples\BrowserExample\index.html" />
