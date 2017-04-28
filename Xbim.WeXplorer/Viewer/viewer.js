@@ -5,6 +5,7 @@ var product_type_1 = require("./product-type");
 var model_geometry_1 = require("./model-geometry");
 var model_handle_1 = require("./model-handle");
 var shaders_1 = require("./shaders/shaders");
+var webgl_utils_1 = require("./common/webgl-utils");
 //reexport these classes to make them available when viewer is the root package
 var state_2 = require("./state");
 exports.State = state_2.State;
@@ -137,7 +138,7 @@ var Viewer = (function () {
         */
         this._clippingPlaneB = [0, 0, 0, 0];
         //*************************** Do all the set up of WebGL **************************
-        var gl = WebGLUtils.setupWebGL(this._canvas);
+        var gl = webgl_utils_1.WebGLUtils.setupWebGL(this._canvas);
         //do not even initialize this object if WebGL is not supported
         if (!gl) {
             return;
@@ -263,7 +264,7 @@ var Viewer = (function () {
         if (!canvas)
             result.errors.push("Browser doesn't have support for HTMLCanvasElement. This is critical.");
         else {
-            var gl = WebGLUtils.setupWebGL(canvas);
+            var gl = webgl_utils_1.WebGLUtils.setupWebGL(canvas);
             if (gl == null)
                 result.errors.push("Browser doesn't support WebGL. This is critical.");
             else {
@@ -1444,8 +1445,7 @@ var Viewer = (function () {
                 viewer.fire('fps', Math.floor(fps));
             }
             if (viewer._isRunning) {
-                // requestAnimFrame is globally attached to the window by the webgl utils
-                window['requestAnimFrame'](tick);
+                window.requestAnimationFrame(tick);
                 viewer.draw();
             }
         }

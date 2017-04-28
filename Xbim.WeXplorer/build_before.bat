@@ -4,6 +4,4 @@ Utilities\spacker.exe Viewer\plugins\NavigationCube navigation-cube-shaders.ts -
 
 xcopy /y Libs\gl-matrix.min.js Build
 xcopy /y Libs\gl-matrix.js Build
-xcopy /y Libs\webgl-utils.min.js Build
-xcopy /y Libs\webgl-utils.js Build
 xcopy /y Viewer\browser\xbim-browser.css Build

@@ -4,6 +4,7 @@ import { ProductInheritance } from './product-inheritance';
 import { ModelGeometry } from './model-geometry';
 import { ModelHandle } from './model-handle';
 import { Shaders } from './shaders/shaders';
+import { WebGLUtils } from './common/webgl-utils';
 
 //reexport these classes to make them available when viewer is the root package
 export { State } from './state';
@@ -1748,8 +1749,7 @@ export class Viewer {
             }
 
             if (viewer._isRunning) {
-                // requestAnimFrame is globally attached to the window by the webgl utils
-                window['requestAnimFrame'](tick)
+                window.requestAnimationFrame(tick)
                 viewer.draw()
             }
         }

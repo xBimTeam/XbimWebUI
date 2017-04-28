@@ -4,6 +4,10 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xbim.WeXplorer", "Xbim.WeXplorer\Xbim.WeXplorer.csproj", "{C5942956-079A-4A0E-B0A8-EFF59C96B269}"
+	ProjectSection(ProjectDependencies) = postProject
+		{AE2105C3-2116-467D-AE13-4702CAC6F6F3} = {AE2105C3-2116-467D-AE13-4702CAC6F6F3}
+		{95B208E8-3DD5-48B9-A9A2-2B25B01947DD} = {95B208E8-3DD5-48B9-A9A2-2B25B01947DD}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Utilities", "Utilities", "{108D7FDF-C64D-4C1C-AB25-E9B7761ADD52}"
 EndProject
