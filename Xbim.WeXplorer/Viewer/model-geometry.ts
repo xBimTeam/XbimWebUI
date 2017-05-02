@@ -29,9 +29,9 @@ export class ModelGeometry {
     //	spans: [Int32Array([int, int]),Int32Array([int, int]), ...] //spanning indexes defining shapes of product and it's state
     //};
 
-    productMap = {};
-    regions: any[];
-    transparentIndex: number;
+    public productMaps: { [id: number]: ProductMap; } = {};
+    public regions: any[];
+    public transparentIndex: number;
 
     public parse(binReader: BinaryReader) {
         var br = binReader;
@@ -75,7 +75,7 @@ export class ModelGeometry {
         this.states = new Uint8Array(numTriangles * 3 * 2); //place for state and restyling
         this.transformations = new Float32Array(numTriangles * 3);
         this.matrices = new Float32Array(square(4, numMatrices * 16));
-        this.productMap = {};
+        this.productMaps = {};
         this.regions = new Array(numRegions);
 
         var iVertex = 0;
@@ -130,7 +130,7 @@ export class ModelGeometry {
                 bBox: bBox,
                 spans: []
             };
-            this.productMap[productLabel] = map;
+            this.productMaps[productLabel] = map;
         }
 
         for (var iShape = 0; iShape < numShapes; iShape++) {
@@ -253,4 +253,12 @@ export class ModelGeometry {
     public onloaded: (geometry: ModelGeometry) => void;
 
     public onerror: (message?: string) => void;
+}
+
+
+export class ProductMap {
+    productID: number;
+    type: ProductType;
+    bBox: Float32Array;
+    spans: Array<number[]>;
 }

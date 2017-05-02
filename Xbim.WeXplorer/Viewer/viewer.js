@@ -347,7 +347,7 @@ var Viewer = (function () {
     * Target is either enumeration from {@link xProductType xProductType} or array of product IDs. If you specify type it will effect all elements of the type.
     *
     * @function Viewer#setState
-    * @param {Number} state - One of {@link xState xState} enumeration values.
+    * @param {State} state - One of {@link State State} enumeration values.
     * @param {Number[] | Number} target - Target of the change. It can either be array of product IDs or product type from {@link xProductType xProductType}.
     */
     Viewer.prototype.setState = function (state, target) {
@@ -518,16 +518,14 @@ var Viewer = (function () {
             viewer._distance = size / Math.tan(viewer.perspectiveCamera.fov * Math.PI / 180.0) * ratio * 1.0;
         };
         //set navigation origin and default distance to the product BBox
-        if (typeof (prodId) != 'undefined' && prodId != null) {
+        if (typeof (prodId) !== 'undefined' && prodId != null) {
             //get product BBox and set it's centre as a navigation origin
             var bbox = null;
-            this._handles.every(function (handle) {
+            this._handles.forEach(function (handle) {
                 var map = handle.getProductMap(prodId);
                 if (map) {
                     bbox = map.bBox;
-                    return false;
                 }
-                return true;
             });
             if (bbox) {
                 this._origin = [bbox[0] + bbox[3] / 2.0, bbox[1] + bbox[4] / 2.0, bbox[2] + bbox[5] / 2.0];
@@ -539,16 +537,38 @@ var Viewer = (function () {
         }
         else {
             //get region extent and set it's centre as a navigation origin
-            var handle = this._handles[0];
-            if (handle) {
-                var region = handle.region;
-                if (region) {
-                    this._origin = [region.centre[0], region.centre[1], region.centre[2]];
-                    setDistance(region.bbox);
-                }
+            var region = viewer.getBiggestRegion();
+            if (region) {
+                this._origin = [region.centre[0], region.centre[1], region.centre[2]];
+                setDistance(region.bbox);
             }
             return true;
         }
+    };
+    Viewer.prototype.getBiggestRegion = function () {
+        var volume = function (box) {
+            return (box[3] - box[0]) * (box[4] - box[1]) * (box[5] - box[2]);
+        };
+        var handle = this._handles
+            .filter(function (h, i, a) { !h.stopped; })
+            .sort(function (a, b) {
+            var volA = volume(a.region.bbox);
+            var volB = volume(b.region.bbox);
+            if (volA < volB) {
+                return -1;
+            }
+            if (volA == volB) {
+                return 0;
+            }
+            if (volA > volB) {
+                return 1;
+            }
+        })
+            .pop();
+        if (handle)
+            return handle.region;
+        else
+            return null;
     };
     /**
     * This method can be used for batch setting of viewer members. It doesn't check validity of the input.
@@ -1364,7 +1384,7 @@ var Viewer = (function () {
         gl.uniform1i(this._colorCodingUniformPointer, 1);
         //render colour coded image using latest buffered data
         this._handles.forEach(function (handle) {
-            if (!handle.stopped) {
+            if (!handle.stopped && handle.pickable) {
                 handle.setActive(this._pointers);
                 handle.draw();
             }
@@ -1470,6 +1490,32 @@ var Viewer = (function () {
         this._numberOfActiveModels--;
     };
     /**
+    * Use this function to stop picking of the objects in the specified model. It will behave as if not present for all picking operations.
+    * All models are pickable by default when loaded.
+    *
+    * @function Viewer#stopPicking
+    * @param {Number} id - ID of the model to be stopped. You can get this ID from {@link Viewer#event:loaded loaded} event.
+    */
+    Viewer.prototype.stopPicking = function (id) {
+        var model = this._handles.filter(function (h) { return h.id === id; }).pop();
+        if (typeof (model) === 'undefined')
+            throw "Model doesn't exist.";
+        model.pickable = false;
+    };
+    /**
+    * Use this function to enable picking of the objects in the specified model.
+    * All models are pickable by default when loaded. You can stop the model from being pickable using {@link Viewer#stopPicking} function.
+    *
+    * @function Viewer#startPicking
+    * @param {Number} id - ID of the model to be stopped. You can get this ID from {@link Viewer#event:loaded loaded} event.
+    */
+    Viewer.prototype.startPicking = function (id) {
+        var model = this._handles.filter(function (h) { return h.id === id; }).pop();
+        if (typeof (model) === 'undefined')
+            throw "Model doesn't exist.";
+        model.pickable = true;
+    };
+    /**
      * Use this method to register to events of the viewer like {@link Viewer#event:pick pick}, {@link Viewer#event:mouseDown mouseDown},
      * {@link Viewer#event:loaded loaded} and others. You can define arbitrary number
      * of event handlers for any event. You can remove handler by calling {@link Viewer#off off()} method.
@@ -1512,7 +1558,7 @@ var Viewer = (function () {
         //cal the callbacks
         handlers.forEach(function (handler) {
             handler(args);
-        }, this);
+        });
     };
     Viewer.prototype.disableTextSelection = function () {
         //disable text selection

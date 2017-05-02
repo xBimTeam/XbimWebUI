@@ -5,6 +5,8 @@ var state_1 = require("./state");
 //make up a model in GPU
 var ModelHandle = (function () {
     function ModelHandle(gl, model) {
+        //participates in picking operation only if true
+        this.pickable = true;
         if (typeof (gl) == 'undefined' || typeof (model) == 'undefined') {
             throw 'WebGL context and geometry model must be specified';
         }
@@ -45,8 +47,8 @@ var ModelHandle = (function () {
         if (typeof (this.region) == 'undefined') {
             this.region = {
                 population: 1,
-                centre: [0.0, 0.0, 0.0],
-                bbox: [0.0, 0.0, 0.0, 10 * model.meter, 10 * model.meter, 10 * model.meter]
+                centre: new Float32Array([0.0, 0.0, 0.0]),
+                bbox: new Float32Array([0.0, 0.0, 0.0, 10 * model.meter, 10 * model.meter, 10 * model.meter])
             };
         }
     }
@@ -123,10 +125,20 @@ var ModelHandle = (function () {
         }
     };
     ModelHandle.prototype.getProductMap = function (id) {
-        var map = this._model.productMap[id];
+        var map = this._model.productMaps[id];
         if (typeof (map) !== 'undefined')
             return map;
         return null;
+    };
+    ModelHandle.prototype.getProductMaps = function (ids) {
+        var _this = this;
+        var result = new Array();
+        ids.forEach(function (id) {
+            var map = _this._model.productMaps[id];
+            if (typeof (map) !== 'undefined')
+                result.push(map);
+        });
+        return result;
     };
     ModelHandle.prototype.unload = function () {
         var gl = this._gl;
@@ -259,8 +271,8 @@ var ModelHandle = (function () {
         var maps = [];
         //it is type
         if (typeof (args) == 'number') {
-            for (var n in this._model.productMap) {
-                var map = this._model.productMap[n];
+            for (var n in this._model.productMaps) {
+                var map = this._model.productMaps[n];
                 if (map.type == args)
                     maps.push(map);
             }
@@ -303,7 +315,7 @@ var ModelHandle = (function () {
     ;
     ModelHandle.prototype.getModelState = function () {
         var result = [];
-        var products = this._model.productMap;
+        var products = this._model.productMaps;
         for (var i in products) {
             if (!products.hasOwnProperty(i)) {
                 continue;
@@ -344,4 +356,10 @@ var ModelHandle = (function () {
  */
 ModelHandle._instancesNum = 0;
 exports.ModelHandle = ModelHandle;
+var Region = (function () {
+    function Region() {
+    }
+    return Region;
+}());
+exports.Region = Region;
 //# sourceMappingURL=model-handle.js.map

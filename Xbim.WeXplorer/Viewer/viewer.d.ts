@@ -1,3 +1,4 @@
+import { State } from './state';
 export { State } from './state';
 export { ProductType } from './product-type';
 export { ProductInheritance } from './product-inheritance';
@@ -120,10 +121,10 @@ export declare class Viewer {
     * Target is either enumeration from {@link xProductType xProductType} or array of product IDs. If you specify type it will effect all elements of the type.
     *
     * @function Viewer#setState
-    * @param {Number} state - One of {@link xState xState} enumeration values.
+    * @param {State} state - One of {@link State State} enumeration values.
     * @param {Number[] | Number} target - Target of the change. It can either be array of product IDs or product type from {@link xProductType xProductType}.
     */
-    setState(state: number, target: number | number[]): void;
+    setState(state: State, target: number | number[]): void;
     /**
     * Use this function to get state of the products in the model. You can compare result of this function
     * with one of values from {@link xState xState} enumeration. 0xFF is the default value.
@@ -147,7 +148,7 @@ export declare class Viewer {
      * @param {Number} id - Model ID which you can get from {@link Viewer#event:loaded loaded} event.
      * @returns {Array} - Array representing model state in compact form suitable for serialization
      */
-    getModelState(id: number): any;
+    getModelState(id: number): number[][];
     /**
      * Restores model state from the data previously captured with {@link Viewer#getModelState getModelState()} function
      * @param {Number} id - ID of the model
@@ -201,6 +202,7 @@ export declare class Viewer {
     * @return {Bool} True if the target exists and is set, False otherwise
     */
     setCameraTarget(prodId?: number): boolean;
+    private getBiggestRegion();
     /**
     * This method can be used for batch setting of viewer members. It doesn't check validity of the input.
     * @function Viewer#set
@@ -263,7 +265,7 @@ export declare class Viewer {
     * @param {Number} [id] Product ID
     * @return {Bool} True if target exists and zoom was successful, False otherwise
     */
-    zoomTo(id: number): boolean;
+    zoomTo(id?: number): boolean;
     /**
     * Use this function to show default views.
     *
@@ -290,7 +292,23 @@ export declare class Viewer {
     * @function Viewer#stop
     * @param {Number} id [optional] - Optional ID of the model to be stopped. You can get this ID from {@link Viewer#event:loaded loaded} event.
     */
-    stop(id: number): void;
+    stop(id?: number): void;
+    /**
+    * Use this function to stop picking of the objects in the specified model. It will behave as if not present for all picking operations.
+    * All models are pickable by default when loaded.
+    *
+    * @function Viewer#stopPicking
+    * @param {Number} id - ID of the model to be stopped. You can get this ID from {@link Viewer#event:loaded loaded} event.
+    */
+    stopPicking(id: number): void;
+    /**
+    * Use this function to enable picking of the objects in the specified model.
+    * All models are pickable by default when loaded. You can stop the model from being pickable using {@link Viewer#stopPicking} function.
+    *
+    * @function Viewer#startPicking
+    * @param {Number} id - ID of the model to be stopped. You can get this ID from {@link Viewer#event:loaded loaded} event.
+    */
+    startPicking(id: number): void;
     /**
      * Use this method to register to events of the viewer like {@link Viewer#event:pick pick}, {@link Viewer#event:mouseDown mouseDown},
      * {@link Viewer#event:loaded loaded} and others. You can define arbitrary number
@@ -300,7 +318,7 @@ export declare class Viewer {
      * @param {String} eventName - Name of the event you would like to listen to.
      * @param {Object} callback - Callback handler of the event which will consume arguments and perform any custom action.
     */
-    on(eventName: string, callback: any): void;
+    on(eventName: string, callback: Function): void;
     /**
     * Use this method to unregister handlers from events. You can add event handlers by calling the {@link Viewer#on on()} method.
     *

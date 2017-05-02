@@ -1937,7 +1937,7 @@ your custom colour which you have defined in <a href="Viewer.html#defineStyle">d
     
         
 
-        <h4 class="name" id="load"><span class="type-signature"></span>load<span class="signature">(loaderUrl, model, tag)</span><span class="type-signature"></span></h4>
+        <h4 class="name" id="load"><span class="type-signature"></span>load<span class="signature">(model, tag)</span><span class="type-signature"></span></h4>
 
         
     
@@ -1946,8 +1946,9 @@ your custom colour which you have defined in <a href="Viewer.html#defineStyle">d
 
     
     <div class="description">
-        <p>This method is uses WebWorker if available to load model data into viewer.
-Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data. Any other type of argument will throw an exception.
+        <p>This method is used to load model data into viewer. Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data. Any other type of argument will throw an exception.
+Region extend is determined based on the region of the model
+Default view if 'front'. If you want to define different view you have to set it up in handler of <a href="Viewer.html#event:loaded">loaded</a> event. <br>
 You can load more than one model if they occupy the same space, use the same scale and have unique product IDs. Duplicated IDs won't affect
 visualization itself but would cause unexpected user interaction (picking, zooming, ...)</p>
     </div>
@@ -1981,29 +1982,6 @@ visualization itself but would cause unexpected user interaction (picking, zoomi
     </thead>
 
     <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>loaderUrl</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">String</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>Url of the 'xbim-geometry-loader.js' script which will be called as a worker</p></td>
-        </tr>
-
     
 
         <tr>
@@ -2126,7 +2104,7 @@ visualization itself but would cause unexpected user interaction (picking, zoomi
     
         
 
-        <h4 class="name" id="load"><span class="type-signature"></span>load<span class="signature">(model, tag)</span><span class="type-signature"></span></h4>
+        <h4 class="name" id="load"><span class="type-signature"></span>load<span class="signature">(loaderUrl, model, tag)</span><span class="type-signature"></span></h4>
 
         
     
@@ -2135,9 +2113,8 @@ visualization itself but would cause unexpected user interaction (picking, zoomi
 
     
     <div class="description">
-        <p>This method is used to load model data into viewer. Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data. Any other type of argument will throw an exception.
-Region extend is determined based on the region of the model
-Default view if 'front'. If you want to define different view you have to set it up in handler of <a href="Viewer.html#event:loaded">loaded</a> event. <br>
+        <p>This method is uses WebWorker if available to load model data into viewer.
+Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data. Any other type of argument will throw an exception.
 You can load more than one model if they occupy the same space, use the same scale and have unique product IDs. Duplicated IDs won't affect
 visualization itself but would cause unexpected user interaction (picking, zooming, ...)</p>
     </div>
@@ -2171,6 +2148,29 @@ visualization itself but would cause unexpected user interaction (picking, zoomi
     </thead>
 
     <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>loaderUrl</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Url of the 'xbim-geometry-loader.js' script which will be called as a worker</p></td>
+        </tr>
+
     
 
         <tr>
@@ -3424,7 +3424,7 @@ Target is either enumeration from xProductType or array of product IDs. If you s
             <td class="type">
             
                 
-<span class="param-type">Number</span>
+<span class="param-type"><a href="global.html#State">State</a></span>
 
 
             
@@ -3434,7 +3434,7 @@ Target is either enumeration from xProductType or array of product IDs. If you s
 
             
 
-            <td class="description last"><p>One of xState enumeration values.</p></td>
+            <td class="description last"><p>One of <a href="global.html#State">State</a> enumeration values.</p></td>
         </tr>
 
     
@@ -3941,6 +3941,136 @@ This function is bound to browser framerate of the screen so it will stop consum
     
         
 
+        <h4 class="name" id="startPicking"><span class="type-signature"></span>startPicking<span class="signature">(id)</span><span class="type-signature"></span></h4>
+
+        
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>Use this function to enable picking of the objects in the specified model.
+All models are pickable by default when loaded. You can stop the model from being pickable using <a href="Viewer.html#stopPicking">Viewer#stopPicking</a> function.</p>
+    </div>
+    
+
+    
+
+    
+
+    
+
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>id</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>ID of the model to be stopped. You can get this ID from <a href="Viewer.html#event:loaded">loaded</a> event.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+    
+
+    
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<dt>
+    
+        
+
         <h4 class="name" id="stop"><span class="type-signature"></span>stop<span class="signature">(id)</span><span class="type-signature"></span></h4>
 
         
@@ -4004,6 +4134,136 @@ switch animation of the model on again by calling <a href="Viewer.html#start">st
             
 
             <td class="description last"><p>[optional] - Optional ID of the model to be stopped. You can get this ID from <a href="Viewer.html#event:loaded">loaded</a> event.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+    
+
+    
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<dt>
+    
+        
+
+        <h4 class="name" id="stopPicking"><span class="type-signature"></span>stopPicking<span class="signature">(id)</span><span class="type-signature"></span></h4>
+
+        
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>Use this function to stop picking of the objects in the specified model. It will behave as if not present for all picking operations.
+All models are pickable by default when loaded.</p>
+    </div>
+    
+
+    
+
+    
+
+    
+
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>id</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>ID of the model to be stopped. You can get this ID from <a href="Viewer.html#event:loaded">loaded</a> event.</p></td>
         </tr>
 
     
@@ -5433,7 +5693,7 @@ This ID can later be used to unload or temporarily stop the model.</p>
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0</a> on Fri Apr 28 2017 14:49:54 GMT+0200 (W. Europe Summer Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0</a> on Tue May 02 2017 15:32:03 GMT+0200 (W. Europe Summer Time)
 </footer>
 
 <script> prettyPrint(); </script>

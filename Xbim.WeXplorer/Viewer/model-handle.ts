@@ -1,4 +1,4 @@
-﻿import { ModelGeometry } from "./model-geometry";
+﻿import { ModelGeometry , ProductMap} from "./model-geometry";
 import { State } from "./state";
 import { ModelPointers } from "./viewer";
 
@@ -11,8 +11,15 @@ export class ModelHandle {
     //model: xModelGeometry
     public _model: ModelGeometry;
 
+    //ID used to manipulate this handle
     public id: number;
+
+    //doesn't draw any graphics when stopped
     public stopped: boolean;
+
+    //participates in picking operation only if true
+    public pickable: boolean = true;
+
     private _numberOfIndices: number;
     private _vertexTextureSize: number;
     private _matrixTextureSize: number;
@@ -31,7 +38,7 @@ export class ModelHandle {
 
     private _feedCompleted: boolean;
 
-    region: any;
+    public region: Region;
 
     constructor(gl, model: ModelGeometry) {
         if (typeof (gl) == 'undefined' || typeof (model) == 'undefined') {
@@ -84,8 +91,8 @@ export class ModelHandle {
         if (typeof (this.region) == 'undefined') {
             this.region = {
                 population: 1,
-                centre: [0.0, 0.0, 0.0],
-                bbox: [0.0, 0.0, 0.0, 10 * model.meter, 10 * model.meter, 10 * model.meter]
+                centre: new Float32Array([0.0, 0.0, 0.0]),
+                bbox: new Float32Array([0.0, 0.0, 0.0, 10 * model.meter, 10 * model.meter, 10 * model.meter])
             }
         }
     }
@@ -146,7 +153,7 @@ export class ModelHandle {
     }
 
     //this function must be called AFTER 'setActive()' function which sets up active buffers and uniforms
-    public draw(mode: 'solid' | 'transparent'): void {
+    public draw(mode?: 'solid' | 'transparent'): void {
         if (this.stopped) return;
 
         var gl = this._gl;
@@ -186,10 +193,21 @@ export class ModelHandle {
         }
     }
 
-    private getProductMap(id): any {
-        var map = this._model.productMap[id];
+    public getProductMap(id: number): ProductMap {
+        var map = this._model.productMaps[id];
         if (typeof (map) !== 'undefined') return map;
         return null;
+    }
+
+    public getProductMaps(ids: number[]): ProductMap[] {
+        let result = new Array<ProductMap>();
+        ids.forEach(id => {
+            var map = this._model.productMaps[id];
+            if (typeof (map) !== 'undefined')
+                result.push(map);
+        });
+        
+        return result;
     }
 
     public unload() {
@@ -342,8 +360,8 @@ export class ModelHandle {
         var maps = [];
         //it is type
         if (typeof (args) == 'number') {
-            for (var n in this._model.productMap) {
-                var map = this._model.productMap[n];
+            for (var n in this._model.productMaps) {
+                var map = this._model.productMaps[n];
                 if (map.type == args) maps.push(map);
             }
         }
@@ -391,7 +409,7 @@ export class ModelHandle {
 
     public getModelState(): Array<Array<number>> {
         var result = [];
-        var products = this._model.productMap;
+        var products = this._model.productMaps;
         for (var i in products) {
             if (!products.hasOwnProperty(i)) {
                 continue;
@@ -432,4 +450,10 @@ export class ModelHandle {
         //buffer data to GPU
         this.bufferData(this._stateBuffer, this._model.states);
     }
+}
+
+export class Region {
+    public population: number;
+    public centre: Float32Array;
+    public bbox: Float32Array;
 }

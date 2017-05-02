@@ -15,7 +15,7 @@ var ModelGeometry = (function () {
         //	bBox: Float32Array(6),
         //	spans: [Int32Array([int, int]),Int32Array([int, int]), ...] //spanning indexes defining shapes of product and it's state
         //};
-        this.productMap = {};
+        this.productMaps = {};
     }
     ModelGeometry.prototype.parse = function (binReader) {
         var br = binReader;
@@ -62,7 +62,7 @@ var ModelGeometry = (function () {
         this.states = new Uint8Array(numTriangles * 3 * 2); //place for state and restyling
         this.transformations = new Float32Array(numTriangles * 3);
         this.matrices = new Float32Array(square(4, numMatrices * 16));
-        this.productMap = {};
+        this.productMaps = {};
         this.regions = new Array(numRegions);
         var iVertex = 0;
         var iIndexForward = 0;
@@ -110,7 +110,7 @@ var ModelGeometry = (function () {
                 bBox: bBox,
                 spans: []
             };
-            this.productMap[productLabel] = map;
+            this.productMaps[productLabel] = map;
         }
         for (var iShape = 0; iShape < numShapes; iShape++) {
             var repetition = br.readInt32();
@@ -216,4 +216,10 @@ var ModelGeometry = (function () {
     return ModelGeometry;
 }());
 exports.ModelGeometry = ModelGeometry;
+var ProductMap = (function () {
+    function ProductMap() {
+    }
+    return ProductMap;
+}());
+exports.ProductMap = ProductMap;
 //# sourceMappingURL=model-geometry.js.map

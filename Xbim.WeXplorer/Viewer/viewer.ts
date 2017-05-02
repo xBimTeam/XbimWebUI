@@ -2,7 +2,7 @@
 import { ProductType } from './product-type';
 import { ProductInheritance } from './product-inheritance';
 import { ModelGeometry } from './model-geometry';
-import { ModelHandle } from './model-handle';
+import { ModelHandle, Region } from './model-handle';
 import { Shaders } from './shaders/shaders';
 import { WebGLUtils } from './common/webgl-utils';
 
@@ -261,7 +261,7 @@ export class Viewer {
     private _geometryLoaded: boolean;
     private _plugins: IPlugin[];
     private _stylingChanged: boolean;
-    private _handles: any[];
+    private _handles: ModelHandle[];
     public highlightingColour: number[];
     public navigationMode: 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none';
     private _userAction: boolean;
@@ -440,10 +440,10 @@ export class Viewer {
     * Target is either enumeration from {@link xProductType xProductType} or array of product IDs. If you specify type it will effect all elements of the type.
     *
     * @function Viewer#setState
-    * @param {Number} state - One of {@link xState xState} enumeration values.
+    * @param {State} state - One of {@link State State} enumeration values.
     * @param {Number[] | Number} target - Target of the change. It can either be array of product IDs or product type from {@link xProductType xProductType}.
     */
-    public setState(state: number, target: number | number[]) {
+    public setState(state: State, target: number | number[]) {
         if (typeof (state) == 'undefined' || !(state >= 225 && state <= 255)) throw 'State has to be defined as 225 - 255. Use xState enum.';
         this._handles.forEach(function (handle) {
             handle.setState(state, target);
@@ -620,7 +620,7 @@ export class Viewer {
     * @param {Number} prodId [optional] Product ID. You can get ID either from semantic structure of the model or from {@link Viewer#event:pick pick event}.
     * @return {Bool} True if the target exists and is set, False otherwise
     */
-    public setCameraTarget(prodId?: number) {
+    public setCameraTarget(prodId?: number): boolean{
         var viewer = this;
         //helper function for setting of the distance based on camera field of view and size of the product's bounding box
         var setDistance = function (bBox) {
@@ -630,16 +630,14 @@ export class Viewer {
         }
 
         //set navigation origin and default distance to the product BBox
-        if (typeof (prodId) != 'undefined' && prodId != null) {
+        if (typeof (prodId) !== 'undefined' && prodId != null) {
             //get product BBox and set it's centre as a navigation origin
             var bbox = null;
-            this._handles.every(function (handle) {
-                var map = handle.getProductMap(prodId);
+            this._handles.forEach((handle) => {
+                let map = handle.getProductMap(prodId);
                 if (map) {
                     bbox = map.bBox;
-                    return false;
                 }
-                return true;
             });
             if (bbox) {
                 this._origin = [bbox[0] + bbox[3] / 2.0, bbox[1] + bbox[4] / 2.0, bbox[2] + bbox[5] / 2.0];
@@ -648,19 +646,44 @@ export class Viewer {
             } else
                 return false;
         }
-        //set navigation origin and default distance to the most populated region from the first model
+        //set navigation origin and default distance to the most populated region the biggest
+        //active handle
         else {
             //get region extent and set it's centre as a navigation origin
-            var handle = this._handles[0];
-            if (handle) {
-                var region = handle.region
-                if (region) {
-                    this._origin = [region.centre[0], region.centre[1], region.centre[2]]
-                    setDistance(region.bbox);
-                }
+            let region = viewer.getBiggestRegion();
+            if (region) {
+                this._origin = [region.centre[0], region.centre[1], region.centre[2]]
+                setDistance(region.bbox);
             }
             return true;
         }
+    }
+
+    private getBiggestRegion(): Region {
+        let volume = function (box: Float32Array) {
+            return (box[3] - box[0]) * (box[4] - box[1]) * (box[5] - box[2]);
+        }
+
+        let handle = this._handles
+            .filter((h, i, a) => { !h.stopped })
+            .sort((a, b) => {
+                let volA = volume(a.region.bbox);
+                let volB = volume(b.region.bbox);
+                if (volA < volB) {
+                    return -1;
+                }
+                if (volA == volB) {
+                    return 0;
+                }
+                if (volA > volB) {
+                    return 1;
+                }
+            })
+            .pop();
+        if (handle)
+            return handle.region;
+        else
+            return null;
     }
 
     /**
@@ -1509,7 +1532,7 @@ export class Viewer {
     * @param {Number} [id] Product ID
     * @return {Bool} True if target exists and zoom was successful, False otherwise
     */
-    public zoomTo(id: number) {
+    public zoomTo(id?: number) {
         var found = this.setCameraTarget(id);
         if (!found) return false;
 
@@ -1653,7 +1676,7 @@ export class Viewer {
 
         //render colour coded image using latest buffered data
         this._handles.forEach(function (handle) {
-            if (!handle.stopped) {
+            if (!handle.stopped && handle.pickable) {
                 handle.setActive(this._pointers);
                 handle.draw();
             }
@@ -1764,7 +1787,7 @@ export class Viewer {
     * @function Viewer#stop
     * @param {Number} id [optional] - Optional ID of the model to be stopped. You can get this ID from {@link Viewer#event:loaded loaded} event.
     */
-    public stop(id: number) {
+    public stop(id?: number) {
         if (typeof (id) == 'undefined') {
             this._isRunning = false;
             return;
@@ -1779,6 +1802,36 @@ export class Viewer {
     }
 
     /**
+    * Use this function to stop picking of the objects in the specified model. It will behave as if not present for all picking operations.
+    * All models are pickable by default when loaded.
+    *
+    * @function Viewer#stopPicking
+    * @param {Number} id - ID of the model to be stopped. You can get this ID from {@link Viewer#event:loaded loaded} event.
+    */
+    public stopPicking(id: number) {
+        var model = this._handles.filter(h => { return h.id === id; }).pop();
+        if (typeof (model) === 'undefined')
+            throw "Model doesn't exist.";
+
+        model.pickable = false;
+    }
+
+    /**
+    * Use this function to enable picking of the objects in the specified model. 
+    * All models are pickable by default when loaded. You can stop the model from being pickable using {@link Viewer#stopPicking} function.
+    *
+    * @function Viewer#startPicking
+    * @param {Number} id - ID of the model to be stopped. You can get this ID from {@link Viewer#event:loaded loaded} event.
+    */
+    public startPicking(id: number) {
+        var model = this._handles.filter(h => { return h.id === id; }).pop();
+        if (typeof (model) === 'undefined')
+            throw "Model doesn't exist.";
+
+        model.pickable = true;
+    }
+
+    /**
      * Use this method to register to events of the viewer like {@link Viewer#event:pick pick}, {@link Viewer#event:mouseDown mouseDown}, 
      * {@link Viewer#event:loaded loaded} and others. You can define arbitrary number
      * of event handlers for any event. You can remove handler by calling {@link Viewer#off off()} method.
@@ -1787,7 +1840,7 @@ export class Viewer {
      * @param {String} eventName - Name of the event you would like to listen to.
      * @param {Object} callback - Callback handler of the event which will consume arguments and perform any custom action.
     */
-    public on(eventName: string, callback) {
+    public on(eventName: string, callback: Function) {
         var events = this._events;
         if (!events[eventName]) {
             events[eventName] = [];
@@ -1823,8 +1876,7 @@ export class Viewer {
         //cal the callbacks
         handlers.forEach(function (handler) {
             handler(args);
-        },
-            this);
+        });
     }
 
     private disableTextSelection() {

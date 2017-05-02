@@ -3,6 +3,10 @@
 var viewer = new Viewer('viewer');
 viewer.load("/tests/data/SampleHouse.wexbim", "Model A");
 
+viewer.on("loaded", function () {
+    console.log("Viewer data loaded");
+});
+
 var cube = new NavigationCube();
 cube.ratio = 0.1;
 cube.passiveAlpha = 1.0;

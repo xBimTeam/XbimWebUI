@@ -1,4 +1,4 @@
-import { ModelGeometry } from "./model-geometry";
+import { ModelGeometry, ProductMap } from "./model-geometry";
 import { State } from "./state";
 import { ModelPointers } from "./viewer";
 export declare class ModelHandle {
@@ -6,6 +6,7 @@ export declare class ModelHandle {
     _model: ModelGeometry;
     id: number;
     stopped: boolean;
+    pickable: boolean;
     private _numberOfIndices;
     private _vertexTextureSize;
     private _matrixTextureSize;
@@ -20,16 +21,17 @@ export declare class ModelHandle {
     private _stateBuffer;
     private _transformationBuffer;
     private _feedCompleted;
-    region: any;
+    region: Region;
     constructor(gl: any, model: ModelGeometry);
     /**
      * Static counter to keep unique ID of the model handles
      */
     private static _instancesNum;
     setActive(pointers: ModelPointers): void;
-    draw(mode: 'solid' | 'transparent'): void;
+    draw(mode?: 'solid' | 'transparent'): void;
     drawProduct(id: number): void;
-    private getProductMap(id);
+    getProductMap(id: number): ProductMap;
+    getProductMaps(ids: number[]): ProductMap[];
     unload(): void;
     feedGPU(): void;
     private bufferData(pointer, data);
@@ -41,4 +43,9 @@ export declare class ModelHandle {
     resetStyles(): void;
     getModelState(): Array<Array<number>>;
     restoreModelState(state: Array<Array<number>>): void;
+}
+export declare class Region {
+    population: number;
+    centre: Float32Array;
+    bbox: Float32Array;
 }
