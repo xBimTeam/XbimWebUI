@@ -1,9 +1,9 @@
-import { ModelGeometry, ProductMap } from "./model-geometry";
+import { ModelGeometry, ProductMap, Region } from "./model-geometry";
 import { State } from "./state";
 import { ModelPointers } from "./viewer";
 export declare class ModelHandle {
     private _gl;
-    _model: ModelGeometry;
+    model: ModelGeometry;
     id: number;
     stopped: boolean;
     pickable: boolean;
@@ -43,9 +43,4 @@ export declare class ModelHandle {
     resetStyles(): void;
     getModelState(): Array<Array<number>>;
     restoreModelState(state: Array<Array<number>>): void;
-}
-export declare class Region {
-    population: number;
-    centre: Float32Array;
-    bbox: Float32Array;
 }

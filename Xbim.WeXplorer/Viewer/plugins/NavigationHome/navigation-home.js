@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var navigation_home_textures_1 = require("./navigation-home-textures");
+var vec3_1 = require("../../matrix/vec3");
 var NavigationHome = (function () {
     /**
      * This is constructor of the Home plugin for {@link Viewer xBIM Viewer}. It gets optional Image object as an argument. If no image
@@ -84,8 +85,8 @@ var NavigationHome = (function () {
             viewer.setCameraTarget();
             var origin = viewer._origin;
             var distance = self.distance != null ? self.distance : viewer._distance;
-            var normDirection = vec3.normalize(vec3.create(), self.viewDirection);
-            var position = vec3.scale(vec3.create(), normDirection, -1.0 * distance);
+            var normDirection = vec3_1.vec3.normalize(vec3_1.vec3.create(), self.viewDirection);
+            var position = vec3_1.vec3.scale(vec3_1.vec3.create(), normDirection, -1.0 * distance);
             viewer.setCameraPosition(Array.prototype.slice.call(position));
         });
         //set active state styling

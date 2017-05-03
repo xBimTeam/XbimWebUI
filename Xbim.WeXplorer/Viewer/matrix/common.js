@@ -62,7 +62,7 @@ glMatrix.ARRAY_TYPE = (typeof Float32Array !== 'undefined') ? Float32Array : Arr
 glMatrix.RANDOM = Math.random;
 glMatrix.ENABLE_SIMD = false;
 // Capability detection
-glMatrix.SIMD_AVAILABLE = (glMatrix.ARRAY_TYPE === Float32Array);
+glMatrix.SIMD_AVAILABLE = (glMatrix.ARRAY_TYPE === Float32Array) && typeof (window['SIMD']) !== 'undefined';
 glMatrix.USE_SIMD = glMatrix.ENABLE_SIMD && glMatrix.SIMD_AVAILABLE;
 glMatrix.degree = Math.PI / 180;
 exports.glMatrix = glMatrix;

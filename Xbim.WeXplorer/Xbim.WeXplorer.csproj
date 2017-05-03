@@ -123,6 +123,8 @@
     <TypeScriptCompile Include="Build\xbim-geometry-loader.d.ts" />
     <TypeScriptCompile Include="Build\xbim-viewer.d.ts" />
     <TypeScriptCompile Include="Viewer\matrix\common.ts" />
+    <TypeScriptCompile Include="Viewer\matrix\quat.ts" />
+    <TypeScriptCompile Include="Viewer\matrix\mat3.ts" />
     <TypeScriptCompile Include="Viewer\matrix\mat4.ts" />
     <TypeScriptCompile Include="Viewer\matrix\vec3.ts" />
     <TypeScriptCompile Include="Viewer\common\webgl-utils.ts" />
@@ -285,7 +287,7 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="Examples\TsModulesExample\index.ts" />
-    <TypeScriptCompile Include="Libs\gl-matrix.d.ts" />
+    <None Include="Libs\gl-matrix.d.ts_xxx" />
     <TypeScriptCompile Include="Libs\webgl-utils.d.ts" />
     <TypeScriptCompile Include="Viewer\plugins\NavigationCube\navigation-cube-shaders.ts" />
     <TypeScriptCompile Include="Viewer\plugins\NavigationCube\navigation-cube-textures.ts" />

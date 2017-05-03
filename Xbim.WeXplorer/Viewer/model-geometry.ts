@@ -30,7 +30,7 @@ export class ModelGeometry {
     //};
 
     public productMaps: { [id: number]: ProductMap; } = {};
-    public regions: any[];
+    public regions: Region[];
     public transparentIndex: number;
 
     public parse(binReader: BinaryReader) {
@@ -89,11 +89,10 @@ export class ModelGeometry {
 
 
         for (var i = 0; i < numRegions; i++) {
-            this.regions[i] = {
-                population: br.readInt32(),
-                centre: br.readFloat32Array(3),
-                bbox: br.readFloat32Array(6)
-            }
+            let region = new Region();
+            region.population = br.readInt32();
+            region.centre = br.readFloat32Array(3);
+            region.bbox = br.readFloat32Array(6);
         }
 
 
@@ -169,7 +168,7 @@ export class ModelGeometry {
 
 
             //copy shape data into inner array and set to null so it can be garbage collected
-            shapeList.forEach(function (shape) {
+            shapeList.forEach(shape => {
                 var iIndex = 0;
                 //set iIndex according to transparency either from beginning or at the end
                 if (shape.transparent) {
@@ -179,7 +178,7 @@ export class ModelGeometry {
                 }
 
                 var begin = iIndex;
-                var map = this.productMap[shape.pLabel];
+                var map = this.productMaps[shape.pLabel];
                 if (typeof (map) === "undefined") {
                     //throw "Product hasn't been defined before.";
                     map = {
@@ -188,7 +187,7 @@ export class ModelGeometry {
                         bBox: new Float32Array(6),
                         spans: []
                     };
-                    this.productMap[shape.pLabel] = map;
+                    this.productMaps[shape.pLabel] = map;
                 }
 
                 this.normals.set(shapeGeom.normals, iIndex * 2);
@@ -260,5 +259,57 @@ export class ProductMap {
     productID: number;
     type: ProductType;
     bBox: Float32Array;
-    spans: Array<number[]>;
+    spans: Array<Int32Array>;
+}
+
+export class Region {
+    public population: number = -1;
+    public centre: Float32Array = null;
+    public bbox: Float32Array = null;
+
+    /**
+     * Returns clone of this region
+     */
+    public clone(): Region {
+        let clone = new Region();
+
+        clone.population = this.population;
+        clone.centre = new Float32Array(this.centre);
+        clone.bbox = new Float32Array(this.bbox);
+
+        return clone;
+    }
+
+    /**
+     * Returns new region which is a merge of this region and the argument
+     * @param region region to be merged
+     */
+    public merge(region: Region): Region {
+        //if this is a new empty region, return clone of the argument
+        if (this.population === -1 && this.centre === null && this.bbox === null)
+            return region.clone();
+
+        let out = new Region();
+        out.population = this.population + region.population;
+
+        let x = Math.min(this.bbox[0], region.bbox[0]);
+        let y = Math.min(this.bbox[1], region.bbox[1]);
+        let z = Math.min(this.bbox[2], region.bbox[2]);
+
+        let x2 = Math.min(this.bbox[0] + this.bbox[3], region.bbox[0] + region.bbox[3]);
+        let y2 = Math.min(this.bbox[1] + this.bbox[4], region.bbox[1] + region.bbox[4]);
+        let z2 = Math.min(this.bbox[2] + this.bbox[5], region.bbox[2] + region.bbox[5]);
+
+        let sx = x2 - x;
+        let sy = y2 - y;
+        let sz = z2 - z;
+
+        let cx = (x + x2) / 2.0;
+        let cy = (y + y2) / 2.0;
+        let cz = (z + z2) / 2.0;
+
+        out.bbox = new Float32Array([x, y, z, sx, sy, sz]);
+        out.centre = new Float32Array([cx, cy, cz]);
+        return out;
+    }
 }

@@ -1,10 +1,15 @@
 ﻿import { State } from './state';
 import { ProductType } from './product-type';
 import { ProductInheritance } from './product-inheritance';
-import { ModelGeometry } from './model-geometry';
-import { ModelHandle, Region } from './model-handle';
+import { ModelGeometry, Region } from './model-geometry';
+import { ModelHandle} from './model-handle';
 import { Shaders } from './shaders/shaders';
+
+//ported libraries
 import { WebGLUtils } from './common/webgl-utils';
+import { vec3 } from "./matrix/vec3";
+import { mat3 } from "./matrix/mat3";
+import { mat4 } from "./matrix/mat4";
 
 //reexport these classes to make them available when viewer is the root package
 export { State } from './state';
@@ -152,7 +157,7 @@ export class Viewer {
             return;
         }
 
-        this._gl = gl;
+        this.gl = gl;
 
         //detect floating point texture support
         this._fpt = (
@@ -203,7 +208,7 @@ export class Viewer {
         this._plugins = new Array<IPlugin>();
 
         //transformation matrices
-        this._mvMatrix = mat4.create(); //world matrix
+        this.mvMatrix = mat4.create(); //world matrix
         this._pMatrix = mat4.create(); //camera matrix (this can be either perspective or orthogonal camera)
 
         //Navigation settings - coordinates in the WCS of the origin used for orbiting and panning
@@ -296,8 +301,9 @@ export class Viewer {
     private _clippingB: boolean;
     private _lastClippingPoint: number[];
 
-    public _gl: WebGLRenderingContext;
-    public _mvMatrix: mat4;
+    public gl: WebGLRenderingContext;
+    public mvMatrix: Float32Array;
+
     private _fpt: any;
     private _pMatrix: any;
     private _pointers: ModelPointers;
@@ -429,7 +435,7 @@ export class Viewer {
         this._stateStyles.set(colData, index * 4);
 
         //reset data in GPU
-        ModelHandle.bufferTexture(this._gl, this._stateStyleTexture, this._stateStyles);
+        ModelHandle.bufferTexture(this.gl, this._stateStyleTexture, this._stateStyles);
 
         //set flag
         this._stylingChanged = true;
@@ -609,7 +615,7 @@ export class Viewer {
     */
     public setCameraPosition(coordinates: number[]) {
         if (typeof (coordinates) == 'undefined') throw 'Parameter coordinates must be defined';
-        mat4.lookAt(this._mvMatrix, coordinates, this._origin, [0, 0, 1]);
+        mat4.lookAt(this.mvMatrix, coordinates, this._origin, [0, 0, 1]);
     }
 
     /**
@@ -646,11 +652,11 @@ export class Viewer {
             } else
                 return false;
         }
-        //set navigation origin and default distance to the most populated region the biggest
-        //active handle
+        //set navigation origin and default distance to the merged region composed 
+        //from all models which are not stopped at the moment
         else {
             //get region extent and set it's centre as a navigation origin
-            let region = viewer.getBiggestRegion();
+            let region = viewer.getMergedRegion();
             if (region) {
                 this._origin = [region.centre[0], region.centre[1], region.centre[2]]
                 setDistance(region.bbox);
@@ -659,9 +665,19 @@ export class Viewer {
         }
     }
 
+    private getMergedRegion(): Region {
+        let region = new Region();
+        this._handles
+            .filter((h, i, a) =>  !h.stopped )
+            .forEach((h, i, a) => {
+                region = region.merge(h.region);
+            });
+        return region;
+    }
+
     private getBiggestRegion(): Region {
         let volume = function (box: Float32Array) {
-            return (box[3] - box[0]) * (box[4] - box[1]) * (box[5] - box[2]);
+            return box[3] * box[4] * box[5];
         }
 
         let handle = this._handles
@@ -698,17 +714,17 @@ export class Viewer {
     };
 
     /**
-    * This method is uses WebWorker if available to load model data into viewer.
+    * This method uses WebWorker if available to load the model into this viewer.
     * Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data. Any other type of argument will throw an exception.
     * You can load more than one model if they occupy the same space, use the same scale and have unique product IDs. Duplicated IDs won't affect 
-    * visualization itself but would cause unexpected user interaction (picking, zooming, ...)
+    * visualization itself but would cause unexpected user interaction (picking, zooming, ...).
     * @function Viewer#load
     * @param {String} loaderUrl - Url of the 'xbim-geometry-loader.js' script which will be called as a worker
     * @param {String | Blob | File} model - Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data.
     * @param {Any} tag [optional] - Tag to be used to identify the model in {@link Viewer#event:loaded loaded} event.
     * @fires Viewer#loaded
     */
-    public loadAsync(loaderUrl: string, model: string | Blob | File, tag): void {
+    public loadAsync(loaderUrl: string, model: string | Blob | File, tag?: any): void {
         if (typeof (model) == 'undefined') throw 'You have to specify model to load.';
         if (typeof (model) != 'string' && !(model instanceof Blob))
             throw 'Model has to be specified either as a URL to wexBIM file or Blob object representing the wexBIM file.';
@@ -722,7 +738,7 @@ export class Viewer {
         var worker = new Worker(loaderUrl);
         worker.onmessage = function (msg) {
 
-            console.log('Message received from worker');
+            //console.log('Message received from worker');
             var geometry = msg.data;
             self.addHandle(geometry, tag);
         }
@@ -731,7 +747,7 @@ export class Viewer {
         };
 
         worker.postMessage(model);
-        console.log('Message posted to worker');
+        //console.log('Message posted to worker');
         return;
     }
 
@@ -746,7 +762,7 @@ export class Viewer {
     * @param {Any} tag [optional] - Tag to be used to identify the model in {@link Viewer#event:loaded loaded} event.
     * @fires Viewer#loaded
     */
-    public load(model: string | Blob | File, tag) {
+    public load(model: string | Blob | File, tag?: any) {
         if (typeof (model) == 'undefined') throw 'You have to specify model to load.';
         if (typeof (model) != 'string' && !(model instanceof Blob))
             throw 'Model has to be specified either as a URL to wexBIM file or Blob object representing the wexBIM file.';
@@ -764,17 +780,17 @@ export class Viewer {
 
     //this is a private function used to add loaded geometry as a new handle and to set up camera and 
     //default view if this is the first geometry loaded
-    private addHandle(geometry, tag) {
+    private addHandle(geometry: ModelGeometry, tag?: any): void {
         var viewer = this;
-        var gl = this._gl;
+        var gl = this.gl;
 
-        var handle = new ModelHandle(viewer._gl, geometry);
+        var handle = new ModelHandle(viewer.gl, geometry);
         viewer._handles.push(handle);
 
         handle.feedGPU();
 
         //get one meter size from model and set it to shader
-        var meter = handle._model.meter;
+        var meter = handle.model.meter;
         gl.uniform1f(viewer._meterUniformPointer, meter);
 
         //only set camera parameters and the view if this is the first model
@@ -811,7 +827,7 @@ export class Viewer {
          * 
          * @event Viewer#loaded
          * @type {object}
-         * @param {Number} id - model ID
+         * @param {Number} id - model ID assigned by the viewer
          * @param {Any} tag - tag which was passed to 'Viewer.load()' function
          * 
         */
@@ -846,7 +862,7 @@ export class Viewer {
     //or when shader set-up changes
     public _initShaders() {
 
-        var gl = this._gl;
+        var gl = this.gl;
         var viewer = this;
         var compile = function (shader, code) {
             gl.shaderSource(shader, code);
@@ -879,7 +895,7 @@ export class Viewer {
     }
 
     private _initAttributesAndUniforms(): void {
-        var gl = this._gl;
+        var gl = this.gl;
 
         //create pointers to uniform variables for transformations
         this._pMatrixUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uPMatrix');
@@ -1283,11 +1299,11 @@ export class Viewer {
         var camera = this.getCameraPosition();
 
         //get origin coordinates in view space
-        var mvOrigin = vec3.transformMat4(vec3.create(), origin, this._mvMatrix);
+        var mvOrigin = vec3.transformMat4(vec3.create(), origin, this.mvMatrix);
 
         //movement factor needs to be dependant on the distance but one meter is a minimum so that movement wouldn't stop when camera is in 0 distance from navigation origin
         var distanceVec = vec3.subtract(vec3.create(), origin, camera);
-        var distance = Math.max(vec3.length(distanceVec), this._handles[0]._model.meter);
+        var distance = Math.max(vec3.vectorLength(distanceVec), this._handles[0].model.meter);
 
         //move to the navigation origin in view space
         var transform = mat4.translate(mat4.create(), mat4.create(), mvOrigin)
@@ -1310,7 +1326,7 @@ export class Viewer {
                 //z rotation around model z axis
                 var mvZ = vec3.transformMat3(vec3.create(),
                     [0, 0, 1],
-                    mat3.fromMat4(mat3.create(), this._mvMatrix));
+                    mat3.fromMat4(mat3.create(), this.mvMatrix));
                 mvZ = vec3.normalize(vec3.create(), mvZ);
                 transform = mat4.rotate(mat4.create(), transform, degToRad(deltaX / 4), mvZ);
 
@@ -1335,7 +1351,7 @@ export class Viewer {
         transform = mat4.translate(mat4.create(), transform, translation);
 
         //apply transformation in right order
-        this._mvMatrix = mat4.multiply(mat4.create(), transform, this._mvMatrix);
+        this.mvMatrix = mat4.multiply(mat4.create(), transform, this.mvMatrix);
     }
 
     /**
@@ -1362,7 +1378,7 @@ export class Viewer {
         //styles are up to date when new frame is drawn
         this._stylingChanged = false;
 
-        var gl = this._gl;
+        var gl = this.gl;
         var width = this._width;
         var height = this._height;
 
@@ -1405,7 +1421,7 @@ export class Viewer {
 
         //set uniforms (these may quickly change between calls to draw)
         gl.uniformMatrix4fv(this._pMatrixUniformPointer, false, this._pMatrix);
-        gl.uniformMatrix4fv(this._mvMatrixUniformPointer, false, this._mvMatrix);
+        gl.uniformMatrix4fv(this._mvMatrixUniformPointer, false, this.mvMatrix);
         gl.uniform4fv(this._lightAUniformPointer, new Float32Array(this.lightA));
         gl.uniform4fv(this._lightBUniformPointer, new Float32Array(this.lightB));
 
@@ -1512,12 +1528,12 @@ export class Viewer {
     }
 
     /**
-    * Use this method get actual camera position.
+    * Use this method to get actual camera position.
     * @function Viewer#getCameraPosition
     */
-    public getCameraPosition() {
+    public getCameraPosition(): Float32Array {
         var transform = mat4.create();
-        mat4.multiply(transform, this._pMatrix, this._mvMatrix);
+        mat4.multiply(transform, this._pMatrix, this.mvMatrix);
         var inv = mat4.create()
         mat4.invert(inv, transform);
         var eye = vec3.create();
@@ -1545,7 +1561,7 @@ export class Viewer {
         vec3.scale(translation, dir, this._distance);
         vec3.add(eye, translation, this._origin);
 
-        mat4.lookAt(this._mvMatrix, eye, this._origin, [0, 0, 1]);
+        mat4.lookAt(this.mvMatrix, eye, this._origin, [0, 0, 1]);
         return true;
     }
 
@@ -1566,7 +1582,7 @@ export class Viewer {
             //top and bottom are different because these are singular points for look-at function if heading is [0,0,1]
             case 'top':
                 //only move to origin and up (negative values because we move camera against model)
-                mat4.translate(this._mvMatrix,
+                mat4.translate(this.mvMatrix,
                     mat4.create(),
                     [origin[0] * -1.0, origin[1] * -1.0, (distance + origin[2]) * -1.0]);
                 return;
@@ -1578,7 +1594,7 @@ export class Viewer {
                 var rotationY = mat4.rotateY(mat4.create(), toOrigin, Math.PI);
                 var rotationZ = mat4.rotateZ(mat4.create(), rotationY, Math.PI);
                 this
-                    ._mvMatrix = rotationZ;
+                    .mvMatrix = rotationZ;
                 // mat4.translate(mat4.create(), rotationZ, [0, 0, -1.0 * distance]);
                 return;
 
@@ -1598,7 +1614,7 @@ export class Viewer {
                 break;
         }
         //use look-at function to set up camera and target
-        mat4.lookAt(this._mvMatrix, camera, origin, heading);
+        mat4.lookAt(this.mvMatrix, camera, origin, heading);
     }
 
     public error(msg) {
@@ -1627,7 +1643,7 @@ export class Viewer {
 
         //it is not necessary to render the image in full resolution so this factor is used for less resolution. 
         var factor = 2;
-        var gl = this._gl;
+        var gl = this.gl;
         var width = this._width / factor;
         var height = this._height / factor;
         x = x / factor;
@@ -2053,7 +2069,7 @@ export class Viewer {
 
             //get inverse transformation
             var transform = mat4.create();
-            mat4.multiply(transform, viewer._pMatrix, viewer._mvMatrix);
+            mat4.multiply(transform, viewer._pMatrix, viewer.mvMatrix);
             var inverse = mat4.create();
             mat4.invert(inverse, transform);
 

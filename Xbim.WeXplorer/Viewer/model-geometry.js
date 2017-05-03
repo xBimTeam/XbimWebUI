@@ -18,6 +18,7 @@ var ModelGeometry = (function () {
         this.productMaps = {};
     }
     ModelGeometry.prototype.parse = function (binReader) {
+        var _this = this;
         var br = binReader;
         var magicNumber = br.readInt32();
         if (magicNumber != 94132117)
@@ -72,11 +73,10 @@ var ModelGeometry = (function () {
         var stateEnum = state_1.State;
         var typeEnum = product_type_1.ProductType;
         for (var i = 0; i < numRegions; i++) {
-            this.regions[i] = {
-                population: br.readInt32(),
-                centre: br.readFloat32Array(3),
-                bbox: br.readFloat32Array(6)
-            };
+            var region = new Region();
+            region.population = br.readInt32();
+            region.centre = br.readFloat32Array(3);
+            region.bbox = br.readFloat32Array(6);
         }
         var styleMap = [];
         styleMap['getStyle'] = function (id) {
@@ -151,7 +151,7 @@ var ModelGeometry = (function () {
                     iIndex = iIndexForward;
                 }
                 var begin = iIndex;
-                var map = this.productMap[shape.pLabel];
+                var map = _this.productMaps[shape.pLabel];
                 if (typeof (map) === "undefined") {
                     //throw "Product hasn't been defined before.";
                     map = {
@@ -160,21 +160,21 @@ var ModelGeometry = (function () {
                         bBox: new Float32Array(6),
                         spans: []
                     };
-                    this.productMap[shape.pLabel] = map;
+                    _this.productMaps[shape.pLabel] = map;
                 }
-                this.normals.set(shapeGeom.normals, iIndex * 2);
+                _this.normals.set(shapeGeom.normals, iIndex * 2);
                 //switch spaces and openings off by default 
                 var state = map.type == typeEnum.IFCSPACE || map.type == typeEnum.IFCOPENINGELEMENT
                     ? stateEnum.HIDDEN
                     : 0xFF; //0xFF is for the default state
                 //fix indices to right absolute position. It is relative to the shape.
                 for (var i = 0; i < shapeGeom.indices.length; i++) {
-                    this.indices[iIndex] = shapeGeom.indices[i] + iVertex / 3;
-                    this.products[iIndex] = shape.pLabel;
-                    this.styleIndices[iIndex] = shape.style;
-                    this.transformations[iIndex] = shape.transform;
-                    this.states[2 * iIndex] = state; //set state
-                    this.states[2 * iIndex + 1] = 0xFF; //default style
+                    _this.indices[iIndex] = shapeGeom.indices[i] + iVertex / 3;
+                    _this.products[iIndex] = shape.pLabel;
+                    _this.styleIndices[iIndex] = shape.style;
+                    _this.transformations[iIndex] = shape.transform;
+                    _this.states[2 * iIndex] = state; //set state
+                    _this.states[2 * iIndex + 1] = 0xFF; //default style
                     iIndex++;
                 }
                 var end = iIndex;
@@ -222,4 +222,49 @@ var ProductMap = (function () {
     return ProductMap;
 }());
 exports.ProductMap = ProductMap;
+var Region = (function () {
+    function Region() {
+        this.population = -1;
+        this.centre = null;
+        this.bbox = null;
+    }
+    /**
+     * Returns clone of this region
+     */
+    Region.prototype.clone = function () {
+        var clone = new Region();
+        clone.population = this.population;
+        clone.centre = new Float32Array(this.centre);
+        clone.bbox = new Float32Array(this.bbox);
+        return clone;
+    };
+    /**
+     * Returns new region which is a merge of this region and the argument
+     * @param region region to be merged
+     */
+    Region.prototype.merge = function (region) {
+        //if this is a new empty region, return clone of the argument
+        if (this.population === -1 && this.centre === null && this.bbox === null)
+            return region.clone();
+        var out = new Region();
+        out.population = this.population + region.population;
+        var x = Math.min(this.bbox[0], region.bbox[0]);
+        var y = Math.min(this.bbox[1], region.bbox[1]);
+        var z = Math.min(this.bbox[2], region.bbox[2]);
+        var x2 = Math.min(this.bbox[0] + this.bbox[3], region.bbox[0] + region.bbox[3]);
+        var y2 = Math.min(this.bbox[1] + this.bbox[4], region.bbox[1] + region.bbox[4]);
+        var z2 = Math.min(this.bbox[2] + this.bbox[5], region.bbox[2] + region.bbox[5]);
+        var sx = x2 - x;
+        var sy = y2 - y;
+        var sz = z2 - z;
+        var cx = (x + x2) / 2.0;
+        var cy = (y + y2) / 2.0;
+        var cz = (z + z2) / 2.0;
+        out.bbox = new Float32Array([x, y, z, sx, sy, sz]);
+        out.centre = new Float32Array([cx, cy, cz]);
+        return out;
+    };
+    return Region;
+}());
+exports.Region = Region;
 //# sourceMappingURL=model-geometry.js.map

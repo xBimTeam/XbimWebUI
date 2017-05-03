@@ -5,7 +5,11 @@ var product_type_1 = require("./product-type");
 var model_geometry_1 = require("./model-geometry");
 var model_handle_1 = require("./model-handle");
 var shaders_1 = require("./shaders/shaders");
+//ported libraries
 var webgl_utils_1 = require("./common/webgl-utils");
+var vec3_1 = require("./matrix/vec3");
+var mat3_1 = require("./matrix/mat3");
+var mat4_1 = require("./matrix/mat4");
 //reexport these classes to make them available when viewer is the root package
 var state_2 = require("./state");
 exports.State = state_2.State;
@@ -143,7 +147,7 @@ var Viewer = (function () {
         if (!gl) {
             return;
         }
-        this._gl = gl;
+        this.gl = gl;
         //detect floating point texture support
         this._fpt = (gl.getExtension('OES_texture_float') ||
             gl.getExtension('MOZ_OES_texture_float') ||
@@ -183,8 +187,8 @@ var Viewer = (function () {
         //array of plugins which can implement certain methods which get called at certain points like before draw, after draw and others.
         this._plugins = new Array();
         //transformation matrices
-        this._mvMatrix = mat4.create(); //world matrix
-        this._pMatrix = mat4.create(); //camera matrix (this can be either perspective or orthogonal camera)
+        this.mvMatrix = mat4_1.mat4.create(); //world matrix
+        this._pMatrix = mat4_1.mat4.create(); //camera matrix (this can be either perspective or orthogonal camera)
         //Navigation settings - coordinates in the WCS of the origin used for orbiting and panning
         this._origin = [0, 0, 0];
         //Default distance for default views (top, bottom, left, right, front, back)
@@ -338,7 +342,7 @@ var Viewer = (function () {
         var colData = new Uint8Array(colour);
         this._stateStyles.set(colData, index * 4);
         //reset data in GPU
-        model_handle_1.ModelHandle.bufferTexture(this._gl, this._stateStyleTexture, this._stateStyles);
+        model_handle_1.ModelHandle.bufferTexture(this.gl, this._stateStyleTexture, this._stateStyles);
         //set flag
         this._stylingChanged = true;
     };
@@ -499,7 +503,7 @@ var Viewer = (function () {
     Viewer.prototype.setCameraPosition = function (coordinates) {
         if (typeof (coordinates) == 'undefined')
             throw 'Parameter coordinates must be defined';
-        mat4.lookAt(this._mvMatrix, coordinates, this._origin, [0, 0, 1]);
+        mat4_1.mat4.lookAt(this.mvMatrix, coordinates, this._origin, [0, 0, 1]);
     };
     /**
     * This method sets navigation origin to the centroid of specified product's bounding box or to the centre of model if no product ID is specified.
@@ -537,7 +541,7 @@ var Viewer = (function () {
         }
         else {
             //get region extent and set it's centre as a navigation origin
-            var region = viewer.getBiggestRegion();
+            var region = viewer.getMergedRegion();
             if (region) {
                 this._origin = [region.centre[0], region.centre[1], region.centre[2]];
                 setDistance(region.bbox);
@@ -545,9 +549,18 @@ var Viewer = (function () {
             return true;
         }
     };
+    Viewer.prototype.getMergedRegion = function () {
+        var region = new model_geometry_1.Region();
+        this._handles
+            .filter(function (h, i, a) { return !h.stopped; })
+            .forEach(function (h, i, a) {
+            region = region.merge(h.region);
+        });
+        return region;
+    };
     Viewer.prototype.getBiggestRegion = function () {
         var volume = function (box) {
-            return (box[3] - box[0]) * (box[4] - box[1]) * (box[5] - box[2]);
+            return box[3] * box[4] * box[5];
         };
         var handle = this._handles
             .filter(function (h, i, a) { !h.stopped; })
@@ -582,10 +595,10 @@ var Viewer = (function () {
     };
     ;
     /**
-    * This method is uses WebWorker if available to load model data into viewer.
+    * This method uses WebWorker if available to load the model into this viewer.
     * Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data. Any other type of argument will throw an exception.
     * You can load more than one model if they occupy the same space, use the same scale and have unique product IDs. Duplicated IDs won't affect
-    * visualization itself but would cause unexpected user interaction (picking, zooming, ...)
+    * visualization itself but would cause unexpected user interaction (picking, zooming, ...).
     * @function Viewer#load
     * @param {String} loaderUrl - Url of the 'xbim-geometry-loader.js' script which will be called as a worker
     * @param {String | Blob | File} model - Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data.
@@ -604,7 +617,7 @@ var Viewer = (function () {
         }
         var worker = new Worker(loaderUrl);
         worker.onmessage = function (msg) {
-            console.log('Message received from worker');
+            //console.log('Message received from worker');
             var geometry = msg.data;
             self.addHandle(geometry, tag);
         };
@@ -612,7 +625,7 @@ var Viewer = (function () {
             self.error(e.message);
         };
         worker.postMessage(model);
-        console.log('Message posted to worker');
+        //console.log('Message posted to worker');
         return;
     };
     /**
@@ -645,12 +658,12 @@ var Viewer = (function () {
     //default view if this is the first geometry loaded
     Viewer.prototype.addHandle = function (geometry, tag) {
         var viewer = this;
-        var gl = this._gl;
-        var handle = new model_handle_1.ModelHandle(viewer._gl, geometry);
+        var gl = this.gl;
+        var handle = new model_handle_1.ModelHandle(viewer.gl, geometry);
         viewer._handles.push(handle);
         handle.feedGPU();
         //get one meter size from model and set it to shader
-        var meter = handle._model.meter;
+        var meter = handle.model.meter;
         gl.uniform1f(viewer._meterUniformPointer, meter);
         //only set camera parameters and the view if this is the first model
         if (viewer._handles.length === 1) {
@@ -682,7 +695,7 @@ var Viewer = (function () {
          *
          * @event Viewer#loaded
          * @type {object}
-         * @param {Number} id - model ID
+         * @param {Number} id - model ID assigned by the viewer
          * @param {Any} tag - tag which was passed to 'Viewer.load()' function
          *
         */
@@ -712,7 +725,7 @@ var Viewer = (function () {
     //this function should be only called once during initialization
     //or when shader set-up changes
     Viewer.prototype._initShaders = function () {
-        var gl = this._gl;
+        var gl = this.gl;
         var viewer = this;
         var compile = function (shader, code) {
             gl.shaderSource(shader, code);
@@ -739,7 +752,7 @@ var Viewer = (function () {
         gl.useProgram(this._shaderProgram);
     };
     Viewer.prototype._initAttributesAndUniforms = function () {
-        var gl = this._gl;
+        var gl = this.gl;
         //create pointers to uniform variables for transformations
         this._pMatrixUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uPMatrix');
         this._mvMatrixUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uMVMatrix');
@@ -1074,45 +1087,45 @@ var Viewer = (function () {
         var origin = this._origin;
         var camera = this.getCameraPosition();
         //get origin coordinates in view space
-        var mvOrigin = vec3.transformMat4(vec3.create(), origin, this._mvMatrix);
+        var mvOrigin = vec3_1.vec3.transformMat4(vec3_1.vec3.create(), origin, this.mvMatrix);
         //movement factor needs to be dependant on the distance but one meter is a minimum so that movement wouldn't stop when camera is in 0 distance from navigation origin
-        var distanceVec = vec3.subtract(vec3.create(), origin, camera);
-        var distance = Math.max(vec3.length(distanceVec), this._handles[0]._model.meter);
+        var distanceVec = vec3_1.vec3.subtract(vec3_1.vec3.create(), origin, camera);
+        var distance = Math.max(vec3_1.vec3.vectorLength(distanceVec), this._handles[0].model.meter);
         //move to the navigation origin in view space
-        var transform = mat4.translate(mat4.create(), mat4.create(), mvOrigin);
+        var transform = mat4_1.mat4.translate(mat4_1.mat4.create(), mat4_1.mat4.create(), mvOrigin);
         //function for conversion from degrees to radians
         function degToRad(deg) {
             return deg * Math.PI / 180.0;
         }
         switch (type) {
             case 'free-orbit':
-                transform = mat4.rotate(mat4.create(), transform, degToRad(deltaY / 4), [1, 0, 0]);
-                transform = mat4.rotate(mat4.create(), transform, degToRad(deltaX / 4), [0, 1, 0]);
+                transform = mat4_1.mat4.rotate(mat4_1.mat4.create(), transform, degToRad(deltaY / 4), [1, 0, 0]);
+                transform = mat4_1.mat4.rotate(mat4_1.mat4.create(), transform, degToRad(deltaX / 4), [0, 1, 0]);
                 break;
             case 'fixed-orbit':
             case 'orbit':
-                mat4.rotate(transform, transform, degToRad(deltaY / 4), [1, 0, 0]);
+                mat4_1.mat4.rotate(transform, transform, degToRad(deltaY / 4), [1, 0, 0]);
                 //z rotation around model z axis
-                var mvZ = vec3.transformMat3(vec3.create(), [0, 0, 1], mat3.fromMat4(mat3.create(), this._mvMatrix));
-                mvZ = vec3.normalize(vec3.create(), mvZ);
-                transform = mat4.rotate(mat4.create(), transform, degToRad(deltaX / 4), mvZ);
+                var mvZ = vec3_1.vec3.transformMat3(vec3_1.vec3.create(), [0, 0, 1], mat3_1.mat3.fromMat4(mat3_1.mat3.create(), this.mvMatrix));
+                mvZ = vec3_1.vec3.normalize(vec3_1.vec3.create(), mvZ);
+                transform = mat4_1.mat4.rotate(mat4_1.mat4.create(), transform, degToRad(deltaX / 4), mvZ);
                 break;
             case 'pan':
-                mat4.translate(transform, transform, [deltaX * distance / 150, 0, 0]);
-                mat4.translate(transform, transform, [0, (-1.0 * deltaY) * distance / 150, 0]);
+                mat4_1.mat4.translate(transform, transform, [deltaX * distance / 150, 0, 0]);
+                mat4_1.mat4.translate(transform, transform, [0, (-1.0 * deltaY) * distance / 150, 0]);
                 break;
             case 'zoom':
-                mat4.translate(transform, transform, [0, 0, deltaX * distance / 20]);
-                mat4.translate(transform, transform, [0, 0, deltaY * distance / 20]);
+                mat4_1.mat4.translate(transform, transform, [0, 0, deltaX * distance / 20]);
+                mat4_1.mat4.translate(transform, transform, [0, 0, deltaY * distance / 20]);
                 break;
             default:
                 break;
         }
         //reverse the translation in view space and leave only navigation changes
-        var translation = vec3.negate(vec3.create(), mvOrigin);
-        transform = mat4.translate(mat4.create(), transform, translation);
+        var translation = vec3_1.vec3.negate(vec3_1.vec3.create(), mvOrigin);
+        transform = mat4_1.mat4.translate(mat4_1.mat4.create(), transform, translation);
         //apply transformation in right order
-        this._mvMatrix = mat4.multiply(mat4.create(), transform, this._mvMatrix);
+        this.mvMatrix = mat4_1.mat4.multiply(mat4_1.mat4.create(), transform, this.mvMatrix);
     };
     /**
     * This is a static draw method. You can use it if you just want to render model once with no navigation and interaction.
@@ -1135,7 +1148,7 @@ var Viewer = (function () {
         }, this);
         //styles are up to date when new frame is drawn
         this._stylingChanged = false;
-        var gl = this._gl;
+        var gl = this.gl;
         var width = this._width;
         var height = this._height;
         gl.useProgram(this._shaderProgram);
@@ -1145,18 +1158,18 @@ var Viewer = (function () {
         //set up camera
         switch (this.camera) {
             case 'perspective':
-                mat4.perspective(this._pMatrix, this.perspectiveCamera.fov * Math.PI / 180.0, this._width / this._height, this.perspectiveCamera.near, this.perspectiveCamera.far);
+                mat4_1.mat4.perspective(this._pMatrix, this.perspectiveCamera.fov * Math.PI / 180.0, this._width / this._height, this.perspectiveCamera.near, this.perspectiveCamera.far);
                 break;
             case 'orthogonal':
-                mat4.ortho(this._pMatrix, this.orthogonalCamera.left, this.orthogonalCamera.right, this.orthogonalCamera.bottom, this.orthogonalCamera.top, this.orthogonalCamera.near, this.orthogonalCamera.far);
+                mat4_1.mat4.ortho(this._pMatrix, this.orthogonalCamera.left, this.orthogonalCamera.right, this.orthogonalCamera.bottom, this.orthogonalCamera.top, this.orthogonalCamera.near, this.orthogonalCamera.far);
                 break;
             default:
-                mat4.perspective(this._pMatrix, this.perspectiveCamera.fov * Math.PI / 180.0, this._width / this._height, this.perspectiveCamera.near, this.perspectiveCamera.far);
+                mat4_1.mat4.perspective(this._pMatrix, this.perspectiveCamera.fov * Math.PI / 180.0, this._width / this._height, this.perspectiveCamera.near, this.perspectiveCamera.far);
                 break;
         }
         //set uniforms (these may quickly change between calls to draw)
         gl.uniformMatrix4fv(this._pMatrixUniformPointer, false, this._pMatrix);
-        gl.uniformMatrix4fv(this._mvMatrixUniformPointer, false, this._mvMatrix);
+        gl.uniformMatrix4fv(this._mvMatrixUniformPointer, false, this.mvMatrix);
         gl.uniform4fv(this._lightAUniformPointer, new Float32Array(this.lightA));
         gl.uniform4fv(this._lightBUniformPointer, new Float32Array(this.lightB));
         //overlay styles
@@ -1245,16 +1258,16 @@ var Viewer = (function () {
         return !theSame;
     };
     /**
-    * Use this method get actual camera position.
+    * Use this method to get actual camera position.
     * @function Viewer#getCameraPosition
     */
     Viewer.prototype.getCameraPosition = function () {
-        var transform = mat4.create();
-        mat4.multiply(transform, this._pMatrix, this._mvMatrix);
-        var inv = mat4.create();
-        mat4.invert(inv, transform);
-        var eye = vec3.create();
-        vec3.transformMat4(eye, vec3.create(), inv);
+        var transform = mat4_1.mat4.create();
+        mat4_1.mat4.multiply(transform, this._pMatrix, this.mvMatrix);
+        var inv = mat4_1.mat4.create();
+        mat4_1.mat4.invert(inv, transform);
+        var eye = vec3_1.vec3.create();
+        vec3_1.vec3.transformMat4(eye, vec3_1.vec3.create(), inv);
         return eye;
     };
     /**
@@ -1268,13 +1281,13 @@ var Viewer = (function () {
         if (!found)
             return false;
         var eye = this.getCameraPosition();
-        var dir = vec3.create();
-        vec3.subtract(dir, eye, this._origin);
-        dir = vec3.normalize(vec3.create(), dir);
-        var translation = vec3.create();
-        vec3.scale(translation, dir, this._distance);
-        vec3.add(eye, translation, this._origin);
-        mat4.lookAt(this._mvMatrix, eye, this._origin, [0, 0, 1]);
+        var dir = vec3_1.vec3.create();
+        vec3_1.vec3.subtract(dir, eye, this._origin);
+        dir = vec3_1.vec3.normalize(vec3_1.vec3.create(), dir);
+        var translation = vec3_1.vec3.create();
+        vec3_1.vec3.scale(translation, dir, this._distance);
+        vec3_1.vec3.add(eye, translation, this._origin);
+        mat4_1.mat4.lookAt(this.mvMatrix, eye, this._origin, [0, 0, 1]);
         return true;
     };
     /**
@@ -1294,15 +1307,15 @@ var Viewer = (function () {
             //top and bottom are different because these are singular points for look-at function if heading is [0,0,1]
             case 'top':
                 //only move to origin and up (negative values because we move camera against model)
-                mat4.translate(this._mvMatrix, mat4.create(), [origin[0] * -1.0, origin[1] * -1.0, (distance + origin[2]) * -1.0]);
+                mat4_1.mat4.translate(this.mvMatrix, mat4_1.mat4.create(), [origin[0] * -1.0, origin[1] * -1.0, (distance + origin[2]) * -1.0]);
                 return;
             case 'bottom':
                 //only move to origin and up and rotate 180 degrees around Y axis
-                var toOrigin = mat4.translate(mat4.create(), mat4.create(), [origin[0] * -1.0, origin[1] * +1.0, (origin[2] + distance) * -1]);
-                var rotationY = mat4.rotateY(mat4.create(), toOrigin, Math.PI);
-                var rotationZ = mat4.rotateZ(mat4.create(), rotationY, Math.PI);
+                var toOrigin = mat4_1.mat4.translate(mat4_1.mat4.create(), mat4_1.mat4.create(), [origin[0] * -1.0, origin[1] * +1.0, (origin[2] + distance) * -1]);
+                var rotationY = mat4_1.mat4.rotateY(mat4_1.mat4.create(), toOrigin, Math.PI);
+                var rotationZ = mat4_1.mat4.rotateZ(mat4_1.mat4.create(), rotationY, Math.PI);
                 this
-                    ._mvMatrix = rotationZ;
+                    .mvMatrix = rotationZ;
                 // mat4.translate(mat4.create(), rotationZ, [0, 0, -1.0 * distance]);
                 return;
             case 'front':
@@ -1321,7 +1334,7 @@ var Viewer = (function () {
                 break;
         }
         //use look-at function to set up camera and target
-        mat4.lookAt(this._mvMatrix, camera, origin, heading);
+        mat4_1.mat4.lookAt(this.mvMatrix, camera, origin, heading);
     };
     Viewer.prototype.error = function (msg) {
         /**
@@ -1345,7 +1358,7 @@ var Viewer = (function () {
         }, this);
         //it is not necessary to render the image in full resolution so this factor is used for less resolution. 
         var factor = 2;
-        var gl = this._gl;
+        var gl = this.gl;
         var width = this._width / factor;
         var height = this._height / factor;
         x = x / factor;
@@ -1620,7 +1633,7 @@ var Viewer = (function () {
         if (!this._clippingA || cp.every(function (e) { return e === 0; })) {
             return [[0, 0, 0], [0, 0, 0]];
         }
-        var normal = vec3.normalize(vec3.create(), [cp[0], cp[1], cp[2]]);
+        var normal = vec3_1.vec3.normalize(vec3_1.vec3.create(), [cp[0], cp[1], cp[2]]);
         //test if the last clipping point fits in the condition
         var lp = this._lastClippingPoint;
         var test = lp[0] * cp[0] + lp[1] * cp[1] + lp[2] * cp[2] + cp[3];
@@ -1700,30 +1713,30 @@ var Viewer = (function () {
             down = false;
             viewer.enableTextSelection();
             //get inverse transformation
-            var transform = mat4.create();
-            mat4.multiply(transform, viewer._pMatrix, viewer._mvMatrix);
-            var inverse = mat4.create();
-            mat4.invert(inverse, transform);
+            var transform = mat4_1.mat4.create();
+            mat4_1.mat4.multiply(transform, viewer._pMatrix, viewer.mvMatrix);
+            var inverse = mat4_1.mat4.create();
+            mat4_1.mat4.invert(inverse, transform);
             //get normalized coordinates the point in WebGL CS
             var x1 = position.x / (viewer._width / 2.0) - 1.0;
             var y1 = 1.0 - position.y / (viewer._height / 2.0);
             //First point in WCS
-            var A = vec3.create();
-            vec3.transformMat4(A, [x1, y1, -1], inverse); //near clipping plane
+            var A = vec3_1.vec3.create();
+            vec3_1.vec3.transformMat4(A, [x1, y1, -1], inverse); //near clipping plane
             //Second point in WCS
-            var B = vec3.create();
-            vec3.transformMat4(B, [x1, y1, 1], inverse); //far clipping plane
+            var B = vec3_1.vec3.create();
+            vec3_1.vec3.transformMat4(B, [x1, y1, 1], inverse); //far clipping plane
             //Compute third point on plane
             var angle = position.angle * Math.PI / 180.0;
             var x2 = x1 + Math.cos(angle);
             var y2 = y1 + Math.sin(angle);
             //Third point in WCS
-            var C = vec3.create();
-            vec3.transformMat4(C, [x2, y2, 1], inverse); // far clipping plane
+            var C = vec3_1.vec3.create();
+            vec3_1.vec3.transformMat4(C, [x2, y2, 1], inverse); // far clipping plane
             //Compute normal in WCS
-            var BA = vec3.subtract(vec3.create(), A, B);
-            var BC = vec3.subtract(vec3.create(), C, B);
-            var N = vec3.cross(vec3.create(), BA, BC);
+            var BA = vec3_1.vec3.subtract(vec3_1.vec3.create(), A, B);
+            var BC = vec3_1.vec3.subtract(vec3_1.vec3.create(), C, B);
+            var N = vec3_1.vec3.cross(vec3_1.vec3.create(), BA, BC);
             viewer.clip([B[0], B[1], B[2]], [N[0], N[1], N[2]]);
             //clean
             svg.parentNode.removeChild(svg);

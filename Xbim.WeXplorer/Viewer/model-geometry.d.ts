@@ -14,7 +14,7 @@ export declare class ModelGeometry {
     productMaps: {
         [id: number]: ProductMap;
     };
-    regions: any[];
+    regions: Region[];
     transparentIndex: number;
     parse(binReader: BinaryReader): void;
     load(source: any): void;
@@ -25,5 +25,19 @@ export declare class ProductMap {
     productID: number;
     type: ProductType;
     bBox: Float32Array;
-    spans: Array<number[]>;
+    spans: Array<Int32Array>;
+}
+export declare class Region {
+    population: number;
+    centre: Float32Array;
+    bbox: Float32Array;
+    /**
+     * Returns clone of this region
+     */
+    clone(): Region;
+    /**
+     * Returns new region which is a merge of this region and the argument
+     * @param region region to be merged
+     */
+    merge(region: Region): Region;
 }

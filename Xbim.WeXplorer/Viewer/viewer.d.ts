@@ -76,8 +76,8 @@ export declare class Viewer {
     private _clippingPlaneB;
     private _clippingB;
     private _lastClippingPoint;
-    _gl: WebGLRenderingContext;
-    _mvMatrix: mat4;
+    gl: WebGLRenderingContext;
+    mvMatrix: Float32Array;
     private _fpt;
     private _pMatrix;
     private _pointers;
@@ -202,6 +202,7 @@ export declare class Viewer {
     * @return {Bool} True if the target exists and is set, False otherwise
     */
     setCameraTarget(prodId?: number): boolean;
+    private getMergedRegion();
     private getBiggestRegion();
     /**
     * This method can be used for batch setting of viewer members. It doesn't check validity of the input.
@@ -210,17 +211,17 @@ export declare class Viewer {
     */
     set(settings: any): void;
     /**
-    * This method is uses WebWorker if available to load model data into viewer.
+    * This method uses WebWorker if available to load the model into this viewer.
     * Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data. Any other type of argument will throw an exception.
     * You can load more than one model if they occupy the same space, use the same scale and have unique product IDs. Duplicated IDs won't affect
-    * visualization itself but would cause unexpected user interaction (picking, zooming, ...)
+    * visualization itself but would cause unexpected user interaction (picking, zooming, ...).
     * @function Viewer#load
     * @param {String} loaderUrl - Url of the 'xbim-geometry-loader.js' script which will be called as a worker
     * @param {String | Blob | File} model - Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data.
     * @param {Any} tag [optional] - Tag to be used to identify the model in {@link Viewer#event:loaded loaded} event.
     * @fires Viewer#loaded
     */
-    loadAsync(loaderUrl: string, model: string | Blob | File, tag: any): void;
+    loadAsync(loaderUrl: string, model: string | Blob | File, tag?: any): void;
     /**
     * This method is used to load model data into viewer. Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data. Any other type of argument will throw an exception.
     * Region extend is determined based on the region of the model
@@ -232,8 +233,8 @@ export declare class Viewer {
     * @param {Any} tag [optional] - Tag to be used to identify the model in {@link Viewer#event:loaded loaded} event.
     * @fires Viewer#loaded
     */
-    load(model: string | Blob | File, tag: any): void;
-    private addHandle(geometry, tag);
+    load(model: string | Blob | File, tag?: any): void;
+    private addHandle(geometry, tag?);
     /**
      * Unloads model from the GPU. This action is not reversible.
      *
@@ -255,10 +256,10 @@ export declare class Viewer {
     draw(): void;
     private isChanged();
     /**
-    * Use this method get actual camera position.
+    * Use this method to get actual camera position.
     * @function Viewer#getCameraPosition
     */
-    getCameraPosition(): vec3;
+    getCameraPosition(): Float32Array;
     /**
     * Use this method to zoom to specified element. If you don't specify a product ID it will zoom to full extent.
     * @function Viewer#zoomTo

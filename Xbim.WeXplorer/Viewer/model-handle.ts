@@ -1,4 +1,4 @@
-﻿import { ModelGeometry , ProductMap} from "./model-geometry";
+﻿import { ModelGeometry, ProductMap, Region } from "./model-geometry";
 import { State } from "./state";
 import { ModelPointers } from "./viewer";
 
@@ -9,7 +9,7 @@ export class ModelHandle {
     //gl: WebGL context
     private _gl: WebGLRenderingContext;
     //model: xModelGeometry
-    public _model: ModelGeometry;
+    public model: ModelGeometry;
 
     //ID used to manipulate this handle
     public id: number;
@@ -46,7 +46,7 @@ export class ModelHandle {
         }
 
         this._gl = gl;
-        this._model = model;
+        this.model = model;
 
         /**
          * unique ID which can be used to identify this handle 
@@ -89,11 +89,10 @@ export class ModelHandle {
             this);
         //set default region if no region is defined. This shouldn't ever happen if model contains any geometry.
         if (typeof (this.region) == 'undefined') {
-            this.region = {
-                population: 1,
-                centre: new Float32Array([0.0, 0.0, 0.0]),
-                bbox: new Float32Array([0.0, 0.0, 0.0, 10 * model.meter, 10 * model.meter, 10 * model.meter])
-            }
+            this.region = new Region();
+            this.region.population = 1;
+            this.region.centre = new Float32Array([0.0, 0.0, 0.0]);
+            this.region.bbox = new Float32Array([0.0, 0.0, 0.0, 10 * model.meter, 10 * model.meter, 10 * model.meter]);
         }
     }
 
@@ -113,16 +112,19 @@ export class ModelHandle {
         if (this._vertexTextureSize > 0) {
             gl.activeTexture(gl.TEXTURE1);
             gl.bindTexture(gl.TEXTURE_2D, this._vertexTexture);
+            gl.uniform1i(pointers.VertexSamplerUniform, 1);
         }
 
         if (this._matrixTextureSize > 0) {
             gl.activeTexture(gl.TEXTURE2);
             gl.bindTexture(gl.TEXTURE_2D, this._matrixTexture);
+            gl.uniform1i(pointers.MatrixSamplerUniform, 2);
         }
 
         if (this._styleTextureSize > 0) {
             gl.activeTexture(gl.TEXTURE3);
             gl.bindTexture(gl.TEXTURE_2D, this._styleTexture);
+            gl.uniform1i(pointers.StyleSamplerUniform, 3);
         }
 
         //set attributes and uniforms
@@ -144,9 +146,6 @@ export class ModelHandle {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._transformationBuffer);
         gl.vertexAttribPointer(pointers.TransformationAttrPointer, 1, gl.FLOAT, false, 0, 0);
 
-        gl.uniform1i(pointers.VertexSamplerUniform, 1);
-        gl.uniform1i(pointers.MatrixSamplerUniform, 2);
-        gl.uniform1i(pointers.StyleSamplerUniform, 3);
         gl.uniform1i(pointers.VertexTextureSizeUniform, this._vertexTextureSize);
         gl.uniform1i(pointers.MatrixTextureSizeUniform, this._matrixTextureSize);
         gl.uniform1i(pointers.StyleTextureSizeUniform, this._styleTextureSize);
@@ -165,12 +164,12 @@ export class ModelHandle {
         }
 
         if (mode === 'solid') {
-            gl.drawArrays(gl.TRIANGLES, 0, this._model.transparentIndex);
+            gl.drawArrays(gl.TRIANGLES, 0, this.model.transparentIndex);
             return;
         }
 
         if (mode === 'transparent') {
-            gl.drawArrays(gl.TRIANGLES, this._model.transparentIndex, this._numberOfIndices - this._model.transparentIndex);
+            gl.drawArrays(gl.TRIANGLES, this.model.transparentIndex, this._numberOfIndices - this.model.transparentIndex);
             return;
         }
     }
@@ -194,7 +193,7 @@ export class ModelHandle {
     }
 
     public getProductMap(id: number): ProductMap {
-        var map = this._model.productMaps[id];
+        var map = this.model.productMaps[id];
         if (typeof (map) !== 'undefined') return map;
         return null;
     }
@@ -202,11 +201,11 @@ export class ModelHandle {
     public getProductMaps(ids: number[]): ProductMap[] {
         let result = new Array<ProductMap>();
         ids.forEach(id => {
-            var map = this._model.productMaps[id];
+            var map = this.model.productMaps[id];
             if (typeof (map) !== 'undefined')
                 result.push(map);
         });
-        
+
         return result;
     }
 
@@ -231,7 +230,7 @@ export class ModelHandle {
         }
 
         var gl = this._gl;
-        var model = this._model;
+        var model = this.model;
 
         //fill all buffers
         this.bufferData(this._normalBuffer, model.normals);
@@ -337,7 +336,7 @@ export class ModelHandle {
         var span = map.spans[0];
         if (typeof (span) == 'undefined') return null;
 
-        return this._model.states[span[0] * 2];
+        return this.model.states[span[0] * 2];
     }
 
     public getStyle(id: number): number {
@@ -348,7 +347,7 @@ export class ModelHandle {
         var span = map.spans[0];
         if (typeof (span) == 'undefined') return null;
 
-        return this._model.states[span[0] * 2 + 1];
+        return this.model.states[span[0] * 2 + 1];
     }
 
     public setState(state: State, args: number | number[]): void {
@@ -360,8 +359,8 @@ export class ModelHandle {
         var maps = [];
         //it is type
         if (typeof (args) == 'number') {
-            for (var n in this._model.productMaps) {
-                var map = this._model.productMaps[n];
+            for (var n in this.model.productMaps) {
+                var map = this.model.productMaps[n];
                 if (map.type == args) maps.push(map);
             }
         }
@@ -388,28 +387,28 @@ export class ModelHandle {
             this);
 
         //buffer data to GPU
-        this.bufferData(this._stateBuffer, this._model.states);
+        this.bufferData(this._stateBuffer, this.model.states);
     }
 
     public resetStates(): void {
-        for (var i = 0; i < this._model.states.length; i += 2) {
-            this._model.states[i] = State.UNDEFINED;
+        for (var i = 0; i < this.model.states.length; i += 2) {
+            this.model.states[i] = State.UNDEFINED;
         }
         //buffer data to GPU
-        this.bufferData(this._stateBuffer, this._model.states);
+        this.bufferData(this._stateBuffer, this.model.states);
     }
 
     public resetStyles(): void {
-        for (var i = 0; i < this._model.states.length; i += 2) {
-            this._model.states[i + 1] = State.UNSTYLED;
+        for (var i = 0; i < this.model.states.length; i += 2) {
+            this.model.states[i + 1] = State.UNSTYLED;
         }
         //buffer data to GPU
-        this.bufferData(this._stateBuffer, this._model.states);
+        this.bufferData(this._stateBuffer, this.model.states);
     };
 
     public getModelState(): Array<Array<number>> {
         var result = [];
-        var products = this._model.productMaps;
+        var products = this.model.productMaps;
         for (var i in products) {
             if (!products.hasOwnProperty(i)) {
                 continue;
@@ -418,8 +417,8 @@ export class ModelHandle {
             var span = map.spans[0];
             if (typeof (span) == 'undefined') continue;
 
-            var state = this._model.states[span[0] * 2];
-            var style = this._model.states[span[0] * 2 + 1];
+            var state = this.model.states[span[0] * 2];
+            var style = this.model.states[span[0] * 2 + 1];
 
             result.push([map.productID, state + (style << 8)]);
         }
@@ -448,12 +447,6 @@ export class ModelHandle {
             this);
 
         //buffer data to GPU
-        this.bufferData(this._stateBuffer, this._model.states);
+        this.bufferData(this._stateBuffer, this.model.states);
     }
-}
-
-export class Region {
-    public population: number;
-    public centre: Float32Array;
-    public bbox: Float32Array;
 }

@@ -31,7 +31,7 @@ export class glMatrix {
     public static ENABLE_SIMD = false;
 
     // Capability detection
-    public static SIMD_AVAILABLE = (glMatrix.ARRAY_TYPE === Float32Array);
+    public static SIMD_AVAILABLE = (glMatrix.ARRAY_TYPE === Float32Array) && typeof (window['SIMD']) !== 'undefined';
     public static USE_SIMD = glMatrix.ENABLE_SIMD && glMatrix.SIMD_AVAILABLE;
 
 

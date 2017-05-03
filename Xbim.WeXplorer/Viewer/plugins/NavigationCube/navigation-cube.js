@@ -2,6 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var navigation_cube_shaders_1 = require("./navigation-cube-shaders");
 var navigation_cube_textures_1 = require("./navigation-cube-textures");
+var mat4_1 = require("../../matrix/mat4");
+var mat3_1 = require("../../matrix/mat3");
+var vec3_1 = require("../../matrix/vec3");
 var NavigationCube = (function () {
     /**
      * This is constructor of the Navigation Cube plugin for {@link Viewer xBIM Viewer}. It gets optional Image as an argument.
@@ -722,7 +725,7 @@ var NavigationCube = (function () {
     NavigationCube.prototype.init = function (viewer) {
         var self = this;
         this.viewer = viewer;
-        var gl = this.viewer._gl;
+        var gl = this.viewer.gl;
         //create own shader 
         this._shader = null;
         this._initShader();
@@ -846,7 +849,7 @@ var NavigationCube = (function () {
     NavigationCube.prototype.onBeforeDraw = function () { };
     NavigationCube.prototype.onBeforePick = function (id) {
         if (id >= this.TOP && id <= this.BACK_LEFT) {
-            var dir = vec3.create();
+            var dir = vec3_1.vec3.create();
             var distance = this.viewer._distance;
             var diagonalRatio = 1.3;
             switch (id) {
@@ -869,95 +872,95 @@ var NavigationCube = (function () {
                     this.viewer.show('back');
                     return true;
                 case this.TOP_LEFT_FRONT:
-                    dir = vec3.fromValues(-1, -1, 1);
+                    dir = vec3_1.vec3.fromValues(-1, -1, 1);
                     distance *= diagonalRatio;
                     break;
                 case this.TOP_RIGHT_FRONT:
-                    dir = vec3.fromValues(1, -1, 1);
+                    dir = vec3_1.vec3.fromValues(1, -1, 1);
                     distance *= diagonalRatio;
                     break;
                 case this.TOP_LEFT_BACK:
-                    dir = vec3.fromValues(-1, 1, 1);
+                    dir = vec3_1.vec3.fromValues(-1, 1, 1);
                     distance *= diagonalRatio;
                     break;
                 case this.TOP_RIGHT_BACK:
-                    dir = vec3.fromValues(1, 1, 1);
+                    dir = vec3_1.vec3.fromValues(1, 1, 1);
                     distance *= diagonalRatio;
                     break;
                 case this.BOTTOM_LEFT_FRONT:
-                    dir = vec3.fromValues(-1, -1, -1);
+                    dir = vec3_1.vec3.fromValues(-1, -1, -1);
                     distance *= diagonalRatio;
                     break;
                 case this.BOTTOM_RIGHT_FRONT:
-                    dir = vec3.fromValues(1, -1, -1);
+                    dir = vec3_1.vec3.fromValues(1, -1, -1);
                     distance *= diagonalRatio;
                     break;
                 case this.BOTTOM_LEFT_BACK:
-                    dir = vec3.fromValues(-1, 1, -1);
+                    dir = vec3_1.vec3.fromValues(-1, 1, -1);
                     distance *= diagonalRatio;
                     break;
                 case this.BOTTOM_RIGHT_BACK:
-                    dir = vec3.fromValues(1, 1, -1);
+                    dir = vec3_1.vec3.fromValues(1, 1, -1);
                     distance *= diagonalRatio;
                     break;
                 case this.TOP_LEFT:
-                    dir = vec3.fromValues(-1, 0, 1);
+                    dir = vec3_1.vec3.fromValues(-1, 0, 1);
                     distance *= diagonalRatio;
                     break;
                 case this.TOP_RIGHT:
-                    dir = vec3.fromValues(1, 0, 1);
+                    dir = vec3_1.vec3.fromValues(1, 0, 1);
                     distance *= diagonalRatio;
                     break;
                 case this.TOP_FRONT:
-                    dir = vec3.fromValues(0, -1, 1);
+                    dir = vec3_1.vec3.fromValues(0, -1, 1);
                     distance *= diagonalRatio;
                     break;
                 case this.TOP_BACK:
-                    dir = vec3.fromValues(0, 1, 1);
+                    dir = vec3_1.vec3.fromValues(0, 1, 1);
                     distance *= diagonalRatio;
                     break;
                 case this.BOTTOM_LEFT:
-                    dir = vec3.fromValues(-1, 0, -1);
+                    dir = vec3_1.vec3.fromValues(-1, 0, -1);
                     distance *= diagonalRatio;
                     break;
                 case this.BOTTOM_RIGHT:
-                    dir = vec3.fromValues(1, 0, -1);
+                    dir = vec3_1.vec3.fromValues(1, 0, -1);
                     break;
                 case this.BOTTOM_FRONT:
-                    dir = vec3.fromValues(0, -1, -1);
+                    dir = vec3_1.vec3.fromValues(0, -1, -1);
                     distance *= diagonalRatio;
                     break;
                 case this.BOTTOM_BACK:
-                    dir = vec3.fromValues(0, 1, -1);
+                    dir = vec3_1.vec3.fromValues(0, 1, -1);
                     distance *= diagonalRatio;
                     break;
                 case this.FRONT_RIGHT:
-                    dir = vec3.fromValues(1, -1, 0);
+                    dir = vec3_1.vec3.fromValues(1, -1, 0);
                     distance *= diagonalRatio;
                     break;
                 case this.FRONT_LEFT:
-                    dir = vec3.fromValues(-1, -1, 0);
+                    dir = vec3_1.vec3.fromValues(-1, -1, 0);
                     distance *= diagonalRatio;
                     break;
                 case this.BACK_RIGHT:
-                    dir = vec3.fromValues(1, 1, 0);
+                    dir = vec3_1.vec3.fromValues(1, 1, 0);
                     distance *= diagonalRatio;
                     break;
                 case this.BACK_LEFT:
-                    dir = vec3.fromValues(-1, 1, 0);
+                    dir = vec3_1.vec3.fromValues(-1, 1, 0);
                     distance *= diagonalRatio;
                     break;
                 default:
                     break;
             }
             var o = this.viewer._origin;
-            var heading = vec3.fromValues(0, 0, 1);
-            var origin = vec3.fromValues(o[0], o[1], o[2]);
-            dir = vec3.normalize(vec3.create(), dir);
-            var shift = vec3.scale(vec3.create(), dir, distance);
-            var camera = vec3.add(vec3.create(), origin, shift);
+            var heading = vec3_1.vec3.fromValues(0, 0, 1);
+            var origin = vec3_1.vec3.fromValues(o[0], o[1], o[2]);
+            dir = vec3_1.vec3.normalize(vec3_1.vec3.create(), dir);
+            var shift = vec3_1.vec3.scale(vec3_1.vec3.create(), dir, distance);
+            var camera = vec3_1.vec3.add(vec3_1.vec3.create(), origin, shift);
             //use look-at function to set up camera and target
-            mat4.lookAt(this.viewer._mvMatrix, camera, origin, heading);
+            mat4_1.mat4.lookAt(this.viewer.mvMatrix, camera, origin, heading);
             return true;
         }
         return false;
@@ -980,22 +983,22 @@ var NavigationCube = (function () {
     //return false because this doesn't catch any ID event
     NavigationCube.prototype.onBeforeGetId = function (id) { return false; };
     NavigationCube.prototype.setActive = function () {
-        var gl = this.viewer._gl;
+        var gl = this.viewer.gl;
         //set own shader
         gl.useProgram(this._shader);
         return gl;
     };
     NavigationCube.prototype.setInactive = function () {
-        var gl = this.viewer._gl;
+        var gl = this.viewer.gl;
         //set viewer shader
         gl.useProgram(this.viewer._shaderProgram);
     };
     NavigationCube.prototype.draw = function () {
         if (!this._initialized)
             return;
-        var gl = this.viewer._gl;
+        var gl = this.viewer.gl;
         //set navigation data from Viewer to this shader
-        var pMatrix = mat4.create();
+        var pMatrix = mat4_1.mat4.create();
         var height = 1.0 / this.ratio;
         var width = height / this.viewer._height * this.viewer._width;
         var regionX = this.ratio * this.viewer._height / this.viewer._width * 2.0;
@@ -1003,7 +1006,7 @@ var NavigationCube = (function () {
         //create orthogonal projection matrix
         switch (this.position) {
             case this.BOTTOM_RIGHT:
-                mat4.ortho(pMatrix, 1.0 - width, //left
+                mat4_1.mat4.ortho(pMatrix, 1.0 - width, //left
                 1.0, //right
                 -1.0, //bottom
                 height - 1.0, //top
@@ -1012,7 +1015,7 @@ var NavigationCube = (function () {
                 this._region = [1 - regionX, 0.0, 1.0, regionY];
                 break;
             case this.BOTTOM_LEFT:
-                mat4.ortho(pMatrix, -1.0, //left
+                mat4_1.mat4.ortho(pMatrix, -1.0, //left
                 width - 1.0, //right
                 -1.0, //bottom
                 height - 1.0, //top
@@ -1021,7 +1024,7 @@ var NavigationCube = (function () {
                 this._region = [0.0, 0.0, regionX, regionY];
                 break;
             case this.TOP_LEFT:
-                mat4.ortho(pMatrix, -1.0, //left
+                mat4_1.mat4.ortho(pMatrix, -1.0, //left
                 width - 1.0, //right
                 1.0 - height, //bottom
                 1.0, //top
@@ -1030,7 +1033,7 @@ var NavigationCube = (function () {
                 this._region = [0.0, 1.0 - regionY, regionX, 1.0];
                 break;
             case this.TOP_RIGHT:
-                mat4.ortho(pMatrix, 1.0 - width, //left
+                mat4_1.mat4.ortho(pMatrix, 1.0 - width, //left
                 1.0, //right
                 1.0 - height, //bottom
                 1.0, //top
@@ -1041,8 +1044,8 @@ var NavigationCube = (function () {
             default:
         }
         //extract just a rotation from model-view matrix
-        var rotation = mat3.fromMat4(mat3
-            .create(), this.viewer._mvMatrix);
+        var rotation = mat3_1.mat3.fromMat4(mat3_1.mat3
+            .create(), this.viewer.mvMatrix);
         gl.uniformMatrix4fv(this._pMatrixUniformPointer, false, pMatrix);
         gl.uniformMatrix3fv(this._rotationUniformPointer, false, rotation);
         gl.uniform1f(this._alphaUniformPointer, this._alpha);
@@ -1069,7 +1072,7 @@ var NavigationCube = (function () {
             gl.disable(gl.CULL_FACE);
     };
     NavigationCube.prototype._initShader = function () {
-        var gl = this.viewer._gl;
+        var gl = this.viewer.gl;
         var viewer = this.viewer;
         var compile = function (shader, code) {
             gl.shaderSource(shader, code);

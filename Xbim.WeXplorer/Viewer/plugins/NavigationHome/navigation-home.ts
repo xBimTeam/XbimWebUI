@@ -1,6 +1,8 @@
 ﻿import { IPlugin, Viewer } from "../../viewer";
 import { HomeTextures } from "./navigation-home-textures";
 
+import { vec3 } from "../../matrix/vec3";
+
 export class NavigationHome implements IPlugin {
 
     /**

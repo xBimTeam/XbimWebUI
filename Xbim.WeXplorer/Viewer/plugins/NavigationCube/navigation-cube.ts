@@ -1,6 +1,9 @@
 ﻿import { IPlugin, Viewer } from "../../viewer";
 import { CubeShaders } from "./navigation-cube-shaders";
 import { CubeTextures } from "./navigation-cube-textures";
+import { mat4 } from "../../matrix/mat4";
+import { mat3 } from "../../matrix/mat3";
+import { vec3 } from "../../matrix/vec3";
 
 
 export class NavigationCube implements IPlugin {
@@ -131,7 +134,7 @@ export class NavigationCube implements IPlugin {
     public init(viewer: Viewer) {
         var self = this;
         this.viewer = viewer;
-        var gl = this.viewer._gl;
+        var gl = this.viewer.gl;
 
         //create own shader 
         this._shader = null;
@@ -403,7 +406,7 @@ export class NavigationCube implements IPlugin {
             var camera = vec3.add(vec3.create(), origin, shift);
 
             //use look-at function to set up camera and target
-            mat4.lookAt(this.viewer._mvMatrix, camera, origin, heading);
+            mat4.lookAt(this.viewer.mvMatrix, camera, origin, heading);
             return true;
         }
         return false;
@@ -431,7 +434,7 @@ export class NavigationCube implements IPlugin {
     onBeforeGetId(id) { return false; }
 
     setActive() {
-        var gl = this.viewer._gl;
+        var gl = this.viewer.gl;
         //set own shader
         gl.useProgram(this._shader);
 
@@ -439,7 +442,7 @@ export class NavigationCube implements IPlugin {
     }
 
     setInactive() {
-        var gl = this.viewer._gl;
+        var gl = this.viewer.gl;
         //set viewer shader
         gl.useProgram(this.viewer._shaderProgram);
     }
@@ -447,7 +450,7 @@ export class NavigationCube implements IPlugin {
     private draw() {
         if (!this._initialized) return;
 
-        var gl = this.viewer._gl;
+        var gl = this.viewer.gl;
 
         //set navigation data from Viewer to this shader
         var pMatrix = mat4.create();
@@ -505,7 +508,7 @@ export class NavigationCube implements IPlugin {
         //extract just a rotation from model-view matrix
         var rotation = mat3.fromMat4(mat3
             .create(),
-            this.viewer._mvMatrix);
+            this.viewer.mvMatrix);
         gl.uniformMatrix4fv(this._pMatrixUniformPointer, false, pMatrix);
         gl.uniformMatrix3fv(this._rotationUniformPointer, false, rotation);
         gl.uniform1f(this._alphaUniformPointer, this._alpha);
@@ -538,7 +541,7 @@ export class NavigationCube implements IPlugin {
 
     private _initShader(): void {
 
-        var gl = this.viewer._gl;
+        var gl = this.viewer.gl;
         var viewer = this.viewer;
         var compile = function (shader, code) {
             gl.shaderSource(shader, code);

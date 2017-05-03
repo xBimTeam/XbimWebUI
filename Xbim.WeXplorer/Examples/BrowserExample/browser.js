@@ -131,7 +131,7 @@
             keepTarget = true;
         });
 
-        viewer.load( "/tests/data/LakesideRestaurant.wexbim");
+        viewer.load("/tests/data/LakesideRestaurant.wexbim");
         browser.load("/tests/data/LakesideRestaurant.json");
 
         //var cube = new NavigationCube();
