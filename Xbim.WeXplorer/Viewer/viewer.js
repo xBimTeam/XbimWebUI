@@ -175,7 +175,7 @@ var Viewer = (function () {
         this._lastStates = {};
         this._visualStateAttributes = [
             'perspectiveCamera', 'orthogonalCamera', 'camera', 'background', 'lightA', 'lightB',
-            'renderingMode', '_clippingA', '_clippingB', '_mvMatrix', '_pMatrix', '_distance', '_origin', 'highlightingColour',
+            'renderingMode', '_clippingA', '_clippingB', 'mvMatrix', '_pMatrix', '_distance', '_origin', 'highlightingColour',
             '_numberOfActiveModels', "_width", "_height"
         ];
         this._stylingChanged = true;
@@ -876,7 +876,7 @@ var Viewer = (function () {
                         break;
                 }
             }
-            if (button === 'middle') {
+            if (button === 'middle' || button === 'right') {
                 _this.navigate('pan', deltaX, deltaY);
             }
         };

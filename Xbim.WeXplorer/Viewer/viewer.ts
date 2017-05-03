@@ -192,7 +192,7 @@ export class Viewer {
         this._lastStates = {};
         this._visualStateAttributes = [
             'perspectiveCamera', 'orthogonalCamera', 'camera', 'background', 'lightA', 'lightB',
-            'renderingMode', '_clippingA', '_clippingB', '_mvMatrix', '_pMatrix', '_distance', '_origin', 'highlightingColour',
+            'renderingMode', '_clippingA', '_clippingB', 'mvMatrix', '_pMatrix', '_distance', '_origin', 'highlightingColour',
             '_numberOfActiveModels', "_width", "_height"
         ];
         this._stylingChanged = true;
@@ -1052,7 +1052,7 @@ export class Viewer {
 
                 }
             }
-            if (button === 'middle') {
+            if (button === 'middle' || button === 'right') {
                 this.navigate('pan', deltaX, deltaY);
             }
 

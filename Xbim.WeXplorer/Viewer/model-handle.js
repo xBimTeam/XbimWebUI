@@ -6,6 +6,7 @@ var state_1 = require("./state");
 //make up a model in GPU
 var ModelHandle = (function () {
     function ModelHandle(gl, model) {
+        var _this = this;
         //participates in picking operation only if true
         this.pickable = true;
         if (typeof (gl) == 'undefined' || typeof (model) == 'undefined') {
@@ -40,10 +41,10 @@ var ModelHandle = (function () {
         this.region = model.regions[0];
         //set the most populated region
         model.regions.forEach(function (region) {
-            if (region.population > this.region.population) {
-                this.region = region;
+            if (region.population > _this.region.population) {
+                _this.region = region;
             }
-        }, this);
+        });
         //set default region if no region is defined. This shouldn't ever happen if model contains any geometry.
         if (typeof (this.region) == 'undefined') {
             this.region = new model_geometry_1.Region();
@@ -102,11 +103,11 @@ var ModelHandle = (function () {
             gl.drawArrays(gl.TRIANGLES, 0, this._numberOfIndices);
             return;
         }
-        if (mode === 'solid') {
+        if (mode === 'solid' && this.model.transparentIndex > 0) {
             gl.drawArrays(gl.TRIANGLES, 0, this.model.transparentIndex);
             return;
         }
-        if (mode === 'transparent') {
+        if (mode === 'transparent' && this.model.transparentIndex < this._numberOfIndices) {
             gl.drawArrays(gl.TRIANGLES, this.model.transparentIndex, this._numberOfIndices - this.model.transparentIndex);
             return;
         }
@@ -186,8 +187,23 @@ var ModelHandle = (function () {
         gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
     };
     ModelHandle.bufferTexture = function (gl, pointer, data, numberOfComponents) {
-        if (data.length == 0)
-            return 0;
+        if (data.length == 0) {
+            var dummySize = 2;
+            gl.bindTexture(gl.TEXTURE_2D, pointer);
+            //2 x 2 transparent black dummy pixels texture
+            var image_1 = new Uint8Array([
+                0, 0, 0, 0,
+                0, 0, 0, 0,
+                0, 0, 0, 0,
+                0, 0, 0, 0
+            ]);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, dummySize, dummySize, 0, gl.RGBA, gl.UNSIGNED_BYTE, image_1);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); //Prevents s-coordinate wrapping (repeating).
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); //Prevents t-coordinate wrapping (repeating).
+            return dummySize;
+        }
         var fp = data instanceof Float32Array;
         //compute size of the image (length should be correct already)
         var size = 0;

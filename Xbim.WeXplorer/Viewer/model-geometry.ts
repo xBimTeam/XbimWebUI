@@ -76,7 +76,7 @@ export class ModelGeometry {
         this.transformations = new Float32Array(numTriangles * 3);
         this.matrices = new Float32Array(square(4, numMatrices * 16));
         this.productMaps = {};
-        this.regions = new Array(numRegions);
+        this.regions = new Array<Region>(numRegions);
 
         var iVertex = 0;
         var iIndexForward = 0;
@@ -93,6 +93,7 @@ export class ModelGeometry {
             region.population = br.readInt32();
             region.centre = br.readFloat32Array(3);
             region.bbox = br.readFloat32Array(6);
+            this.regions[i] = region;
         }
 
 
@@ -267,6 +268,14 @@ export class Region {
     public centre: Float32Array = null;
     public bbox: Float32Array = null;
 
+    constructor(region?: Region) {
+        if (region) {
+            this.population = region.population;
+            this.centre = new Float32Array(region.centre);
+            this.bbox = new Float32Array(region.bbox);
+        }
+    }
+
     /**
      * Returns clone of this region
      */
@@ -287,7 +296,7 @@ export class Region {
     public merge(region: Region): Region {
         //if this is a new empty region, return clone of the argument
         if (this.population === -1 && this.centre === null && this.bbox === null)
-            return region.clone();
+            return new Region(region);
 
         let out = new Region();
         out.population = this.population + region.population;

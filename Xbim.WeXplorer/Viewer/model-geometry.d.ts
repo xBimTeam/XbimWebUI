@@ -31,6 +31,7 @@ export declare class Region {
     population: number;
     centre: Float32Array;
     bbox: Float32Array;
+    constructor(region?: Region);
     /**
      * Returns clone of this region
      */

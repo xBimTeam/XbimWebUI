@@ -77,6 +77,7 @@ var ModelGeometry = (function () {
             region.population = br.readInt32();
             region.centre = br.readFloat32Array(3);
             region.bbox = br.readFloat32Array(6);
+            this.regions[i] = region;
         }
         var styleMap = [];
         styleMap['getStyle'] = function (id) {
@@ -223,10 +224,15 @@ var ProductMap = (function () {
 }());
 exports.ProductMap = ProductMap;
 var Region = (function () {
-    function Region() {
+    function Region(region) {
         this.population = -1;
         this.centre = null;
         this.bbox = null;
+        if (region) {
+            this.population = region.population;
+            this.centre = new Float32Array(region.centre);
+            this.bbox = new Float32Array(region.bbox);
+        }
     }
     /**
      * Returns clone of this region
@@ -245,7 +251,7 @@ var Region = (function () {
     Region.prototype.merge = function (region) {
         //if this is a new empty region, return clone of the argument
         if (this.population === -1 && this.centre === null && this.bbox === null)
-            return region.clone();
+            return new Region(region);
         var out = new Region();
         out.population = this.population + region.population;
         var x = Math.min(this.bbox[0], region.bbox[0]);

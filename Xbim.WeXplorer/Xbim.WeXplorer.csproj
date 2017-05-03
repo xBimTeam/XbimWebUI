@@ -87,8 +87,6 @@
     <Content Include="Resources\bootstrap.css" />
     <Content Include="Utilities\TypingsBundler.exe" />
     <Content Include="Viewer\browser\xbim-browser.css" />
-    <Content Include="Build\gl-matrix.js" />
-    <Content Include="Build\gl-matrix.min.js" />
     <Content Include="Build\xbim-browser.js" />
     <Content Include="Build\xbim-viewer.js" />
     <Content Include="Examples\TsSingleModule\index.html" />
@@ -183,6 +181,7 @@
     <Content Include="webpack.config.js" />
     <Content Include="Examples\WexBimStreamTest\wexbimtest.html" />
     <Content Include="Libs\gl-matrix\LICENSE.md" />
+    <Content Include="tests\data\network.wexbim" />
     <None Include="Tutorials\1_Hello_building.md" />
     <Content Include="Examples\SimpleWexbimViewer\index.html" />
     <Content Include="Viewer\shaders\fragment_shader.c" />

@@ -68,7 +68,8 @@ var span = document.getElementById("fpt") as HTMLElement;
 if (span) {
     span.innerHTML = "0";
 }
-viewer.load(model, "base");
+//viewer.load(model, "base");
+viewer.loadAsync("/Build/xbim-geometry-loader.js", model, "base");
 viewer.start();
 
 viewer.defineStyle(0, [255, 0, 0, 255]);  //red
