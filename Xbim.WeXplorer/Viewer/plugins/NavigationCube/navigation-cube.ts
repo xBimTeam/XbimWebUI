@@ -175,7 +175,7 @@ export class NavigationCube implements IPlugin {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, this.txtCoords, gl.STATIC_DRAW);
         gl.bindBuffer(gl.ARRAY_BUFFER, this._idBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, this.ids(), gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, this.ids, gl.STATIC_DRAW);
 
         //create texture
         var self = this;
@@ -880,7 +880,7 @@ export class NavigationCube implements IPlugin {
     //-0.5, 0.5, 0.5,
     //-0.5, 0.5, -0.5,
 
-    indices = new Uint16Array([
+    private indices = new Uint16Array([
         0, 1, 2, 0, 2, 3, // Front face
         4, 5, 6, 4, 6, 7, // Back face
         8, 9, 10, 8, 10, 11, // Top face
@@ -1014,7 +1014,7 @@ export class NavigationCube implements IPlugin {
     //1.0 / 3.0, 2.0 / 3.0,
     //1.0 / 3.0, 1.0 / 3.0
 
-    txtCoords = new Float32Array([
+    private txtCoords = new Float32Array([
         // Front face
         1.0 / 3.0 + 1.0 / 15.0, 0.0 / 3.0 + 1.0 / 15.0,
         2.0 / 3.0 - 1.0 / 15.0, 0.0 / 3.0 + 1.0 / 15.0,
@@ -1285,8 +1285,7 @@ export class NavigationCube implements IPlugin {
         1.0 / 3.0 + 2.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
     ]);
 
-    ids() {
-        return new Float32Array([
+    private ids = new Float32Array([
             this.FRONT, // Front face
             this.FRONT,
             this.FRONT,
@@ -1504,5 +1503,4 @@ export class NavigationCube implements IPlugin {
             this.BACK_LEFT,
             this.BACK_LEFT,
         ]);
-    };
 }

@@ -280,6 +280,7 @@ var ModelHandle = (function () {
         return this.model.states[span[0] * 2 + 1];
     };
     ModelHandle.prototype.setState = function (state, args) {
+        var _this = this;
         if (typeof (state) != 'number' && state < 0 && state > 255)
             throw 'You have to specify state as an ID of state or index in style pallete.';
         if (typeof (args) == 'undefined')
@@ -307,10 +308,10 @@ var ModelHandle = (function () {
             map.spans.forEach(function (span) {
                 //set state or style
                 for (var k = span[0]; k < span[1]; k++) {
-                    this._model.states[k * 2 + shift] = state;
+                    _this.model.states[k * 2 + shift] = state;
                 }
-            }, this);
-        }, this);
+            });
+        });
         //buffer data to GPU
         this.bufferData(this._stateBuffer, this.model.states);
     };
@@ -347,21 +348,22 @@ var ModelHandle = (function () {
         return result;
     };
     ModelHandle.prototype.restoreModelState = function (state) {
+        var _this = this;
         state.forEach(function (s) {
             var id = s[0];
             var style = s[1] >> 8;
             var state = s[1] - (style << 8);
-            var map = this.getProductMap(id);
+            var map = _this.getProductMap(id);
             if (map != null) {
                 map.spans.forEach(function (span) {
                     //set state or style
                     for (var k = span[0]; k < span[1]; k++) {
-                        this._model.states[k * 2] = state;
-                        this._model.states[k * 2 + 1] = style;
+                        _this.model.states[k * 2] = state;
+                        _this.model.states[k * 2 + 1] = style;
                     }
-                }, this);
+                });
             }
-        }, this);
+        });
         //buffer data to GPU
         this.bufferData(this._stateBuffer, this.model.states);
     };

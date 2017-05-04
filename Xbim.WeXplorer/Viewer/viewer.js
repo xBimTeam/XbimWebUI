@@ -359,7 +359,7 @@ var Viewer = (function () {
             throw 'State has to be defined as 225 - 255. Use xState enum.';
         this._handles.forEach(function (handle) {
             handle.setState(state, target);
-        }, this);
+        });
         this._stylingChanged = true;
     };
     /**
@@ -376,7 +376,7 @@ var Viewer = (function () {
             if (state !== null) {
                 return;
             }
-        }, this);
+        });
         return state;
     };
     /**
@@ -390,13 +390,13 @@ var Viewer = (function () {
     Viewer.prototype.resetStates = function (hideSpaces) {
         this._handles.forEach(function (handle) {
             handle.resetStates();
-        }, this);
+        });
         //hide spaces
         hideSpaces = typeof (hideSpaces) != 'undefined' ? hideSpaces : true;
         if (hideSpaces) {
             this._handles.forEach(function (handle) {
                 handle.setState(state_1.State.HIDDEN, product_type_1.ProductType.IFCSPACE);
-            }, this);
+            });
         }
         this._stylingChanged = true;
     };
@@ -449,7 +449,7 @@ var Viewer = (function () {
                 .warn('You have used undefined colour for restyling. Elements with this style will have transparent black colour and hence will be invisible.');
         this._handles.forEach(function (handle) {
             handle.setState(style, target);
-        }, this);
+        });
         this._stylingChanged = true;
     };
     /**
@@ -465,7 +465,7 @@ var Viewer = (function () {
             if (style !== null) {
                 return style;
             }
-        }, this);
+        });
         return null;
     };
     /**
@@ -476,7 +476,7 @@ var Viewer = (function () {
     Viewer.prototype.resetStyles = function () {
         this._handles.forEach(function (handle) {
             handle.resetStyles();
-        }, this);
+        });
         this._stylingChanged = true;
     };
     /**
@@ -491,7 +491,7 @@ var Viewer = (function () {
             var map = handle.getProductMap(prodId);
             if (map)
                 pType = map.type;
-        }, this);
+        });
         return pType;
     };
     /**
@@ -517,9 +517,10 @@ var Viewer = (function () {
         var viewer = this;
         //helper function for setting of the distance based on camera field of view and size of the product's bounding box
         var setDistance = function (bBox) {
-            var size = Math.max(bBox[3], bBox[4], bBox[5]);
+            var size = Math.sqrt(bBox[3] * bBox[3] + bBox[4] * bBox[4] + bBox[5] * bBox[5]);
             var ratio = Math.max(viewer._width, viewer._height) / Math.min(viewer._width, viewer._height);
-            viewer._distance = size / Math.tan(viewer.perspectiveCamera.fov * Math.PI / 180.0) * ratio * 1.0;
+            //viewer._distance = size / Math.tan(viewer.perspectiveCamera.fov * Math.PI / 180.0) * ratio / 2.0;
+            viewer._distance = size / ratio / (Math.tan(viewer.perspectiveCamera.fov * Math.PI / 180.0 / 2.0) * 2.0);
         };
         //set navigation origin and default distance to the product BBox
         if (typeof (prodId) !== 'undefined' && prodId != null) {
@@ -684,7 +685,7 @@ var Viewer = (function () {
             viewer.orthogonalCamera.right = maxSize / ratio * viewer._width / viewer._height;
             //set default view
             viewer.setCameraTarget();
-            var dist = Math.sqrt(viewer._distance * viewer._distance / 3.0);
+            var dist = Math.sqrt(viewer._distance * viewer._distance * 1.5);
             viewer.setCameraPosition([
                 region.centre[0] + dist * -1.0, region.centre[1] + dist * -1.0, region.centre[2] + dist
             ]);
@@ -831,7 +832,7 @@ var Viewer = (function () {
                         return;
                     }
                     handled = handled || plugin.onBeforePick(id);
-                }, _this);
+                });
                 /**
                 * Occurs when user click on model.
                 *
@@ -1134,6 +1135,7 @@ var Viewer = (function () {
     * @fires Viewer#frame
     */
     Viewer.prototype.draw = function () {
+        var _this = this;
         if (!this._geometryLoaded || this._handles.length == 0 || !(this._stylingChanged || this.isChanged())) {
             if (!this._userAction)
                 return;
@@ -1145,7 +1147,7 @@ var Viewer = (function () {
                 return;
             }
             plugin.onBeforeDraw();
-        }, this);
+        });
         //styles are up to date when new frame is drawn
         this._stylingChanged = false;
         var gl = this.gl;
@@ -1201,18 +1203,18 @@ var Viewer = (function () {
             gl.disable(gl.CULL_FACE);
             this._handles.forEach(function (handle) {
                 if (!handle.stopped) {
-                    handle.setActive(this._pointers);
+                    handle.setActive(_this._pointers);
                     handle.draw('solid');
                 }
-            }, this);
+            });
             //transparent objects should have only one side so that they are even more transparent.
             gl.enable(gl.CULL_FACE);
             this._handles.forEach(function (handle) {
                 if (!handle.stopped) {
-                    handle.setActive(this._pointers);
+                    handle.setActive(_this._pointers);
                     handle.draw('transparent');
                 }
-            }, this);
+            });
         }
         else {
             gl.disable(gl.CULL_FACE);
@@ -1220,16 +1222,16 @@ var Viewer = (function () {
             //this makes sure that transparent objects are always rendered at the end.
             this._handles.forEach(function (handle) {
                 if (!handle.stopped) {
-                    handle.setActive(this._pointers);
+                    handle.setActive(_this._pointers);
                     handle.draw('solid');
                 }
-            }, this);
+            });
             this._handles.forEach(function (handle) {
                 if (!handle.stopped) {
-                    handle.setActive(this._pointers);
+                    handle.setActive(_this._pointers);
                     handle.draw('transparent');
                 }
-            }, this);
+            });
         }
         //call all after-draw plugins
         this._plugins.forEach(function (plugin) {
@@ -1237,7 +1239,7 @@ var Viewer = (function () {
                 return;
             }
             plugin.onAfterDraw();
-        }, this);
+        });
         /**
          * Occurs after every frame in animation. Don't do anything heavy weighted in here as it will happen about 60 times in a second all the time.
          *
@@ -1248,13 +1250,14 @@ var Viewer = (function () {
     };
     ;
     Viewer.prototype.isChanged = function () {
+        var _this = this;
         var theSame = true;
         this._visualStateAttributes.forEach(function (visualStateAttribute) {
-            var state = JSON.stringify(this[visualStateAttribute]);
-            var lastState = this._lastStates[visualStateAttribute];
-            this._lastStates[visualStateAttribute] = state;
+            var state = JSON.stringify(_this[visualStateAttribute]);
+            var lastState = _this._lastStates[visualStateAttribute];
+            _this._lastStates[visualStateAttribute] = state;
             theSame = theSame && (state === lastState);
-        }, this);
+        });
         return !theSame;
     };
     /**
@@ -1285,7 +1288,7 @@ var Viewer = (function () {
         vec3_1.vec3.subtract(dir, eye, this._origin);
         dir = vec3_1.vec3.normalize(vec3_1.vec3.create(), dir);
         var translation = vec3_1.vec3.create();
-        vec3_1.vec3.scale(translation, dir, this._distance);
+        vec3_1.vec3.scale(translation, dir, this._distance * 1.2);
         vec3_1.vec3.add(eye, translation, this._origin);
         mat4_1.mat4.lookAt(this.mvMatrix, eye, this._origin, [0, 0, 1]);
         return true;
@@ -1349,13 +1352,14 @@ var Viewer = (function () {
     //this renders the colour coded model into the memory buffer
     //not to the canvas and use it to identify ID of the object from that
     Viewer.prototype.getID = function (x, y) {
+        var _this = this;
         //call all before-drawId plugins
         this._plugins.forEach(function (plugin) {
             if (!plugin.onBeforeDrawId) {
                 return;
             }
             plugin.onBeforeDrawId();
-        }, this);
+        });
         //it is not necessary to render the image in full resolution so this factor is used for less resolution. 
         var factor = 2;
         var gl = this.gl;
@@ -1398,17 +1402,17 @@ var Viewer = (function () {
         //render colour coded image using latest buffered data
         this._handles.forEach(function (handle) {
             if (!handle.stopped && handle.pickable) {
-                handle.setActive(this._pointers);
+                handle.setActive(_this._pointers);
                 handle.draw();
             }
-        }, this);
+        });
         //call all after-drawId plugins
         this._plugins.forEach(function (plugin) {
             if (!plugin.onAfterDrawId) {
                 return;
             }
             plugin.onAfterDrawId();
-        }, this);
+        });
         //get colour in of the pixel
         var result = new Uint8Array(4);
         gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, result);
@@ -1431,7 +1435,7 @@ var Viewer = (function () {
                     return;
                 }
                 handled = handled || plugin.onBeforeGetId(id);
-            }, this);
+            });
             if (!handled)
                 return id;
             else
@@ -1540,7 +1544,7 @@ var Viewer = (function () {
     Viewer.prototype.on = function (eventName, callback) {
         var events = this._events;
         if (!events[eventName]) {
-            events[eventName] = [];
+            events[eventName] = new Array();
         }
         events[eventName].push(callback);
     };
@@ -1568,8 +1572,8 @@ var Viewer = (function () {
         if (!handlers) {
             return;
         }
-        //cal the callbacks
-        handlers.forEach(function (handler) {
+        //call the callbacks
+        handlers.slice().forEach(function (handler) {
             handler(args);
         });
     };

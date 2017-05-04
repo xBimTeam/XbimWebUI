@@ -184,7 +184,7 @@ export class ModelHandle {
         //gl.drawArrays(gl.TRIANGLES, map.spans[i][0], map.spans[i][1] - map.spans[i][0]);
 
         if (map != null) {
-            map.spans.forEach(function (span) {
+            map.spans.forEach((span) => {
                 gl.drawArrays(gl.TRIANGLES, span[0], span[1] - span[0]);
             },
                 this);
@@ -390,16 +390,14 @@ export class ModelHandle {
 
         //shift +1 if it is an overlay colour style or 0 if it is a state.
         var shift = state <= 225 ? 1 : 0;
-        maps.forEach(function (map) {
-            map.spans.forEach(function (span) {
+        maps.forEach((map) => {
+            map.spans.forEach((span) => {
                 //set state or style
                 for (var k = span[0]; k < span[1]; k++) {
-                    this._model.states[k * 2 + shift] = state;
+                    this.model.states[k * 2 + shift] = state;
                 }
-            },
-                this);
-        },
-            this);
+            });
+        });
 
         //buffer data to GPU
         this.bufferData(this._stateBuffer, this.model.states);
@@ -441,25 +439,23 @@ export class ModelHandle {
     }
 
     public restoreModelState(state: Array<Array<number>>): void {
-        state.forEach(function (s) {
+        state.forEach((s) => {
             var id = s[0];
             var style = s[1] >> 8;
             var state = s[1] - (style << 8);
 
             var map = this.getProductMap(id);
             if (map != null) {
-                map.spans.forEach(function (span) {
+                map.spans.forEach((span) => {
                     //set state or style
                     for (var k = span[0]; k < span[1]; k++) {
-                        this._model.states[k * 2] = state;
-                        this._model.states[k * 2 + 1] = style;
+                        this.model.states[k * 2] = state;
+                        this.model.states[k * 2 + 1] = style;
                     }
-                },
-                    this);
+                });
             }
 
-        },
-            this);
+        });
 
         //buffer data to GPU
         this.bufferData(this._stateBuffer, this.model.states);

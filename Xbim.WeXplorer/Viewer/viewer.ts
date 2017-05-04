@@ -290,7 +290,7 @@ export class Viewer {
     private _stateStyleSamplerUniform: WebGLUniformLocation;
 
 
-    private _events: any;
+    private _events: { [id: string]: Function[]; };
     private _numberOfActiveModels: number;
     private _lastStates: any;
     private _visualStateAttributes: string[];
@@ -451,10 +451,9 @@ export class Viewer {
     */
     public setState(state: State, target: number | number[]) {
         if (typeof (state) == 'undefined' || !(state >= 225 && state <= 255)) throw 'State has to be defined as 225 - 255. Use xState enum.';
-        this._handles.forEach(function (handle) {
+        this._handles.forEach((handle) => {
             handle.setState(state, target);
-        },
-            this);
+        });
         this._stylingChanged = true;
     }
 
@@ -467,13 +466,12 @@ export class Viewer {
     */
     public getState(id: number) {
         var state = null;
-        this._handles.forEach(function (handle) {
+        this._handles.forEach((handle) => {
             state = handle.getState(id);
             if (state !== null) {
                 return;
             }
-        },
-            this);
+        });
         return state;
     }
 
@@ -486,17 +484,15 @@ export class Viewer {
     * desired so it can be excluded with this parameter.
     */
     public resetStates(hideSpaces: boolean) {
-        this._handles.forEach(function (handle) {
+        this._handles.forEach((handle) => {
             handle.resetStates();
-        },
-            this);
+        });
         //hide spaces
         hideSpaces = typeof (hideSpaces) != 'undefined' ? hideSpaces : true;
         if (hideSpaces) {
-            this._handles.forEach(function (handle) {
+            this._handles.forEach((handle) => {
                 handle.setState(State.HIDDEN, ProductType.IFCSPACE);
-            },
-                this);
+            });
         }
         this._stylingChanged = true;
     }
@@ -553,10 +549,9 @@ export class Viewer {
             console
                 .warn('You have used undefined colour for restyling. Elements with this style will have transparent black colour and hence will be invisible.');
 
-        this._handles.forEach(function (handle) {
+        this._handles.forEach((handle) => {
             handle.setState(style, target);
-        },
-            this);
+        });
         this._stylingChanged = true;
     }
 
@@ -568,13 +563,12 @@ export class Viewer {
     * @param {Number} id - Id of the product. You would typically get the id from {@link Viewer#event:pick pick event} or similar event.
     */
     public getStyle(id: number) {
-        this._handles.forEach(function (handle) {
+        this._handles.forEach((handle) => {
             var style = handle.getStyle(id);
             if (style !== null) {
                 return style;
             }
-        },
-            this);
+        });
         return null;
     }
 
@@ -584,10 +578,9 @@ export class Viewer {
     * @function Viewer#resetStyles 
     */
     public resetStyles() {
-        this._handles.forEach(function (handle) {
+        this._handles.forEach((handle) => {
             handle.resetStyles();
-        },
-            this);
+        });
         this._stylingChanged = true;
     }
 
@@ -599,11 +592,10 @@ export class Viewer {
     */
     public getProductType(prodId: number) {
         var pType = null;
-        this._handles.forEach(function (handle) {
+        this._handles.forEach((handle) => {
             var map = handle.getProductMap(prodId);
             if (map) pType = map.type;
-        },
-            this);
+        });
         return pType;
     }
 
@@ -629,10 +621,11 @@ export class Viewer {
     public setCameraTarget(prodId?: number): boolean{
         var viewer = this;
         //helper function for setting of the distance based on camera field of view and size of the product's bounding box
-        var setDistance = function (bBox) {
-            var size = Math.max(bBox[3], bBox[4], bBox[5]);
-            var ratio = Math.max(viewer._width, viewer._height) / Math.min(viewer._width, viewer._height);
-            viewer._distance = size / Math.tan(viewer.perspectiveCamera.fov * Math.PI / 180.0) * ratio * 1.0;
+        var setDistance = function (bBox: number[] | Float32Array) {
+            let size = Math.sqrt(bBox[3] * bBox[3] + bBox[4] * bBox[4] + bBox[5] * bBox[5]);
+            let ratio = Math.max(viewer._width, viewer._height) / Math.min(viewer._width, viewer._height);
+            //viewer._distance = size / Math.tan(viewer.perspectiveCamera.fov * Math.PI / 180.0) * ratio / 2.0;
+            viewer._distance = size / ratio / (Math.tan(viewer.perspectiveCamera.fov * Math.PI / 180.0 / 2.0) * 2.0);
         }
 
         //set navigation origin and default distance to the product BBox
@@ -815,7 +808,7 @@ export class Viewer {
 
             //set default view
             viewer.setCameraTarget();
-            var dist = Math.sqrt(viewer._distance * viewer._distance / 3.0);
+            var dist = Math.sqrt(viewer._distance * viewer._distance * 1.5);
             viewer.setCameraPosition([
                 region.centre[0] + dist * -1.0, region.centre[1] + dist * -1.0, region.centre[2] + dist
             ]);
@@ -994,8 +987,7 @@ export class Viewer {
                         return;
                     }
                     handled = handled || plugin.onBeforePick(id);
-                },
-                    this);
+                });
 
                 /**
                 * Occurs when user click on model.
@@ -1367,13 +1359,12 @@ export class Viewer {
         this._userAction = false;
 
         //call all before-draw plugins
-        this._plugins.forEach(function (plugin) {
+        this._plugins.forEach((plugin) => {
             if (!plugin.onBeforeDraw) {
                 return;
             }
             plugin.onBeforeDraw();
-        },
-            this);
+        });
 
         //styles are up to date when new frame is drawn
         this._stylingChanged = false;
@@ -1458,53 +1449,48 @@ export class Viewer {
         if (this.renderingMode == RenderingMode.XRAY) {
             //two passes - first one for non-transparent objects, second one for all the others
             gl.disable(gl.CULL_FACE);
-            this._handles.forEach(function (handle) {
+            this._handles.forEach((handle) => {
                 if (!handle.stopped) {
                     handle.setActive(this._pointers);
                     handle.draw('solid');
                 }
-            },
-                this);
+            });
 
             //transparent objects should have only one side so that they are even more transparent.
             gl.enable(gl.CULL_FACE);
-            this._handles.forEach(function (handle) {
+            this._handles.forEach((handle) => {
                 if (!handle.stopped) {
                     handle.setActive(this._pointers);
                     handle.draw('transparent');
                 }
-            },
-                this);
+            });
         } else {
             gl.disable(gl.CULL_FACE);
 
             //two runs, first for solids from all models, second for transparent objects from all models
             //this makes sure that transparent objects are always rendered at the end.
-            this._handles.forEach(function (handle) {
+            this._handles.forEach((handle) => {
                 if (!handle.stopped) {
                     handle.setActive(this._pointers);
                     handle.draw('solid');
                 }
-            },
-                this);
+            });
 
-            this._handles.forEach(function (handle) {
+            this._handles.forEach((handle) => {
                 if (!handle.stopped) {
                     handle.setActive(this._pointers);
                     handle.draw('transparent');
                 }
-            },
-                this);
+            });
         }
 
         //call all after-draw plugins
-        this._plugins.forEach(function (plugin) {
+        this._plugins.forEach((plugin) => {
             if (!plugin.onAfterDraw) {
                 return;
             }
             plugin.onAfterDraw();
-        },
-            this);
+        });
 
         /**
          * Occurs after every frame in animation. Don't do anything heavy weighted in here as it will happen about 60 times in a second all the time.
@@ -1517,13 +1503,12 @@ export class Viewer {
 
     private isChanged() {
         var theSame = true;
-        this._visualStateAttributes.forEach(function (visualStateAttribute) {
+        this._visualStateAttributes.forEach((visualStateAttribute) => {
             var state = JSON.stringify(this[visualStateAttribute]);
             var lastState = this._lastStates[visualStateAttribute];
             this._lastStates[visualStateAttribute] = state;
             theSame = theSame && (state === lastState)
-        },
-            this);
+        });
         return !theSame;
     }
 
@@ -1558,7 +1543,7 @@ export class Viewer {
         dir = vec3.normalize(vec3.create(), dir);
 
         var translation = vec3.create();
-        vec3.scale(translation, dir, this._distance);
+        vec3.scale(translation, dir, this._distance * 1.2);
         vec3.add(eye, translation, this._origin);
 
         mat4.lookAt(this.mvMatrix, eye, this._origin, [0, 0, 1]);
@@ -1633,13 +1618,12 @@ export class Viewer {
     public getID(x, y) {
 
         //call all before-drawId plugins
-        this._plugins.forEach(function (plugin) {
+        this._plugins.forEach((plugin) => {
             if (!plugin.onBeforeDrawId) {
                 return;
             }
             plugin.onBeforeDrawId();
-        },
-            this);
+        });
 
         //it is not necessary to render the image in full resolution so this factor is used for less resolution. 
         var factor = 2;
@@ -1691,22 +1675,20 @@ export class Viewer {
         gl.uniform1i(this._colorCodingUniformPointer, 1);
 
         //render colour coded image using latest buffered data
-        this._handles.forEach(function (handle) {
+        this._handles.forEach( (handle) => {
             if (!handle.stopped && handle.pickable) {
                 handle.setActive(this._pointers);
                 handle.draw();
             }
-        },
-            this);
+        });
 
         //call all after-drawId plugins
-        this._plugins.forEach(function (plugin) {
+        this._plugins.forEach((plugin) => {
             if (!plugin.onAfterDrawId) {
                 return;
             }
             plugin.onAfterDrawId();
-        },
-            this);
+        });
 
         //get colour in of the pixel
         var result = new Uint8Array(4);
@@ -1730,13 +1712,12 @@ export class Viewer {
         if (hasValue) {
             var id = result[0] + result[1] * 256 + result[2] * 256 * 256;
             var handled = false;
-            this._plugins.forEach(function (plugin) {
+            this._plugins.forEach( (plugin) => {
                 if (!plugin.onBeforeGetId) {
                     return;
                 }
                 handled = handled || plugin.onBeforeGetId(id);
-            },
-                this);
+            });
 
             if (!handled)
                 return id;
@@ -1859,7 +1840,7 @@ export class Viewer {
     public on(eventName: string, callback: Function) {
         var events = this._events;
         if (!events[eventName]) {
-            events[eventName] = [];
+            events[eventName] = new Array<Function>();
         }
         events[eventName].push(callback);
     }
@@ -1884,13 +1865,13 @@ export class Viewer {
     }
 
     //executes all handlers bound to event name
-    private fire(eventName, args) {
+    private fire(eventName: string, args) {
         var handlers = this._events[eventName];
         if (!handlers) {
             return;
         }
-        //cal the callbacks
-        handlers.forEach(function (handler) {
+        //call the callbacks
+        handlers.slice().forEach(function (handler) {
             handler(args);
         });
     }

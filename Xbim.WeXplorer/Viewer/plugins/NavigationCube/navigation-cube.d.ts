@@ -114,7 +114,7 @@ export declare class NavigationCube implements IPlugin {
     private draw();
     private _initShader();
     vertices: Float32Array;
-    indices: Uint16Array;
-    txtCoords: Float32Array;
-    ids(): Float32Array;
+    private indices;
+    private txtCoords;
+    private ids;
 }
