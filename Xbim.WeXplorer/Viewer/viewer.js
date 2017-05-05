@@ -35,6 +35,7 @@ var Viewer = (function () {
     * @param {string | HTMLCanvasElement} canvas - string ID of the canvas or HTML canvas element.
     */
     function Viewer(canvas) {
+        this._lastActiveHandlesCount = 0;
         if (typeof (canvas) == 'undefined') {
             throw 'Canvas has to be defined';
         }
@@ -1201,6 +1202,7 @@ var Viewer = (function () {
         if (this.renderingMode == RenderingMode.XRAY) {
             //two passes - first one for non-transparent objects, second one for all the others
             gl.disable(gl.CULL_FACE);
+            gl.depthMask(false);
             this._handles.forEach(function (handle) {
                 if (!handle.stopped) {
                     handle.setActive(_this._pointers);
@@ -1215,6 +1217,7 @@ var Viewer = (function () {
                     handle.draw('transparent');
                 }
             });
+            gl.depthMask(true);
         }
         else {
             gl.disable(gl.CULL_FACE);
@@ -1252,12 +1255,15 @@ var Viewer = (function () {
     Viewer.prototype.isChanged = function () {
         var _this = this;
         var theSame = true;
-        this._visualStateAttributes.forEach(function (visualStateAttribute) {
-            var state = JSON.stringify(_this[visualStateAttribute]);
-            var lastState = _this._lastStates[visualStateAttribute];
-            _this._lastStates[visualStateAttribute] = state;
+        this._visualStateAttributes.forEach(function (vsa) {
+            var state = JSON.stringify(_this[vsa]);
+            var lastState = _this._lastStates[vsa];
+            _this._lastStates[vsa] = state;
             theSame = theSame && (state === lastState);
         });
+        var activeHandlesCount = this._handles.filter(function (h) { return !h.stopped; }).length;
+        theSame = theSame && (this._lastActiveHandlesCount == activeHandlesCount);
+        this._lastActiveHandlesCount = activeHandlesCount;
         return !theSame;
     };
     /**

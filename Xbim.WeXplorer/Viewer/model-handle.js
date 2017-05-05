@@ -108,7 +108,16 @@ var ModelHandle = (function () {
             return;
         }
         if (mode === 'transparent' && this.model.transparentIndex < this._numberOfIndices) {
+            //following recomendations from http://www.openglsuperbible.com/2013/08/20/is-order-independent-transparency-really-necessary/
+            //disable writing to a depth buffer
+            gl.depthMask(false);
+            //gl.enable(gl.BLEND);
+            //multiplicative blending
+            //gl.blendFunc(gl.ZERO, gl.SRC_COLOR);
             gl.drawArrays(gl.TRIANGLES, this.model.transparentIndex, this._numberOfIndices - this.model.transparentIndex);
+            //enable writing to depth buffer and default blending again
+            gl.depthMask(true);
+            //gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
             return;
         }
     };

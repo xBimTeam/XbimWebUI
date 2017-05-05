@@ -254,6 +254,7 @@ export declare class Viewer {
     * @fires Viewer#frame
     */
     draw(): void;
+    private _lastActiveHandlesCount;
     private isChanged();
     /**
     * Use this method to get actual camera position.

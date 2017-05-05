@@ -292,7 +292,7 @@ export class Viewer {
 
     private _events: { [id: string]: Function[]; };
     private _numberOfActiveModels: number;
-    private _lastStates: any;
+    private _lastStates: {[id: string] : string};
     private _visualStateAttributes: string[];
     public renderingMode: RenderingMode;
     private _clippingPlaneA: number[];
@@ -1501,14 +1501,20 @@ export class Viewer {
         this.fire('frame', {});
     };
 
+    private _lastActiveHandlesCount: number = 0;
     private isChanged() {
         var theSame = true;
-        this._visualStateAttributes.forEach((visualStateAttribute) => {
-            var state = JSON.stringify(this[visualStateAttribute]);
-            var lastState = this._lastStates[visualStateAttribute];
-            this._lastStates[visualStateAttribute] = state;
+        this._visualStateAttributes.forEach((vsa) => {
+            var state = JSON.stringify(this[vsa]);
+            var lastState = this._lastStates[vsa];
+            this._lastStates[vsa] = state;
             theSame = theSame && (state === lastState)
         });
+
+        var activeHandlesCount = this._handles.filter((h) => !h.stopped).length;
+        theSame = theSame && (this._lastActiveHandlesCount == activeHandlesCount);
+        this._lastActiveHandlesCount = activeHandlesCount
+
         return !theSame;
     }
 
