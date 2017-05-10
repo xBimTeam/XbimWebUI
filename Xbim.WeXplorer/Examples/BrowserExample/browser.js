@@ -14,7 +14,7 @@
 
         $("#btnLocate").button().click(function () {
             var id = $(this).data("id");
-            if (typeof (id) != "undefined" && viewer) {
+            if (typeof (id) !== "undefined" && viewer) {
                 viewer.zoomTo(parseInt(id));
             }
         });
@@ -65,7 +65,7 @@
         browser.on("entityActive", function (args) {
             var isRightPanelClick = false;
             if (args.element) 
-                if ($(args.element).parents("#semantic-descriptive-info").length != 0)
+                if ($(args.element).parents("#semantic-descriptive-info").length !== 0)
                     isRightPanelClick = true;
 
             //set ID for location button

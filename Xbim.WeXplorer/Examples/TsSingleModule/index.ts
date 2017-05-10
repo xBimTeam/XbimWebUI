@@ -1,4 +1,4 @@
-﻿import { Viewer, NavigationCube } from "../../Build/xbim-viewer";
+﻿import { Viewer, NavigationCube } from "../../Viewer/viewer";
 
 var viewer = new Viewer('viewer');
 viewer.load("/tests/data/SampleHouse.wexbim", "Model A");

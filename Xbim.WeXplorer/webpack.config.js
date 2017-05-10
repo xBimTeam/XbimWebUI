@@ -4,7 +4,7 @@ var path = require("path");
 var fs = require("fs");
 var banner = fs.readFileSync('./Resources/xbim-disclaimer.txt', 'utf8');
 
-var isDevelop = process.env.NODE_ENV == 'development';
+var isDevelop = process.env.NODE_ENV === 'development';
 
 var entries = {};
 entries['xbim-viewer'] = './Viewer/viewer.ts';
