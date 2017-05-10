@@ -1,7 +1,11 @@
 XbimWebUI
 =========
 
-Web components for xBIM Toolkit
+Web components for xBIM Toolkit. [Documentation on GitHub Pages.](http://xbimteam.github.io/XbimWebUI/)
+
+Build Status (master branch): [ ![Build Status](http://xbimbuilds.cloudapp.net/app/rest/builds/buildType:(id:Xbim_XbimWebUi_XbimWebUi),branch:(name:master)/statusIcon "Build Status") ](http://xbimbuilds.cloudapp.net/project.html?projectId=Xbim_XbimWebUi&tab=projectOverview "Build Status")
+
+Build Status (develop branch): [ ![Build Status](http://xbimbuilds.cloudapp.net/app/rest/builds/buildType:(id:Xbim_XbimWebUi_XbimWebUi),branch:(name:develop)/statusIcon "Build Status") ](http://xbimbuilds.cloudapp.net/project.html?projectId=Xbim_XbimWebUi&tab=projectOverview "Build Status")
 
 # XBIM - the eXtensible Building Information Modelling (BIM) Toolkit
 
@@ -16,9 +20,11 @@ bi-directional translation between IFC and COBie formats
 
 ## Getting Started
 
-You will need Visual Studio 2010 SP1 or newer to compile the Solution. To compile the SceneJSWebViewer sample
-project you will require ASP.NET MVC 3.0 to be installed. All solutions target .NET 4.0. The 4.0 Client profile
-may be supported for some projects.
+You will need Visual Studio 2015 Update 3 or newer to compile the Solution. The web components are created in [TypeScript](http://www.typescriptlang.org).
+[npm](https://www.npmjs.com/) and [webpack](https://webpack.github.io) are used to compile the client side JavaScript libraries.
+Since TypeScript compilation in the Visual Studio solution is enabled, the [TypeScript for Visual Studio 2015](http://www.typescriptlang.org/#download-links)
+extension must be installed at least in version 2.0. Information how to debug and build the solution using webpack [is located here](WEBPACK.md).
+All solutions target .NET 4.0. The 4.0 Client profile may be supported for some projects.
 
 
 Xbim is a software library, and is currently deployed with a number of sample applications to demonstrate its capabilities
@@ -59,9 +65,8 @@ All licences are included in full under the Licences\3rd Party solution folder.
 
 ## Support & Help
 
-Please use the Discussion forum at http://xbim.codeplex.com/discussions to ask any questions.
-Alternatively use the Issue Tracker to raise any bugs relating to Xbim.
+Please use [GitHub issues](https://github.com/xBimTeam/XbimWebUI/issues) to ask any questions.
 
 ## Getting Involved
 
-If you'd like to get involved and contribute to this project, please contact the Project Coordinator, [Steve Lockley](https://www.codeplex.com/site/users/view/SteveLockley).
+If you'd like to get involved and contribute to this project, please contact the Project Coordinator, [Steve Lockley](https://github.com/SteveLockley).

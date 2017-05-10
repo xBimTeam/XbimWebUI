@@ -13,7 +13,7 @@ var self = this;
     <?js= data.readme ?>
   </article>
   <div id="viewer-container">Your browser doesn't support WebGL</div>
-  <script src="scripts/xbim-viewer.debug.bundle.js"></script>
+  <script src="scripts/xbim.browser.bundle.js"></script>
   <script type="text/javascript">
     var check = xViewer.check();
     if (check.noErrors)
@@ -43,6 +43,10 @@ var self = this;
     });
     try{
     viewer.load('data/SampleHouse.wexbim');
+    var cube = new xNavigationCube();
+    cube.passiveAlpha = 1.0;
+    viewer.addPlugin(cube);
+    
     }
     catch (e)
     {

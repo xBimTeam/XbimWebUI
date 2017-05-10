@@ -1,0 +1,32 @@
+{
+   "opts":{
+      "tutorials":"Tutorials",
+      "destination":"..\\docs",
+      "template":"Resources/doctemplate"
+   },
+   "tags":{
+      "allowUnknownTags":true
+   },
+   "source":{
+      "include":[
+        "Viewer\\viewer.js",
+        "Viewer\\state.js",
+        "Viewer\\product-type.js",
+		    "Viewer\\plugins\\NavigationCube\\navigation-cube.js",
+		    "Viewer\\plugins\\NavigationHome\\navigation-home.js",
+        "Resources/README.md"
+      ],
+      "includePattern":".+\\.js(doc)?$",
+      "excludePattern":"(^|\\/|\\\\)_"
+   },
+   "plugins":[
+      "plugins/markdown"
+   ],
+   "templates":{
+      "cleverLinks":false,
+      "monospaceLinks":false,
+	  "default": {
+            "outputSourceFiles": false
+        }
+   }
+}

@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Class: xNavigationHome</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+	
+		<h1 class="page-title">Class: xNavigationHome</h1>
+    
+    
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>
+        xNavigationHome
+        </h2>
+        
+            <div class="class-description"><p>This is a plugin for Viewer which renders interactive home button. It is customizable in terms of alpha
+behaviour and its position on the viewer canvas as well as definition of the distance and view direction. Use of plugin:</p>
+<pre class="prettyprint source"><code>var home = new xNavigationHome();
+viewer.addPlugin(home);</code></pre></div>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+<dt>
+    
+        
+        <h2>Constructor</h2>
+        
+
+        <h4 class="name" id="xNavigationHome"><span class="type-signature"></span>new xNavigationHome<span class="signature">(image<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+
+        
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>This is constructor of the Home plugin for <a href="Viewer.html">xBIM Viewer</a>. It gets optional Image object as an argument. If no image
+is specified there is a default one (which is not very prety).</p>
+    </div>
+    
+
+    
+
+    
+
+    
+
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>image</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Image</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last"><p>optional image to be used for a button.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+    
+
+    
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+    
+    </div>
+
+    
+
+    
+
+    
+
+     
+
+    
+
+    
+        <h3 class="subsection-title">Members</h3>
+
+        <dl>
+            
+<dt>
+    <h4 class="name" id="activeAlpha"><span class="type-signature"></span>activeAlpha<span class="type-signature"> :Number</span></h4>
+
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p>Navigation home button has two transparency states. One is when user hovers over the cube and the second when the cursor is anywhere else.
+This is for the hovering shate and it should be a positive number between [0,1]. If the value is less than 1 cube will be semitransparent
+when user hovers over. Default value is 1.0.</p>
+    </div>
+    
+
+    
+        <h5>Type:</h5>
+        <ul>
+            <li>
+                
+<span class="param-type">Number</span>
+
+
+            </li>
+        </ul>
+    
+
+    
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="distance"><span class="type-signature"></span>distance<span class="type-signature"> :Number</span></h4>
+
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p>Distance to be used for a home view. If null, default viewer distance for a full extent mode is used. Default value: null</p>
+    </div>
+    
+
+    
+        <h5>Type:</h5>
+        <ul>
+            <li>
+                
+<span class="param-type">Number</span>
+
+
+            </li>
+        </ul>
+    
+
+    
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="passiveAlpha"><span class="type-signature"></span>passiveAlpha<span class="type-signature"> :Number</span></h4>
+
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p>Navigation home button has two transparency states. One is when user hovers over the cube and the second when the cursor is anywhere else.
+This is for the non-hovering shate and it should be a positive number between [0,1]. If the value is less than 1 cube will be semitransparent
+when user is not hovering over. Default value is 0.3.</p>
+    </div>
+    
+
+    
+        <h5>Type:</h5>
+        <ul>
+            <li>
+                
+<span class="param-type">Number</span>
+
+
+            </li>
+        </ul>
+    
+
+    
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="placementX"><span class="type-signature"></span>placementX<span class="type-signature"> :Number</span></h4>
+
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p>Position of the the home button relative to the size of viewer canvas. This has to be a positive number between [0,1] Default value is 0.05.</p>
+    </div>
+    
+
+    
+        <h5>Type:</h5>
+        <ul>
+            <li>
+                
+<span class="param-type">Number</span>
+
+
+            </li>
+        </ul>
+    
+
+    
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="placementY"><span class="type-signature"></span>placementY<span class="type-signature"> :Number</span></h4>
+
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p>Position of the the home button relative to the size of viewer canvas. This has to be a positive number between [0,1] Default value is 0.05.</p>
+    </div>
+    
+
+    
+        <h5>Type:</h5>
+        <ul>
+            <li>
+                
+<span class="param-type">Number</span>
+
+
+            </li>
+        </ul>
+    
+
+    
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="ratio"><span class="type-signature"></span>ratio<span class="type-signature"> :Number</span></h4>
+
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p>Size of the the home button relative to the size of viewer canvas. This has to be a positive number between [0,1] Default value is 0.2.</p>
+    </div>
+    
+
+    
+        <h5>Type:</h5>
+        <ul>
+            <li>
+                
+<span class="param-type">Number</span>
+
+
+            </li>
+        </ul>
+    
+
+    
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="viewDirection"><span class="type-signature"></span>viewDirection<span class="type-signature"> :Number</span></h4>
+
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p>View direction to be used for a home view. Default value: [1, 1, -1]</p>
+    </div>
+    
+
+    
+        <h5>Type:</h5>
+        <ul>
+            <li>
+                
+<span class="param-type">Number</span>
+
+
+            </li>
+        </ul>
+    
+
+    
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+</dd>
+
+        </dl>
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="OrthogonalCamera.html">OrthogonalCamera</a></li><li><a href="PerspectiveCamera.html">PerspectiveCamera</a></li><li><a href="Prerequisites.html">Prerequisites</a></li><li><a href="Viewer.html">Viewer</a></li><li><a href="xNavigationCube.html">xNavigationCube</a></li><li><a href="xNavigationHome.html">xNavigationHome</a></li></ul><h3>Events</h3><ul><li><a href="Viewer.html#event:dblclick">dblclick</a></li><li><a href="Viewer.html#event:error">error</a></li><li><a href="Viewer.html#event:fps">fps</a></li><li><a href="Viewer.html#event:frame">frame</a></li><li><a href="Viewer.html#event:loaded">loaded</a></li><li><a href="Viewer.html#event:mouseDown">mouseDown</a></li><li><a href="Viewer.html#event:mouseDown">mouseDown</a></li><li><a href="Viewer.html#event:pick">pick</a></li><li><a href="Viewer.html#event:pick">pick</a></li><li><a href="xViewer.html#event:clipped">clipped</a></li><li><a href="xViewer.html#event:unclipped">unclipped</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-1_Hello_building.html">Hello building!</a></li><li><a href="tutorial-2_Safe_Hello_building.html">Safe 'Hello building!'</a></li><li><a href="tutorial-3_Eventful_building.html">Eventful building</a></li><li><a href="tutorial-4_Building_seen_from_everywhere.html">Building seen from everywhere ...</a></li><li><a href="tutorial-5_Colourful_building.html">Colourful building</a></li><li><a href="tutorial-6_Building_described.html">Building described</a></li></ul><h3>Global</h3><ul><li><a href="global.html#ProductType">ProductType</a></li><li><a href="global.html#State">State</a></li></ul>
+</nav>
+
+<br clear="both">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0</a> on Fri May 05 2017 10:30:44 GMT+0200 (W. Europe Summer Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

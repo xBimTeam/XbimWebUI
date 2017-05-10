@@ -1,0 +1,61 @@
+﻿.xbim-tree ul {
+    margin:0;
+    padding-left: 0;
+}
+
+.xbim-tree li{
+    padding-left: 20px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.xbim-tree li.xbim-tree-leaf{
+    padding-left: 36px;
+}
+
+.xbim-tree > ul > li {
+     padding-left: 0; 
+}
+
+.xbim-tree > ul > li.xbim-tree-leaf {
+     padding-left: 0; 
+}
+
+.noselect {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.xbim-assignment-header{
+    padding: 5px;
+    margin: 0;
+}
+
+.xbim-assignment:not(:first-child){
+    margin-top: 15px;
+}
+
+.right{
+    float: right;
+}
+
+.left{
+    float: left;
+}
+
+.xbim-entity{ 
+    cursor: default; 
+    display: table-cell;
+    word-break: break-all;
+}
+.no-overflow{
+    overflow:scroll;
+}
+
+.no-overflow-y{
+    overflow-y:auto;
+}
