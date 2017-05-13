@@ -186,3 +186,14 @@ FakesAssemblies/
 
 *.js.map
 *.css.map
+
+
+
+Xbim.WeXplorer/Viewer/**/*.js
+Xbim.WeXplorer/Viewer/**/*.d.ts
+Xbim.WeXplorer/xbim-browser.d.ts
+Xbim.WeXplorer/xbim-browser.js
+Xbim.WeXplorer/xbim-viewer.d.ts
+Xbim.WeXplorer/xbim-viewer.js
+Xbim.WeXplorer/Utilities
+Xbim.WeXplorer/Examples/**/*.js
