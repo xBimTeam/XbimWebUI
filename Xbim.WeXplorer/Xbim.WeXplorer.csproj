@@ -64,7 +64,6 @@
     <Content Include="Build\xbim-browser.min.js" />
     <Content Include="Build\xbim-geometry-loader.js" />
     <Content Include="Build\xbim-geometry-loader.min.js" />
-    <Content Include="Build\xbim-shim.js" />
     <Content Include="Build\xbim-viewer.min.js" />
     <Content Include="Examples\BasicJsExampleAsync\index.html" />
     <Content Include="Examples\BrowserExample\browser.css" />
@@ -117,9 +116,6 @@
     <Content Include="Libs\query-string.js" />
     <Content Include="Libs\system.min.js" />
     <Content Include="Libs\webgl-utils.min.js" />
-    <TypeScriptCompile Include="Build\xbim-browser.d.ts" />
-    <TypeScriptCompile Include="Build\xbim-geometry-loader.d.ts" />
-    <TypeScriptCompile Include="Build\xbim-viewer.d.ts" />
     <TypeScriptCompile Include="Viewer\matrix\common.ts" />
     <TypeScriptCompile Include="Viewer\matrix\quat.ts" />
     <TypeScriptCompile Include="Viewer\matrix\mat3.ts" />
@@ -197,6 +193,8 @@
     <Content Include="Examples\TsModulesExample\index.html" />
     <Content Include="Web.config" />
     <Content Include="Viewer\workers\tsconfig.json" />
+    <TypeScriptCompile Include="xbim-browser.ts" />
+    <TypeScriptCompile Include="xbim-viewer.ts" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
