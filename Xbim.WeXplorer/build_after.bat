@@ -1,5 +1,3 @@
-Utilities\TypingsBundler.exe Build
-
 rem Generate fresh documentation
 npm run jsdoc && ^
 
