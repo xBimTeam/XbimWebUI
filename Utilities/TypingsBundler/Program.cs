@@ -25,6 +25,10 @@ namespace TypingsBundler
             foreach (var mapFile in mapFiles)
             {
                 var data = File.ReadAllText(mapFile);
+                if (string.IsNullOrWhiteSpace(data))
+                {
+                    continue;
+                }
                 dynamic map = JsonConvert.DeserializeObject(data);
                 var sources = (map.sources as IEnumerable).Cast<JValue>().Select(v => v.ToString());
 
@@ -35,7 +39,7 @@ namespace TypingsBundler
                     return s;
                 })
                 .Where(t => !t.StartsWith("webpack"))
-                .Select(t => Path.Combine(dir, "." + t))
+                .Select(t => Path.GetFullPath(Path.Combine(dir, "." + t)))
                 .ToList();
 
                 var notFound = typings.Where(t => !File.Exists(t)).ToList();
