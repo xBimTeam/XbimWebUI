@@ -18,6 +18,7 @@
     "*.d.ts"
   ],
   "scripts": {
-    "jsdoc": "jsdoc -c jsdoc.config.json"
+    "jsdoc": "jsdoc -c jsdoc.config.json",
+    "webpack:dev": "SET NODE_ENV=development&& webpack"
   }
 }
