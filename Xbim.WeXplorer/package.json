@@ -6,7 +6,8 @@
     "jsdoc": "3.3.0",
     "webpack": "^2.4.1",
     "worker-loader": "^0.8.0",
-    "@types/node": "7.0.18" 
+    "@types/node": "7.0.18",
+    "ts-loader": "2.0.3"
   },
   "files": [
     "Browser/*",
