@@ -2,7 +2,7 @@
 import { ProductType } from './product-type';
 import { ProductInheritance } from './product-inheritance';
 import { ModelGeometry, Region } from './model-geometry';
-import { ModelHandle} from './model-handle';
+import { ModelHandle, DrawMode } from './model-handle';
 import { Shaders } from './shaders/shaders';
 
 //ported libraries
@@ -783,7 +783,7 @@ export class Viewer {
         handle.feedGPU();
 
         //get one meter size from model and set it to shader
-        var meter = handle.model.meter;
+        var meter = handle.meter;
         gl.uniform1f(viewer._meterUniformPointer, meter);
 
         //only set camera parameters and the view if this is the first model
@@ -1295,7 +1295,7 @@ export class Viewer {
 
         //movement factor needs to be dependant on the distance but one meter is a minimum so that movement wouldn't stop when camera is in 0 distance from navigation origin
         var distanceVec = vec3.subtract(vec3.create(), origin, camera);
-        var distance = Math.max(vec3.vectorLength(distanceVec), this._handles[0].model.meter);
+        var distance = Math.max(vec3.vectorLength(distanceVec), this._handles[0].meter);
 
         //move to the navigation origin in view space
         var transform = mat4.translate(mat4.create(), mat4.create(), mvOrigin)
@@ -1452,7 +1452,7 @@ export class Viewer {
             this._handles.forEach((handle) => {
                 if (!handle.stopped) {
                     handle.setActive(this._pointers);
-                    handle.draw('solid');
+                    handle.draw(DrawMode.SOLID);
                 }
             });
 
@@ -1461,7 +1461,7 @@ export class Viewer {
             this._handles.forEach((handle) => {
                 if (!handle.stopped) {
                     handle.setActive(this._pointers);
-                    handle.draw('transparent');
+                    handle.draw(DrawMode.TRANSPARENT);
                 }
             });
         } else {
@@ -1472,14 +1472,14 @@ export class Viewer {
             this._handles.forEach((handle) => {
                 if (!handle.stopped) {
                     handle.setActive(this._pointers);
-                    handle.draw('solid');
+                    handle.draw(DrawMode.SOLID);
                 }
             });
 
             this._handles.forEach((handle) => {
                 if (!handle.stopped) {
                     handle.setActive(this._pointers);
-                    handle.draw('transparent');
+                    handle.draw(DrawMode.TRANSPARENT);
                 }
             });
         }

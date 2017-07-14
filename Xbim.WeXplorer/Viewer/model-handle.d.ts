@@ -2,9 +2,13 @@ import { ModelGeometry, ProductMap, Region } from "./model-geometry";
 import { State } from "./state";
 import { ModelPointers } from "./viewer";
 export declare class ModelHandle {
-    private _gl;
-    model: ModelGeometry;
+    private gl;
+    private model;
     id: number;
+    /**
+    * Conversion factor to one meter from model units
+    */
+    meter: number;
     stopped: boolean;
     pickable: boolean;
     private _numberOfIndices;
@@ -22,13 +26,13 @@ export declare class ModelHandle {
     private _transformationBuffer;
     private _feedCompleted;
     region: Region;
-    constructor(gl: any, model: ModelGeometry);
+    constructor(gl: WebGLRenderingContext, model: ModelGeometry);
     /**
      * Static counter to keep unique ID of the model handles
      */
     private static _instancesNum;
     setActive(pointers: ModelPointers): void;
-    draw(mode?: 'solid' | 'transparent'): void;
+    draw(mode?: DrawMode): void;
     drawProduct(id: number): void;
     getProductMap(id: number): ProductMap;
     getProductMaps(ids: number[]): ProductMap[];
@@ -43,4 +47,8 @@ export declare class ModelHandle {
     resetStyles(): void;
     getModelState(): Array<Array<number>>;
     restoreModelState(state: Array<Array<number>>): void;
+}
+export declare enum DrawMode {
+    SOLID = 0,
+    TRANSPARENT = 1,
 }

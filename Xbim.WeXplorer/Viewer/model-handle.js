@@ -7,13 +7,14 @@ var state_1 = require("./state");
 var ModelHandle = (function () {
     function ModelHandle(gl, model) {
         var _this = this;
+        this.gl = gl;
+        this.model = model;
         //participates in picking operation only if true
         this.pickable = true;
         if (typeof (gl) == 'undefined' || typeof (model) == 'undefined') {
             throw 'WebGL context and geometry model must be specified';
         }
-        this._gl = gl;
-        this.model = model;
+        this.meter = model.meter;
         /**
          * unique ID which can be used to identify this handle
          */
@@ -59,7 +60,7 @@ var ModelHandle = (function () {
     ModelHandle.prototype.setActive = function (pointers) {
         if (this.stopped)
             return;
-        var gl = this._gl;
+        var gl = this.gl;
         //set predefined textures
         if (this._vertexTextureSize > 0) {
             gl.activeTexture(gl.TEXTURE1);
@@ -97,17 +98,17 @@ var ModelHandle = (function () {
     ModelHandle.prototype.draw = function (mode) {
         if (this.stopped)
             return;
-        var gl = this._gl;
+        var gl = this.gl;
         if (typeof (mode) === 'undefined') {
             //draw image frame
             gl.drawArrays(gl.TRIANGLES, 0, this._numberOfIndices);
             return;
         }
-        if (mode === 'solid' && this.model.transparentIndex > 0) {
+        if (mode === DrawMode.SOLID && this.model.transparentIndex > 0) {
             gl.drawArrays(gl.TRIANGLES, 0, this.model.transparentIndex);
             return;
         }
-        if (mode === 'transparent' && this.model.transparentIndex < this._numberOfIndices) {
+        if (mode === DrawMode.TRANSPARENT && this.model.transparentIndex < this._numberOfIndices) {
             //following recomendations from http://www.openglsuperbible.com/2013/08/20/is-order-independent-transparency-really-necessary/
             //disable writing to a depth buffer
             gl.depthMask(false);
@@ -124,7 +125,7 @@ var ModelHandle = (function () {
     ModelHandle.prototype.drawProduct = function (id) {
         if (this.stopped)
             return;
-        var gl = this._gl;
+        var gl = this.gl;
         var map = this.getProductMap(id);
         //var i = 3; //3 is for a glass panel
         //gl.drawArrays(gl.TRIANGLES, map.spans[i][0], map.spans[i][1] - map.spans[i][0]);
@@ -151,7 +152,7 @@ var ModelHandle = (function () {
         return result;
     };
     ModelHandle.prototype.unload = function () {
-        var gl = this._gl;
+        var gl = this.gl;
         gl.deleteTexture(this._vertexTexture);
         gl.deleteTexture(this._matrixTexture);
         gl.deleteTexture(this._styleTexture);
@@ -166,7 +167,7 @@ var ModelHandle = (function () {
         if (this._feedCompleted) {
             throw 'GPU can bee fed only once. It discards unnecessary data which cannot be restored again.';
         }
-        var gl = this._gl;
+        var gl = this.gl;
         var model = this.model;
         //fill all buffers
         this.bufferData(this._normalBuffer, model.normals);
@@ -191,7 +192,7 @@ var ModelHandle = (function () {
         this._feedCompleted = true;
     };
     ModelHandle.prototype.bufferData = function (pointer, data) {
-        var gl = this._gl;
+        var gl = this.gl;
         gl.bindBuffer(gl.ARRAY_BUFFER, pointer);
         gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
     };
@@ -383,4 +384,9 @@ var ModelHandle = (function () {
  */
 ModelHandle._instancesNum = 0;
 exports.ModelHandle = ModelHandle;
+var DrawMode;
+(function (DrawMode) {
+    DrawMode[DrawMode["SOLID"] = 0] = "SOLID";
+    DrawMode[DrawMode["TRANSPARENT"] = 1] = "TRANSPARENT";
+})(DrawMode = exports.DrawMode || (exports.DrawMode = {}));
 //# sourceMappingURL=model-handle.js.map

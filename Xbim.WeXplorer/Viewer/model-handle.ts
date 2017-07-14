@@ -6,13 +6,13 @@ import { ModelPointers } from "./viewer";
 //make up a model in GPU
 export class ModelHandle {
 
-    //gl: WebGL context
-    private _gl: WebGLRenderingContext;
-    //model: xModelGeometry
-    public model: ModelGeometry;
-
     //ID used to manipulate this handle
     public id: number;
+
+    /**
+    * Conversion factor to one meter from model units
+    */
+    public meter: number;
 
     //doesn't draw any graphics when stopped
     public stopped: boolean;
@@ -40,13 +40,14 @@ export class ModelHandle {
 
     public region: Region;
 
-    constructor(gl, model: ModelGeometry) {
+    constructor(
+        private gl: WebGLRenderingContext,
+        private model: ModelGeometry) {
         if (typeof (gl) == 'undefined' || typeof (model) == 'undefined') {
             throw 'WebGL context and geometry model must be specified';
         }
 
-        this._gl = gl;
-        this.model = model;
+        this.meter = model.meter;
 
         /**
          * unique ID which can be used to identify this handle 
@@ -106,7 +107,7 @@ export class ModelHandle {
     public setActive(pointers: ModelPointers): void {
         if (this.stopped) return;
 
-        var gl = this._gl;
+        var gl = this.gl;
         //set predefined textures
         if (this._vertexTextureSize > 0) {
             gl.activeTexture(gl.TEXTURE1);
@@ -151,10 +152,10 @@ export class ModelHandle {
     }
 
     //this function must be called AFTER 'setActive()' function which sets up active buffers and uniforms
-    public draw(mode?: 'solid' | 'transparent'): void {
+    public draw(mode?: DrawMode): void {
         if (this.stopped) return;
 
-        var gl = this._gl;
+        var gl = this.gl;
 
         if (typeof (mode) === 'undefined') {
             //draw image frame
@@ -162,12 +163,12 @@ export class ModelHandle {
             return;
         }
 
-        if (mode === 'solid' && this.model.transparentIndex > 0) {
+        if (mode === DrawMode.SOLID && this.model.transparentIndex > 0) {
             gl.drawArrays(gl.TRIANGLES, 0, this.model.transparentIndex);
             return;
         }
 
-        if (mode === 'transparent' && this.model.transparentIndex < this._numberOfIndices) {
+        if (mode === DrawMode.TRANSPARENT && this.model.transparentIndex < this._numberOfIndices) {
             //following recomendations from http://www.openglsuperbible.com/2013/08/20/is-order-independent-transparency-really-necessary/
             //disable writing to a depth buffer
             gl.depthMask(false);
@@ -189,7 +190,7 @@ export class ModelHandle {
     public drawProduct(id: number): void {
         if (this.stopped) return;
 
-        var gl = this._gl;
+        var gl = this.gl;
         var map = this.getProductMap(id);
 
         //var i = 3; //3 is for a glass panel
@@ -221,7 +222,7 @@ export class ModelHandle {
     }
 
     public unload() {
-        var gl = this._gl;
+        var gl = this.gl;
 
         gl.deleteTexture(this._vertexTexture);
         gl.deleteTexture(this._matrixTexture);
@@ -240,7 +241,7 @@ export class ModelHandle {
             throw 'GPU can bee fed only once. It discards unnecessary data which cannot be restored again.';
         }
 
-        var gl = this._gl;
+        var gl = this.gl;
         var model = this.model;
 
         //fill all buffers
@@ -272,7 +273,7 @@ export class ModelHandle {
     }
 
     private bufferData(pointer, data) {
-        var gl = this._gl;
+        var gl = this.gl;
         gl.bindBuffer(gl.ARRAY_BUFFER, pointer);
         gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
     }
@@ -472,4 +473,9 @@ export class ModelHandle {
         //buffer data to GPU
         this.bufferData(this._stateBuffer, this.model.states);
     }
+}
+
+export enum DrawMode {
+    SOLID,
+    TRANSPARENT
 }
