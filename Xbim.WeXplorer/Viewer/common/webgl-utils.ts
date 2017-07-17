@@ -107,7 +107,7 @@ export class WebGLUtils {
      *     if there is an error during creation.
      * @return {WebGLRenderingContext} The created context.
      */
-    public static setupWebGL(canvas: HTMLCanvasElement, attribs?: {}, onError?: (msg: string) => void): WebGLRenderingContext {
+    public static setupWebGL(canvas: HTMLCanvasElement, attribs?: WebGLContextAttributes, onError?: (msg: string) => void): WebGLRenderingContext {
         function handleCreationError(msg) {
             var container = canvas.parentNode as HTMLElement;
             if (container) {

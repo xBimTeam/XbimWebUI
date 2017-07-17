@@ -54,7 +54,7 @@ export declare class WebGLUtils {
      *     if there is an error during creation.
      * @return {WebGLRenderingContext} The created context.
      */
-    static setupWebGL(canvas: HTMLCanvasElement, attribs?: {}, onError?: (msg: string) => void): WebGLRenderingContext;
+    static setupWebGL(canvas: HTMLCanvasElement, attribs?: WebGLContextAttributes, onError?: (msg: string) => void): WebGLRenderingContext;
     /**
      * Creates a webgl context.
      * @param {!Canvas} canvas The canvas tag to get context

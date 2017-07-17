@@ -142,19 +142,22 @@ export declare class Viewer {
     * desired so it can be excluded with this parameter.
     */
     resetStates(hideSpaces: boolean): void;
+    getCurrentImageHtml(): HTMLImageElement;
+    getCurrentImageDataUrl(): string;
+    getCurrentImageBlob(callback: (blob: Blob) => void): void;
     /**
      * Gets complete model state and style. Resulting object can be used to restore the state later on.
      *
      * @param {Number} id - Model ID which you can get from {@link Viewer#event:loaded loaded} event.
      * @returns {Array} - Array representing model state in compact form suitable for serialization
      */
-    getModelState(id: number): number[][];
+    getModelState(id: number): Array<Array<number>>;
     /**
      * Restores model state from the data previously captured with {@link Viewer#getModelState getModelState()} function
      * @param {Number} id - ID of the model
      * @param {Array} state - State of the model as obtained from {@link Viewer#getModelState getModelState()} function
      */
-    restoreModelState(id: number, state: any[]): void;
+    restoreModelState(id: number, state: Array<Array<number>>): void;
     /**
     * Use this method for restyling of the model. This doesn't change the default appearance of the products so you can think about it as an overlay. You can
     * remove the overlay if you set the style to {@link xState#UNSTYLED xState.UNSTYLED} value. You can combine restyling and hiding in this way.

@@ -2,13 +2,16 @@ import { ModelGeometry, ProductMap, Region } from "./model-geometry";
 import { State } from "./state";
 import { ModelPointers } from "./viewer";
 export declare class ModelHandle {
-    private gl;
-    private model;
+    private _gl;
+    private _model;
     id: number;
     /**
     * Conversion factor to one meter from model units
     */
     meter: number;
+    /**
+    * indicates if this model should be used in a rendering loop or not.
+    */
     stopped: boolean;
     pickable: boolean;
     private _numberOfIndices;
@@ -24,9 +27,10 @@ export declare class ModelHandle {
     private _styleBuffer;
     private _stateBuffer;
     private _transformationBuffer;
-    private _feedCompleted;
     region: Region;
-    constructor(gl: WebGLRenderingContext, model: ModelGeometry);
+    constructor(_gl: WebGLRenderingContext, _model: ModelGeometry);
+    private InitRegions(regions);
+    private InitGlBuffersAndTextures(gl);
     /**
      * Static counter to keep unique ID of the model handles
      */
@@ -37,7 +41,7 @@ export declare class ModelHandle {
     getProductMap(id: number): ProductMap;
     getProductMaps(ids: number[]): ProductMap[];
     unload(): void;
-    feedGPU(): void;
+    private InitGPU(gl, model);
     private bufferData(pointer, data);
     static bufferTexture(gl: WebGLRenderingContext, pointer: WebGLTexture, data: any, numberOfComponents?: number): number;
     getState(id: number): State;

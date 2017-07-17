@@ -150,7 +150,7 @@ export class Viewer {
 
 
         //*************************** Do all the set up of WebGL **************************
-        var gl = WebGLUtils.setupWebGL(this._canvas);
+        var gl = WebGLUtils.setupWebGL(this._canvas, { preserveDrawingBuffer: true });
 
         //do not even initialize this object if WebGL is not supported
         if (!gl) {
@@ -497,13 +497,30 @@ export class Viewer {
         this._stylingChanged = true;
     }
 
+    public getCurrentImageHtml(): HTMLImageElement {
+        var element = document.createElement("img") as HTMLImageElement;
+        element.src = this.getCurrentImageDataUrl();
+        return element;
+    }
+
+    public getCurrentImageDataUrl(): string
+    {
+        return this._canvas.toDataURL('image/png');
+    }
+
+    public getCurrentImageBlob(callback: (blob: Blob) => void): void {
+        return this._canvas.toBlob(callback, 'image/png');
+    }
+
+    
+
     /**
      * Gets complete model state and style. Resulting object can be used to restore the state later on.
      * 
      * @param {Number} id - Model ID which you can get from {@link Viewer#event:loaded loaded} event.
      * @returns {Array} - Array representing model state in compact form suitable for serialization
      */
-    public getModelState(id: number) {
+    public getModelState(id: number): Array<Array<number>>{
         var handle = this._handles[id];
         if (typeof (handle) === 'undefined') {
             throw "Model doesn't exist";
@@ -517,7 +534,7 @@ export class Viewer {
      * @param {Number} id - ID of the model
      * @param {Array} state - State of the model as obtained from {@link Viewer#getModelState getModelState()} function
      */
-    public restoreModelState(id: number, state: any[]) {
+    public restoreModelState(id: number, state: Array<Array<number>>) {
         var handle = this._handles[id];
         if (typeof (handle) === 'undefined') {
             throw "Model doesn't exist";
@@ -732,7 +749,7 @@ export class Viewer {
         worker.onmessage = function (msg) {
 
             //console.log('Message received from worker');
-            var geometry = msg.data;
+            var geometry = msg.data as ModelGeometry;
             self.addHandle(geometry, tag);
         }
         worker.onerror = function (e) {
@@ -779,8 +796,6 @@ export class Viewer {
 
         var handle = new ModelHandle(viewer.gl, geometry);
         viewer._handles.push(handle);
-
-        handle.feedGPU();
 
         //get one meter size from model and set it to shader
         var meter = handle.meter;

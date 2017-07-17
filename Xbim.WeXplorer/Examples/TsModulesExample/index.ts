@@ -103,6 +103,11 @@ document['clip'] = function () {
 document['unclip'] = function () {
     viewer.clippingPlaneA = null;
     viewer.clippingPlaneB = null;
+}
+document['takeSnapshot'] = function () {
+    var img = viewer.getCurrentImageDataUrl();
+    var place = document.getElementById("snapshot") as HTMLDivElement;
+    place.innerHTML = "<img style='width:100%;' src=" + img + ">";
 }  
 
 viewer.on("pick", function (args) {

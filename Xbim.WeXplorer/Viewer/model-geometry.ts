@@ -29,39 +29,39 @@ export class ModelGeometry {
     //	spans: [Int32Array([int, int]),Int32Array([int, int]), ...] //spanning indexes defining shapes of product and it's state
     //};
 
-    public productMaps: { [id: number]: ProductMap; } = {};
+    public productMaps: { [id: number]: ProductMap } = {};
     public regions: Region[];
     public transparentIndex: number;
 
     public parse(binReader: BinaryReader) {
-        var br = binReader;
-        var magicNumber = br.readInt32();
+        let br = binReader;
+        let magicNumber = br.readInt32();
         if (magicNumber != 94132117) throw 'Magic number mismatch.';
-        var version = br.readByte();
-        var numShapes = br.readInt32();
-        var numVertices = br.readInt32();
-        var numTriangles = br.readInt32();
-        var numMatrices = br.readInt32();;
-        var numProducts = br.readInt32();;
-        var numStyles = br.readInt32();;
+        let version = br.readByte();
+        let numShapes = br.readInt32();
+        let numVertices = br.readInt32();
+        let numTriangles = br.readInt32();
+        let numMatrices = br.readInt32();;
+        let numProducts = br.readInt32();;
+        let numStyles = br.readInt32();;
         this.meter = br.readFloat32();;
-        var numRegions = br.readInt16();
+        let numRegions = br.readInt16();
 
 
         //set size of arrays to be square usable for texture data
         //TODO: reflect support for floating point textures
-        var square = function (arity, count) {
+        let square = function (arity, count) {
             if (typeof (arity) == 'undefined' || typeof (count) == 'undefined') {
                 throw 'Wrong arguments';
             }
             if (count == 0) return 0;
-            var byteLength = count * arity;
-            var imgSide = Math.ceil(Math.sqrt(byteLength / 4));
+            let byteLength = count * arity;
+            let imgSide = Math.ceil(Math.sqrt(byteLength / 4));
             //clamp to parity
             while ((imgSide * 4) % arity != 0) {
                 imgSide++
             }
-            var result = imgSide * imgSide * 4 / arity;
+            let result = imgSide * imgSide * 4 / arity;
             return result;
         };
 
@@ -78,17 +78,18 @@ export class ModelGeometry {
         this.productMaps = {};
         this.regions = new Array<Region>(numRegions);
 
-        var iVertex = 0;
-        var iIndexForward = 0;
-        var iIndexBackward = numTriangles * 3;
-        var iTransform = 0;
-        var iMatrix = 0;
+        let styleMap = new StyleMap();
 
-        var stateEnum = State;
-        var typeEnum = ProductType;
+        let iVertex = 0;
+        let iIndexForward = 0;
+        let iIndexBackward = numTriangles * 3;
+        let iTransform = 0;
+        let iMatrix = 0;
 
+        let stateEnum = State;
+        let typeEnum = ProductType;
 
-        for (var i = 0; i < numRegions; i++) {
+        for (let i = 0; i < numRegions; i++) {
             let region = new Region();
             region.population = br.readInt32();
             region.centre = br.readFloat32Array(3);
@@ -96,35 +97,26 @@ export class ModelGeometry {
             this.regions[i] = region;
         }
 
-
-        var styleMap = [];
-        styleMap['getStyle'] = function (id) {
-            for (var i = 0; i < this.length; i++) {
-                var item = this[i];
-                if (item.id == id) return item;
-            }
-            return null;
-        };
-        var iStyle = 0;
+        let iStyle = 0;
         for (iStyle; iStyle < numStyles; iStyle++) {
-            var styleId = br.readInt32();
-            var R = br.readFloat32() * 255;
-            var G = br.readFloat32() * 255;
-            var B = br.readFloat32() * 255;
-            var A = br.readFloat32() * 255;
+            let styleId = br.readInt32();
+            let R = br.readFloat32() * 255;
+            let G = br.readFloat32() * 255;
+            let B = br.readFloat32() * 255;
+            let A = br.readFloat32() * 255;
             this.styles.set([R, G, B, A], iStyle * 4);
-            styleMap.push({ id: styleId, index: iStyle, transparent: A < 254 });
+            styleMap.Add({ id: styleId, index: iStyle, transparent: A < 254 });
         }
         this.styles.set([255, 255, 255, 255], iStyle * 4);
-        var defaultStyle = { id: -1, index: iStyle, transparent: A < 254 }
-        styleMap.push(defaultStyle);
+        let defaultStyle: StyleRecord = { id: -1, index: iStyle, transparent: false };
+        styleMap.Add(defaultStyle);
 
-        for (var i = 0; i < numProducts; i++) {
-            var productLabel = br.readInt32();
-            var prodType = br.readInt16();
-            var bBox = br.readFloat32Array(6);
+        for (let i = 0; i < numProducts; i++) {
+            let productLabel = br.readInt32();
+            let prodType = br.readInt16();
+            let bBox = br.readFloat32Array(6);
 
-            var map = {
+            let map: ProductMap = {
                 productID: productLabel,
                 type: prodType,
                 bBox: bBox,
@@ -133,16 +125,16 @@ export class ModelGeometry {
             this.productMaps[productLabel] = map;
         }
 
-        for (var iShape = 0; iShape < numShapes; iShape++) {
+        for (let iShape = 0; iShape < numShapes; iShape++) {
 
-            var repetition = br.readInt32();
-            var shapeList = [];
-            for (var iProduct = 0; iProduct < repetition; iProduct++) {
-                var prodLabel = br.readInt32();
-                var instanceTypeId = br.readInt16();
-                var instanceLabel = br.readInt32();
-                var styleId = br.readInt32();
-                var transformation = null;
+            let repetition = br.readInt32();
+            let shapeList = [];
+            for (let iProduct = 0; iProduct < repetition; iProduct++) {
+                let prodLabel = br.readInt32();
+                let instanceTypeId = br.readInt16();
+                let instanceLabel = br.readInt32();
+                let styleId = br.readInt32();
+                let transformation = null;
 
                 if (repetition > 1) {
                     transformation = version === 1 ? br.readFloat32Array(16) : br.readFloat64Array(16);
@@ -150,7 +142,7 @@ export class ModelGeometry {
                     iMatrix += 16;
                 }
 
-                var styleItem = styleMap['getStyle'](styleId);
+                let styleItem = styleMap.GetStyle(styleId);
                 if (styleItem === null)
                     styleItem = defaultStyle;
 
@@ -164,13 +156,13 @@ export class ModelGeometry {
             }
 
             //read shape geometry
-            var shapeGeom = new TriangulatedShape();
+            let shapeGeom = new TriangulatedShape();
             shapeGeom.parse(br);
 
 
             //copy shape data into inner array and set to null so it can be garbage collected
             shapeList.forEach(shape => {
-                var iIndex = 0;
+                let iIndex = 0;
                 //set iIndex according to transparency either from beginning or at the end
                 if (shape.transparent) {
                     iIndex = iIndexBackward - shapeGeom.indices.length;
@@ -178,8 +170,8 @@ export class ModelGeometry {
                     iIndex = iIndexForward;
                 }
 
-                var begin = iIndex;
-                var map = this.productMaps[shape.pLabel];
+                let begin = iIndex;
+                let map = this.productMaps[shape.pLabel];
                 if (typeof (map) === "undefined") {
                     //throw "Product hasn't been defined before.";
                     map = {
@@ -194,12 +186,12 @@ export class ModelGeometry {
                 this.normals.set(shapeGeom.normals, iIndex * 2);
 
                 //switch spaces and openings off by default 
-                var state = map.type == typeEnum.IFCSPACE || map.type == typeEnum.IFCOPENINGELEMENT
+                let state = map.type == typeEnum.IFCSPACE || map.type == typeEnum.IFCOPENINGELEMENT
                     ? stateEnum.HIDDEN
                     : 0xFF; //0xFF is for the default state
 
                 //fix indices to right absolute position. It is relative to the shape.
-                for (var i = 0; i < shapeGeom.indices.length; i++) {
+                for (let i = 0; i < shapeGeom.indices.length; i++) {
                     this.indices[iIndex] = shapeGeom.indices[i] + iVertex / 3;
                     this.products[iIndex] = shape.pLabel;
                     this.styleIndices[iIndex] = shape.style;
@@ -210,7 +202,7 @@ export class ModelGeometry {
                     iIndex++;
                 }
 
-                var end = iIndex;
+                let end = iIndex;
                 map.spans.push(new Int32Array([begin, end]));
 
                 if (shape.transparent) iIndexBackward -= shapeGeom.indices.length;
@@ -236,8 +228,8 @@ export class ModelGeometry {
     //Source has to be either URL of wexBIM file or Blob representing wexBIM file
     public load(source) {
         //binary reading
-        var br = new BinaryReader();
-        var self = this;
+        let br = new BinaryReader();
+        let self = this;
         br.onloaded = function () {
             self.parse(br);
             if (self.onloaded) {
@@ -321,4 +313,25 @@ export class Region {
         out.centre = new Float32Array([cx, cy, cz]);
         return out;
     }
+}
+
+class StyleMap {
+    private _internal: { [id: number]: StyleRecord } = {};
+
+    public Add(record: StyleRecord): void {
+        this._internal[record.id] = record;
+    }
+
+    public GetStyle(id: number): StyleRecord {
+        let item = this._internal[id];
+        if (item.id == id)
+            return item;
+        return null;
+    }
+}
+
+class StyleRecord {
+    public id: number;
+    public index: number;
+    public transparent: boolean;
 }

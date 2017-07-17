@@ -65,6 +65,7 @@ var ModelGeometry = (function () {
         this.matrices = new Float32Array(square(4, numMatrices * 16));
         this.productMaps = {};
         this.regions = new Array(numRegions);
+        var styleMap = new StyleMap();
         var iVertex = 0;
         var iIndexForward = 0;
         var iIndexBackward = numTriangles * 3;
@@ -79,15 +80,6 @@ var ModelGeometry = (function () {
             region.bbox = br.readFloat32Array(6);
             this.regions[i] = region;
         }
-        var styleMap = [];
-        styleMap['getStyle'] = function (id) {
-            for (var i = 0; i < this.length; i++) {
-                var item = this[i];
-                if (item.id == id)
-                    return item;
-            }
-            return null;
-        };
         var iStyle = 0;
         for (iStyle; iStyle < numStyles; iStyle++) {
             var styleId = br.readInt32();
@@ -96,11 +88,11 @@ var ModelGeometry = (function () {
             var B = br.readFloat32() * 255;
             var A = br.readFloat32() * 255;
             this.styles.set([R, G, B, A], iStyle * 4);
-            styleMap.push({ id: styleId, index: iStyle, transparent: A < 254 });
+            styleMap.Add({ id: styleId, index: iStyle, transparent: A < 254 });
         }
         this.styles.set([255, 255, 255, 255], iStyle * 4);
-        var defaultStyle = { id: -1, index: iStyle, transparent: A < 254 };
-        styleMap.push(defaultStyle);
+        var defaultStyle = { id: -1, index: iStyle, transparent: false };
+        styleMap.Add(defaultStyle);
         for (var i = 0; i < numProducts; i++) {
             var productLabel = br.readInt32();
             var prodType = br.readInt16();
@@ -113,7 +105,7 @@ var ModelGeometry = (function () {
             };
             this.productMaps[productLabel] = map;
         }
-        for (var iShape = 0; iShape < numShapes; iShape++) {
+        var _loop_1 = function (iShape) {
             var repetition = br.readInt32();
             var shapeList = [];
             for (var iProduct = 0; iProduct < repetition; iProduct++) {
@@ -124,10 +116,10 @@ var ModelGeometry = (function () {
                 var transformation = null;
                 if (repetition > 1) {
                     transformation = version === 1 ? br.readFloat32Array(16) : br.readFloat64Array(16);
-                    this.matrices.set(transformation, iMatrix);
+                    this_1.matrices.set(transformation, iMatrix);
                     iMatrix += 16;
                 }
-                var styleItem = styleMap['getStyle'](styleId);
+                var styleItem = styleMap.GetStyle(styleId);
                 if (styleItem === null)
                     styleItem = defaultStyle;
                 shapeList.push({
@@ -184,12 +176,16 @@ var ModelGeometry = (function () {
                     iIndexBackward -= shapeGeom.indices.length;
                 else
                     iIndexForward += shapeGeom.indices.length;
-            }, this);
+            }, this_1);
             //copy geometry and keep track of amount so that we can fix indices to right position
             //this must be the last step to have correct iVertex number above
-            this.vertices.set(shapeGeom.vertices, iVertex);
+            this_1.vertices.set(shapeGeom.vertices, iVertex);
             iVertex += shapeGeom.vertices.length;
             shapeGeom = null;
+        };
+        var this_1 = this;
+        for (var iShape = 0; iShape < numShapes; iShape++) {
+            _loop_1(iShape);
         }
         //binary reader should be at the end by now
         if (!br.isEOF()) {
@@ -273,4 +269,24 @@ var Region = (function () {
     return Region;
 }());
 exports.Region = Region;
+var StyleMap = (function () {
+    function StyleMap() {
+        this._internal = {};
+    }
+    StyleMap.prototype.Add = function (record) {
+        this._internal[record.id] = record;
+    };
+    StyleMap.prototype.GetStyle = function (id) {
+        var item = this._internal[id];
+        if (item.id == id)
+            return item;
+        return null;
+    };
+    return StyleMap;
+}());
+var StyleRecord = (function () {
+    function StyleRecord() {
+    }
+    return StyleRecord;
+}());
 //# sourceMappingURL=model-geometry.js.map

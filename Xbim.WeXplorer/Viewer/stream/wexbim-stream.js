@@ -4,13 +4,12 @@ var binary_reader_1 = require("../binary-reader");
 var wexbim_mesh_1 = require("./wexbim-mesh");
 var WexBimHeader = (function () {
     function WexBimHeader() {
-        this.MagicNumber = 94132117;
         this.Version = 3; //modified to support regions correctly
     }
     WexBimHeader.ReadFromStream = function (reader) {
         var header = new WexBimHeader();
-        header.MagicNumber = reader.readInt32();
-        if (header.MagicNumber != 94132117)
+        var magicNumber = reader.readInt32();
+        if (magicNumber != WexBimHeader.MagicNumber)
             throw "This is not a valid wexbim file. Magic number mismatch.";
         header.Version = reader.readByte();
         header.ShapeCount = reader.readInt32();
@@ -25,6 +24,7 @@ var WexBimHeader = (function () {
     };
     return WexBimHeader;
 }());
+WexBimHeader.MagicNumber = 94132117;
 exports.WexBimHeader = WexBimHeader;
 var WexBimRegion = (function () {
     function WexBimRegion() {

@@ -4,11 +4,10 @@ import { WexBimMesh } from "./wexbim-mesh";
 
 export class WexBimHeader {
     constructor() {
-        this.MagicNumber = 94132117;
         this.Version = 3; //modified to support regions correctly
 
     }
-    public MagicNumber: number;
+    public static MagicNumber: number = 94132117;
     public Version: number;
     public ShapeCount: number;
     public VertexCount: number;
@@ -22,8 +21,8 @@ export class WexBimHeader {
 
     public static ReadFromStream(reader: BinaryReader): WexBimHeader {
         var header = new WexBimHeader();
-        header.MagicNumber = reader.readInt32();
-        if (header.MagicNumber != 94132117)
+        let magicNumber = reader.readInt32();
+        if (magicNumber != WexBimHeader.MagicNumber)
             throw "This is not a valid wexbim file. Magic number mismatch.";
 
         header.Version = reader.readByte();

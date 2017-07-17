@@ -3,7 +3,7 @@ import { ProductType } from "../product-type";
 import { WexBimMesh } from "./wexbim-mesh";
 export declare class WexBimHeader {
     constructor();
-    MagicNumber: number;
+    static MagicNumber: number;
     Version: number;
     ShapeCount: number;
     VertexCount: number;
