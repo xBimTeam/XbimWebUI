@@ -292,7 +292,7 @@ export class Viewer {
 
     private _events: { [id: string]: Function[]; };
     private _numberOfActiveModels: number;
-    private _lastStates: {[id: string] : string};
+    private _lastStates: { [id: string]: string };
     private _visualStateAttributes: string[];
     public renderingMode: RenderingMode;
     private _clippingPlaneA: number[];
@@ -300,6 +300,7 @@ export class Viewer {
     private _clippingPlaneB: number[];
     private _clippingB: boolean;
     private _lastClippingPoint: number[];
+    private _isShiftKeyDown: boolean = false;
 
     public gl: WebGLRenderingContext;
     public mvMatrix: Float32Array;
@@ -503,8 +504,7 @@ export class Viewer {
         return element;
     }
 
-    public getCurrentImageDataUrl(): string
-    {
+    public getCurrentImageDataUrl(): string {
         return this._canvas.toDataURL('image/png');
     }
 
@@ -512,7 +512,7 @@ export class Viewer {
         return this._canvas.toBlob(callback, 'image/png');
     }
 
-    
+
 
     /**
      * Gets complete model state and style. Resulting object can be used to restore the state later on.
@@ -520,7 +520,7 @@ export class Viewer {
      * @param {Number} id - Model ID which you can get from {@link Viewer#event:loaded loaded} event.
      * @returns {Array} - Array representing model state in compact form suitable for serialization
      */
-    public getModelState(id: number): Array<Array<number>>{
+    public getModelState(id: number): Array<Array<number>> {
         var handle = this._handles[id];
         if (typeof (handle) === 'undefined') {
             throw "Model doesn't exist";
@@ -635,7 +635,7 @@ export class Viewer {
     * @param {Number} prodId [optional] Product ID. You can get ID either from semantic structure of the model or from {@link Viewer#event:pick pick event}.
     * @return {Bool} True if the target exists and is set, False otherwise
     */
-    public setCameraTarget(prodId?: number): boolean{
+    public setCameraTarget(prodId?: number): boolean {
         var viewer = this;
         //helper function for setting of the distance based on camera field of view and size of the product's bounding box
         var setDistance = function (bBox: number[] | Float32Array) {
@@ -678,7 +678,7 @@ export class Viewer {
     private getMergedRegion(): Region {
         let region = new Region();
         this._handles
-            .filter((h, i, a) =>  !h.stopped )
+            .filter((h, i, a) => !h.stopped)
             .forEach((h, i, a) => {
                 region = region.merge(h.region);
             });
@@ -1036,27 +1036,30 @@ export class Viewer {
             lastMouseY = newY;
 
             if (button === 'left') {
-                switch (viewer.navigationMode) {
-                    case 'free-orbit':
-                        this.navigate('free-orbit', deltaX, deltaY);
-                        break;
+                if (viewer._isShiftKeyDown) {
+                    this.navigate('pan', deltaX, deltaY);
+                } else {
+                    switch (viewer.navigationMode) {
+                        case 'free-orbit':
+                            this.navigate('free-orbit', deltaX, deltaY);
+                            break;
 
-                    case 'fixed-orbit':
-                    case 'orbit':
-                        this.navigate('orbit', deltaX, deltaY);
-                        break;
+                        case 'fixed-orbit':
+                        case 'orbit':
+                            this.navigate('orbit', deltaX, deltaY);
+                            break;
 
-                    case 'pan':
-                        this.navigate('pan', deltaX, deltaY);
-                        break;
+                        case 'pan':
+                            this.navigate('pan', deltaX, deltaY);
+                            break;
 
-                    case 'zoom':
-                        this.navigate('zoom', deltaX, deltaY);
-                        break;
+                        case 'zoom':
+                            this.navigate('zoom', deltaX, deltaY);
+                            break;
 
-                    default:
-                        break;
-
+                        default:
+                            break;
+                    }
                 }
             }
             if (button === 'middle' || button === 'right') {
@@ -1122,6 +1125,21 @@ export class Viewer {
         * @param {Number} id - product ID of the element or null if there wasn't any product under mouse
         */
         this._canvas.addEventListener('dblclick', () => { viewer.fire('dblclick', { id: id }); }, true);
+
+        //listen to key events to help navigation
+        document.addEventListener('keydown', (event: KeyboardEvent) => {
+            if (event.key === 'Shift') {
+                this._isShiftKeyDown = true;
+                return;
+            }
+        }, false);
+
+        document.addEventListener('keyup', (event: KeyboardEvent) => {
+            if (event.key === 'Shift') {
+                this._isShiftKeyDown = false;
+                return;
+            }
+        }, false);
     }
 
     private _initTouchNavigationEvents() {
@@ -1696,7 +1714,7 @@ export class Viewer {
         gl.uniform1i(this._colorCodingUniformPointer, 1);
 
         //render colour coded image using latest buffered data
-        this._handles.forEach( (handle) => {
+        this._handles.forEach((handle) => {
             if (!handle.stopped && handle.pickable) {
                 handle.setActive(this._pointers);
                 handle.draw();
@@ -1733,7 +1751,7 @@ export class Viewer {
         if (hasValue) {
             var id = result[0] + result[1] * 256 + result[2] * 256 * 256;
             var handled = false;
-            this._plugins.forEach( (plugin) => {
+            this._plugins.forEach((plugin) => {
                 if (!plugin.onBeforeGetId) {
                     return;
                 }

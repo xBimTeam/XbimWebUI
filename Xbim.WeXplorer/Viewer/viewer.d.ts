@@ -76,6 +76,7 @@ export declare class Viewer {
     private _clippingPlaneB;
     private _clippingB;
     private _lastClippingPoint;
+    private _isShiftKeyDown;
     gl: WebGLRenderingContext;
     mvMatrix: Float32Array;
     private _fpt;
