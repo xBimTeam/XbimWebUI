@@ -21,6 +21,25 @@ export class BinaryReader {
         return this._position;
     }
 
+    /**
+     * Gets reader for a sub array starting at current position.
+     * This enforces isolation of reading within certain data island.
+     * 
+     * @param length Byte length of the data island
+     */
+    public getSubReader(length: number): BinaryReader {
+        var reader = new BinaryReader();
+        //get slice of the data
+        var data = this._buffer.slice(this._position, length);
+        //load is synchronous with ArrayBuffer argument
+        reader.load(data);
+
+        //move position after the data island
+        this._position += length;
+
+        //return new reader
+        return reader;
+    }
 
     /**
      * Pass url string, blob, file of byte array to this function to initialize the reader. Only array buffer takes imidiate effect.

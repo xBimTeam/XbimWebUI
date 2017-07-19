@@ -16,6 +16,13 @@ export declare class BinaryReader {
      */
     readonly Position: number;
     /**
+     * Gets reader for a sub array starting at current position.
+     * This enforces isolation of reading within certain data island.
+     *
+     * @param length Byte length of the data island
+     */
+    getSubReader(length: number): BinaryReader;
+    /**
      * Pass url string, blob, file of byte array to this function to initialize the reader. Only array buffer takes imidiate effect.
      * Othe sources are loaded asynchronously and you need to use 'onloaded' delegate to use the reader only after it is initialized woth the data.
      * @param source URL string of the file or BLOB or File or ArrayBuffer object

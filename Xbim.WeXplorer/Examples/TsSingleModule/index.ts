@@ -2,6 +2,7 @@
 
 var viewer = new Viewer('viewer');
 viewer.load("/tests/data/SampleHouse.wexbim", "Model A");
+//viewer.load("/tests/wexbim3/SampleHouse.wexbim", "Model A");
 
 viewer.on("loaded", function () {
     console.log("Viewer data loaded");

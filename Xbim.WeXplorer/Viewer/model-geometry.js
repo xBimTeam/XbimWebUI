@@ -15,10 +15,16 @@ var ModelGeometry = (function () {
         //	bBox: Float32Array(6),
         //	spans: [Int32Array([int, int]),Int32Array([int, int]), ...] //spanning indexes defining shapes of product and it's state
         //};
+        this.iVertex = 0;
+        this.iIndexForward = 0;
+        this.iIndexBackward = 0;
+        this.iTransform = 0;
+        this.iMatrix = 0;
         this.productMaps = {};
+        this._styleMap = new StyleMap();
     }
     ModelGeometry.prototype.parse = function (binReader) {
-        var _this = this;
+        this._reader = binReader;
         var br = binReader;
         var magicNumber = br.readInt32();
         if (magicNumber != 94132117)
@@ -65,12 +71,11 @@ var ModelGeometry = (function () {
         this.matrices = new Float32Array(square(4, numMatrices * 16));
         this.productMaps = {};
         this.regions = new Array(numRegions);
-        var styleMap = new StyleMap();
-        var iVertex = 0;
-        var iIndexForward = 0;
-        var iIndexBackward = numTriangles * 3;
-        var iTransform = 0;
-        var iMatrix = 0;
+        this.iVertex = 0;
+        this.iIndexForward = 0;
+        this.iIndexBackward = numTriangles * 3;
+        this.iTransform = 0;
+        this.iMatrix = 0;
         var stateEnum = state_1.State;
         var typeEnum = product_type_1.ProductType;
         for (var i = 0; i < numRegions; i++) {
@@ -88,11 +93,11 @@ var ModelGeometry = (function () {
             var B = br.readFloat32() * 255;
             var A = br.readFloat32() * 255;
             this.styles.set([R, G, B, A], iStyle * 4);
-            styleMap.Add({ id: styleId, index: iStyle, transparent: A < 254 });
+            this._styleMap.Add({ id: styleId, index: iStyle, transparent: A < 254 });
         }
         this.styles.set([255, 255, 255, 255], iStyle * 4);
         var defaultStyle = { id: -1, index: iStyle, transparent: false };
-        styleMap.Add(defaultStyle);
+        this._styleMap.Add(defaultStyle);
         for (var i = 0; i < numProducts; i++) {
             var productLabel = br.readInt32();
             var prodType = br.readInt16();
@@ -105,93 +110,122 @@ var ModelGeometry = (function () {
             };
             this.productMaps[productLabel] = map;
         }
-        var _loop_1 = function (iShape) {
-            var repetition = br.readInt32();
-            var shapeList = [];
-            for (var iProduct = 0; iProduct < repetition; iProduct++) {
-                var prodLabel = br.readInt32();
-                var instanceTypeId = br.readInt16();
-                var instanceLabel = br.readInt32();
-                var styleId = br.readInt32();
-                var transformation = null;
-                if (repetition > 1) {
-                    transformation = version === 1 ? br.readFloat32Array(16) : br.readFloat64Array(16);
-                    this_1.matrices.set(transformation, iMatrix);
-                    iMatrix += 16;
+        //version 3 puts geometry in regions properly so it is possible to use this information for rendering
+        if (version >= 3) {
+            for (var r = 0; r < numRegions; r++) {
+                var region = this.regions[r];
+                var geomCount = br.readInt32();
+                for (var g = 0; g < geomCount; g++) {
+                    var sc = br.readInt32();
+                    for (var s = 0; s < sc; s++) {
+                        //read shape information
+                    }
+                    var geomLength = br.readInt32();
+                    //read geometry data (make sure we don't overflow)
+                    var gbr = br.getSubReader(geomLength);
+                    var shapeGeom = new triangulated_shape_1.TriangulatedShape();
+                    shapeGeom.parse(gbr);
+                    //add data to arrays prepared for GPU
                 }
-                var styleItem = styleMap.GetStyle(styleId);
-                if (styleItem === null)
-                    styleItem = defaultStyle;
-                shapeList.push({
-                    pLabel: prodLabel,
-                    iLabel: instanceLabel,
-                    style: styleItem.index,
-                    transparent: styleItem.transparent,
-                    transform: transformation != null ? iTransform++ : -1
-                });
             }
-            //read shape geometry
-            var shapeGeom = new triangulated_shape_1.TriangulatedShape();
-            shapeGeom.parse(br);
-            //copy shape data into inner array and set to null so it can be garbage collected
-            shapeList.forEach(function (shape) {
-                var iIndex = 0;
-                //set iIndex according to transparency either from beginning or at the end
-                if (shape.transparent) {
-                    iIndex = iIndexBackward - shapeGeom.indices.length;
-                }
-                else {
-                    iIndex = iIndexForward;
-                }
-                var begin = iIndex;
-                var map = _this.productMaps[shape.pLabel];
-                if (typeof (map) === "undefined") {
-                    //throw "Product hasn't been defined before.";
-                    map = {
-                        productID: 0,
-                        type: typeEnum.IFCOPENINGELEMENT,
-                        bBox: new Float32Array(6),
-                        spans: []
-                    };
-                    _this.productMaps[shape.pLabel] = map;
-                }
-                _this.normals.set(shapeGeom.normals, iIndex * 2);
-                //switch spaces and openings off by default 
-                var state = map.type == typeEnum.IFCSPACE || map.type == typeEnum.IFCOPENINGELEMENT
-                    ? stateEnum.HIDDEN
-                    : 0xFF; //0xFF is for the default state
-                //fix indices to right absolute position. It is relative to the shape.
-                for (var i = 0; i < shapeGeom.indices.length; i++) {
-                    _this.indices[iIndex] = shapeGeom.indices[i] + iVertex / 3;
-                    _this.products[iIndex] = shape.pLabel;
-                    _this.styleIndices[iIndex] = shape.style;
-                    _this.transformations[iIndex] = shape.transform;
-                    _this.states[2 * iIndex] = state; //set state
-                    _this.states[2 * iIndex + 1] = 0xFF; //default style
-                    iIndex++;
-                }
-                var end = iIndex;
-                map.spans.push(new Int32Array([begin, end]));
-                if (shape.transparent)
-                    iIndexBackward -= shapeGeom.indices.length;
-                else
-                    iIndexForward += shapeGeom.indices.length;
-            }, this_1);
-            //copy geometry and keep track of amount so that we can fix indices to right position
-            //this must be the last step to have correct iVertex number above
-            this_1.vertices.set(shapeGeom.vertices, iVertex);
-            iVertex += shapeGeom.vertices.length;
-            shapeGeom = null;
-        };
-        var this_1 = this;
-        for (var iShape = 0; iShape < numShapes; iShape++) {
-            _loop_1(iShape);
+        }
+        else {
+            for (var iShape = 0; iShape < numShapes; iShape++) {
+                //reed shape representations
+                var shapes = this.readShape(version);
+                //read shape geometry
+                var geometry = new triangulated_shape_1.TriangulatedShape();
+                geometry.parse(br);
+                //feed data arays
+                this.feedDataArrays(shapes, geometry);
+            }
         }
         //binary reader should be at the end by now
         if (!br.isEOF()) {
-            //throw 'Binary reader is not at the end of the file.';
+            throw new Error('Binary reader is not at the end of the file.');
         }
-        this.transparentIndex = iIndexForward;
+        //set value of transparent index divider for two phase rendering (simplified ordering)
+        this.transparentIndex = this.iIndexForward;
+    };
+    ModelGeometry.prototype.feedDataArrays = function (shapes, geometry) {
+        var _this = this;
+        //copy shape data into inner array and set to null so it can be garbage collected
+        shapes.forEach(function (shape) {
+            var iIndex = 0;
+            //set iIndex according to transparency either from beginning or at the end
+            if (shape.transparent) {
+                iIndex = _this.iIndexBackward - geometry.indices.length;
+            }
+            else {
+                iIndex = _this.iIndexForward;
+            }
+            var begin = iIndex;
+            var map = _this.productMaps[shape.pLabel];
+            if (typeof (map) === "undefined") {
+                //throw "Product hasn't been defined before.";
+                map = {
+                    productID: 0,
+                    type: product_type_1.ProductType.IFCOPENINGELEMENT,
+                    bBox: new Float32Array(6),
+                    spans: []
+                };
+                _this.productMaps[shape.pLabel] = map;
+            }
+            _this.normals.set(geometry.normals, iIndex * 2);
+            //switch spaces and openings off by default 
+            var state = map.type == product_type_1.ProductType.IFCSPACE || map.type == product_type_1.ProductType.IFCOPENINGELEMENT
+                ? state_1.State.HIDDEN
+                : 0xFF; //0xFF is for the default state
+            //fix indices to right absolute position. It is relative to the shape.
+            for (var i = 0; i < geometry.indices.length; i++) {
+                _this.indices[iIndex] = geometry.indices[i] + _this.iVertex / 3;
+                _this.products[iIndex] = shape.pLabel;
+                _this.styleIndices[iIndex] = shape.style;
+                _this.transformations[iIndex] = shape.transform;
+                _this.states[2 * iIndex] = state; //set state
+                _this.states[2 * iIndex + 1] = 0xFF; //default style
+                iIndex++;
+            }
+            var end = iIndex;
+            map.spans.push(new Int32Array([begin, end]));
+            if (shape.transparent)
+                _this.iIndexBackward -= geometry.indices.length;
+            else
+                _this.iIndexForward += geometry.indices.length;
+        }, this);
+        //copy geometry and keep track of amount so that we can fix indices to right position
+        //this must be the last step to have correct iVertex number above
+        this.vertices.set(geometry.vertices, this.iVertex);
+        this.iVertex += geometry.vertices.length;
+    };
+    ModelGeometry.prototype.readShape = function (version) {
+        var br = this._reader;
+        var repetition = br.readInt32();
+        var shapeList = new Array();
+        for (var iProduct = 0; iProduct < repetition; iProduct++) {
+            var prodLabel = br.readInt32();
+            var instanceTypeId = br.readInt16();
+            var instanceLabel = br.readInt32();
+            var styleId = br.readInt32();
+            var transformation = null;
+            if (repetition > 1) {
+                //version 1 had lower precission of transformation matrices
+                transformation = version === 1 ? br.readFloat32Array(16) : br.readFloat64Array(16);
+                this.matrices.set(transformation, this.iMatrix);
+                this.iMatrix += 16;
+            }
+            var styleItem = this._styleMap.GetStyle(styleId);
+            if (styleItem === null)
+                styleItem = this._styleMap.GetStyle(-1);
+            shapeList.push({
+                pLabel: prodLabel,
+                iLabel: instanceLabel,
+                style: styleItem.index,
+                transparent: styleItem.transparent,
+                transform: transformation != null ? this.iTransform++ : -1
+            });
+        }
+        return shapeList;
     };
     //Source has to be either URL of wexBIM file or Blob representing wexBIM file
     ModelGeometry.prototype.load = function (source) {
@@ -288,5 +322,10 @@ var StyleRecord = (function () {
     function StyleRecord() {
     }
     return StyleRecord;
+}());
+var ShapeRecord = (function () {
+    function ShapeRecord() {
+    }
+    return ShapeRecord;
 }());
 //# sourceMappingURL=model-geometry.js.map

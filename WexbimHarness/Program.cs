@@ -62,12 +62,16 @@ namespace WexbimHarness
             }
 
             //export geometry into WexBIM file(s)
+            const string outDir = "..\\..\\..\\Xbim.WeXplorer\\tests\\wexbim3";
+            if (!Directory.Exists(outDir))
+                Directory.CreateDirectory(outDir);
+
             using (var ctx = new AimDbContext("SqlContext"))
             {
                 foreach (var model in ctx.AssetModels)
                 {
                     var name = model.Name;
-                    using (var bw = new BinaryWriter(File.Create(name + ".wexbim")))
+                    using (var bw = new BinaryWriter(File.Create(Path.Combine(outDir, name + ".wexbim"))))
                     {
                         WexbimSerializer.GetBuildingEnvelope(ctx, model, bw);
                         bw.Close();

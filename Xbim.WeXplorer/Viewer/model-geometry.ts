@@ -29,11 +29,22 @@ export class ModelGeometry {
     //	spans: [Int32Array([int, int]),Int32Array([int, int]), ...] //spanning indexes defining shapes of product and it's state
     //};
 
+    private iVertex = 0;
+    private iIndexForward = 0;
+    private iIndexBackward = 0;
+    private iTransform = 0;
+    private iMatrix = 0;
+
     public productMaps: { [id: number]: ProductMap } = {};
     public regions: Region[];
     public transparentIndex: number;
 
-    public parse(binReader: BinaryReader) {
+    private _reader: BinaryReader;
+    private _styleMap = new StyleMap();
+
+    private parse(binReader: BinaryReader) {
+        this._reader = binReader;
+
         let br = binReader;
         let magicNumber = br.readInt32();
         if (magicNumber != 94132117) throw 'Magic number mismatch.';
@@ -78,13 +89,13 @@ export class ModelGeometry {
         this.productMaps = {};
         this.regions = new Array<Region>(numRegions);
 
-        let styleMap = new StyleMap();
+        
 
-        let iVertex = 0;
-        let iIndexForward = 0;
-        let iIndexBackward = numTriangles * 3;
-        let iTransform = 0;
-        let iMatrix = 0;
+        this.iVertex = 0;
+        this.iIndexForward = 0;
+        this.iIndexBackward = numTriangles * 3;
+        this.iTransform = 0;
+        this.iMatrix = 0;
 
         let stateEnum = State;
         let typeEnum = ProductType;
@@ -105,11 +116,11 @@ export class ModelGeometry {
             let B = br.readFloat32() * 255;
             let A = br.readFloat32() * 255;
             this.styles.set([R, G, B, A], iStyle * 4);
-            styleMap.Add({ id: styleId, index: iStyle, transparent: A < 254 });
+            this._styleMap.Add({ id: styleId, index: iStyle, transparent: A < 254 });
         }
         this.styles.set([255, 255, 255, 255], iStyle * 4);
         let defaultStyle: StyleRecord = { id: -1, index: iStyle, transparent: false };
-        styleMap.Add(defaultStyle);
+        this._styleMap.Add(defaultStyle);
 
         for (let i = 0; i < numProducts; i++) {
             let productLabel = br.readInt32();
@@ -125,104 +136,144 @@ export class ModelGeometry {
             this.productMaps[productLabel] = map;
         }
 
-        for (let iShape = 0; iShape < numShapes; iShape++) {
+        //version 3 puts geometry in regions properly so it is possible to use this information for rendering
+        if (version >= 3) {
+            for (let r = 0; r < numRegions; r++) {
+                let region = this.regions[r]
+                let geomCount = br.readInt32();
 
-            let repetition = br.readInt32();
-            let shapeList = [];
-            for (let iProduct = 0; iProduct < repetition; iProduct++) {
-                let prodLabel = br.readInt32();
-                let instanceTypeId = br.readInt16();
-                let instanceLabel = br.readInt32();
-                let styleId = br.readInt32();
-                let transformation = null;
+                for (let g = 0; g < geomCount; g++) {
+                    let sc = br.readInt32();
 
-                if (repetition > 1) {
-                    transformation = version === 1 ? br.readFloat32Array(16) : br.readFloat64Array(16);
-                    this.matrices.set(transformation, iMatrix);
-                    iMatrix += 16;
+                    for (let s = 0; s < sc; s++) {
+                        //read shape information
+                    }
+
+                    let geomLength = br.readInt32();
+
+                    //read geometry data (make sure we don't overflow)
+                    let gbr = br.getSubReader(geomLength);
+                    let shapeGeom = new TriangulatedShape();
+                    shapeGeom.parse(gbr);
+
+                    //add data to arrays prepared for GPU
+
                 }
-
-                let styleItem = styleMap.GetStyle(styleId);
-                if (styleItem === null)
-                    styleItem = defaultStyle;
-
-                shapeList.push({
-                    pLabel: prodLabel,
-                    iLabel: instanceLabel,
-                    style: styleItem.index,
-                    transparent: styleItem.transparent,
-                    transform: transformation != null ? iTransform++ : -1
-                });
             }
+        } else {
+            for (let iShape = 0; iShape < numShapes; iShape++) {
 
-            //read shape geometry
-            let shapeGeom = new TriangulatedShape();
-            shapeGeom.parse(br);
+                //reed shape representations
+                let shapes = this.readShape(version);
 
+                //read shape geometry
+                let geometry = new TriangulatedShape();
+                geometry.parse(br);
 
-            //copy shape data into inner array and set to null so it can be garbage collected
-            shapeList.forEach(shape => {
-                let iIndex = 0;
-                //set iIndex according to transparency either from beginning or at the end
-                if (shape.transparent) {
-                    iIndex = iIndexBackward - shapeGeom.indices.length;
-                } else {
-                    iIndex = iIndexForward;
-                }
-
-                let begin = iIndex;
-                let map = this.productMaps[shape.pLabel];
-                if (typeof (map) === "undefined") {
-                    //throw "Product hasn't been defined before.";
-                    map = {
-                        productID: 0,
-                        type: typeEnum.IFCOPENINGELEMENT,
-                        bBox: new Float32Array(6),
-                        spans: []
-                    };
-                    this.productMaps[shape.pLabel] = map;
-                }
-
-                this.normals.set(shapeGeom.normals, iIndex * 2);
-
-                //switch spaces and openings off by default 
-                let state = map.type == typeEnum.IFCSPACE || map.type == typeEnum.IFCOPENINGELEMENT
-                    ? stateEnum.HIDDEN
-                    : 0xFF; //0xFF is for the default state
-
-                //fix indices to right absolute position. It is relative to the shape.
-                for (let i = 0; i < shapeGeom.indices.length; i++) {
-                    this.indices[iIndex] = shapeGeom.indices[i] + iVertex / 3;
-                    this.products[iIndex] = shape.pLabel;
-                    this.styleIndices[iIndex] = shape.style;
-                    this.transformations[iIndex] = shape.transform;
-                    this.states[2 * iIndex] = state; //set state
-                    this.states[2 * iIndex + 1] = 0xFF; //default style
-
-                    iIndex++;
-                }
-
-                let end = iIndex;
-                map.spans.push(new Int32Array([begin, end]));
-
-                if (shape.transparent) iIndexBackward -= shapeGeom.indices.length;
-                else iIndexForward += shapeGeom.indices.length;
-            },
-                this);
-
-            //copy geometry and keep track of amount so that we can fix indices to right position
-            //this must be the last step to have correct iVertex number above
-            this.vertices.set(shapeGeom.vertices, iVertex);
-            iVertex += shapeGeom.vertices.length;
-            shapeGeom = null;
+                //feed data arays
+                this.feedDataArrays(shapes, geometry);
+            }
         }
 
         //binary reader should be at the end by now
         if (!br.isEOF()) {
-            //throw 'Binary reader is not at the end of the file.';
+            throw new Error('Binary reader is not at the end of the file.');
         }
 
-        this.transparentIndex = iIndexForward;
+        //set value of transparent index divider for two phase rendering (simplified ordering)
+        this.transparentIndex = this.iIndexForward;
+    }
+
+    private feedDataArrays(shapes: Array<ShapeRecord>, geometry: TriangulatedShape)
+    {
+        //copy shape data into inner array and set to null so it can be garbage collected
+        shapes.forEach(shape => {
+            let iIndex = 0;
+            //set iIndex according to transparency either from beginning or at the end
+            if (shape.transparent) {
+                iIndex = this.iIndexBackward - geometry.indices.length;
+            } else {
+                iIndex = this.iIndexForward;
+            }
+
+            let begin = iIndex;
+            let map = this.productMaps[shape.pLabel];
+            if (typeof (map) === "undefined") {
+                //throw "Product hasn't been defined before.";
+                map = {
+                    productID: 0,
+                    type: ProductType.IFCOPENINGELEMENT,
+                    bBox: new Float32Array(6),
+                    spans: []
+                };
+                this.productMaps[shape.pLabel] = map;
+            }
+
+            this.normals.set(geometry.normals, iIndex * 2);
+
+            //switch spaces and openings off by default 
+            let state = map.type == ProductType.IFCSPACE || map.type == ProductType.IFCOPENINGELEMENT
+                ? State.HIDDEN
+                : 0xFF; //0xFF is for the default state
+
+            //fix indices to right absolute position. It is relative to the shape.
+            for (let i = 0; i < geometry.indices.length; i++) {
+                this.indices[iIndex] = geometry.indices[i] + this.iVertex / 3;
+                this.products[iIndex] = shape.pLabel;
+                this.styleIndices[iIndex] = shape.style;
+                this.transformations[iIndex] = shape.transform;
+                this.states[2 * iIndex] = state; //set state
+                this.states[2 * iIndex + 1] = 0xFF; //default style
+
+                iIndex++;
+            }
+
+            let end = iIndex;
+            map.spans.push(new Int32Array([begin, end]));
+
+            if (shape.transparent) this.iIndexBackward -= geometry.indices.length;
+            else this.iIndexForward += geometry.indices.length;
+        },
+            this);
+
+        //copy geometry and keep track of amount so that we can fix indices to right position
+        //this must be the last step to have correct iVertex number above
+        this.vertices.set(geometry.vertices, this.iVertex);
+        this.iVertex += geometry.vertices.length;
+    }
+
+    private readShape(version: number): Array<ShapeRecord>{
+        let br = this._reader;
+
+        let repetition = br.readInt32();
+        let shapeList = new Array<ShapeRecord>();
+        for (let iProduct = 0; iProduct < repetition; iProduct++) {
+            let prodLabel = br.readInt32();
+            let instanceTypeId = br.readInt16();
+            let instanceLabel = br.readInt32();
+            let styleId = br.readInt32();
+            let transformation: Float32Array | Float64Array = null;
+
+            if (repetition > 1) {
+                //version 1 had lower precission of transformation matrices
+                transformation = version === 1 ? br.readFloat32Array(16) : br.readFloat64Array(16);
+                this.matrices.set(transformation, this.iMatrix);
+                this.iMatrix += 16;
+            }
+
+            let styleItem = this._styleMap.GetStyle(styleId);
+            if (styleItem === null)
+                styleItem = this._styleMap.GetStyle(-1);
+
+            shapeList.push({
+                pLabel: prodLabel,
+                iLabel: instanceLabel,
+                style: styleItem.index,
+                transparent: styleItem.transparent,
+                transform: transformation != null ? this.iTransform++ : -1
+            });
+        }
+        return shapeList;
     }
 
     //Source has to be either URL of wexBIM file or Blob representing wexBIM file
@@ -334,4 +385,12 @@ class StyleRecord {
     public id: number;
     public index: number;
     public transparent: boolean;
+}
+
+class ShapeRecord {
+    public pLabel: number;
+    public iLabel: number;
+    public style: number;
+    public transparent: boolean;
+    public transform: number;
 }
