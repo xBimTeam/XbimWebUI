@@ -43,10 +43,6 @@ namespace WexbimHarness
                     createContext.Database.Delete();
                     createContext.Database.Create();
                     createContext.Database.Initialize(true);
-
-                    //call separatelly
-                    var init = new AimCreateDatabaseIfNotExists();
-                    init.InitializeDatabase(createContext);
                 }
             }
             catch (Exception ex)
@@ -71,7 +67,7 @@ namespace WexbimHarness
                 foreach (var model in ctx.AssetModels)
                 {
                     var name = model.Name;
-                    using (var bw = new BinaryWriter(File.Create(name)))
+                    using (var bw = new BinaryWriter(File.Create(name + ".wexbim")))
                     {
                         WexbimSerializer.GetBuildingEnvelope(ctx, model, bw);
                         bw.Close();
@@ -79,7 +75,7 @@ namespace WexbimHarness
                 }
             }
 
-
+            Console.WriteLine("Processing finished, press ENTER...");
             Console.ReadLine();
         }
 
