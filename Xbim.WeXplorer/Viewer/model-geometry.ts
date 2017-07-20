@@ -58,47 +58,25 @@ export class ModelGeometry {
         this.meter = br.readFloat32();;
         let numRegions = br.readInt16();
 
-
-        //set size of arrays to be square usable for texture data
-        //TODO: reflect support for floating point textures
-        let square = function (arity, count) {
-            if (typeof (arity) == 'undefined' || typeof (count) == 'undefined') {
-                throw 'Wrong arguments';
-            }
-            if (count == 0) return 0;
-            let byteLength = count * arity;
-            let imgSide = Math.ceil(Math.sqrt(byteLength / 4));
-            //clamp to parity
-            while ((imgSide * 4) % arity != 0) {
-                imgSide++
-            }
-            let result = imgSide * imgSide * 4 / arity;
-            return result;
-        };
-
-        //create target buffers of correct size (avoid reallocation of memory)
-        this.vertices = new Float32Array(square(4, numVertices * 3));
+        //create target buffers of correct sizes (avoid reallocation of memory, work with native typed arrays)
+        this.vertices = new Float32Array(this.square(4, numVertices * 3));
         this.normals = new Uint8Array(numTriangles * 6);
         this.indices = new Float32Array(numTriangles * 3);
         this.styleIndices = new Uint16Array(numTriangles * 3);
-        this.styles = new Uint8Array(square(1, (numStyles + 1) * 4)); //+1 is for a default style
+        this.styles = new Uint8Array(this.square(1, (numStyles + 1) * 4)); //+1 is for a default style
         this.products = new Float32Array(numTriangles * 3);
         this.states = new Uint8Array(numTriangles * 3 * 2); //place for state and restyling
         this.transformations = new Float32Array(numTriangles * 3);
-        this.matrices = new Float32Array(square(4, numMatrices * 16));
+        this.matrices = new Float32Array(this.square(4, numMatrices * 16));
         this.productMaps = {};
         this.regions = new Array<Region>(numRegions);
 
-        
-
+        //initial values for indices for iterations over data
         this.iVertex = 0;
         this.iIndexForward = 0;
         this.iIndexBackward = numTriangles * 3;
         this.iTransform = 0;
         this.iMatrix = 0;
-
-        let stateEnum = State;
-        let typeEnum = ProductType;
 
         for (let i = 0; i < numRegions; i++) {
             let region = new Region();
@@ -143,24 +121,27 @@ export class ModelGeometry {
                 let geomCount = br.readInt32();
 
                 for (let g = 0; g < geomCount; g++) {
-                    let sc = br.readInt32();
 
-                    for (let s = 0; s < sc; s++) {
-                        //read shape information
-                    }
+                    //read shape information
+                    var shapes = this.readShape(version);
 
+                    //read geometry
                     let geomLength = br.readInt32();
 
-                    //read geometry data (make sure we don't overflow)
+                    //read geometry data (make sure we don't overflow - use isolated subreader)
                     let gbr = br.getSubReader(geomLength);
-                    let shapeGeom = new TriangulatedShape();
-                    shapeGeom.parse(gbr);
+                    let geometry = new TriangulatedShape();
+                    geometry.parse(gbr);
+                    //make sure that geometry is complete
+                    if (!gbr.isEOF())
+                        throw new Error(`Incomplete reading of geometry for shape instance ${shapes[0].iLabel}`);
 
                     //add data to arrays prepared for GPU
-
+                    this.feedDataArrays(shapes, geometry);
                 }
             }
         } else {
+            //older versions use less safety and just iterate over in a single loop
             for (let iShape = 0; iShape < numShapes; iShape++) {
 
                 //reed shape representations
@@ -184,8 +165,27 @@ export class ModelGeometry {
         this.transparentIndex = this.iIndexForward;
     }
 
-    private feedDataArrays(shapes: Array<ShapeRecord>, geometry: TriangulatedShape)
-    {
+    /**
+     * Get size of arrays to be square (usable for texture data)
+     * @param arity
+     * @param count
+     */
+    private square(arity: number, count: number): number {
+        if (typeof (arity) == 'undefined' || typeof (count) == 'undefined') {
+            throw new Error('Wrong arguments for "square" function.');
+        }
+        if (count == 0) return 0;
+        let byteLength = count * arity;
+        let imgSide = Math.ceil(Math.sqrt(byteLength / 4));
+        //clamp to parity
+        while ((imgSide * 4) % arity != 0) {
+            imgSide++
+        }
+        let result = imgSide * imgSide * 4 / arity;
+        return result;
+    }
+
+    private feedDataArrays(shapes: Array<ShapeRecord>, geometry: TriangulatedShape) {
         //copy shape data into inner array and set to null so it can be garbage collected
         shapes.forEach(shape => {
             let iIndex = 0;
@@ -242,7 +242,7 @@ export class ModelGeometry {
         this.iVertex += geometry.vertices.length;
     }
 
-    private readShape(version: number): Array<ShapeRecord>{
+    private readShape(version: number): Array<ShapeRecord> {
         let br = this._reader;
 
         let repetition = br.readInt32();
@@ -263,7 +263,7 @@ export class ModelGeometry {
 
             let styleItem = this._styleMap.GetStyle(styleId);
             if (styleItem === null)
-                styleItem = this._styleMap.GetStyle(-1);
+                styleItem = this._styleMap.GetStyle(-1); //default style
 
             shapeList.push({
                 pLabel: prodLabel,
@@ -375,7 +375,7 @@ class StyleMap {
 
     public GetStyle(id: number): StyleRecord {
         let item = this._internal[id];
-        if (item.id == id)
+        if (item)
             return item;
         return null;
     }

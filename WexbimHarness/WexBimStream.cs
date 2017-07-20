@@ -301,7 +301,7 @@ namespace AimViewModels.Shared.Helpers
 
         public int TriangleCount()
         {
-            return Geometry.TriangleCount;
+            return Geometry.TriangleCount * _shapes.Count;
         }
         public int VertexCount()
         {

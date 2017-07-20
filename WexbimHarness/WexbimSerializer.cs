@@ -15,8 +15,14 @@ namespace WexbimHarness
 
         static public void GetBuildingEnvelope(AimDbContext dbContext, AssetModel assetModel, BinaryWriter outStream)
         {
-            var reps = dbContext.RepresentationItemsForTypes(assetModel, new ComponentType[] { ComponentType.BuildingElementProxy }, ComponentType.BuildingElement);
-            var geoms = dbContext.MeshGeometriesForTypes(assetModel, new ComponentType[] { ComponentType.BuildingElementProxy }, ComponentType.BuildingElement);
+            var mainType = ComponentType.BuildingElement;
+            var excludedTypes = new ComponentType[] {
+                ComponentType.BuildingElementProxy,
+                ComponentType.FurnishingElement
+            };
+
+            var reps = dbContext.RepresentationItemsForTypes(assetModel, excludedTypes, mainType);
+            var geoms = dbContext.MeshGeometriesForTypes( assetModel, excludedTypes, mainType);
             var materials = dbContext.ShapeMaterials;
             var wexBimStream = BuildWexBimStream(reps, geoms, materials, assetModel.OneMeter);
             wexBimStream.WriteToStream(outStream);

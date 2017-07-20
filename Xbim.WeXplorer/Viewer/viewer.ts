@@ -235,7 +235,9 @@ export class Viewer {
         //initialize touch events to capute user interaction on touch devices
         this._initTouchNavigationEvents();
         this._initTouchTapEvents();
-
+        //disable default context menu as it doesn't make much sense for the viewer
+        //it can be replaced by custom menu when listening to 'contextMenu' of the viewer
+        this._initContextMenuEvent();
 
         //This array keeps data for overlay styles.
         this._stateStyles = new Uint8Array(15 * 15 * 4);
@@ -403,10 +405,10 @@ export class Viewer {
     * @param {object} plugin - plug-in object
     */
     public addPlugin(plugin) {
-        this._plugins.push(plugin);
-
         if (!plugin.init) return;
+
         plugin.init(this);
+        this._plugins.push(plugin);
     }
 
     /**
@@ -923,6 +925,28 @@ export class Viewer {
         this._pointers = new ModelPointers(gl, this._shaderProgram);
 
 
+    }
+
+    /**
+     * Prevents default context menu to appear. Custom menu can be created instead by listening to contextmenu event
+     * of the viewer. Nothing is displayed othervise.
+     */
+    private _initContextMenuEvent() {
+        this._canvas.addEventListener("contextmenu", (event: MouseEvent) => {
+
+            /**
+            * Occurs when mousedown event happens on underlying canvas.
+            *
+            * @event Viewer#contextMenu
+            * @type {object}
+            * @param {Number} id - product ID of the element or null if there wasn't any product under mouse
+            * @param {MouseEvent} event - original event as captured by the viewer
+            */
+            this.fire("contextMenu", { event: event, id: this.getIdFromEvent(event) })
+
+            event.preventDefault();
+            return false;
+        }, true);
     }
 
     private _initMouseEvents() {
@@ -1652,9 +1676,22 @@ export class Viewer {
         this.fire('error', { message: msg });
     }
 
+    public getIdFromEvent(event: MouseEvent): number {
+        let x = event.clientX;
+        let y = event.clientY;
+
+        //get coordinates within canvas (with the right orientation)
+        let r = this._canvas.getBoundingClientRect();
+        let viewX = x - r.left;
+        let viewY = this._height - (y - r.top);
+
+        //this is for picking
+        return this.getID(viewX, viewY);
+    }
+
     //this renders the colour coded model into the memory buffer
     //not to the canvas and use it to identify ID of the object from that
-    public getID(x, y) {
+    public getID(x: number, y: number): number {
 
         //call all before-drawId plugins
         this._plugins.forEach((plugin) => {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AimViewModels.Shared.Helpers;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
@@ -71,10 +72,20 @@ namespace WexbimHarness
                 foreach (var model in ctx.AssetModels)
                 {
                     var name = model.Name;
-                    using (var bw = new BinaryWriter(File.Create(Path.Combine(outDir, name + ".wexbim"))))
+                    var wexbimFile = Path.Combine(outDir, name + ".wexbim");
+                    using (var bw = new BinaryWriter(File.Create(wexbimFile)))
                     {
                         WexbimSerializer.GetBuildingEnvelope(ctx, model, bw);
                         bw.Close();
+                    }
+
+                    using (var br = new BinaryReader(File.OpenRead(wexbimFile)))
+                    {
+                        var wexbim = WexBimStream.ReadFromStream(br);
+                        var tc = wexbim.Header.TriangleCount;
+                        var tc2 = wexbim.Regions.Sum(r => r.GeometryModels.Sum(g => g.Geometry.TriangleCount));
+                        var tc3 = wexbim.Regions.Sum(r => r.GeometryModels.Sum(g => g.Geometry.TriangleCount * g.ShapeCount()));
+                        Debug.Assert(tc == tc3);
                     }
                 }
             }

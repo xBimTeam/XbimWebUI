@@ -23,6 +23,12 @@ export declare class ModelGeometry {
     private _reader;
     private _styleMap;
     private parse(binReader);
+    /**
+     * Get size of arrays to be square (usable for texture data)
+     * @param arity
+     * @param count
+     */
+    private square(arity, count);
     private feedDataArrays(shapes, geometry);
     private readShape(version);
     load(source: any): void;

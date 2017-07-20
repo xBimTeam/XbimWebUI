@@ -42,42 +42,24 @@ var ModelGeometry = (function () {
         this.meter = br.readFloat32();
         ;
         var numRegions = br.readInt16();
-        //set size of arrays to be square usable for texture data
-        //TODO: reflect support for floating point textures
-        var square = function (arity, count) {
-            if (typeof (arity) == 'undefined' || typeof (count) == 'undefined') {
-                throw 'Wrong arguments';
-            }
-            if (count == 0)
-                return 0;
-            var byteLength = count * arity;
-            var imgSide = Math.ceil(Math.sqrt(byteLength / 4));
-            //clamp to parity
-            while ((imgSide * 4) % arity != 0) {
-                imgSide++;
-            }
-            var result = imgSide * imgSide * 4 / arity;
-            return result;
-        };
-        //create target buffers of correct size (avoid reallocation of memory)
-        this.vertices = new Float32Array(square(4, numVertices * 3));
+        //create target buffers of correct sizes (avoid reallocation of memory, work with native typed arrays)
+        this.vertices = new Float32Array(this.square(4, numVertices * 3));
         this.normals = new Uint8Array(numTriangles * 6);
         this.indices = new Float32Array(numTriangles * 3);
         this.styleIndices = new Uint16Array(numTriangles * 3);
-        this.styles = new Uint8Array(square(1, (numStyles + 1) * 4)); //+1 is for a default style
+        this.styles = new Uint8Array(this.square(1, (numStyles + 1) * 4)); //+1 is for a default style
         this.products = new Float32Array(numTriangles * 3);
         this.states = new Uint8Array(numTriangles * 3 * 2); //place for state and restyling
         this.transformations = new Float32Array(numTriangles * 3);
-        this.matrices = new Float32Array(square(4, numMatrices * 16));
+        this.matrices = new Float32Array(this.square(4, numMatrices * 16));
         this.productMaps = {};
         this.regions = new Array(numRegions);
+        //initial values for indices for iterations over data
         this.iVertex = 0;
         this.iIndexForward = 0;
         this.iIndexBackward = numTriangles * 3;
         this.iTransform = 0;
         this.iMatrix = 0;
-        var stateEnum = state_1.State;
-        var typeEnum = product_type_1.ProductType;
         for (var i = 0; i < numRegions; i++) {
             var region = new Region();
             region.population = br.readInt32();
@@ -116,28 +98,32 @@ var ModelGeometry = (function () {
                 var region = this.regions[r];
                 var geomCount = br.readInt32();
                 for (var g = 0; g < geomCount; g++) {
-                    var sc = br.readInt32();
-                    for (var s = 0; s < sc; s++) {
-                        //read shape information
-                    }
+                    //read shape information
+                    var shapes = this.readShape(version);
+                    //read geometry
                     var geomLength = br.readInt32();
-                    //read geometry data (make sure we don't overflow)
+                    //read geometry data (make sure we don't overflow - use isolated subreader)
                     var gbr = br.getSubReader(geomLength);
-                    var shapeGeom = new triangulated_shape_1.TriangulatedShape();
-                    shapeGeom.parse(gbr);
+                    var geometry = new triangulated_shape_1.TriangulatedShape();
+                    geometry.parse(gbr);
+                    //make sure that geometry is complete
+                    if (!gbr.isEOF())
+                        throw new Error("Incomplete reading of geometry for shape instance " + shapes[0].iLabel);
                     //add data to arrays prepared for GPU
+                    this.feedDataArrays(shapes, geometry);
                 }
             }
         }
         else {
+            //older versions use less safety and just iterate over in a single loop
             for (var iShape = 0; iShape < numShapes; iShape++) {
                 //reed shape representations
-                var shapes = this.readShape(version);
+                var shapes_1 = this.readShape(version);
                 //read shape geometry
                 var geometry = new triangulated_shape_1.TriangulatedShape();
                 geometry.parse(br);
                 //feed data arays
-                this.feedDataArrays(shapes, geometry);
+                this.feedDataArrays(shapes_1, geometry);
             }
         }
         //binary reader should be at the end by now
@@ -146,6 +132,26 @@ var ModelGeometry = (function () {
         }
         //set value of transparent index divider for two phase rendering (simplified ordering)
         this.transparentIndex = this.iIndexForward;
+    };
+    /**
+     * Get size of arrays to be square (usable for texture data)
+     * @param arity
+     * @param count
+     */
+    ModelGeometry.prototype.square = function (arity, count) {
+        if (typeof (arity) == 'undefined' || typeof (count) == 'undefined') {
+            throw new Error('Wrong arguments for "square" function.');
+        }
+        if (count == 0)
+            return 0;
+        var byteLength = count * arity;
+        var imgSide = Math.ceil(Math.sqrt(byteLength / 4));
+        //clamp to parity
+        while ((imgSide * 4) % arity != 0) {
+            imgSide++;
+        }
+        var result = imgSide * imgSide * 4 / arity;
+        return result;
     };
     ModelGeometry.prototype.feedDataArrays = function (shapes, geometry) {
         var _this = this;
@@ -216,7 +222,7 @@ var ModelGeometry = (function () {
             }
             var styleItem = this._styleMap.GetStyle(styleId);
             if (styleItem === null)
-                styleItem = this._styleMap.GetStyle(-1);
+                styleItem = this._styleMap.GetStyle(-1); //default style
             shapeList.push({
                 pLabel: prodLabel,
                 iLabel: instanceLabel,
@@ -312,7 +318,7 @@ var StyleMap = (function () {
     };
     StyleMap.prototype.GetStyle = function (id) {
         var item = this._internal[id];
-        if (item.id == id)
+        if (item)
             return item;
         return null;
     };

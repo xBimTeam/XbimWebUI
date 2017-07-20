@@ -247,6 +247,11 @@ export declare class Viewer {
     unload(modelId: number): void;
     _initShaders(): void;
     private _initAttributesAndUniforms();
+    /**
+     * Prevents default context menu to appear. Custom menu can be created instead by listening to contextmenu event
+     * of the viewer. Nothing is displayed othervise.
+     */
+    private _initContextMenuEvent();
     private _initMouseEvents();
     private _initTouchNavigationEvents();
     private _initTouchTapEvents();
@@ -282,7 +287,8 @@ export declare class Viewer {
     */
     show(type: string): void;
     error(msg: any): void;
-    getID(x: any, y: any): number;
+    getIdFromEvent(event: MouseEvent): number;
+    getID(x: number, y: number): number;
     /**
     * Use this function to start animation of the model. If you start animation before geometry is loaded it will wait for content to render it.
     * This function is bound to browser framerate of the screen so it will stop consuming any resources if you switch to another tab.

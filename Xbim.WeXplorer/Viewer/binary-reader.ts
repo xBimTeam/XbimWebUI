@@ -30,7 +30,7 @@ export class BinaryReader {
     public getSubReader(length: number): BinaryReader {
         var reader = new BinaryReader();
         //get slice of the data
-        var data = this._buffer.slice(this._position, length);
+        var data = this._buffer.slice(this._position, this._position + length);
         //load is synchronous with ArrayBuffer argument
         reader.load(data);
 

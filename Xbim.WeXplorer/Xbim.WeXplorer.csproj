@@ -70,7 +70,7 @@
     <Content Include="Examples\BrowserExample\browser.js" />
     <Content Include="Examples\BrowserExample\index.html" />
     <Content Include="Examples\TsSingleModule\index.css" />
-    <Content Include="Examples\TsSingleModule\main.js" />
+    <Content Include="Examples\TsSingleModule\loader.js" />
     <Content Include="index.html" />
     <Content Include="Libs\gl-matrix\common.js" />
     <Content Include="Libs\gl-matrix\mat2.js" />
