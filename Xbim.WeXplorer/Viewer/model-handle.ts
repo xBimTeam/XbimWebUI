@@ -191,9 +191,6 @@ export class ModelHandle {
         var gl = this._gl;
         var map = this.getProductMap(id);
 
-        //var i = 3; //3 is for a glass panel
-        //gl.drawArrays(gl.TRIANGLES, map.spans[i][0], map.spans[i][1] - map.spans[i][0]);
-
         if (map != null) {
             map.spans.forEach((span) => {
                 gl.drawArrays(gl.TRIANGLES, span[0], span[1] - span[0]);

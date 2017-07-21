@@ -2,7 +2,9 @@
 
 var viewer = new Viewer('viewer');
 //viewer.load("/tests/data/SampleHouse.wexbim", "Model A");
-viewer.load("/tests/wexbim3/SampleHouse.wexbim", "Model A");
+//viewer.load("/tests/wexbim3/SampleHouse.wexbim", "Model A");
+//viewer.load("/tests/wexbim3/SampleHouse4.wexbim", "Model A");
+viewer.load("/tests/wexbim3/LakesideRestaurant.wexbim", "Model A");
 
 viewer.on("loaded", function () {
     console.log("Viewer data loaded");
@@ -10,11 +12,11 @@ viewer.on("loaded", function () {
     viewer.setState(State.UNDEFINED, [0]);
     viewer.start();
 
-    //hide all except one window
-    for (let t in ProductType) {
-        viewer.setState(State.HIDDEN, Number(ProductType[t]))
-    }
-    viewer.setState(State.UNDEFINED, ProductType.IFCWINDOW);
+    ////hide all except one window
+    //for (let t in ProductType) {
+    //    viewer.setState(State.HIDDEN, Number(ProductType[t]))
+    //}
+    //viewer.setState(State.UNDEFINED, ProductType.IFCWINDOW);
 });
 
 var cube = new NavigationCube();
