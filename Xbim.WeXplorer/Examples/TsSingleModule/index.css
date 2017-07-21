@@ -15,3 +15,12 @@ canvas {
     left: 0;
     z-index: 0;
 }
+
+#msg{
+    position: absolute;
+    margin: 0;
+    top: 0;
+    left: 0;
+    padding: 1em;
+    z-index: 100;
+}

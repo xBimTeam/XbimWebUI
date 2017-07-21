@@ -1,4 +1,4 @@
-﻿import { Viewer, NavigationCube, State } from "../../Viewer/viewer";
+﻿import { Viewer, NavigationCube, State, ProductType } from "../../Viewer/viewer";
 
 var viewer = new Viewer('viewer');
 //viewer.load("/tests/data/SampleHouse.wexbim", "Model A");
@@ -9,12 +9,22 @@ viewer.on("loaded", function () {
 
     viewer.setState(State.UNDEFINED, [0]);
     viewer.start();
+
+    //hide all except one window
+    for (let t in ProductType) {
+        viewer.setState(State.HIDDEN, Number(ProductType[t]))
+    }
+    viewer.setState(State.UNDEFINED, ProductType.IFCWINDOW);
 });
 
 var cube = new NavigationCube();
 cube.ratio = 0.1;
 cube.passiveAlpha = 1.0;
 viewer.addPlugin(cube);
+
+viewer.on('pick', (e: { id: number, event: MouseEvent }) => {
+    document.getElementById('msg').innerHTML = e.id != null ? `Selected id: ${e.id}` : "";
+});
 
 //var div = document.createElement('div');
 //div.style.position = "fixed";

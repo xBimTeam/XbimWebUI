@@ -8,11 +8,19 @@ viewer.on("loaded", function () {
     console.log("Viewer data loaded");
     viewer.setState(viewer_1.State.UNDEFINED, [0]);
     viewer.start();
+    //hide all except one window
+    for (var t in viewer_1.ProductType) {
+        viewer.setState(viewer_1.State.HIDDEN, Number(viewer_1.ProductType[t]));
+    }
+    viewer.setState(viewer_1.State.UNDEFINED, viewer_1.ProductType.IFCWINDOW);
 });
 var cube = new viewer_1.NavigationCube();
 cube.ratio = 0.1;
 cube.passiveAlpha = 1.0;
 viewer.addPlugin(cube);
+viewer.on('pick', function (e) {
+    document.getElementById('msg').innerHTML = e.id != null ? "Selected id: " + e.id : "";
+});
 //var div = document.createElement('div');
 //div.style.position = "fixed";
 //div.style.width = "150px";

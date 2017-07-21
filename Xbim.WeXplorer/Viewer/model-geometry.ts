@@ -221,7 +221,7 @@ export class ModelGeometry {
                 this.indices[iIndex] = geometry.indices[i] + this.iVertex / 3;
                 this.products[iIndex] = shape.pLabel;
                 this.styleIndices[iIndex] = shape.style;
-                this.transformations[iIndex] = shape.transform;
+                this.transformations[iIndex] = shape.transform; //shape.pLabel == 33698 || shape.pLabel == 33815 ? -1 : shape.transform;
                 this.states[2 * iIndex] = state; //set state
                 this.states[2 * iIndex + 1] = 0xFF; //default style
 

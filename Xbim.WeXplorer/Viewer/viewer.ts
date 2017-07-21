@@ -1035,7 +1035,7 @@ export class Viewer {
                 * @type {object}
                 * @param {Number} id - product ID of the element or null if there wasn't any product under mouse
                 */
-                if (!handled) viewer.fire('pick', { id: id });
+                if (!handled) viewer.fire('pick', { id: id, event: event });
             }
 
             viewer.enableTextSelection();

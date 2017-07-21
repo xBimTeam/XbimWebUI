@@ -187,7 +187,7 @@ var ModelGeometry = (function () {
                 _this.indices[iIndex] = geometry.indices[i] + _this.iVertex / 3;
                 _this.products[iIndex] = shape.pLabel;
                 _this.styleIndices[iIndex] = shape.style;
-                _this.transformations[iIndex] = shape.transform;
+                _this.transformations[iIndex] = shape.transform; //shape.pLabel == 33698 || shape.pLabel == 33815 ? -1 : shape.transform;
                 _this.states[2 * iIndex] = state; //set state
                 _this.states[2 * iIndex + 1] = 0xFF; //default style
                 iIndex++;

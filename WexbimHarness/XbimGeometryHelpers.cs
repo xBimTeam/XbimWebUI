@@ -237,7 +237,7 @@ namespace AimViewModels.Shared.Helpers
         /// <param name="centroid">this should be in meters The centroid is subtracted from all points</param>
         /// <param name="meter">number of units in the model that are equal to one meter, a value of 1000 scales a model in millimeters to meters</param>
         /// <returns></returns>
-        public static byte[] TransformCentreAndScale(byte[] mesh, ref Matrix sdxMatrix, ref Vector3 centroid, float meter)
+        public static byte[] TransformCentreAndScale(this byte[] mesh, ref Matrix sdxMatrix, ref Vector3 centroid, float meter)
         {      
             //adjust the matrix to hold the translation                        
             
@@ -341,6 +341,111 @@ namespace AimViewModels.Shared.Helpers
             }
         }
 
+
+        public static byte[] Transform(this ShapeGeometry geom, byte[] transformation)
+        {
+            return Transform(geom.Triangulation, transformation);
+        }
+
+        public static byte[] Transform(byte[] triangulation, byte[] transformation)
+        {
+            var matrix = XbimMatrix3D.FromArray(transformation);
+            bool hasMatrix = !matrix.IsIdentity;
+            if (!hasMatrix ) return triangulation; //nothing is being changed
+                                                                                  //  XbimMatrix3D scaleMatrix = new XbimMatrix3D(1/meter);
+            Matrix rotationMatrix = matrix.ToMatrix();
+            using (var msOut = new MemoryStream())
+            {
+                using (var bw = new BinaryWriter(msOut))
+                {
+                    using (var ms = new MemoryStream(triangulation))
+                    {
+                        using (var br = new BinaryReader(ms))
+                        {
+                            // ReSharper disable once UnusedVariable
+                            var version = br.ReadByte(); //stream format version
+                            bw.Write(version);
+                            var numVertices = br.ReadInt32();
+                            bw.Write(numVertices);
+                            ReadIndex readIndex;
+                            WriteIndex writeIndex;
+                            int sizeofIndex;
+                            //set the function to read vertices and to write them
+                            if (numVertices <= 0xFF)
+                            {
+                                readIndex = (reader) => reader.ReadByte();
+                                writeIndex = (writer, idx) => writer.Write((byte)idx);
+                                sizeofIndex = sizeof(byte);
+                            }
+                            else if (numVertices <= 0xFFFF)
+                            {
+                                readIndex = (reader) => reader.ReadUInt16();
+                                writeIndex = (writer, idx) => writer.Write((ushort)idx);
+                                sizeofIndex = sizeof(ushort);
+                            }
+                            else
+                            {
+                                readIndex = (reader) => reader.ReadInt32();
+                                writeIndex = (writer, idx) => writer.Write(idx);
+                                sizeofIndex = sizeof(int);
+                            }
+                            var numTriangles = br.ReadInt32();
+                            bw.Write(numTriangles);
+
+                            for (var i = 0; i < numVertices; i++)
+                            {
+                                //use doubles to avoid precision errors
+                                double x = br.ReadSingle();
+                                double y = br.ReadSingle();
+                                double z = br.ReadSingle();
+                                var pt = new XbimPoint3D(x, y, z);
+                                if (hasMatrix) pt = matrix.Transform(pt);
+                                bw.Write((float)pt.X);
+                                bw.Write((float)pt.Y);
+                                bw.Write((float)pt.Z);
+                            }
+                            var numFaces = br.ReadInt32();
+                            bw.Write(numFaces);
+                            for (var i = 0; i < numFaces; i++)
+                            {
+                                var numTrianglesInFace = br.ReadInt32();
+                                bw.Write(numTrianglesInFace);
+                                if (numTrianglesInFace == 0) continue;
+                                var isPlanar = numTrianglesInFace > 0;
+                                numTrianglesInFace = Math.Abs(numTrianglesInFace);
+                                Vector3 normVec;
+                                if (isPlanar)
+                                {
+                                    var u = br.ReadByte();
+                                    var v = br.ReadByte();
+                                    SharpDxHelper.Vector3(u, v, out normVec);
+                                    if (hasMatrix) Vector3.TransformNormal(ref normVec, ref rotationMatrix, out normVec);
+                                    bw.Write(normVec.ToPackedNormal());
+                                    var indices = br.ReadBytes(numTrianglesInFace * 3 * sizeofIndex);
+                                    bw.Write(indices);
+                                }
+                                else
+                                {
+                                    for (var j = 0; j < numTrianglesInFace; j++)
+                                    {
+                                        for (var k = 0; k < 3; k++)
+                                        {
+                                            writeIndex(bw, readIndex(br));
+                                            var u = br.ReadByte();
+                                            var v = br.ReadByte();
+                                            SharpDxHelper.Vector3(u, v, out normVec);
+                                            if (hasMatrix) Vector3.TransformNormal(ref normVec, ref rotationMatrix, out normVec);
+                                            bw.Write(normVec.ToPackedNormal());
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                return msOut.ToArray();
+            }
+        }
     }
 }
 

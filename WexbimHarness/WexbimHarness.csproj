@@ -119,7 +119,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Xbim.Aim.Edm, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ae1690e9885a383c, processorArchitecture=MSIL">
-      <HintPath>..\packages\Xbim.Aim.Edm.1.0.1-ci-20170719-112356\lib\net461\Xbim.Aim.Edm.dll</HintPath>
+      <HintPath>..\packages\Xbim.Aim.Edm.1.0.1-ci-20170720-123045\lib\net461\Xbim.Aim.Edm.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Xbim.CobieExpress, Version=4.0.0.0, Culture=neutral, PublicKeyToken=11e3655e576ec5a9, processorArchitecture=MSIL">
