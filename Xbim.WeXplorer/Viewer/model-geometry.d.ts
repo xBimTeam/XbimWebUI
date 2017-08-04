@@ -10,11 +10,11 @@ export declare class ModelGeometry {
     matrices: Float32Array;
     styles: Uint8Array;
     meter: number;
-    private iVertex;
-    private iIndexForward;
-    private iIndexBackward;
-    private iTransform;
-    private iMatrix;
+    private _iVertex;
+    private _iIndexForward;
+    private _iIndexBackward;
+    private _iTransform;
+    private _iMatrix;
     productMaps: {
         [id: number]: ProductMap;
     };

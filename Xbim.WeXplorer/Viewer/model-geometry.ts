@@ -29,11 +29,11 @@ export class ModelGeometry {
     //	spans: [Int32Array([int, int]),Int32Array([int, int]), ...] //spanning indexes defining shapes of product and it's state
     //};
 
-    private iVertex = 0;
-    private iIndexForward = 0;
-    private iIndexBackward = 0;
-    private iTransform = 0;
-    private iMatrix = 0;
+    private _iVertex = 0;
+    private _iIndexForward = 0;
+    private _iIndexBackward = 0;
+    private _iTransform = 0;
+    private _iMatrix = 0;
 
     public productMaps: { [id: number]: ProductMap } = {};
     public regions: Region[];
@@ -72,11 +72,11 @@ export class ModelGeometry {
         this.regions = new Array<Region>(numRegions);
 
         //initial values for indices for iterations over data
-        this.iVertex = 0;
-        this.iIndexForward = 0;
-        this.iIndexBackward = numTriangles * 3;
-        this.iTransform = 0;
-        this.iMatrix = 0;
+        this._iVertex = 0;
+        this._iIndexForward = 0;
+        this._iIndexBackward = numTriangles * 3;
+        this._iTransform = 0;
+        this._iMatrix = 0;
 
         for (let i = 0; i < numRegions; i++) {
             let region = new Region();
@@ -162,7 +162,7 @@ export class ModelGeometry {
         }
 
         //set value of transparent index divider for two phase rendering (simplified ordering)
-        this.transparentIndex = this.iIndexForward;
+        this.transparentIndex = this._iIndexForward;
     }
 
     /**
@@ -191,9 +191,9 @@ export class ModelGeometry {
             let iIndex = 0;
             //set iIndex according to transparency either from beginning or at the end
             if (shape.transparent) {
-                iIndex = this.iIndexBackward - geometry.indices.length;
+                iIndex = this._iIndexBackward - geometry.indices.length;
             } else {
-                iIndex = this.iIndexForward;
+                iIndex = this._iIndexForward;
             }
 
             let begin = iIndex;
@@ -218,7 +218,7 @@ export class ModelGeometry {
 
             //fix indices to right absolute position. It is relative to the shape.
             for (let i = 0; i < geometry.indices.length; i++) {
-                this.indices[iIndex] = geometry.indices[i] + this.iVertex / 3;
+                this.indices[iIndex] = geometry.indices[i] + this._iVertex / 3;
                 this.products[iIndex] = shape.pLabel;
                 this.styleIndices[iIndex] = shape.style;
                 this.transformations[iIndex] = shape.transform; //shape.pLabel == 33698 || shape.pLabel == 33815 ? -1 : shape.transform;
@@ -231,15 +231,15 @@ export class ModelGeometry {
             let end = iIndex;
             map.spans.push(new Int32Array([begin, end]));
 
-            if (shape.transparent) this.iIndexBackward -= geometry.indices.length;
-            else this.iIndexForward += geometry.indices.length;
+            if (shape.transparent) this._iIndexBackward -= geometry.indices.length;
+            else this._iIndexForward += geometry.indices.length;
         },
             this);
 
         //copy geometry and keep track of amount so that we can fix indices to right position
         //this must be the last step to have correct iVertex number above
-        this.vertices.set(geometry.vertices, this.iVertex);
-        this.iVertex += geometry.vertices.length;
+        this.vertices.set(geometry.vertices, this._iVertex);
+        this._iVertex += geometry.vertices.length;
     }
 
     private readShape(version: number): Array<ShapeRecord> {
@@ -257,8 +257,8 @@ export class ModelGeometry {
             if (repetition > 1) {
                 //version 1 had lower precission of transformation matrices
                 transformation = version === 1 ? br.readFloat32Array(16) : br.readFloat64Array(16);
-                this.matrices.set(transformation, this.iMatrix);
-                this.iMatrix += 16;
+                this.matrices.set(transformation, this._iMatrix);
+                this._iMatrix += 16;
             }
 
             let styleItem = this._styleMap.GetStyle(styleId);
@@ -270,7 +270,7 @@ export class ModelGeometry {
                 iLabel: instanceLabel,
                 style: styleItem.index,
                 transparent: styleItem.transparent,
-                transform: transformation != null ? this.iTransform++ : -1
+                transform: transformation != null ? this._iTransform++ : -1
             });
         }
         return shapeList;

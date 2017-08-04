@@ -15,11 +15,11 @@ var ModelGeometry = (function () {
         //	bBox: Float32Array(6),
         //	spans: [Int32Array([int, int]),Int32Array([int, int]), ...] //spanning indexes defining shapes of product and it's state
         //};
-        this.iVertex = 0;
-        this.iIndexForward = 0;
-        this.iIndexBackward = 0;
-        this.iTransform = 0;
-        this.iMatrix = 0;
+        this._iVertex = 0;
+        this._iIndexForward = 0;
+        this._iIndexBackward = 0;
+        this._iTransform = 0;
+        this._iMatrix = 0;
         this.productMaps = {};
         this._styleMap = new StyleMap();
     }
@@ -55,11 +55,11 @@ var ModelGeometry = (function () {
         this.productMaps = {};
         this.regions = new Array(numRegions);
         //initial values for indices for iterations over data
-        this.iVertex = 0;
-        this.iIndexForward = 0;
-        this.iIndexBackward = numTriangles * 3;
-        this.iTransform = 0;
-        this.iMatrix = 0;
+        this._iVertex = 0;
+        this._iIndexForward = 0;
+        this._iIndexBackward = numTriangles * 3;
+        this._iTransform = 0;
+        this._iMatrix = 0;
         for (var i = 0; i < numRegions; i++) {
             var region = new Region();
             region.population = br.readInt32();
@@ -131,7 +131,7 @@ var ModelGeometry = (function () {
             throw new Error('Binary reader is not at the end of the file.');
         }
         //set value of transparent index divider for two phase rendering (simplified ordering)
-        this.transparentIndex = this.iIndexForward;
+        this.transparentIndex = this._iIndexForward;
     };
     /**
      * Get size of arrays to be square (usable for texture data)
@@ -160,10 +160,10 @@ var ModelGeometry = (function () {
             var iIndex = 0;
             //set iIndex according to transparency either from beginning or at the end
             if (shape.transparent) {
-                iIndex = _this.iIndexBackward - geometry.indices.length;
+                iIndex = _this._iIndexBackward - geometry.indices.length;
             }
             else {
-                iIndex = _this.iIndexForward;
+                iIndex = _this._iIndexForward;
             }
             var begin = iIndex;
             var map = _this.productMaps[shape.pLabel];
@@ -184,7 +184,7 @@ var ModelGeometry = (function () {
                 : 0xFF; //0xFF is for the default state
             //fix indices to right absolute position. It is relative to the shape.
             for (var i = 0; i < geometry.indices.length; i++) {
-                _this.indices[iIndex] = geometry.indices[i] + _this.iVertex / 3;
+                _this.indices[iIndex] = geometry.indices[i] + _this._iVertex / 3;
                 _this.products[iIndex] = shape.pLabel;
                 _this.styleIndices[iIndex] = shape.style;
                 _this.transformations[iIndex] = shape.transform; //shape.pLabel == 33698 || shape.pLabel == 33815 ? -1 : shape.transform;
@@ -195,14 +195,14 @@ var ModelGeometry = (function () {
             var end = iIndex;
             map.spans.push(new Int32Array([begin, end]));
             if (shape.transparent)
-                _this.iIndexBackward -= geometry.indices.length;
+                _this._iIndexBackward -= geometry.indices.length;
             else
-                _this.iIndexForward += geometry.indices.length;
+                _this._iIndexForward += geometry.indices.length;
         }, this);
         //copy geometry and keep track of amount so that we can fix indices to right position
         //this must be the last step to have correct iVertex number above
-        this.vertices.set(geometry.vertices, this.iVertex);
-        this.iVertex += geometry.vertices.length;
+        this.vertices.set(geometry.vertices, this._iVertex);
+        this._iVertex += geometry.vertices.length;
     };
     ModelGeometry.prototype.readShape = function (version) {
         var br = this._reader;
@@ -217,8 +217,8 @@ var ModelGeometry = (function () {
             if (repetition > 1) {
                 //version 1 had lower precission of transformation matrices
                 transformation = version === 1 ? br.readFloat32Array(16) : br.readFloat64Array(16);
-                this.matrices.set(transformation, this.iMatrix);
-                this.iMatrix += 16;
+                this.matrices.set(transformation, this._iMatrix);
+                this._iMatrix += 16;
             }
             var styleItem = this._styleMap.GetStyle(styleId);
             if (styleItem === null)
@@ -228,7 +228,7 @@ var ModelGeometry = (function () {
                 iLabel: instanceLabel,
                 style: styleItem.index,
                 transparent: styleItem.transparent,
-                transform: transformation != null ? this.iTransform++ : -1
+                transform: transformation != null ? this._iTransform++ : -1
             });
         }
         return shapeList;
