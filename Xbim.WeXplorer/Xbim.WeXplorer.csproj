@@ -60,10 +60,15 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Build\xbim-browser.css" />
+    <Content Include="Build\xbim-browser.min.js" />
     <Content Include="Build\xbim-geometry-loader.js" />
     <Content Include="Build\xbim-geometry-loader.min.js" />
     <Content Include="Build\xbim-viewer.min.js" />
     <Content Include="Examples\BasicJsExampleAsync\index.html" />
+    <Content Include="Examples\BrowserExample\browser.css" />
+    <Content Include="Examples\BrowserExample\browser.js" />
+    <Content Include="Examples\BrowserExample\index.html" />
     <Content Include="Examples\TsSingleModule\index.css" />
     <Content Include="Examples\TsSingleModule\loader.js" />
     <Content Include="index.html" />
@@ -80,6 +85,8 @@
     <Content Include="Libs\system.js" />
     <Content Include="Resources\bootstrap.css" />
     <Content Include="Utilities\TypingsBundler.exe" />
+    <Content Include="Viewer\browser\xbim-browser.css" />
+    <Content Include="Build\xbim-browser.js" />
     <Content Include="Build\xbim-viewer.js" />
     <Content Include="Examples\TsSingleModule\index.html" />
     <Content Include="Examples\BasicJsExample\index.html" />
@@ -109,7 +116,6 @@
     <Content Include="Libs\query-string.js" />
     <Content Include="Libs\system.min.js" />
     <Content Include="Libs\webgl-utils.min.js" />
-    <TypeScriptCompile Include="Build\xbim-viewer.d.ts" />
     <TypeScriptCompile Include="Viewer\matrix\common.ts" />
     <TypeScriptCompile Include="Viewer\matrix\quat.ts" />
     <TypeScriptCompile Include="Viewer\matrix\mat3.ts" />
@@ -172,7 +178,6 @@
     <Content Include="Examples\WexBimStreamTest\wexbimtest.html" />
     <Content Include="Libs\gl-matrix\LICENSE.md" />
     <Content Include="tests\data\network.wexbim" />
-    <Content Include="tslint.json" />
     <None Include="Tutorials\1_Hello_building.md" />
     <Content Include="Examples\SimpleWexbimViewer\index.html" />
     <Content Include="Viewer\shaders\fragment_shader.c" />
@@ -188,10 +193,21 @@
     <Content Include="Examples\TsModulesExample\index.html" />
     <Content Include="Web.config" />
     <Content Include="Viewer\workers\tsconfig.json" />
+    <TypeScriptCompile Include="xbim-browser.ts" />
     <TypeScriptCompile Include="xbim-viewer.ts" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <TypeScriptCompile Include="Viewer\browser\attribute-dictionary.ts" />
+    <TypeScriptCompile Include="Viewer\browser\browser.ts" />
+    <TypeScriptCompile Include="Viewer\browser\cobie-utils.ts" />
+    <TypeScriptCompile Include="Viewer\browser\cobieuk-utils.ts" />
+    <TypeScriptCompile Include="Viewer\browser\visual-assignment-set.ts" />
+    <TypeScriptCompile Include="Viewer\browser\visual-attribute.ts" />
+    <TypeScriptCompile Include="Viewer\browser\visual-entity.ts" />
+    <TypeScriptCompile Include="Viewer\browser\visual-model.ts" />
+    <TypeScriptCompile Include="Viewer\browser\visual-property.ts" />
+    <TypeScriptCompile Include="Viewer\browser\visual-templates.ts" />
     <TypeScriptCompile Include="Examples\TsSingleModule\index.ts" />
     <TypeScriptCompile Include="Viewer\common\dictionary.ts" />
     <TypeScriptCompile Include="Viewer\scene\node-product-shape.ts" />

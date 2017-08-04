@@ -3,8 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var model_geometry_1 = require("../model-geometry");
 //only run following script if this is created as a Worker
 if (self && self instanceof DedicatedWorkerGlobalScope) {
-    var worker_1 = self;
-    worker_1.onmessage = function (e) {
+    var worker = self;
+    worker.onmessage = function (e) {
         var model = e.data;
         var geometry = new model_geometry_1.ModelGeometry();
         geometry.onerror = function (msg) {
@@ -15,8 +15,7 @@ if (self && self instanceof DedicatedWorkerGlobalScope) {
                 var msg = {};
                 var transferable = [];
                 for (var i in geometry) {
-                    //skip private properties and non-own properties
-                    if (!geometry.hasOwnProperty(i) || i.startsWith("_"))
+                    if (!geometry.hasOwnProperty(i))
                         continue;
                     var prop = geometry[i];
                     if (typeof prop === "function")
@@ -28,11 +27,11 @@ if (self && self instanceof DedicatedWorkerGlobalScope) {
                         transferable.push(prop.buffer);
                 }
                 //post the object and pass through all transferable objects
-                worker_1.postMessage(msg, transferable);
-                worker_1.close();
+                worker.postMessage(msg, transferable);
+                worker.close();
             }
             catch (e) {
-                worker_1.close();
+                worker.close();
                 throw e;
             }
         };

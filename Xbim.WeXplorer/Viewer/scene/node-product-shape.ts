@@ -1,4 +1,4 @@
-﻿ import { Node } from "./node";
+﻿import { Node } from "./node";
 
 export class ProductShape extends Node {
     public Transform: Float64Array;

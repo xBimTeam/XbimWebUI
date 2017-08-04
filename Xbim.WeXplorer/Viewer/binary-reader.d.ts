@@ -23,9 +23,8 @@ export declare class BinaryReader {
      */
     getSubReader(length: number): BinaryReader;
     /**
-     * Pass url string, blob, file of byte array to this function to initialize the reader. Only array buffer takes
-     * imidiate effect. Othe sources are loaded asynchronously and you need to use 'onloaded' delegate to use the
-     * reader only after it is initialized woth the data.
+     * Pass url string, blob, file of byte array to this function to initialize the reader. Only array buffer takes imidiate effect.
+     * Othe sources are loaded asynchronously and you need to use 'onloaded' delegate to use the reader only after it is initialized woth the data.
      * @param source URL string of the file or BLOB or File or ArrayBuffer object
      */
     load(source: string | Blob | File | ArrayBuffer): void;
@@ -49,7 +48,7 @@ export declare class BinaryReader {
     readFloat32Array(count: number): Float32Array;
     readFloat64(): number;
     readFloat64Array(count: number): Float64Array;
-    readChar(count?: number): string | string[];
+    readChar(count?: number): any;
     readPoint(count?: number): any;
     readRgba(count?: number): any;
     readPackedNormal(count?: number): any;

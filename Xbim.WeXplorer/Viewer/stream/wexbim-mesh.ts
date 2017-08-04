@@ -1,4 +1,6 @@
-﻿export type ReadIndex = (view: DataView, offset: number) => number;
+﻿export interface ReadIndex {
+    (view: DataView, offset: number): number;
+}
 
 export class WexBimMesh {
     private _array: ArrayBuffer;
@@ -27,7 +29,7 @@ export class WexBimMesh {
     }
 
     public get FaceCount(): number {
-        const faceCountPos = this.VertexPos + (this.VertexCount * 3 * 4); //4 = sizeof(float)
+        var faceCountPos = this.VertexPos + (this.VertexCount * 3 * 4); //4 = sizeof(float)
         return this._view.getInt32(faceCountPos, true);
     }
 
@@ -41,7 +43,7 @@ export class WexBimMesh {
 
     public get Faces(): WexBimMeshFace[] {
         //start of vertices * space taken by vertices + the number of faces
-        const facesOffset = this.VertexPos + (this.VertexCount * 3 * 4 /*sizeof(float)*/) + 4/*sizeof(int)*/;
+        let facesOffset = this.VertexPos + (this.VertexCount * 3 * 4 /*sizeof(float)*/) + 4/*sizeof(int)*/;
         let readIndex: ReadIndex;
         let sizeofIndex: number;
 
@@ -57,7 +59,7 @@ export class WexBimMesh {
             readIndex = (view, offset) => view.getInt32(offset, true);
             sizeofIndex = 32 /*sizeof(int)*/;
         }
-        const result = new Array<WexBimMeshFace>();
+        let result = new Array<WexBimMeshFace>();
 
         for (let i = 0; i < this.FaceCount; i++) {
             result.push(new WexBimMeshFace(readIndex, sizeofIndex, this._array, facesOffset));
@@ -90,10 +92,10 @@ export class WexBimMeshFace {
     }
 
     public get Indices(): Uint32Array {
-        const result = new Uint32Array(this.TriangleCount * 3);
+        let result = new Uint32Array(this.TriangleCount * 3);
 
         if (this.IsPlanar) {
-            let indexOffset = this._offsetStart + 2 + 4 /*sizeof(int)*/;
+            var indexOffset = this._offsetStart + 2 + 4 /*sizeof(int)*/;
             for (let i = 0; i < this.TriangleCount; i++) {
                 indexOffset += (i * 3 * this._sizeofIndex); //skip the 2 bytes that are the packed normal
                 for (let j = 0; j < 3; j++) {
@@ -102,9 +104,9 @@ export class WexBimMeshFace {
             }
         }
         else {
-            const indexSpan = this._sizeofIndex + 2;
-            const triangleSpan = 3 * indexSpan;
-            let indexOffset = this._offsetStart + 4 /*sizeof(int)*/;
+            var indexSpan = this._sizeofIndex + 2;
+            var triangleSpan = 3 * indexSpan;
+            var indexOffset = this._offsetStart + 4 /*sizeof(int)*/;
             for (let i = 0; i < this.TriangleCount; i++) {
                 for (let j = 0; j < 3; j++) {
                     result[i * 3 + j] = this._readIndex(this._view, indexOffset + (j * indexSpan));
@@ -116,14 +118,15 @@ export class WexBimMeshFace {
         return result;
     }
 
+
     public get Normals(): Float32Array {
 
-        const result = new Float32Array(this.TriangleCount * 3 * 3);
-        const indexOffset = this._offsetStart + 4 /*sizeof(int)*/;
+        let result = new Float32Array(this.TriangleCount * 3 * 3);
+        let indexOffset = this._offsetStart + 4 /*sizeof(int)*/;
 
         if (this.IsPlanar) {
-            const u = this._view.getUint8(indexOffset);
-            const v = this._view.getUint8(indexOffset + 1);
+            var u = this._view.getUint8(indexOffset);
+            var v = this._view.getUint8(indexOffset + 1);
             this.unpackNormal(u, v, result, 0);
 
             //copy to the rest of the result
@@ -135,13 +138,13 @@ export class WexBimMeshFace {
             return result;
         }
 
-        const indexSpan = this._sizeofIndex + 2;
-        const triangleSpan = 3 * indexSpan;
-        let normalOffset = indexOffset + this._sizeofIndex;
+        var indexSpan = this._sizeofIndex + 2;
+        var triangleSpan = 3 * indexSpan;
+        var normalOffset = indexOffset + this._sizeofIndex;
         for (let i = 0; i < this.TriangleCount; i++) {
             for (let j = 0; j < 3; j++) {
-                const u = this._view.getUint8(normalOffset + (j * indexSpan));
-                const v = this._view.getUint8(normalOffset + (j * indexSpan) + 1);
+                var u = this._view.getUint8(normalOffset + (j * indexSpan));
+                var v = this._view.getUint8(normalOffset + (j * indexSpan) + 1);
 
                 this.unpackNormal(u, v, result, 3 * i + j);
             }
@@ -151,8 +154,8 @@ export class WexBimMeshFace {
 
     private unpackNormal(u: number, v: number, normals: Float32Array, index: number): void {
         const packSize = 252;
-        const lon = u / packSize * Math.PI * 2;
-        const lat = v / packSize * Math.PI;
+        let lon = u / packSize * Math.PI * 2;
+        let lat = v / packSize * Math.PI;
 
         normals[index] = Math.cos(lat);
         normals[index + 1] = Math.sin(lon) * Math.sin(lat);

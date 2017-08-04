@@ -1,9 +1,9 @@
-import { State } from "./state";
-export * from "./state";
-export * from "./product-type";
-export * from "./product-inheritance";
-export * from "./plugins/NavigationCube/navigation-cube";
-export * from "./plugins/NavigationHome/navigation-home";
+import { State } from './state';
+export { State } from './state';
+export { ProductType } from './product-type';
+export { ProductInheritance } from './product-inheritance';
+export { NavigationCube } from "./plugins/NavigationCube/navigation-cube";
+export { NavigationHome } from "./plugins/NavigationHome/navigation-home";
 export declare class Viewer {
     /**
     * This is constructor of the xBIM Viewer. It gets HTMLCanvasElement or string ID as an argument. Viewer will than be initialized
@@ -37,7 +37,7 @@ export declare class Viewer {
     _height: number;
     private height;
     _distance: number;
-    camera: "perspective" | "orthogonal";
+    camera: 'perspective' | 'orthogonal';
     background: number[];
     private _isRunning;
     private _stateStyles;
@@ -47,7 +47,7 @@ export declare class Viewer {
     private _stylingChanged;
     private _handles;
     highlightingColour: number[];
-    navigationMode: "pan" | "zoom" | "orbit" | "fixed-orbit" | "free-orbit" | "none";
+    navigationMode: 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none';
     private _userAction;
     _shaderProgram: WebGLProgram;
     _origin: number[];
@@ -102,7 +102,7 @@ export declare class Viewer {
     * @function Viewer#addPlugin
     * @param {object} plugin - plug-in object
     */
-    addPlugin(plugin: IPlugin): void;
+    addPlugin(plugin: any): void;
     /**
     * Removes plugin from the viewer. Plugins can implement certain methods which get called in certain moments in time like
     * before draw, after draw etc. This makes it possible to implement functionality tightly integrated into Viewer like navigation cube or others.
@@ -152,13 +152,13 @@ export declare class Viewer {
      * @param {Number} id - Model ID which you can get from {@link Viewer#event:loaded loaded} event.
      * @returns {Array} - Array representing model state in compact form suitable for serialization
      */
-    getModelState(id: number): number[][];
+    getModelState(id: number): Array<Array<number>>;
     /**
      * Restores model state from the data previously captured with {@link Viewer#getModelState getModelState()} function
      * @param {Number} id - ID of the model
      * @param {Array} state - State of the model as obtained from {@link Viewer#getModelState getModelState()} function
      */
-    restoreModelState(id: number, state: number[][]): void;
+    restoreModelState(id: number, state: Array<Array<number>>): void;
     /**
     * Use this method for restyling of the model. This doesn't change the default appearance of the products so you can think about it as an overlay. You can
     * remove the overlay if you set the style to {@link xState#UNSTYLED xState.UNSTYLED} value. You can combine restyling and hiding in this way.
@@ -339,12 +339,6 @@ export declare class Viewer {
     * @param {Object} callback - Handler to be removed
     */
     off(eventName: string, callback: any): void;
-    /**
-     * Removes all callbacks for all events. Only use this to make sure there are no memory leaks in your unload-destroy workflows.
-     *
-     * @function Viewer#offAll
-     */
-    offAll(): void;
     private fire(eventName, args);
     private disableTextSelection();
     private enableTextSelection();
@@ -406,19 +400,7 @@ export declare enum RenderingMode {
     XRAY = 2,
 }
 export interface IPlugin {
-    /**
-    * Called when plugin is added to the viewer
-    * @param {Viewer} viewer - viewer object can be used in init function
-    */
-    init(viewer: Viewer): void;
-    /**
-    * Called before the viewer model is drawn. This can be used to either manipulate model before
-    * the draw action or to draw graphics on background
-    */
     onBeforeDraw(): void;
-    /**
-    * Called after the viewer model is drawn. This can be used to draw on top of the canvas.
-    */
     onAfterDraw(): void;
     onBeforeDrawId(): void;
     onAfterDrawId(): void;

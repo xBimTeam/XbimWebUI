@@ -1,4 +1,4 @@
-﻿ import { ProductType } from "../product-type";
+﻿import { ProductType } from "../product-type";
 import { Node } from "./node";
 
 export class ProductNode extends Node {

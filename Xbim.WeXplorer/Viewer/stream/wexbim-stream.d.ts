@@ -19,7 +19,7 @@ export declare class WexBimRegion {
     Population: number;
     Centre: Float32Array;
     BoundingBox: Float32Array;
-    GeometryModels: WexBimGeometryModel[];
+    GeometryModels: Array<WexBimGeometryModel>;
     MatrixCount(): number;
     ShapeCount(): number;
     TriangleCount(): number;

@@ -14,8 +14,8 @@ var ModelHandle = (function () {
         this.stopped = false;
         //participates in picking operation only if true
         this.pickable = true;
-        if (typeof (_gl) == "undefined" || typeof (_model) == "undefined") {
-            throw new Error("WebGL context and geometry model must be specified");
+        if (typeof (_gl) == 'undefined' || typeof (_model) == 'undefined') {
+            throw 'WebGL context and geometry model must be specified';
         }
         /**
          * unique ID which can be used to identify this handle
@@ -36,7 +36,7 @@ var ModelHandle = (function () {
             }
         });
         //set default region if no region is defined. This shouldn't ever happen if model contains any geometry.
-        if (typeof (this.region) == "undefined") {
+        if (typeof (this.region) == 'undefined') {
             this.region = new model_geometry_1.Region();
             this.region.population = 1;
             this.region.centre = new Float32Array([0.0, 0.0, 0.0]);
@@ -44,7 +44,7 @@ var ModelHandle = (function () {
         }
     };
     ModelHandle.prototype.InitGlBuffersAndTextures = function (gl) {
-        //data structure
+        //data structure 
         this._vertexTexture = gl.createTexture();
         this._matrixTexture = gl.createTexture();
         this._styleTexture = gl.createTexture();
@@ -103,7 +103,7 @@ var ModelHandle = (function () {
         if (this.stopped)
             return;
         var gl = this._gl;
-        if (typeof (mode) === "undefined") {
+        if (typeof (mode) === 'undefined') {
             //draw image frame
             gl.drawArrays(gl.TRIANGLES, 0, this._numberOfIndices);
             return;
@@ -139,7 +139,7 @@ var ModelHandle = (function () {
     };
     ModelHandle.prototype.getProductMap = function (id) {
         var map = this._model.productMaps[id];
-        if (typeof (map) !== "undefined")
+        if (typeof (map) !== 'undefined')
             return map;
         return null;
     };
@@ -148,7 +148,7 @@ var ModelHandle = (function () {
         var result = new Array();
         ids.forEach(function (id) {
             var map = _this._model.productMaps[id];
-            if (typeof (map) !== "undefined")
+            if (typeof (map) !== 'undefined')
                 result.push(map);
         });
         return result;
@@ -198,13 +198,13 @@ var ModelHandle = (function () {
             var dummySize = 2;
             gl.bindTexture(gl.TEXTURE_2D, pointer);
             //2 x 2 transparent black dummy pixels texture
-            var image = new Uint8Array([
+            var image_1 = new Uint8Array([
                 0, 0, 0, 0,
                 0, 0, 0, 0,
                 0, 0, 0, 0,
-                0, 0, 0, 0,
+                0, 0, 0, 0
             ]);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, dummySize, dummySize, 0, gl.RGBA, gl.UNSIGNED_BYTE, image);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, dummySize, dummySize, 0, gl.RGBA, gl.UNSIGNED_BYTE, image_1);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); //Prevents s-coordinate wrapping (repeating).
@@ -226,7 +226,7 @@ var ModelHandle = (function () {
         if (size == 0)
             return 0;
         if (size > maxSize)
-            throw new Error("Too much data! It cannot fit into the texture.");
+            throw 'Too much data! It cannot fit into the texture.';
         gl.bindTexture(gl.TEXTURE_2D, pointer);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0); //this is our convention
         gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 0); //this should preserve values of alpha
@@ -265,36 +265,36 @@ var ModelHandle = (function () {
         return size;
     };
     ModelHandle.prototype.getState = function (id) {
-        if (typeof (id) === "undefined")
-            throw new Error("id must be defined");
+        if (typeof (id) === 'undefined')
+            throw 'id must be defined';
         var map = this.getProductMap(id);
         if (map === null)
             return null;
         var span = map.spans[0];
-        if (typeof (span) == "undefined")
+        if (typeof (span) == 'undefined')
             return null;
         return this._model.states[span[0] * 2];
     };
     ModelHandle.prototype.getStyle = function (id) {
-        if (typeof (id) === "undefined")
-            throw new Error("id must be defined");
+        if (typeof (id) === 'undefined')
+            throw 'id must be defined';
         var map = this.getProductMap(id);
         if (map === null)
             return null;
         var span = map.spans[0];
-        if (typeof (span) == "undefined")
+        if (typeof (span) == 'undefined')
             return null;
         return this._model.states[span[0] * 2 + 1];
     };
     ModelHandle.prototype.setState = function (state, args) {
         var _this = this;
-        if (typeof (state) != "number" && state < 0 && state > 255)
-            throw new Error("You have to specify state as an ID of state or index in style pallete.");
-        if (typeof (args) == "undefined")
-            throw new Error("You have to specify products as an array of product IDs or as a product type ID");
+        if (typeof (state) != 'number' && state < 0 && state > 255)
+            throw 'You have to specify state as an ID of state or index in style pallete.';
+        if (typeof (args) == 'undefined')
+            throw 'You have to specify products as an array of product IDs or as a product type ID';
         var maps = [];
         //it is type
-        if (typeof (args) == "number") {
+        if (typeof (args) == 'number') {
             for (var n in this._model.productMaps) {
                 var map = this._model.productMaps[n];
                 if (map.type == args)
@@ -336,6 +336,7 @@ var ModelHandle = (function () {
         //buffer data to GPU
         this.bufferData(this._stateBuffer, this._model.states);
     };
+    ;
     ModelHandle.prototype.getModelState = function () {
         var result = [];
         var products = this._model.productMaps;
@@ -345,7 +346,7 @@ var ModelHandle = (function () {
             }
             var map = products[i];
             var span = map.spans[0];
-            if (typeof (span) == "undefined")
+            if (typeof (span) == 'undefined')
                 continue;
             var state = this._model.states[span[0] * 2];
             var style = this._model.states[span[0] * 2 + 1];

@@ -65,7 +65,7 @@ var NavigationHome = (function () {
         var self = this;
         if (typeof (this._image) === "undefined") {
             //add HTML UI to viewer port
-            var data = navigation_home_textures_1.HomeTextures.en;
+            var data = navigation_home_textures_1.HomeTextures["en"];
             var image = new Image();
             self._image = image;
             image.addEventListener("load", function () {

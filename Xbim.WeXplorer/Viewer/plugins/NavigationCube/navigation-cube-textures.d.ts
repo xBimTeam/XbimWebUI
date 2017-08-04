@@ -1,3 +1,3 @@
-export declare let CubeTextures: {
+export declare var CubeTextures: {
     en: string;
 };

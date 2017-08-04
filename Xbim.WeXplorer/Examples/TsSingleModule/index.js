@@ -47,8 +47,5 @@ viewer.on('pick', function (e) {
 //viewer.on('pick', () => {
 //    div.style.display = "none";
 //});
-//make the viewer available in console as global
-window["viewer"] = viewer;
-window["State"] = viewer_1.State;
-window["ProductType"] = viewer_1.ProductType;
+window["v"] = viewer;
 //# sourceMappingURL=index.js.map

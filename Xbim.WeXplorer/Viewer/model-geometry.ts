@@ -1,7 +1,7 @@
-﻿ import { BinaryReader } from "./binary-reader";
-import { ProductType } from "./product-type";
-import { State } from "./state";
+﻿import { BinaryReader } from "./binary-reader";
 import { TriangulatedShape } from "./triangulated-shape";
+import { State } from "./state";
+import { ProductType } from "./product-type";
 
 export class ModelGeometry {
     //all this data is to be fed into GPU as attributes
@@ -21,7 +21,7 @@ export class ModelGeometry {
     meter = 1000;
 
     //this will be used to change appearance of the objects
-    //map objects have a format:
+    //map objects have a format: 
     //map = {
     //	productID: int,
     //	type: int,
@@ -29,11 +29,11 @@ export class ModelGeometry {
     //	spans: [Int32Array([int, int]),Int32Array([int, int]), ...] //spanning indexes defining shapes of product and it's state
     //};
 
-    private _iVertex = 0;
-    private _iIndexForward = 0;
-    private _iIndexBackward = 0;
-    private _iTransform = 0;
-    private _iMatrix = 0;
+    private iVertex = 0;
+    private iIndexForward = 0;
+    private iIndexBackward = 0;
+    private iTransform = 0;
+    private iMatrix = 0;
 
     public productMaps: { [id: number]: ProductMap } = {};
     public regions: Region[];
@@ -45,18 +45,18 @@ export class ModelGeometry {
     private parse(binReader: BinaryReader) {
         this._reader = binReader;
 
-        const br = binReader;
-        const magicNumber = br.readInt32();
-        if (magicNumber != 94132117) throw new Error("Magic number mismatch.");
-        const version = br.readByte();
-        const numShapes = br.readInt32();
-        const numVertices = br.readInt32();
-        const numTriangles = br.readInt32();
-        const numMatrices = br.readInt32();
-        const numProducts = br.readInt32();
-        const numStyles = br.readInt32();
-        this.meter = br.readFloat32();
-        const numRegions = br.readInt16();
+        let br = binReader;
+        let magicNumber = br.readInt32();
+        if (magicNumber != 94132117) throw 'Magic number mismatch.';
+        let version = br.readByte();
+        let numShapes = br.readInt32();
+        let numVertices = br.readInt32();
+        let numTriangles = br.readInt32();
+        let numMatrices = br.readInt32();;
+        let numProducts = br.readInt32();;
+        let numStyles = br.readInt32();;
+        this.meter = br.readFloat32();;
+        let numRegions = br.readInt16();
 
         //create target buffers of correct sizes (avoid reallocation of memory, work with native typed arrays)
         this.vertices = new Float32Array(this.square(4, numVertices * 3));
@@ -72,14 +72,14 @@ export class ModelGeometry {
         this.regions = new Array<Region>(numRegions);
 
         //initial values for indices for iterations over data
-        this._iVertex = 0;
-        this._iIndexForward = 0;
-        this._iIndexBackward = numTriangles * 3;
-        this._iTransform = 0;
-        this._iMatrix = 0;
+        this.iVertex = 0;
+        this.iIndexForward = 0;
+        this.iIndexBackward = numTriangles * 3;
+        this.iTransform = 0;
+        this.iMatrix = 0;
 
         for (let i = 0; i < numRegions; i++) {
-            const region = new Region();
+            let region = new Region();
             region.population = br.readInt32();
             region.centre = br.readFloat32Array(3);
             region.bbox = br.readFloat32Array(6);
@@ -88,28 +88,28 @@ export class ModelGeometry {
 
         let iStyle = 0;
         for (iStyle; iStyle < numStyles; iStyle++) {
-            const styleId = br.readInt32();
-            const R = br.readFloat32() * 255;
-            const G = br.readFloat32() * 255;
-            const B = br.readFloat32() * 255;
-            const A = br.readFloat32() * 255;
+            let styleId = br.readInt32();
+            let R = br.readFloat32() * 255;
+            let G = br.readFloat32() * 255;
+            let B = br.readFloat32() * 255;
+            let A = br.readFloat32() * 255;
             this.styles.set([R, G, B, A], iStyle * 4);
             this._styleMap.Add({ id: styleId, index: iStyle, transparent: A < 254 });
         }
         this.styles.set([255, 255, 255, 255], iStyle * 4);
-        const defaultStyle: StyleRecord = { id: -1, index: iStyle, transparent: false };
+        let defaultStyle: StyleRecord = { id: -1, index: iStyle, transparent: false };
         this._styleMap.Add(defaultStyle);
 
         for (let i = 0; i < numProducts; i++) {
-            const productLabel = br.readInt32();
-            const prodType = br.readInt16();
-            const bBox = br.readFloat32Array(6);
+            let productLabel = br.readInt32();
+            let prodType = br.readInt16();
+            let bBox = br.readFloat32Array(6);
 
-            const map: ProductMap = {
+            let map: ProductMap = {
                 productID: productLabel,
                 type: prodType,
-                bBox,
-                spans: [],
+                bBox: bBox,
+                spans: []
             };
             this.productMaps[productLabel] = map;
         }
@@ -117,20 +117,20 @@ export class ModelGeometry {
         //version 3 puts geometry in regions properly so it is possible to use this information for rendering
         if (version >= 3) {
             for (let r = 0; r < numRegions; r++) {
-                const region = this.regions[r];
-                const geomCount = br.readInt32();
+                let region = this.regions[r]
+                let geomCount = br.readInt32();
 
                 for (let g = 0; g < geomCount; g++) {
 
                     //read shape information
-                    const shapes = this.readShape(version);
+                    var shapes = this.readShape(version);
 
                     //read geometry
-                    const geomLength = br.readInt32();
+                    let geomLength = br.readInt32();
 
                     //read geometry data (make sure we don't overflow - use isolated subreader)
-                    const gbr = br.getSubReader(geomLength);
-                    const geometry = new TriangulatedShape();
+                    let gbr = br.getSubReader(geomLength);
+                    let geometry = new TriangulatedShape();
                     geometry.parse(gbr);
                     //make sure that geometry is complete
                     if (!gbr.isEOF())
@@ -145,10 +145,10 @@ export class ModelGeometry {
             for (let iShape = 0; iShape < numShapes; iShape++) {
 
                 //reed shape representations
-                const shapes = this.readShape(version);
+                let shapes = this.readShape(version);
 
                 //read shape geometry
-                const geometry = new TriangulatedShape();
+                let geometry = new TriangulatedShape();
                 geometry.parse(br);
 
                 //feed data arays
@@ -158,11 +158,11 @@ export class ModelGeometry {
 
         //binary reader should be at the end by now
         if (!br.isEOF()) {
-            throw new Error("Binary reader is not at the end of the file.");
+            throw new Error('Binary reader is not at the end of the file.');
         }
 
         //set value of transparent index divider for two phase rendering (simplified ordering)
-        this.transparentIndex = this._iIndexForward;
+        this.transparentIndex = this.iIndexForward;
     }
 
     /**
@@ -171,32 +171,32 @@ export class ModelGeometry {
      * @param count
      */
     private square(arity: number, count: number): number {
-        if (typeof (arity) == "undefined" || typeof (count) == "undefined") {
+        if (typeof (arity) == 'undefined' || typeof (count) == 'undefined') {
             throw new Error('Wrong arguments for "square" function.');
         }
         if (count == 0) return 0;
-        const byteLength = count * arity;
+        let byteLength = count * arity;
         let imgSide = Math.ceil(Math.sqrt(byteLength / 4));
         //clamp to parity
         while ((imgSide * 4) % arity != 0) {
-            imgSide++;
+            imgSide++
         }
-        const result = imgSide * imgSide * 4 / arity;
+        let result = imgSide * imgSide * 4 / arity;
         return result;
     }
 
-    private feedDataArrays(shapes: ShapeRecord[], geometry: TriangulatedShape) {
+    private feedDataArrays(shapes: Array<ShapeRecord>, geometry: TriangulatedShape) {
         //copy shape data into inner array and set to null so it can be garbage collected
-        shapes.forEach((shape) => {
+        shapes.forEach(shape => {
             let iIndex = 0;
             //set iIndex according to transparency either from beginning or at the end
             if (shape.transparent) {
-                iIndex = this._iIndexBackward - geometry.indices.length;
+                iIndex = this.iIndexBackward - geometry.indices.length;
             } else {
-                iIndex = this._iIndexForward;
+                iIndex = this.iIndexForward;
             }
 
-            const begin = iIndex;
+            let begin = iIndex;
             let map = this.productMaps[shape.pLabel];
             if (typeof (map) === "undefined") {
                 //throw "Product hasn't been defined before.";
@@ -204,21 +204,21 @@ export class ModelGeometry {
                     productID: 0,
                     type: ProductType.IFCOPENINGELEMENT,
                     bBox: new Float32Array(6),
-                    spans: [],
+                    spans: []
                 };
                 this.productMaps[shape.pLabel] = map;
             }
 
             this.normals.set(geometry.normals, iIndex * 2);
 
-            //switch spaces and openings off by default
-            const state = map.type == ProductType.IFCSPACE || map.type == ProductType.IFCOPENINGELEMENT
+            //switch spaces and openings off by default 
+            let state = map.type == ProductType.IFCSPACE || map.type == ProductType.IFCOPENINGELEMENT
                 ? State.HIDDEN
                 : 0xFF; //0xFF is for the default state
 
             //fix indices to right absolute position. It is relative to the shape.
             for (let i = 0; i < geometry.indices.length; i++) {
-                this.indices[iIndex] = geometry.indices[i] + this._iVertex / 3;
+                this.indices[iIndex] = geometry.indices[i] + this.iVertex / 3;
                 this.products[iIndex] = shape.pLabel;
                 this.styleIndices[iIndex] = shape.style;
                 this.transformations[iIndex] = shape.transform; //shape.pLabel == 33698 || shape.pLabel == 33815 ? -1 : shape.transform;
@@ -228,37 +228,37 @@ export class ModelGeometry {
                 iIndex++;
             }
 
-            const end = iIndex;
+            let end = iIndex;
             map.spans.push(new Int32Array([begin, end]));
 
-            if (shape.transparent) this._iIndexBackward -= geometry.indices.length;
-            else this._iIndexForward += geometry.indices.length;
+            if (shape.transparent) this.iIndexBackward -= geometry.indices.length;
+            else this.iIndexForward += geometry.indices.length;
         },
             this);
 
         //copy geometry and keep track of amount so that we can fix indices to right position
         //this must be the last step to have correct iVertex number above
-        this.vertices.set(geometry.vertices, this._iVertex);
-        this._iVertex += geometry.vertices.length;
+        this.vertices.set(geometry.vertices, this.iVertex);
+        this.iVertex += geometry.vertices.length;
     }
 
-    private readShape(version: number): ShapeRecord[] {
-        const br = this._reader;
+    private readShape(version: number): Array<ShapeRecord> {
+        let br = this._reader;
 
-        const repetition = br.readInt32();
-        const shapeList = new Array<ShapeRecord>();
+        let repetition = br.readInt32();
+        let shapeList = new Array<ShapeRecord>();
         for (let iProduct = 0; iProduct < repetition; iProduct++) {
-            const prodLabel = br.readInt32();
-            const instanceTypeId = br.readInt16();
-            const instanceLabel = br.readInt32();
-            const styleId = br.readInt32();
+            let prodLabel = br.readInt32();
+            let instanceTypeId = br.readInt16();
+            let instanceLabel = br.readInt32();
+            let styleId = br.readInt32();
             let transformation: Float32Array | Float64Array = null;
 
             if (repetition > 1) {
                 //version 1 had lower precission of transformation matrices
                 transformation = version === 1 ? br.readFloat32Array(16) : br.readFloat64Array(16);
-                this.matrices.set(transformation, this._iMatrix);
-                this._iMatrix += 16;
+                this.matrices.set(transformation, this.iMatrix);
+                this.iMatrix += 16;
             }
 
             let styleItem = this._styleMap.GetStyle(styleId);
@@ -270,7 +270,7 @@ export class ModelGeometry {
                 iLabel: instanceLabel,
                 style: styleItem.index,
                 transparent: styleItem.transparent,
-                transform: transformation != null ? this._iTransform++ : -1,
+                transform: transformation != null ? this.iTransform++ : -1
             });
         }
         return shapeList;
@@ -279,15 +279,15 @@ export class ModelGeometry {
     //Source has to be either URL of wexBIM file or Blob representing wexBIM file
     public load(source) {
         //binary reading
-        const br = new BinaryReader();
-        const self = this;
-        br.onloaded = function() {
+        let br = new BinaryReader();
+        let self = this;
+        br.onloaded = function () {
             self.parse(br);
             if (self.onloaded) {
                 self.onloaded(this);
             }
         };
-        br.onerror = function(msg) {
+        br.onerror = function (msg) {
             if (self.onerror) self.onerror(msg);
         };
         br.load(source);
@@ -298,11 +298,12 @@ export class ModelGeometry {
     public onerror: (message?: string) => void;
 }
 
+
 export class ProductMap {
     productID: number;
     type: ProductType;
     bBox: Float32Array;
-    spans: Int32Array[];
+    spans: Array<Int32Array>;
 }
 
 export class Region {
@@ -322,7 +323,7 @@ export class Region {
      * Returns clone of this region
      */
     public clone(): Region {
-        const clone = new Region();
+        let clone = new Region();
 
         clone.population = this.population;
         clone.centre = new Float32Array(this.centre);
@@ -340,24 +341,24 @@ export class Region {
         if (this.population === -1 && this.centre === null && this.bbox === null)
             return new Region(region);
 
-        const out = new Region();
+        let out = new Region();
         out.population = this.population + region.population;
 
-        const x = Math.min(this.bbox[0], region.bbox[0]);
-        const y = Math.min(this.bbox[1], region.bbox[1]);
-        const z = Math.min(this.bbox[2], region.bbox[2]);
+        let x = Math.min(this.bbox[0], region.bbox[0]);
+        let y = Math.min(this.bbox[1], region.bbox[1]);
+        let z = Math.min(this.bbox[2], region.bbox[2]);
 
-        const x2 = Math.min(this.bbox[0] + this.bbox[3], region.bbox[0] + region.bbox[3]);
-        const y2 = Math.min(this.bbox[1] + this.bbox[4], region.bbox[1] + region.bbox[4]);
-        const z2 = Math.min(this.bbox[2] + this.bbox[5], region.bbox[2] + region.bbox[5]);
+        let x2 = Math.min(this.bbox[0] + this.bbox[3], region.bbox[0] + region.bbox[3]);
+        let y2 = Math.min(this.bbox[1] + this.bbox[4], region.bbox[1] + region.bbox[4]);
+        let z2 = Math.min(this.bbox[2] + this.bbox[5], region.bbox[2] + region.bbox[5]);
 
-        const sx = x2 - x;
-        const sy = y2 - y;
-        const sz = z2 - z;
+        let sx = x2 - x;
+        let sy = y2 - y;
+        let sz = z2 - z;
 
-        const cx = (x + x2) / 2.0;
-        const cy = (y + y2) / 2.0;
-        const cz = (z + z2) / 2.0;
+        let cx = (x + x2) / 2.0;
+        let cy = (y + y2) / 2.0;
+        let cz = (z + z2) / 2.0;
 
         out.bbox = new Float32Array([x, y, z, sx, sy, sz]);
         out.centre = new Float32Array([cx, cy, cz]);
@@ -373,7 +374,7 @@ class StyleMap {
     }
 
     public GetStyle(id: number): StyleRecord {
-        const item = this._internal[id];
+        let item = this._internal[id];
         if (item)
             return item;
         return null;

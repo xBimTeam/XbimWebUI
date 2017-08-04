@@ -1,10 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var mat3_1 = require("../../matrix/mat3");
-var mat4_1 = require("../../matrix/mat4");
-var vec3_1 = require("../../matrix/vec3");
 var navigation_cube_shaders_1 = require("./navigation-cube-shaders");
 var navigation_cube_textures_1 = require("./navigation-cube-textures");
+var mat4_1 = require("../../matrix/mat4");
+var mat3_1 = require("../../matrix/mat3");
+var vec3_1 = require("../../matrix/vec3");
 var NavigationCube = (function () {
     /**
      * This is constructor of the Navigation Cube plugin for {@link Viewer xBIM Viewer}. It gets optional Image as an argument.
@@ -371,15 +371,15 @@ var NavigationCube = (function () {
             12, 13, 14, 12, 14, 15,
             16, 17, 18, 16, 18, 19,
             20, 21, 22, 20, 22, 23,
-            //top - left - front
+            //top - left - front 
             0 + 24, 1 + 24, 2 + 24, 0 + 24, 2 + 24, 3 + 24,
             4 + 24, 5 + 24, 6 + 24, 4 + 24, 6 + 24, 7 + 24,
             8 + 24, 9 + 24, 10 + 24, 8 + 24, 10 + 24, 11 + 24,
-            //top-right-front
+            //top-right-front 
             0 + 36, 1 + 36, 2 + 36, 0 + 36, 2 + 36, 3 + 36,
             4 + 36, 5 + 36, 6 + 36, 4 + 36, 6 + 36, 7 + 36,
             8 + 36, 9 + 36, 10 + 36, 8 + 36, 10 + 36, 11 + 36,
-            //top-left-back
+            //top-left-back 
             0 + 48, 1 + 48, 2 + 48, 0 + 48, 2 + 48, 3 + 48,
             4 + 48, 5 + 48, 6 + 48, 4 + 48, 6 + 48, 7 + 48,
             8 + 48, 9 + 48, 10 + 48, 8 + 48, 10 + 48, 11 + 48,
@@ -391,11 +391,11 @@ var NavigationCube = (function () {
             0 + 72, 2 + 72, 1 + 72, 0 + 72, 3 + 72, 2 + 72,
             4 + 72, 5 + 72, 6 + 72, 4 + 72, 6 + 72, 7 + 72,
             8 + 72, 9 + 72, 10 + 72, 8 + 72, 10 + 72, 11 + 72,
-            //bottom-right-front
+            //bottom-right-front 
             0 + 84, 2 + 84, 1 + 84, 0 + 84, 3 + 84, 2 + 84,
             4 + 84, 5 + 84, 6 + 84, 4 + 84, 6 + 84, 7 + 84,
             8 + 84, 9 + 84, 10 + 84, 8 + 84, 10 + 84, 11 + 84,
-            //bottom-left-back
+            //bottom-left-back 
             0 + 96, 2 + 96, 1 + 96, 0 + 96, 3 + 96, 2 + 96,
             4 + 96, 5 + 96, 6 + 96, 4 + 96, 6 + 96, 7 + 96,
             8 + 96, 9 + 96, 10 + 96, 8 + 96, 10 + 96, 11 + 96,
@@ -507,7 +507,7 @@ var NavigationCube = (function () {
             2.0 / 3.0 - 1.0 / 15.0, 2.0 / 3.0 - 1.0 / 15.0,
             1.0 / 3.0 + 1.0 / 15.0, 2.0 / 3.0 - 1.0 / 15.0,
             1.0 / 3.0 + 1.0 / 15.0, 1.0 / 3.0 + 1.0 / 15.0,
-            //top - left - front
+            //top - left - front 
             2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
             2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
             2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
@@ -520,7 +520,7 @@ var NavigationCube = (function () {
             1.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
             1.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
             1.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
-            //top-right-front
+            //top-right-front 
             2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
             2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
             2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
@@ -533,7 +533,7 @@ var NavigationCube = (function () {
             1.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
             1.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
             1.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
-            //top-left-back
+            //top-left-back 
             2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
             2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
             2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
@@ -546,7 +546,7 @@ var NavigationCube = (function () {
             2.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
             2.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
             2.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
-            //top-right-back
+            //top-right-back 
             2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
             2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
             2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
@@ -559,7 +559,7 @@ var NavigationCube = (function () {
             2.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
             2.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
             2.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
-            //bottom - left - front
+            //bottom - left - front 
             1.0 / 30.0, 1.0 / 30.0,
             1.0 / 30.0, 1.0 / 30.0,
             1.0 / 30.0, 1.0 / 30.0,
@@ -572,7 +572,7 @@ var NavigationCube = (function () {
             1.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
             1.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
             1.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
-            //bottom-right-front
+            //bottom-right-front 
             1.0 / 30.0, 1.0 / 30.0,
             1.0 / 30.0, 1.0 / 30.0,
             1.0 / 30.0, 1.0 / 30.0,
@@ -585,7 +585,7 @@ var NavigationCube = (function () {
             1.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
             1.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
             1.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
-            //bottom-left-back
+            //bottom-left-back 
             1.0 / 30.0, 1.0 / 30.0,
             1.0 / 30.0, 1.0 / 30.0,
             1.0 / 30.0, 1.0 / 30.0,
@@ -598,7 +598,7 @@ var NavigationCube = (function () {
             2.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
             2.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
             2.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
-            //bottom-right-back
+            //bottom-right-back 
             1.0 / 30.0, 1.0 / 30.0,
             1.0 / 30.0, 1.0 / 30.0,
             1.0 / 30.0, 1.0 / 30.0,
@@ -944,7 +944,7 @@ var NavigationCube = (function () {
         var self = this;
         this.viewer = viewer;
         var gl = this.viewer.gl;
-        //create own shader
+        //create own shader 
         this._shader = null;
         this._initShader();
         this._alpha = this.passiveAlpha;
@@ -979,6 +979,7 @@ var NavigationCube = (function () {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._idBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, this.ids, gl.STATIC_DRAW);
         //create texture
+        var self = this;
         this._texture = gl.createTexture();
         if (typeof (this._image) === "undefined") {
             //add HTML UI to viewer port
@@ -1005,9 +1006,9 @@ var NavigationCube = (function () {
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
             gl.generateMipmap(gl.TEXTURE_2D);
         }
-        //reset original shader program
+        //reset original shader program 
         gl.useProgram(this.viewer._shaderProgram);
-        viewer._canvas.addEventListener("mousemove", function (event) {
+        viewer._canvas.addEventListener('mousemove', function (event) {
             var startX = event.clientX;
             var startY = event.clientY;
             //get coordinates within canvas (with the right orientation)
@@ -1039,7 +1040,7 @@ var NavigationCube = (function () {
             }
         }, true);
         self._drag = false;
-        viewer._canvas.addEventListener("mousedown", function (event) {
+        viewer._canvas.addEventListener('mousedown', function (event) {
             var startX = event.clientX;
             var startY = event.clientY;
             //get coordinates within canvas (with the right orientation)
@@ -1055,7 +1056,7 @@ var NavigationCube = (function () {
                 viewer.navigationMode = "orbit";
             }
         }, true);
-        window.addEventListener("mouseup", function (event) {
+        window.addEventListener('mouseup', function (event) {
             if (self._drag === true) {
                 viewer.navigationMode = self._originalNavigation;
             }
@@ -1071,22 +1072,22 @@ var NavigationCube = (function () {
             var diagonalRatio = 1.3;
             switch (id) {
                 case this.TOP:
-                    this.viewer.show("top");
+                    this.viewer.show('top');
                     return true;
                 case this.BOTTOM:
-                    this.viewer.show("bottom");
+                    this.viewer.show('bottom');
                     return true;
                 case this.LEFT:
-                    this.viewer.show("left");
+                    this.viewer.show('left');
                     return true;
                 case this.RIGHT:
-                    this.viewer.show("right");
+                    this.viewer.show('right');
                     return true;
                 case this.FRONT:
-                    this.viewer.show("front");
+                    this.viewer.show('front');
                     return true;
                 case this.BACK:
-                    this.viewer.show("back");
+                    this.viewer.show('back');
                     return true;
                 case this.TOP_LEFT_FRONT:
                     dir = vec3_1.vec3.fromValues(-1, -1, 1);
@@ -1311,7 +1312,7 @@ var NavigationCube = (function () {
         gl.attachShader(this._shader, fragmentShader);
         gl.linkProgram(this._shader);
         if (!gl.getProgramParameter(this._shader, gl.LINK_STATUS)) {
-            viewer.error("Could not initialise shaders for a navigation cube plugin");
+            viewer.error('Could not initialise shaders for a navigation cube plugin');
         }
     };
     return NavigationCube;

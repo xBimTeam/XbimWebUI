@@ -21,5 +21,5 @@ THE SOFTWARE. */
 import { glMatrix } from "./common";
 
 export class quat extends Float32Array{
-
+    
 }

@@ -19,8 +19,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. */
 
 import { glMatrix } from "./common";
-import { mat3 } from "./mat3";
 import { mat4 } from "./mat4";
+import { mat3 } from "./mat3";
 import { quat } from "./quat";
 
 /**
@@ -34,7 +34,7 @@ export class vec3 {
     * @returns {vec3} a new 3D vector
     */
     public static create(): Float32Array {
-        let out = new Float32Array(3);
+        var out = new Float32Array(3);
         out[0] = 0;
         out[1] = 0;
         out[2] = 0;
@@ -48,12 +48,12 @@ export class vec3 {
      * @returns {vec3} a new 3D vector
      */
     public static clone(a): Float32Array {
-        let out = new Float32Array(3);
+        var out = new Float32Array(3);
         out[0] = a[0];
         out[1] = a[1];
         out[2] = a[2];
         return out;
-    }
+    };
 
     /**
      * Creates a new vec3 initialized with the given values
@@ -64,12 +64,12 @@ export class vec3 {
      * @returns {vec3} a new 3D vector
      */
     public static fromValues(x, y, z): Float32Array {
-        let out = new Float32Array(3);
+        var out = new Float32Array(3);
         out[0] = x;
         out[1] = y;
         out[2] = z;
         return out;
-    }
+    };
 
     /**
      * Copy the values from one vec3 to another
@@ -83,7 +83,7 @@ export class vec3 {
         out[1] = a[1];
         out[2] = a[2];
         return out;
-    }
+    };
 
     /**
      * Set the components of a vec3 to the given values
@@ -99,7 +99,7 @@ export class vec3 {
         out[1] = y;
         out[2] = z;
         return out;
-    }
+    };
 
     /**
      * Adds two vec3's
@@ -114,7 +114,7 @@ export class vec3 {
         out[1] = a[1] + b[1];
         out[2] = a[2] + b[2];
         return out;
-    }
+    };
 
     /**
      * Subtracts vector b from vector a
@@ -129,7 +129,7 @@ export class vec3 {
         out[1] = a[1] - b[1];
         out[2] = a[2] - b[2];
         return out;
-    }
+    };
 
     /**
      * Alias for {@link public static subtract}
@@ -150,7 +150,7 @@ export class vec3 {
         out[1] = a[1] * b[1];
         out[2] = a[2] * b[2];
         return out;
-    }
+    };
 
     /**
      * Alias for {@link public static multiply}
@@ -171,7 +171,7 @@ export class vec3 {
         out[1] = a[1] / b[1];
         out[2] = a[2] / b[2];
         return out;
-    }
+    };
 
     /**
      * Alias for {@link public static divide}
@@ -191,7 +191,7 @@ export class vec3 {
         out[1] = Math.ceil(a[1]);
         out[2] = Math.ceil(a[2]);
         return out;
-    }
+    };
 
     /**
      * Math.floor the components of a vec3
@@ -205,7 +205,7 @@ export class vec3 {
         out[1] = Math.floor(a[1]);
         out[2] = Math.floor(a[2]);
         return out;
-    }
+    };
 
     /**
      * Returns the minimum of two vec3's
@@ -220,7 +220,7 @@ export class vec3 {
         out[1] = Math.min(a[1], b[1]);
         out[2] = Math.min(a[2], b[2]);
         return out;
-    }
+    };
 
     /**
      * Returns the maximum of two vec3's
@@ -235,7 +235,7 @@ export class vec3 {
         out[1] = Math.max(a[1], b[1]);
         out[2] = Math.max(a[2], b[2]);
         return out;
-    }
+    };
 
     /**
      * Math.round the components of a vec3
@@ -249,7 +249,7 @@ export class vec3 {
         out[1] = Math.round(a[1]);
         out[2] = Math.round(a[2]);
         return out;
-    }
+    };
 
     /**
      * Scales a vec3 by a scalar number
@@ -264,7 +264,7 @@ export class vec3 {
         out[1] = a[1] * b;
         out[2] = a[2] * b;
         return out;
-    }
+    };
 
     /**
      * Adds two vec3's after scaling the second operand by a scalar value
@@ -280,7 +280,7 @@ export class vec3 {
         out[1] = a[1] + (b[1] * scale);
         out[2] = a[2] + (b[2] * scale);
         return out;
-    }
+    };
 
     /**
      * Calculates the euclidian distance between two vec3's
@@ -290,11 +290,11 @@ export class vec3 {
      * @returns {Number} distance between a and b
      */
     public static distance(a: Float32Array, b: Float32Array): number {
-        let x = b[0] - a[0],
+        var x = b[0] - a[0],
             y = b[1] - a[1],
             z = b[2] - a[2];
         return Math.sqrt(x * x + y * y + z * z);
-    }
+    };
 
     /**
      * Alias for {@link public static distance}
@@ -310,11 +310,11 @@ export class vec3 {
      * @returns {Number} squared distance between a and b
      */
     public static squaredDistance(a: Float32Array, b: Float32Array): number {
-        let x = b[0] - a[0],
+        var x = b[0] - a[0],
             y = b[1] - a[1],
             z = b[2] - a[2];
         return x * x + y * y + z * z;
-    }
+    };
 
     /**
      * Alias for {@link public static squaredDistance}
@@ -329,11 +329,11 @@ export class vec3 {
      * @returns {Number} length of a
      */
     public static vectorLength(a: Float32Array | number[]): number {
-        let x = a[0],
+        var x = a[0],
             y = a[1],
             z = a[2];
         return Math.sqrt(x * x + y * y + z * z);
-    }
+    };
 
     /**
      * Alias for {@link public static length}
@@ -348,11 +348,11 @@ export class vec3 {
      * @returns {Number} squared length of a
      */
     public static squaredLength(a: Float32Array): number {
-        let x = a[0],
+        var x = a[0],
             y = a[1],
             z = a[2];
         return x * x + y * y + z * z;
-    }
+    };
 
     /**
      * Alias for {@link public static squaredLength}
@@ -372,7 +372,7 @@ export class vec3 {
         out[1] = -a[1];
         out[2] = -a[2];
         return out;
-    }
+    };
 
     /**
      * Returns the inverse of the components of a vec3
@@ -386,7 +386,7 @@ export class vec3 {
         out[1] = 1.0 / a[1];
         out[2] = 1.0 / a[2];
         return out;
-    }
+    };
 
     /**
      * Normalize a vec3
@@ -396,10 +396,10 @@ export class vec3 {
      * @returns {vec3} out
      */
     public static normalize(out: Float32Array, a: Float32Array | number[]): Float32Array {
-        let x = a[0],
+        var x = a[0],
             y = a[1],
             z = a[2];
-        let len = x * x + y * y + z * z;
+        var len = x * x + y * y + z * z;
         if (len > 0) {
             //TODO: evaluate use of glm_invsqrt here?
             len = 1 / Math.sqrt(len);
@@ -408,7 +408,7 @@ export class vec3 {
             out[2] = a[2] * len;
         }
         return out;
-    }
+    };
 
     /**
      * Calculates the dot product of two vec3's
@@ -419,7 +419,7 @@ export class vec3 {
      */
     public static dot(a: Float32Array, b: Float32Array): number {
         return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-    }
+    };
 
     /**
      * Computes the cross product of two vec3's
@@ -430,14 +430,14 @@ export class vec3 {
      * @returns {vec3} out
      */
     public static cross(out: Float32Array, a: Float32Array, b: Float32Array): Float32Array {
-        let ax = a[0], ay = a[1], az = a[2],
+        var ax = a[0], ay = a[1], az = a[2],
             bx = b[0], by = b[1], bz = b[2];
 
         out[0] = ay * bz - az * by;
         out[1] = az * bx - ax * bz;
         out[2] = ax * by - ay * bx;
         return out;
-    }
+    };
 
     /**
      * Performs a linear interpolation between two vec3's
@@ -449,14 +449,14 @@ export class vec3 {
      * @returns {vec3} out
      */
     public static lerp(out: Float32Array, a: Float32Array, b: Float32Array, t: number): Float32Array {
-        let ax = a[0],
+        var ax = a[0],
             ay = a[1],
             az = a[2];
         out[0] = ax + t * (b[0] - ax);
         out[1] = ay + t * (b[1] - ay);
         out[2] = az + t * (b[2] - az);
         return out;
-    }
+    };
 
     /**
      * Performs a hermite interpolation with two control points
@@ -470,7 +470,7 @@ export class vec3 {
      * @returns {vec3} out
      */
     public static hermite(out: Float32Array, a: Float32Array, b: Float32Array, c: Float32Array, d: Float32Array, t: number): Float32Array {
-        let factorTimes2 = t * t,
+        var factorTimes2 = t * t,
             factor1 = factorTimes2 * (2 * t - 3) + 1,
             factor2 = factorTimes2 * (t - 2) + t,
             factor3 = factorTimes2 * (t - 1),
@@ -481,7 +481,7 @@ export class vec3 {
         out[2] = a[2] * factor1 + b[2] * factor2 + c[2] * factor3 + d[2] * factor4;
 
         return out;
-    }
+    };
 
     /**
      * Performs a bezier interpolation with two control points
@@ -495,7 +495,7 @@ export class vec3 {
      * @returns {vec3} out
      */
     public static bezier(out: Float32Array, a: Float32Array, b: Float32Array, c: Float32Array, d: Float32Array, t: number): Float32Array {
-        let inverseFactor = 1 - t,
+        var inverseFactor = 1 - t,
             inverseFactorTimesTwo = inverseFactor * inverseFactor,
             factorTimes2 = t * t,
             factor1 = inverseFactorTimesTwo * inverseFactor,
@@ -508,7 +508,7 @@ export class vec3 {
         out[2] = a[2] * factor1 + b[2] * factor2 + c[2] * factor3 + d[2] * factor4;
 
         return out;
-    }
+    };
 
     /**
      * Generates a random vector with the given scale
@@ -520,15 +520,15 @@ export class vec3 {
     public static random(out: Float32Array, scale: number): Float32Array {
         scale = scale || 1.0;
 
-        let r = glMatrix.RANDOM() * 2.0 * Math.PI;
-        let z = (glMatrix.RANDOM() * 2.0) - 1.0;
-        let zScale = Math.sqrt(1.0 - z * z) * scale;
+        var r = glMatrix.RANDOM() * 2.0 * Math.PI;
+        var z = (glMatrix.RANDOM() * 2.0) - 1.0;
+        var zScale = Math.sqrt(1.0 - z * z) * scale;
 
         out[0] = Math.cos(r) * zScale;
         out[1] = Math.sin(r) * zScale;
         out[2] = z * scale;
         return out;
-    }
+    };
 
     /**
      * Transforms the vec3 with a mat4.
@@ -540,14 +540,14 @@ export class vec3 {
      * @returns {vec3} out
      */
     public static transformMat4(out: Float32Array, a: Float32Array | number[], m: mat4): Float32Array {
-        let x = a[0], y = a[1], z = a[2],
+        var x = a[0], y = a[1], z = a[2],
             w = m[3] * x + m[7] * y + m[11] * z + m[15];
         w = w || 1.0;
         out[0] = (m[0] * x + m[4] * y + m[8] * z + m[12]) / w;
         out[1] = (m[1] * x + m[5] * y + m[9] * z + m[13]) / w;
         out[2] = (m[2] * x + m[6] * y + m[10] * z + m[14]) / w;
         return out;
-    }
+    };
 
     /**
      * Transforms the vec3 with a mat3.
@@ -558,12 +558,12 @@ export class vec3 {
      * @returns {vec3} out
      */
     public static transformMat3(out: Float32Array, a: Float32Array | number[], m: mat3): Float32Array {
-        let x = a[0], y = a[1], z = a[2];
+        var x = a[0], y = a[1], z = a[2];
         out[0] = x * m[0] + y * m[3] + z * m[6];
         out[1] = x * m[1] + y * m[4] + z * m[7];
         out[2] = x * m[2] + y * m[5] + z * m[8];
         return out;
-    }
+    };
 
     /**
      * Transforms the vec3 with a quat
@@ -576,7 +576,7 @@ export class vec3 {
     public static transformQuat(out: Float32Array, a: Float32Array, q: quat): Float32Array {
         // benchmarks: http://jsperf.com/quaternion-transform-vec3-implementations
 
-        let x = a[0], y = a[1], z = a[2],
+        var x = a[0], y = a[1], z = a[2],
             qx = q[0], qy = q[1], qz = q[2], qw = q[3],
 
             // calculate quat * vec
@@ -590,7 +590,7 @@ export class vec3 {
         out[1] = iy * qw + iw * -qy + iz * -qx - ix * -qz;
         out[2] = iz * qw + iw * -qz + ix * -qy - iy * -qx;
         return out;
-    }
+    };
 
     /**
      * Rotate a 3D vector around the x-axis
@@ -601,7 +601,7 @@ export class vec3 {
      * @returns {vec3} out
      */
     public static rotateX(out: Float32Array, a: Float32Array, b: Float32Array, c: number): Float32Array {
-        let p = [], r = [];
+        var p = [], r = [];
         //Translate point to the origin
         p[0] = a[0] - b[0];
         p[1] = a[1] - b[1];
@@ -618,7 +618,7 @@ export class vec3 {
         out[2] = r[2] + b[2];
 
         return out;
-    }
+    };
 
     /**
      * Rotate a 3D vector around the y-axis
@@ -629,7 +629,7 @@ export class vec3 {
      * @returns {vec3} out
      */
     public static rotateY(out: Float32Array, a: Float32Array, b: Float32Array, c: number): Float32Array {
-        let p = [], r = [];
+        var p = [], r = [];
         //Translate point to the origin
         p[0] = a[0] - b[0];
         p[1] = a[1] - b[1];
@@ -646,7 +646,7 @@ export class vec3 {
         out[2] = r[2] + b[2];
 
         return out;
-    }
+    };
 
     /**
      * Rotate a 3D vector around the z-axis
@@ -657,7 +657,7 @@ export class vec3 {
      * @returns {vec3} out
      */
     public static rotateZ(out: Float32Array, a: Float32Array, b: Float32Array, c: number): Float32Array {
-        let p = [], r = [];
+        var p = [], r = [];
         //Translate point to the origin
         p[0] = a[0] - b[0];
         p[1] = a[1] - b[1];
@@ -674,7 +674,7 @@ export class vec3 {
         out[2] = r[2] + b[2];
 
         return out;
-    }
+    };
 
     /**
      * Perform some operation over an array of vec3s.
@@ -688,11 +688,11 @@ export class vec3 {
      * @returns {Array} a
      * @function
      */
-    public static forEach = (function() {
-        let vec = vec3.create();
+    public static forEach = (function () {
+        var vec = vec3.create();
 
-        return function(a, stride, offset, count, fn, arg) {
-            let i, l;
+        return function (a, stride, offset, count, fn, arg) {
+            var i, l;
             if (!stride) {
                 stride = 3;
             }
@@ -725,13 +725,13 @@ export class vec3 {
      */
     public static angle(a: Float32Array, b: Float32Array): number {
 
-        let tempA = vec3.fromValues(a[0], a[1], a[2]);
-        let tempB = vec3.fromValues(b[0], b[1], b[2]);
+        var tempA = vec3.fromValues(a[0], a[1], a[2]);
+        var tempB = vec3.fromValues(b[0], b[1], b[2]);
 
         vec3.normalize(tempA, tempA);
         vec3.normalize(tempB, tempB);
 
-        let cosine = vec3.dot(tempA, tempB);
+        var cosine = vec3.dot(tempA, tempB);
 
         if (cosine > 1.0) {
             return 0;
@@ -741,7 +741,7 @@ export class vec3 {
         } else {
             return Math.acos(cosine);
         }
-    }
+    };
 
     /**
      * Returns a string representation of a vector
@@ -750,8 +750,8 @@ export class vec3 {
      * @returns {String} string representation of the vector
      */
     public static str(a: Float32Array): string {
-        return "vec3(" + a[0] + ", " + a[1] + ", " + a[2] + ")";
-    }
+        return 'vec3(' + a[0] + ', ' + a[1] + ', ' + a[2] + ')';
+    };
 
     /**
      * Returns whether or not the vectors have exactly the same elements in the same position (when compared with ===)
@@ -762,7 +762,7 @@ export class vec3 {
      */
     public static exactEquals(a: Float32Array, b: Float32Array): boolean{
         return a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
-    }
+    };
 
     /**
      * Returns whether or not the vectors have approximately the same elements in the same position.
@@ -772,10 +772,11 @@ export class vec3 {
      * @returns {Boolean} True if the vectors are equal, false otherwise.
      */
     public static equals(a: Float32Array, b: Float32Array): boolean {
-        let a0 = a[0], a1 = a[1], a2 = a[2];
-        let b0 = b[0], b1 = b[1], b2 = b[2];
+        var a0 = a[0], a1 = a[1], a2 = a[2];
+        var b0 = b[0], b1 = b[1], b2 = b[2];
         return (Math.abs(a0 - b0) <= glMatrix.EPSILON * Math.max(1.0, Math.abs(a0), Math.abs(b0)) &&
             Math.abs(a1 - b1) <= glMatrix.EPSILON * Math.max(1.0, Math.abs(a1), Math.abs(b1)) &&
             Math.abs(a2 - b2) <= glMatrix.EPSILON * Math.max(1.0, Math.abs(a2), Math.abs(b2)));
-    }
+    };
 }
+
