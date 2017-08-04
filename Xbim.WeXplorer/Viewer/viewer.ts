@@ -242,8 +242,8 @@ export class Viewer {
         this._lastStates = {};
         this._visualStateAttributes = [
             'perspectiveCamera', 'orthogonalCamera', 'camera', 'background', 'lightA', 'lightB',
-            'renderingMode', '_clippingA', '_clippingB', 'mvMatrix', '_pMatrix', '_distance', '_origin', 'highlightingColour',
-            '_numberOfActiveModels', "_width", "_height"
+            'renderingMode', '_clippingA', '_clippingB', 'mvMatrix', '_pMatrix', 'distance', 'origin', 'highlightingColour',
+            '_numberOfActiveModels', "width", "height"
         ];
         this._stylingChanged = true;
 
