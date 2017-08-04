@@ -109,8 +109,7 @@ export declare class NavigationCube implements IPlugin {
     onBeforeDrawId(): void;
     onAfterDrawId(): void;
     onBeforeGetId(id: any): boolean;
-    setActive(): WebGLRenderingContext;
-    setInactive(): void;
+    private setActive();
     private draw();
     private _initShader();
     vertices: Float32Array;

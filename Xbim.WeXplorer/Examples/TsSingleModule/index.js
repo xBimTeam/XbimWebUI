@@ -1,14 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var viewer_1 = require("../../Viewer/viewer");
-var viewer = new viewer_1.Viewer('viewer');
+var xbim_viewer_1 = require("../../xbim-viewer");
+var viewer = new xbim_viewer_1.Viewer('viewer');
 //viewer.load("/tests/data/SampleHouse.wexbim", "Model A");
 //viewer.load("/tests/wexbim3/SampleHouse.wexbim", "Model A");
 //viewer.load("/tests/wexbim3/SampleHouse4.wexbim", "Model A");
 viewer.load("/tests/wexbim3/LakesideRestaurant.wexbim", "Model A");
 viewer.on("loaded", function () {
     console.log("Viewer data loaded");
-    viewer.setState(viewer_1.State.UNDEFINED, [0]);
+    viewer.setState(xbim_viewer_1.State.UNDEFINED, [0]);
     viewer.start();
     ////hide all except one window
     //for (let t in ProductType) {
@@ -16,7 +16,7 @@ viewer.on("loaded", function () {
     //}
     //viewer.setState(State.UNDEFINED, ProductType.IFCWINDOW);
 });
-var cube = new viewer_1.NavigationCube();
+var cube = new xbim_viewer_1.NavigationCube();
 cube.ratio = 0.1;
 cube.passiveAlpha = 1.0;
 viewer.addPlugin(cube);

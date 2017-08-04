@@ -38,7 +38,7 @@ document['states'] = states;
 document['RenderingMode'] = viewer_1.RenderingMode;
 viewer.background = [0, 0, 0, 0];
 viewer.on("error", function (arg) {
-    var container = viewer._canvas.parentNode;
+    var container = viewer.canvas.parentNode;
     if (container) {
         //preppend error report
         container.innerHTML = "<pre style='color:red;'>" + arg.message + "</pre>" + container.innerHTML;

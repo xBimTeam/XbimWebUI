@@ -39,7 +39,7 @@ document['RenderingMode'] = RenderingMode;
 
 viewer.background = [0, 0, 0, 0];
 viewer.on("error", function (arg) {
-    var container = viewer._canvas.parentNode as HTMLElement;
+    var container = viewer.canvas.parentNode as HTMLElement;
     if (container) {
         //preppend error report
         container.innerHTML = "<pre style='color:red;'>" + arg.message + "</pre>" + container.innerHTML;

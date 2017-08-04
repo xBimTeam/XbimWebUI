@@ -18,7 +18,8 @@ if (self && self instanceof DedicatedWorkerGlobalScope) {
                     if (!geometry.hasOwnProperty(i))
                         continue;
                     var prop = geometry[i];
-                    if (typeof prop === "function")
+                    //ignore functions and private members when creating transferable message object
+                    if (typeof prop === "function" || i.startsWith("_"))
                         continue;
                     //building message object containing values but no functions or anything
                     msg[i] = prop;

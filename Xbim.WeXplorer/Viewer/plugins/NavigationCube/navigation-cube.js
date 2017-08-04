@@ -1006,23 +1006,21 @@ var NavigationCube = (function () {
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
             gl.generateMipmap(gl.TEXTURE_2D);
         }
-        //reset original shader program 
-        gl.useProgram(this.viewer._shaderProgram);
-        viewer._canvas.addEventListener('mousemove', function (event) {
+        viewer.canvas.addEventListener('mousemove', function (event) {
             var startX = event.clientX;
             var startY = event.clientY;
             //get coordinates within canvas (with the right orientation)
-            var r = viewer._canvas.getBoundingClientRect();
+            var r = viewer.canvas.getBoundingClientRect();
             var x = startX - r.left;
-            var y = viewer._height - (startY - r.top);
+            var y = viewer.height - (startY - r.top);
             //cube hasn't been drawn yet
             if (!self._region) {
                 return;
             }
-            var minX = self._region[0] * viewer._width;
-            var maxX = self._region[2] * viewer._width;
-            var minY = self._region[1] * viewer._height;
-            var maxY = self._region[3] * viewer._height;
+            var minX = self._region[0] * viewer.width;
+            var maxX = self._region[2] * viewer.width;
+            var minY = self._region[1] * viewer.height;
+            var maxY = self._region[3] * viewer.height;
             if (x < minX || x > maxX || y < minY || y > maxY) {
                 self._alpha = self.passiveAlpha;
                 self._selection = 0;
@@ -1040,13 +1038,13 @@ var NavigationCube = (function () {
             }
         }, true);
         self._drag = false;
-        viewer._canvas.addEventListener('mousedown', function (event) {
+        viewer.canvas.addEventListener('mousedown', function (event) {
             var startX = event.clientX;
             var startY = event.clientY;
             //get coordinates within canvas (with the right orientation)
-            var r = viewer._canvas.getBoundingClientRect();
+            var r = viewer.canvas.getBoundingClientRect();
             var viewX = startX - r.left;
-            var viewY = viewer._height - (startY - r.top);
+            var viewY = viewer.height - (startY - r.top);
             //this is for picking
             var id = viewer.getID(viewX, viewY);
             if (id >= self.TOP && id <= self.BACK_LEFT) {
@@ -1068,7 +1066,7 @@ var NavigationCube = (function () {
     NavigationCube.prototype.onBeforePick = function (id) {
         if (id >= this.TOP && id <= this.BACK_LEFT) {
             var dir = vec3_1.vec3.create();
-            var distance = this.viewer._distance;
+            var distance = this.viewer.distance;
             var diagonalRatio = 1.3;
             switch (id) {
                 case this.TOP:
@@ -1171,7 +1169,7 @@ var NavigationCube = (function () {
                 default:
                     break;
             }
-            var o = this.viewer._origin;
+            var o = this.viewer.origin;
             var heading = vec3_1.vec3.fromValues(0, 0, 1);
             var origin = vec3_1.vec3.fromValues(o[0], o[1], o[2]);
             dir = vec3_1.vec3.normalize(vec3_1.vec3.create(), dir);
@@ -1188,7 +1186,6 @@ var NavigationCube = (function () {
         //set uniform for colour coding to false
         gl.uniform1i(this._colourCodingUniformPointer, 0);
         this.draw();
-        this.setInactive();
     };
     NavigationCube.prototype.onBeforeDrawId = function () { };
     NavigationCube.prototype.onAfterDrawId = function () {
@@ -1196,7 +1193,6 @@ var NavigationCube = (function () {
         //set uniform for colour coding to false
         gl.uniform1i(this._colourCodingUniformPointer, 1);
         this.draw();
-        this.setInactive();
     };
     //return false because this doesn't catch any ID event
     NavigationCube.prototype.onBeforeGetId = function (id) { return false; };
@@ -1206,11 +1202,6 @@ var NavigationCube = (function () {
         gl.useProgram(this._shader);
         return gl;
     };
-    NavigationCube.prototype.setInactive = function () {
-        var gl = this.viewer.gl;
-        //set viewer shader
-        gl.useProgram(this.viewer._shaderProgram);
-    };
     NavigationCube.prototype.draw = function () {
         if (!this._initialized)
             return;
@@ -1218,8 +1209,8 @@ var NavigationCube = (function () {
         //set navigation data from Viewer to this shader
         var pMatrix = mat4_1.mat4.create();
         var height = 1.0 / this.ratio;
-        var width = height / this.viewer._height * this.viewer._width;
-        var regionX = this.ratio * this.viewer._height / this.viewer._width * 2.0;
+        var width = height / this.viewer.height * this.viewer.width;
+        var regionX = this.ratio * this.viewer.height / this.viewer.width * 2.0;
         var regionY = this.ratio * 2.0;
         //create orthogonal projection matrix
         switch (this.position) {

@@ -1,24 +1,6 @@
 import { State } from './state';
-export { State } from './state';
-export { ProductType } from './product-type';
-export { ProductInheritance } from './product-inheritance';
-export { NavigationCube } from "./plugins/NavigationCube/navigation-cube";
-export { NavigationHome } from "./plugins/NavigationHome/navigation-home";
 export declare class Viewer {
-    /**
-    * This is constructor of the xBIM Viewer. It gets HTMLCanvasElement or string ID as an argument. Viewer will than be initialized
-    * in the context of specified canvas. Any other argument will throw exception.
-    * @name Viewer
-    * @constructor
-    * @classdesc This is the main and the only class you need to load and render IFC models in wexBIM format. This viewer is part of
-    * xBIM toolkit which can be used to create wexBIM files from IFC, ifcZIP and ifcXML. WexBIM files are highly optimized for
-    * transmition over internet and rendering performance. Viewer uses WebGL technology for hardware accelerated 3D rendering and SVG for
-    * certain kinds of user interaction. This means that it won't work with obsolete and non-standard-compliant browsers like IE10 and less.
-    *
-    * @param {string | HTMLCanvasElement} canvas - string ID of the canvas or HTML canvas element.
-    */
-    constructor(canvas: string | HTMLCanvasElement);
-    _canvas: HTMLCanvasElement;
+    canvas: HTMLCanvasElement;
     perspectiveCamera: {
         fov: number;
         near: number;
@@ -32,13 +14,19 @@ export declare class Viewer {
         near: number;
         far: number;
     };
-    _width: number;
-    private width;
-    _height: number;
-    private height;
-    _distance: number;
+    width: number;
+    height: number;
+    distance: number;
     camera: 'perspective' | 'orthogonal';
     background: number[];
+    highlightingColour: number[];
+    navigationMode: 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none';
+    origin: number[];
+    lightA: number[];
+    lightB: number[];
+    gl: WebGLRenderingContext;
+    mvMatrix: Float32Array;
+    renderingMode: RenderingMode;
     private _isRunning;
     private _stateStyles;
     private _stateStyleTexture;
@@ -46,13 +34,8 @@ export declare class Viewer {
     private _plugins;
     private _stylingChanged;
     private _handles;
-    highlightingColour: number[];
-    navigationMode: 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none';
     private _userAction;
-    _shaderProgram: WebGLProgram;
-    _origin: number[];
-    lightA: number[];
-    lightB: number[];
+    private _shaderProgram;
     private _mvMatrixUniformPointer;
     private _pMatrixUniformPointer;
     private _lightAUniformPointer;
@@ -70,18 +53,28 @@ export declare class Viewer {
     private _numberOfActiveModels;
     private _lastStates;
     private _visualStateAttributes;
-    renderingMode: RenderingMode;
     private _clippingPlaneA;
     private _clippingA;
     private _clippingPlaneB;
     private _clippingB;
     private _lastClippingPoint;
     private _isShiftKeyDown;
-    gl: WebGLRenderingContext;
-    mvMatrix: Float32Array;
     private _fpt;
     private _pMatrix;
     private _pointers;
+    /**
+    * This is constructor of the xBIM Viewer. It gets HTMLCanvasElement or string ID as an argument. Viewer will than be initialized
+    * in the context of specified canvas. Any other argument will throw exception.
+    * @name Viewer
+    * @constructor
+    * @classdesc This is the main and the only class you need to load and render IFC models in wexBIM format. This viewer is part of
+    * xBIM toolkit which can be used to create wexBIM files from IFC, ifcZIP and ifcXML. WexBIM files are highly optimized for
+    * transmition over internet and rendering performance. Viewer uses WebGL technology for hardware accelerated 3D rendering and SVG for
+    * certain kinds of user interaction. This means that it won't work with obsolete and non-standard-compliant browsers like IE10 and less.
+    *
+    * @param {string | HTMLCanvasElement} canvas - string ID of the canvas or HTML canvas element.
+    */
+    constructor(canvas: string | HTMLCanvasElement);
     /**
     * This is a static function which should always be called before Viewer is instantiated.
     * It will check all prerequisites of the viewer and will report all issues. If Prerequisities.errors contain
@@ -246,6 +239,7 @@ export declare class Viewer {
      */
     unload(modelId: number): void;
     _initShaders(): void;
+    private setActive();
     private _initAttributesAndUniforms();
     /**
      * Prevents default context menu to appear. Custom menu can be created instead by listening to contextmenu event

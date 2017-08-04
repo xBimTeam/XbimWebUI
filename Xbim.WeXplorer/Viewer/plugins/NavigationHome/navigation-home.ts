@@ -99,8 +99,8 @@ export class NavigationHome implements IPlugin {
                 var viewer = self._viewer;
                 //set target to full extent
                 viewer.setCameraTarget();
-                var origin = viewer._origin;
-                var distance = self.distance != null ? self.distance : viewer._distance;
+                var origin = viewer.origin;
+                var distance = self.distance != null ? self.distance : viewer.distance;
 
                 var normDirection = vec3.normalize(vec3.create(), self.viewDirection);
                 var position = vec3.scale(vec3.create(), normDirection, -1.0 * distance);
@@ -128,7 +128,7 @@ export class NavigationHome implements IPlugin {
     }
 
     private _adjust() {
-        var canvas = this._viewer._canvas;
+        var canvas = this._viewer.canvas;
 
         function getOffsetRect(elem) {
             var box = elem.getBoundingClientRect();

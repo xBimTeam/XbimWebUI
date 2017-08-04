@@ -11,14 +11,64 @@ import { vec3 } from "./matrix/vec3";
 import { mat3 } from "./matrix/mat3";
 import { mat4 } from "./matrix/mat4";
 
-//reexport these classes to make them available when viewer is the root package
-export { State } from './state';
-export { ProductType } from './product-type';
-export { ProductInheritance } from './product-inheritance';
-export { NavigationCube } from "./plugins/NavigationCube/navigation-cube";
-export { NavigationHome } from "./plugins/NavigationHome/navigation-home";
-
 export class Viewer {
+
+    public canvas: HTMLCanvasElement;
+    public perspectiveCamera: { fov: number, near: number, far: number };
+    public orthogonalCamera: { left: number, right: number, top: number, bottom: number, near: number, far: number }
+    public width: number;
+    public height: number;
+    public distance: number;
+    public camera: 'perspective' | 'orthogonal';
+    public background: number[];
+    public highlightingColour: number[];
+    public navigationMode: 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none';
+    public origin: number[];
+    public lightA: number[];
+    public lightB: number[];
+
+    public gl: WebGLRenderingContext;
+    public mvMatrix: Float32Array;
+    public renderingMode: RenderingMode;
+
+    private _isRunning: boolean;
+    private _stateStyles: Uint8Array;
+    private _stateStyleTexture: WebGLTexture;
+    private _geometryLoaded: boolean;
+    private _plugins: IPlugin[];
+    private _stylingChanged: boolean;
+    private _handles: ModelHandle[];
+    private _userAction: boolean;
+    private _shaderProgram: WebGLProgram;
+
+    private _mvMatrixUniformPointer: WebGLUniformLocation;
+    private _pMatrixUniformPointer: WebGLUniformLocation;
+    private _lightAUniformPointer: WebGLUniformLocation;
+    private _lightBUniformPointer: WebGLUniformLocation;
+    private _colorCodingUniformPointer: WebGLUniformLocation;
+    private _clippingPlaneAUniformPointer: WebGLUniformLocation;
+    private _clippingAUniformPointer: WebGLUniformLocation;
+    private _clippingPlaneBUniformPointer: WebGLUniformLocation;
+    private _clippingBUniformPointer: WebGLUniformLocation;
+    private _meterUniformPointer: WebGLUniformLocation;
+    private _renderingModeUniformPointer: WebGLUniformLocation;
+    private _highlightingColourUniformPointer: WebGLUniformLocation;
+    private _stateStyleSamplerUniform: WebGLUniformLocation;
+
+    private _events: { [id: string]: Function[]; };
+    private _numberOfActiveModels: number;
+    private _lastStates: { [id: string]: string };
+    private _visualStateAttributes: string[];
+    private _clippingPlaneA: number[];
+    private _clippingA: boolean;
+    private _clippingPlaneB: number[];
+    private _clippingB: boolean;
+    private _lastClippingPoint: number[];
+    private _isShiftKeyDown: boolean = false;
+
+    private _fpt: any;
+    private _pMatrix: any;
+    private _pointers: ModelPointers;
 
     /**
     * This is constructor of the xBIM Viewer. It gets HTMLCanvasElement or string ID as an argument. Viewer will than be initialized 
@@ -38,12 +88,12 @@ export class Viewer {
         }
 
         if (typeof (canvas['nodeName']) != 'undefined' && canvas['nodeName'] === 'CANVAS') {
-            this._canvas = <HTMLCanvasElement>canvas;
+            this.canvas = <HTMLCanvasElement>canvas;
         }
         if (typeof (canvas) == 'string') {
-            this._canvas = <HTMLCanvasElement>document.getElementById(<string>canvas);
+            this.canvas = <HTMLCanvasElement>document.getElementById(<string>canvas);
         }
-        if (this._canvas == null) {
+        if (this.canvas == null) {
             throw 'You have to specify canvas either as an ID of HTML element or the element itself';
         }
 
@@ -150,7 +200,7 @@ export class Viewer {
 
 
         //*************************** Do all the set up of WebGL **************************
-        var gl = WebGLUtils.setupWebGL(this._canvas, { preserveDrawingBuffer: true });
+        var gl = WebGLUtils.setupWebGL(this.canvas, { preserveDrawingBuffer: true });
 
         //do not even initialize this object if WebGL is not supported
         if (!gl) {
@@ -182,8 +232,8 @@ export class Viewer {
 
         //cache canvas width and height and change it only when size change
         // it is better to cache this value because it is used frequently and it takes a time to get a value from HTML
-        this._width = this._canvas.width = this._canvas.offsetWidth;
-        this._height = this._canvas.height = this._canvas.offsetHeight;
+        this.width = this.canvas.width = this.canvas.offsetWidth;
+        this.height = this.canvas.height = this.canvas.offsetHeight;
 
         this._geometryLoaded = false;
         //number of active models is used to indicate that state has changed
@@ -212,9 +262,9 @@ export class Viewer {
         this._pMatrix = mat4.create(); //camera matrix (this can be either perspective or orthogonal camera)
 
         //Navigation settings - coordinates in the WCS of the origin used for orbiting and panning
-        this._origin = [0, 0, 0]
+        this.origin = [0, 0, 0]
         //Default distance for default views (top, bottom, left, right, front, back)
-        this._distance = 0;
+        this.distance = 0;
         //shader program used for rendering
         this._shaderProgram = null;
 
@@ -251,65 +301,6 @@ export class Viewer {
         //this has a constant size 15 which is defined in vertex shader
         ModelHandle.bufferTexture(gl, this._stateStyleTexture, this._stateStyles);
     }
-
-    public _canvas: HTMLCanvasElement;
-    public perspectiveCamera: { fov: number, near: number, far: number };
-    public orthogonalCamera: { left: number, right: number, top: number, bottom: number, near: number, far: number }
-    public _width: number;
-    private width: number;
-    public _height: number;
-    private height: number;
-    public _distance: number;
-    public camera: 'perspective' | 'orthogonal';
-    public background: number[];
-    private _isRunning: boolean;
-    private _stateStyles: Uint8Array;
-    private _stateStyleTexture: WebGLTexture;
-    private _geometryLoaded: boolean;
-    private _plugins: IPlugin[];
-    private _stylingChanged: boolean;
-    private _handles: ModelHandle[];
-    public highlightingColour: number[];
-    public navigationMode: 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none';
-    private _userAction: boolean;
-    public _shaderProgram: WebGLProgram;
-    public _origin: number[];
-    public lightA: number[];
-    public lightB: number[];
-
-    private _mvMatrixUniformPointer: WebGLUniformLocation;
-    private _pMatrixUniformPointer: WebGLUniformLocation;
-    private _lightAUniformPointer: WebGLUniformLocation;
-    private _lightBUniformPointer: WebGLUniformLocation;
-    private _colorCodingUniformPointer: WebGLUniformLocation;
-    private _clippingPlaneAUniformPointer: WebGLUniformLocation;
-    private _clippingAUniformPointer: WebGLUniformLocation;
-    private _clippingPlaneBUniformPointer: WebGLUniformLocation;
-    private _clippingBUniformPointer: WebGLUniformLocation;
-    private _meterUniformPointer: WebGLUniformLocation;
-    private _renderingModeUniformPointer: WebGLUniformLocation;
-    private _highlightingColourUniformPointer: WebGLUniformLocation;
-    private _stateStyleSamplerUniform: WebGLUniformLocation;
-
-
-    private _events: { [id: string]: Function[]; };
-    private _numberOfActiveModels: number;
-    private _lastStates: { [id: string]: string };
-    private _visualStateAttributes: string[];
-    public renderingMode: RenderingMode;
-    private _clippingPlaneA: number[];
-    private _clippingA: boolean;
-    private _clippingPlaneB: number[];
-    private _clippingB: boolean;
-    private _lastClippingPoint: number[];
-    private _isShiftKeyDown: boolean = false;
-
-    public gl: WebGLRenderingContext;
-    public mvMatrix: Float32Array;
-
-    private _fpt: any;
-    private _pMatrix: any;
-    private _pointers: ModelPointers;
 
     /**
     * This is a static function which should always be called before Viewer is instantiated.
@@ -438,7 +429,8 @@ export class Viewer {
         this._stateStyles.set(colData, index * 4);
 
         //reset data in GPU
-        ModelHandle.bufferTexture(this.gl, this._stateStyleTexture, this._stateStyles);
+        let gl = this.setActive();
+        ModelHandle.bufferTexture(gl, this._stateStyleTexture, this._stateStyles);
 
         //set flag
         this._stylingChanged = true;
@@ -507,11 +499,11 @@ export class Viewer {
     }
 
     public getCurrentImageDataUrl(): string {
-        return this._canvas.toDataURL('image/png');
+        return this.canvas.toDataURL('image/png');
     }
 
     public getCurrentImageBlob(callback: (blob: Blob) => void): void {
-        return this._canvas.toBlob(callback, 'image/png');
+        return this.canvas.toBlob(callback, 'image/png');
     }
 
 
@@ -626,7 +618,7 @@ export class Viewer {
     */
     public setCameraPosition(coordinates: number[]) {
         if (typeof (coordinates) == 'undefined') throw 'Parameter coordinates must be defined';
-        mat4.lookAt(this.mvMatrix, coordinates, this._origin, [0, 0, 1]);
+        mat4.lookAt(this.mvMatrix, coordinates, this.origin, [0, 0, 1]);
     }
 
     /**
@@ -642,9 +634,9 @@ export class Viewer {
         //helper function for setting of the distance based on camera field of view and size of the product's bounding box
         var setDistance = function (bBox: number[] | Float32Array) {
             let size = Math.sqrt(bBox[3] * bBox[3] + bBox[4] * bBox[4] + bBox[5] * bBox[5]);
-            let ratio = Math.max(viewer._width, viewer._height) / Math.min(viewer._width, viewer._height);
+            let ratio = Math.max(viewer.width, viewer.height) / Math.min(viewer.width, viewer.height);
             //viewer._distance = size / Math.tan(viewer.perspectiveCamera.fov * Math.PI / 180.0) * ratio / 2.0;
-            viewer._distance = size / ratio / (Math.tan(viewer.perspectiveCamera.fov * Math.PI / 180.0 / 2.0) * 2.0);
+            viewer.distance = size / ratio / (Math.tan(viewer.perspectiveCamera.fov * Math.PI / 180.0 / 2.0) * 2.0);
         }
 
         //set navigation origin and default distance to the product BBox
@@ -658,7 +650,7 @@ export class Viewer {
                 }
             });
             if (bbox) {
-                this._origin = [bbox[0] + bbox[3] / 2.0, bbox[1] + bbox[4] / 2.0, bbox[2] + bbox[5] / 2.0];
+                this.origin = [bbox[0] + bbox[3] / 2.0, bbox[1] + bbox[4] / 2.0, bbox[2] + bbox[5] / 2.0];
                 setDistance(bbox);
                 return true;
             } else
@@ -670,7 +662,7 @@ export class Viewer {
             //get region extent and set it's centre as a navigation origin
             let region = viewer.getMergedRegion();
             if (region) {
-                this._origin = [region.centre[0], region.centre[1], region.centre[2]]
+                this.origin = [region.centre[0], region.centre[1], region.centre[2]]
                 setDistance(region.bbox);
             }
             return true;
@@ -794,7 +786,7 @@ export class Viewer {
     //default view if this is the first geometry loaded
     private addHandle(geometry: ModelGeometry, tag?: any): void {
         var viewer = this;
-        var gl = this.gl;
+        var gl = this.setActive();
 
         var handle = new ModelHandle(viewer.gl, geometry);
         viewer._handles.push(handle);
@@ -820,12 +812,12 @@ export class Viewer {
             var ratio = 1.8;
             viewer.orthogonalCamera.top = maxSize / ratio;
             viewer.orthogonalCamera.bottom = maxSize / ratio * -1;
-            viewer.orthogonalCamera.left = maxSize / ratio * -1 * viewer._width / viewer._height;
-            viewer.orthogonalCamera.right = maxSize / ratio * viewer._width / viewer._height;
+            viewer.orthogonalCamera.left = maxSize / ratio * -1 * viewer.width / viewer.height;
+            viewer.orthogonalCamera.right = maxSize / ratio * viewer.width / viewer.height;
 
             //set default view
             viewer.setCameraTarget();
-            var dist = Math.sqrt(viewer._distance * viewer._distance * 1.5);
+            var dist = Math.sqrt(viewer.distance * viewer.distance * 1.5);
             viewer.setCameraPosition([
                 region.centre[0] + dist * -1.0, region.centre[1] + dist * -1.0, region.centre[2] + dist
             ]);
@@ -904,8 +896,17 @@ export class Viewer {
         gl.useProgram(this._shaderProgram);
     }
 
-    private _initAttributesAndUniforms(): void {
+    private setActive(): WebGLRenderingContext {
         var gl = this.gl;
+
+        //set own shader in case other shader program was used before
+        gl.useProgram(this._shaderProgram);
+
+        return gl;
+    }
+
+    private _initAttributesAndUniforms(): void {
+        var gl = this.setActive();;
 
         //create pointers to uniform variables for transformations
         this._pMatrixUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uPMatrix');
@@ -932,7 +933,7 @@ export class Viewer {
      * of the viewer. Nothing is displayed othervise.
      */
     private _initContextMenuEvent() {
-        this._canvas.addEventListener("contextmenu", (event: MouseEvent) => {
+        this.canvas.addEventListener("contextmenu", (event: MouseEvent) => {
 
             /**
             * Occurs when mousedown event happens on underlying canvas.
@@ -969,9 +970,9 @@ export class Viewer {
             startY = event.clientY;
 
             //get coordinates within canvas (with the right orientation)
-            var r = viewer._canvas.getBoundingClientRect();
+            var r = viewer.canvas.getBoundingClientRect();
             var viewX = startX - r.left;
-            var viewY = viewer._height - (startY - r.top);
+            var viewY = viewer.height - (startY - r.top);
 
             //this is for picking
             id = viewer.getID(viewX, viewY);
@@ -1120,21 +1121,21 @@ export class Viewer {
         var elementHeight = viewer.height;
         var elementWidth = viewer.width;
         setInterval(() => {
-            if (viewer._canvas.offsetHeight !== elementHeight || viewer._canvas.offsetWidth !== elementWidth) {
-                elementHeight = viewer._height = viewer._canvas.height = viewer._canvas.offsetHeight;
-                elementWidth = viewer._width = viewer._canvas.width = viewer._canvas.offsetWidth;
+            if (viewer.canvas.offsetHeight !== elementHeight || viewer.canvas.offsetWidth !== elementWidth) {
+                elementHeight = viewer.height = viewer.canvas.height = viewer.canvas.offsetHeight;
+                elementWidth = viewer.width = viewer.canvas.width = viewer.canvas.offsetWidth;
             }
         },
             500);
 
 
         //attach callbacks
-        this._canvas.addEventListener('mousedown', (event) => handleMouseDown(event), true);
-        this._canvas.addEventListener('wheel', (event) => handleMouseScroll(event), true);
+        this.canvas.addEventListener('mousedown', (event) => handleMouseDown(event), true);
+        this.canvas.addEventListener('wheel', (event) => handleMouseScroll(event), true);
         window.addEventListener('mouseup', (event) => handleMouseUp(event), true);
         window.addEventListener('mousemove', (event) => handleMouseMove(event), true);
 
-        this._canvas.addEventListener('mousemove',
+        this.canvas.addEventListener('mousemove',
             () => {
                 viewer._userAction = true;
             },
@@ -1148,7 +1149,7 @@ export class Viewer {
         * @type {object}
         * @param {Number} id - product ID of the element or null if there wasn't any product under mouse
         */
-        this._canvas.addEventListener('dblclick', () => { viewer.fire('dblclick', { id: id }); }, true);
+        this.canvas.addEventListener('dblclick', () => { viewer.fire('dblclick', { id: id }); }, true);
 
         //listen to key events to help navigation
         document.addEventListener('keydown', (event: KeyboardEvent) => {
@@ -1249,8 +1250,8 @@ export class Viewer {
             }
         }
 
-        this._canvas.addEventListener('touchstart', (event) => handleTouchStart(event), true);
-        this._canvas.addEventListener('touchmove', (event) => handleTouchMove(event), true);
+        this.canvas.addEventListener('touchstart', (event) => handleTouchStart(event), true);
+        this.canvas.addEventListener('touchmove', (event) => handleTouchMove(event), true);
     }
 
     private _initTouchTapEvents() {
@@ -1273,9 +1274,9 @@ export class Viewer {
             lastTouchX = event.touches[0].clientX;
             lastTouchY = event.touches[0].clientY;
             //get coordinates within canvas (with the right orientation)
-            var r = this._canvas.getBoundingClientRect();
+            var r = this.canvas.getBoundingClientRect();
             var viewX = lastTouchX - r.left;
-            var viewY = this._height - (lastTouchY - r.top);
+            var viewY = this.height - (lastTouchY - r.top);
 
             //this is for picking
             id = this.getID(viewX, viewY);
@@ -1337,14 +1338,14 @@ export class Viewer {
         };
 
 
-        this._canvas.addEventListener('touchstart', (event) => handleTouchStart(event), true);
-        this._canvas.addEventListener('touchend', (event) => handleTouchEnd(event), true);
+        this.canvas.addEventListener('touchstart', (event) => handleTouchStart(event), true);
+        this.canvas.addEventListener('touchend', (event) => handleTouchEnd(event), true);
     }
 
     private navigate(type, deltaX, deltaY) {
         if (!this._handles || !this._handles[0]) return;
         //translation in WCS is position from [0, 0, 0]
-        var origin = this._origin;
+        var origin = this.origin;
         var camera = this.getCameraPosition();
 
         //get origin coordinates in view space
@@ -1426,12 +1427,10 @@ export class Viewer {
         //styles are up to date when new frame is drawn
         this._stylingChanged = false;
 
-        var gl = this.gl;
-        var width = this._width;
-        var height = this._height;
+        var gl = this.setActive();
 
         gl.useProgram(this._shaderProgram);
-        gl.viewport(0, 0, width, height);
+        gl.viewport(0, 0, this.width, this.height);
         gl.clearColor(this.background[0] / 255,
             this.background[1] / 255,
             this.background[2] / 255,
@@ -1443,7 +1442,7 @@ export class Viewer {
             case 'perspective':
                 mat4.perspective(this._pMatrix,
                     this.perspectiveCamera.fov * Math.PI / 180.0,
-                    this._width / this._height,
+                    this.width / this.height,
                     this.perspectiveCamera.near,
                     this.perspectiveCamera.far);
                 break;
@@ -1461,7 +1460,7 @@ export class Viewer {
             default:
                 mat4.perspective(this._pMatrix,
                     this.perspectiveCamera.fov * Math.PI / 180.0,
-                    this._width / this._height,
+                    this.width / this.height,
                     this.perspectiveCamera.near,
                     this.perspectiveCamera.far);
                 break;
@@ -1602,14 +1601,14 @@ export class Viewer {
 
         var eye = this.getCameraPosition();
         var dir = vec3.create();
-        vec3.subtract(dir, eye, this._origin);
+        vec3.subtract(dir, eye, this.origin);
         dir = vec3.normalize(vec3.create(), dir);
 
         var translation = vec3.create();
-        vec3.scale(translation, dir, this._distance * 1.2);
-        vec3.add(eye, translation, this._origin);
+        vec3.scale(translation, dir, this.distance * 1.2);
+        vec3.add(eye, translation, this.origin);
 
-        mat4.lookAt(this.mvMatrix, eye, this._origin, [0, 0, 1]);
+        mat4.lookAt(this.mvMatrix, eye, this.origin, [0, 0, 1]);
         return true;
     }
 
@@ -1622,8 +1621,8 @@ export class Viewer {
     * or to the model extent if {@link Viewer#setCameraTarget setCameraTarget()} is called with no arguments.
     */
     public show(type: string) {
-        var origin = this._origin;
-        var distance = this._distance;
+        var origin = this.origin;
+        var distance = this.distance;
         var camera = [0, 0, 0];
         var heading = [0, 0, 1];
         switch (type) {
@@ -1681,9 +1680,9 @@ export class Viewer {
         let y = event.clientY;
 
         //get coordinates within canvas (with the right orientation)
-        let r = this._canvas.getBoundingClientRect();
+        let r = this.canvas.getBoundingClientRect();
         let viewX = x - r.left;
-        let viewY = this._height - (y - r.top);
+        let viewY = this.height - (y - r.top);
 
         //this is for picking
         return this.getID(viewX, viewY);
@@ -1703,9 +1702,9 @@ export class Viewer {
 
         //it is not necessary to render the image in full resolution so this factor is used for less resolution. 
         var factor = 2;
-        var gl = this.gl;
-        var width = this._width / factor;
-        var height = this._height / factor;
+        var gl = this.setActive();
+        var width = this.width / factor;
+        var height = this.height / factor;
         x = x / factor;
         y = y / factor;
 
@@ -2001,14 +2000,14 @@ export class Viewer {
         var svg = document.createElementNS(ns, 'svg') as SVGElement;
         //document.body.appendChild(svg);
 
-        var cRect = getOffsetRect(this._canvas);
+        var cRect = getOffsetRect(this.canvas);
 
         svg['style'].position = 'absolute';
         svg['style'].top = cRect.top + 'px';
         svg['style'].left = cRect.left + 'px';
         svg['style']['z-index'] = 100;
-        svg.setAttribute('width', this._width.toString());
-        svg.setAttribute('height', this._height.toString());
+        svg.setAttribute('width', this.width.toString());
+        svg.setAttribute('height', this.height.toString());
 
         return svg;
     }
@@ -2131,8 +2130,8 @@ export class Viewer {
             mat4.invert(inverse, transform);
 
             //get normalized coordinates the point in WebGL CS
-            var x1 = position.x / (viewer._width / 2.0) - 1.0;
-            var y1 = 1.0 - position.y / (viewer._height / 2.0);
+            var x1 = position.x / (viewer.width / 2.0) - 1.0;
+            var y1 = 1.0 - position.y / (viewer.height / 2.0);
 
             //First point in WCS
             var A = vec3.create();

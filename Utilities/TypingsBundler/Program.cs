@@ -56,9 +56,12 @@ namespace TypingsBundler
                         var tData = File.ReadAllText(typing);
 
                         //remove eventual imports
-                        var importExpression = new Regex("(import|export)\\s+\\{(\\s|\\w|,)+\\}\\s+from\\s+(\\w|\\.|-|_|\\\\|/|'|\")+?;");
+                        var importExpression = new Regex("(import|export)\\s+(\\{(\\s|\\w|,)+\\}|\\*)\\s+from\\s+(\\w|\\.|-|_|\\\\|/|'|\")+?;");
                         tData = importExpression.Replace(tData, "");
 
+                        //remove private members, only show public members in .d.ts
+                        var privateMemberExpression = new Regex("\\s*private.*;");
+                        tData = privateMemberExpression.Replace(tData, "");
 
                         bundle.WriteLine(tData);
                     }

@@ -206,29 +206,25 @@ export class NavigationCube implements IPlugin {
             gl.generateMipmap(gl.TEXTURE_2D);
         }
 
-
-        //reset original shader program 
-        gl.useProgram(this.viewer._shaderProgram);
-
-        viewer._canvas.addEventListener('mousemove',
+        viewer.canvas.addEventListener('mousemove',
             function (event) {
                 var startX = event.clientX;
                 var startY = event.clientY;
 
                 //get coordinates within canvas (with the right orientation)
-                var r = viewer._canvas.getBoundingClientRect();
+                var r = viewer.canvas.getBoundingClientRect();
                 var x = startX - r.left;
-                var y = viewer._height - (startY - r.top);
+                var y = viewer.height - (startY - r.top);
 
                 //cube hasn't been drawn yet
                 if (!self._region) {
                     return;
                 }
 
-                let minX = self._region[0] * viewer._width;
-                let maxX = self._region[2] * viewer._width;
-                let minY = self._region[1] * viewer._height;
-                let maxY = self._region[3] * viewer._height;
+                let minX = self._region[0] * viewer.width;
+                let maxX = self._region[2] * viewer.width;
+                let minY = self._region[1] * viewer.height;
+                let maxY = self._region[3] * viewer.height;
 
                 if (x < minX || x > maxX || y < minY || y > maxY) {
                     self._alpha = self.passiveAlpha;
@@ -251,15 +247,15 @@ export class NavigationCube implements IPlugin {
 
         self._drag = false;
 
-        viewer._canvas.addEventListener('mousedown',
+        viewer.canvas.addEventListener('mousedown',
             function (event) {
                 var startX = event.clientX;
                 var startY = event.clientY;
 
                 //get coordinates within canvas (with the right orientation)
-                var r = viewer._canvas.getBoundingClientRect();
+                var r = viewer.canvas.getBoundingClientRect();
                 var viewX = startX - r.left;
-                var viewY = viewer._height - (startY - r.top);
+                var viewY = viewer.height - (startY - r.top);
 
                 //this is for picking
                 var id = viewer.getID(viewX, viewY);
@@ -292,7 +288,7 @@ export class NavigationCube implements IPlugin {
         if (id >= this.TOP && id <= this.BACK_LEFT) {
 
             var dir = vec3.create();
-            var distance = this.viewer._distance;
+            var distance = this.viewer.distance;
             var diagonalRatio = 1.3;
 
             switch (id) {
@@ -397,7 +393,7 @@ export class NavigationCube implements IPlugin {
                     break;
             }
 
-            var o = this.viewer._origin;
+            var o = this.viewer.origin;
             var heading = vec3.fromValues(0, 0, 1);
             var origin = vec3.fromValues(o[0], o[1], o[2]);
 
@@ -417,7 +413,6 @@ export class NavigationCube implements IPlugin {
         //set uniform for colour coding to false
         gl.uniform1i(this._colourCodingUniformPointer, 0);
         this.draw();
-        this.setInactive();
     }
 
     onBeforeDrawId() { }
@@ -427,24 +422,17 @@ export class NavigationCube implements IPlugin {
         //set uniform for colour coding to false
         gl.uniform1i(this._colourCodingUniformPointer, 1);
         this.draw();
-        this.setInactive();
     }
 
     //return false because this doesn't catch any ID event
     onBeforeGetId(id) { return false; }
 
-    setActive() {
+    private setActive(): WebGLRenderingContext {
         var gl = this.viewer.gl;
         //set own shader
         gl.useProgram(this._shader);
 
         return gl;
-    }
-
-    setInactive() {
-        var gl = this.viewer.gl;
-        //set viewer shader
-        gl.useProgram(this.viewer._shaderProgram);
     }
 
     private draw() {
@@ -455,9 +443,9 @@ export class NavigationCube implements IPlugin {
         //set navigation data from Viewer to this shader
         var pMatrix = mat4.create();
         var height = 1.0 / this.ratio;
-        var width = height / this.viewer._height * this.viewer._width;
+        var width = height / this.viewer.height * this.viewer.width;
 
-        var regionX = this.ratio * this.viewer._height / this.viewer._width * 2.0;
+        var regionX = this.ratio * this.viewer.height / this.viewer.width * 2.0;
         var regionY = this.ratio * 2.0;
 
         //create orthogonal projection matrix
