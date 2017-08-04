@@ -1,30 +1,31 @@
-﻿import { ModelGeometry } from "../model-geometry";
+﻿ import { ModelGeometry } from "../model-geometry";
 
 //only run following script if this is created as a Worker
 if (self && self instanceof DedicatedWorkerGlobalScope ) {
-    var worker = self as DedicatedWorkerGlobalScope;
-    worker.onmessage = function (e) {
-        var model = e.data;
-        var geometry = new ModelGeometry();
+    let worker = self as DedicatedWorkerGlobalScope;
+    worker.onmessage = function(e) {
+        let model = e.data;
+        let geometry = new ModelGeometry();
 
-        geometry.onerror = function (msg) {
+        geometry.onerror = function(msg) {
             throw msg;
-        }
+        };
 
-        geometry.onloaded = function () {
+        geometry.onloaded = function() {
             try {
-                var msg = {};
-                var transferable = [];
-                for (var i in geometry) {
-                    if (!geometry.hasOwnProperty(i))
-                        continue
+                let msg = {};
+                let transferable = [];
+                for (let i in geometry) {
+                    //skip private properties and non-own properties
+                    if (!geometry.hasOwnProperty(i) || i.startsWith("_"))
+                        continue;
 
-                    var prop = geometry[i];
+                    let prop = geometry[i];
                     if (typeof prop === "function")
                         continue;
 
                     //building message object containing values but no functions or anything
-                    msg[i] = prop
+                    msg[i] = prop;
 
                     //create array of transferable objects for all typed arrays. Browsers which support Transferable interface will speed this up massively
                     if (ArrayBuffer.isView(prop))

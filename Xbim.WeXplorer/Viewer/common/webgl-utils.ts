@@ -30,7 +30,7 @@
  */
 
 /*
- * File converted to TypeScript by Martin Černý (martin.cerny@northumbria.ec.uk) 
+ * File converted to TypeScript by Martin Černý (martin.cerny@northumbria.ec.uk)
  * requestAnimationFrame() made part of utils instead of extending window object
  */
 
@@ -70,28 +70,28 @@ export class WebGLUtils {
      * @return {string} The html.
      */
     private static makeFailHTML(msg: string): string {
-        return '' +
+        return "" +
             '<table style="background-color: #8CE; width: 100%; height: 100%;"><tr>' +
             '<td align="center">' +
             '<div style="display: table-cell; vertical-align: middle;">' +
-            '<div style="">' + msg + '</div>' +
-            '</div>' +
-            '</td></tr></table>';
+            '<div style="">' + msg + "</div>" +
+            "</div>" +
+            "</td></tr></table>";
     }
 
     /**
      * Mesasge for getting a webgl browser
      * @type {string}
      */
-    private static GET_A_WEBGL_BROWSER: string = '' +
-    'This page requires a browser that supports WebGL.<br/>' +
+    private static GET_A_WEBGL_BROWSER: string = "" +
+    "This page requires a browser that supports WebGL.<br/>" +
     '<a href="http://get.webgl.org">Click here to upgrade your browser.</a>';
 
     /**
      * Mesasge for need better hardware
      * @type {string}
      */
-    private static OTHER_PROBLEM: string = '' +
+    private static OTHER_PROBLEM: string = "" +
     "It doesn't appear your computer can support WebGL.<br/>" +
     '<a href="http://get.webgl.org/troubleshooting/">Click here for more information.</a>';
 
@@ -109,7 +109,7 @@ export class WebGLUtils {
      */
     public static setupWebGL(canvas: HTMLCanvasElement, attribs?: WebGLContextAttributes, onError?: (msg: string) => void): WebGLRenderingContext {
         function handleCreationError(msg) {
-            var container = canvas.parentNode as HTMLElement;
+            let container = canvas.parentNode as HTMLElement;
             if (container) {
                 let str: string = typeof (WebGLRenderingContext) !== "undefined" ?
                     this.OTHER_PROBLEM :
@@ -119,23 +119,23 @@ export class WebGLUtils {
                 }
                 container.innerHTML = this.makeFailHTML(str);
             }
-        };
+        }
 
         onError = onError || handleCreationError;
 
         if (canvas.addEventListener) {
-            canvas.addEventListener("webglcontextcreationerror", function (event: WebGLContextEvent) {
+            canvas.addEventListener("webglcontextcreationerror", function(event: WebGLContextEvent) {
                 onError(event.statusMessage);
             }, false);
         }
-        var context = this.create3DContext(canvas, attribs);
+        let context = this.create3DContext(canvas, attribs);
         if (!context) {
             if (typeof (WebGLRenderingContext) === "undefined") {
                 onError("");
             }
         }
         return context;
-    };
+    }
 
     /**
      * Creates a webgl context.
@@ -144,9 +144,9 @@ export class WebGLUtils {
      * @return {!WebGLContext} The created context.
      */
     public static create3DContext(canvas: HTMLCanvasElement, opt_attribs?: {}): WebGLRenderingContext {
-        var names = ["webgl", "experimental-webgl", "webkit-3d", "moz-webgl"];
+        let names = ["webgl", "experimental-webgl", "webkit-3d", "moz-webgl"];
         let context: WebGLRenderingContext = null;
-        for (var ii = 0; ii < names.length; ++ii) {
+        for (let ii = 0; ii < names.length; ++ii) {
             try {
                 context = canvas.getContext(names[ii], opt_attribs) as WebGLRenderingContext;
             } catch (e) { }
@@ -157,7 +157,6 @@ export class WebGLUtils {
         return context;
     }
 
-    
 }
 
 /**
@@ -169,7 +168,7 @@ window.requestAnimationFrame =
     window["mozRequestAnimationFrame"] ||
     window["oRequestAnimationFrame"] ||
     window["msRequestAnimationFrame"] ||
-    function (/* function FrameRequestCallback */ callback) {
+    function(/* function FrameRequestCallback */ callback) {
         window.setTimeout(callback, 1000 / 60);
     };
-
+

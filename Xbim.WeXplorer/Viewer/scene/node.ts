@@ -1,4 +1,4 @@
-﻿export abstract class Node {
+﻿ export abstract class Node {
     public ID: number;
     public readonly Type: NodeType = NodeType.NOTDEFINED;
     public Parent: Node;
@@ -17,7 +17,7 @@
         }
         //compile all subnodes
         if (this.Nodes) {
-            this.Nodes.forEach(n => n.Compile());
+            this.Nodes.forEach((n) => n.Compile());
         }
     }
 
@@ -39,7 +39,7 @@
 
         //draw all subnodes
         if (this.Nodes) {
-            this.Nodes.forEach(n => n.Draw(skip));
+            this.Nodes.forEach((n) => n.Draw(skip));
         }
     }
 
@@ -63,7 +63,7 @@
         }
 
         if (this.Nodes) {
-            this.Nodes.forEach(n => n.Find(selector, stopper, results));
+            this.Nodes.forEach((n) => n.Find(selector, stopper, results));
         }
         return results;
     }
@@ -75,7 +75,7 @@
     public ForEach(action: (node: Node) => void): void {
         action(this);
         if (this.Nodes) {
-            this.Nodes.forEach(n => n.ForEach(action));
+            this.Nodes.forEach((n) => n.ForEach(action));
         }
     }
 }
@@ -85,5 +85,5 @@ export enum NodeType {
     TYPE,
     PRODUCT,
     SHAPE,
-    NOTDEFINED
+    NOTDEFINED,
 }

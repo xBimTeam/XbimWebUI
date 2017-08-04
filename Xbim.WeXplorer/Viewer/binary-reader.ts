@@ -1,6 +1,6 @@
 ﻿/**
  * Convenient class for binary reading. Arrays are read as new views on slices of the original data buffer,
- * individual values are read using little endian data view. 
+ * individual values are read using little endian data view.
  */
 export class BinaryReader {
     private _buffer: ArrayBuffer = null;
@@ -24,46 +24,49 @@ export class BinaryReader {
     /**
      * Gets reader for a sub array starting at current position.
      * This enforces isolation of reading within certain data island.
-     * 
+     *
      * @param length Byte length of the data island
      */
     public getSubReader(length: number): BinaryReader {
-        var reader = new BinaryReader();
-        //get slice of the data
-        var data = this._buffer.slice(this._position, this._position + length);
-        //load is synchronous with ArrayBuffer argument
+        const reader = new BinaryReader();
+        // get slice of the data
+        const data = this._buffer.slice(this._position, this._position + length);
+        // load is synchronous with ArrayBuffer argument
         reader.load(data);
 
-        //move position after the data island
+        // move position after the data island
         this._position += length;
 
-        //return new reader
+        // return new reader
         return reader;
     }
 
     /**
-     * Pass url string, blob, file of byte array to this function to initialize the reader. Only array buffer takes imidiate effect.
-     * Othe sources are loaded asynchronously and you need to use 'onloaded' delegate to use the reader only after it is initialized woth the data.
+     * Pass url string, blob, file of byte array to this function to initialize the reader. Only array buffer takes
+     * imidiate effect. Othe sources are loaded asynchronously and you need to use 'onloaded' delegate to use the
+     * reader only after it is initialized woth the data.
      * @param source URL string of the file or BLOB or File or ArrayBuffer object
      */
     public load(source: string | Blob | File | ArrayBuffer): void {
         this._position = 0;
-        var self = this;
+        const self = this;
 
-        if (typeof (source) == 'undefined' || source == null) throw 'Source must be defined';
-        if (typeof (source) == 'string') {
-            var xhr;
+        if (typeof (source) === "undefined" || source === null) {
+            throw new Error("Source must be defined");
+        }
+        if (typeof (source) === "string") {
+            let xhr;
             xhr = new XMLHttpRequest();
             xhr.open("GET", source, true);
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState == 4 && xhr.status == 200) {
-                    var fReader = new FileReader();
-                    fReader.onloadend = function () {
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    const fReader = new FileReader();
+                    fReader.onloadend = function() {
                         if (fReader.result) {
-                            //set data buffer for next processing
+                            // set data buffer for next processing
                             self._buffer = fReader.result;
                             self._view = new DataView(self._buffer);
-                            //do predefined processing of the data
+                            // do predefined processing of the data
                             if (self.onloaded) {
                                 self.onloaded(self);
                             }
@@ -71,26 +74,27 @@ export class BinaryReader {
                     };
                     fReader.readAsArrayBuffer(xhr.response);
                 }
-                //throw exception as a warning
-                if (xhr.readyState == 4 && xhr.status != 200) {
-                    var msg = 'Failed to fetch binary data from server. Server code: ' +
+                // throw exception as a warning
+                if (xhr.readyState === 4 && xhr.status != 200) {
+                    const msg = "Failed to fetch binary data from server. Server code: " +
                         xhr.status +
-                        '. This might be due to CORS policy of your browser if you run this as a local file.';
-                    if (self.onerror)
+                        ". This might be due to CORS policy of your browser if you run this as a local file.";
+                    if (self.onerror) {
                         self.onerror(msg);
+                    }
                     throw msg;
                 }
             };
-            xhr.responseType = 'blob';
+            xhr.responseType = "blob";
             xhr.send();
         } else if (source instanceof Blob || source instanceof File) {
-            var fReader = new FileReader();
-            fReader.onloadend = function () {
+            const fReader = new FileReader();
+            fReader.onloadend = function() {
                 if (fReader.result) {
-                    //set data buffer for next processing
+                    // set data buffer for next processing
                     self._buffer = fReader.result;
                     self._view = new DataView(self._buffer);
-                    //do predefined processing of the data
+                    // do predefined processing of the data
                     if (self.onloaded) {
                         self.onloaded(self);
                     }
@@ -107,25 +111,26 @@ export class BinaryReader {
     }
 
     public seek(position: number): void {
-        if (position < 0 || position > this._buffer.byteLength)
-            throw "Position out of range."
-
+        if (position < 0 || position > this._buffer.byteLength) {
+            throw new Error("Position out of range.");
+        }
         this._position = position;
     }
 
     public isEOF(): boolean {
-        if (this._position == null)
-            throw "Position is not defined";
-        return this._position == this._buffer.byteLength;
+        if (this._position === null) {
+            throw new Error("Position is not defined");
+        }
+        return this._position === this._buffer.byteLength;
     }
-
+    
     private readArray<T>(unitSize: number, count: number, ctor: new (data: ArrayBuffer) => T): T {
-        if (count == null)
+        if (count === null) {
             count = 1;
-        var length = unitSize * count;
-        var offset = this._position;
+        }
+        const length = unitSize * count;
+        const offset = this._position;
         this._position += length;
-        var result;
 
         return count === 1
             ? new ctor(this._buffer.slice(offset, offset + length))[0]
@@ -133,7 +138,7 @@ export class BinaryReader {
     }
 
     private move(size: number): number {
-        var offset = this._position;
+        const offset = this._position;
         this._position += size;
         return offset;
     }
@@ -147,7 +152,7 @@ export class BinaryReader {
     }
 
     public readUint8(): number {
-        var offset = this.move(1);
+        const offset = this.move(1);
         return this._view.getUint8(offset);
     }
 
@@ -156,7 +161,7 @@ export class BinaryReader {
     }
 
     public readInt16(): number {
-        var offset = this.move(2);
+        const offset = this.move(2);
         return this._view.getInt16(offset, true);
     }
 
@@ -165,7 +170,7 @@ export class BinaryReader {
     }
 
     public readUInt16(): number {
-        var offset = this.move(2);
+        const offset = this.move(2);
         return this._view.getUint16(offset, true);
     }
 
@@ -174,7 +179,7 @@ export class BinaryReader {
     }
 
     public readInt32(): number {
-        var offset = this.move(4);
+        const offset = this.move(4);
         return this._view.getInt32(offset, true);
     }
 
@@ -183,7 +188,7 @@ export class BinaryReader {
     }
 
     public readUint32(): number {
-        var offset = this.move(4);
+        const offset = this.move(4);
         return this._view.getUint32(offset, true);
     }
 
@@ -192,7 +197,7 @@ export class BinaryReader {
     }
 
     public readFloat32(): number {
-        var offset = this.move(4);
+        const offset = this.move(4);
         return this._view.getFloat32(offset, true);
     }
 
@@ -201,7 +206,7 @@ export class BinaryReader {
     }
 
     public readFloat64(): number {
-        var offset = this.move(8);
+        const offset = this.move(8);
         return this._view.getFloat64(offset, true);
     }
 
@@ -211,76 +216,82 @@ export class BinaryReader {
 
     //functions for a higher objects like points, colours and matrices
     public readChar(count?: number) {
-        if (count == null)
+        if (count === null) {
             count = 1;
-        var bytes = this.readByteArray(count);
-        var result = new Array(count);
-        for (var i in bytes) {
+        }
+        const bytes = this.readByteArray(count);
+        const result = new Array<string>(count);
+        for (let i = 0; i < bytes.length; i++) {
             result[i] = String.fromCharCode(bytes[i]);
         }
         return count === 1 ? result[0] : result;
     }
 
     public readPoint(count?: number) {
-        if (count == null)
+        if (count === null) {
             count = 1;
-        var coords = this.readFloat32Array(count * 3);
-        var result = new Array(count);
-        for (var i = 0; i < count; i++) {
-            var offset = i * 3 * 4;
-            //only create new view on the buffer so that no new memory is allocated
-            var point = new Float32Array(coords.buffer, offset, 3);
+        }
+        const coords = this.readFloat32Array(count * 3);
+        const result = new Array(count);
+        for (let i = 0; i < count; i++) {
+            const offset = i * 3 * 4;
+            // only create new view on the buffer so that no new memory is allocated
+            const point = new Float32Array(coords.buffer, offset, 3);
             result[i] = point;
         }
         return count === 1 ? result[0] : result;
     }
 
     public readRgba(count?: number) {
-        if (count == null)
+        if (count === null) {
             count = 1;
-        var values = this.readByteArray(count * 4);
-        var result = new Array(count);
-        for (var i = 0; i < count; i++) {
-            var offset = i * 4;
-            var colour = new Uint8Array(values.buffer, offset, 4);
+        }
+        const values = this.readByteArray(count * 4);
+        const result = new Array(count);
+        for (let i = 0; i < count; i++) {
+            const offset = i * 4;
+            const colour = new Uint8Array(values.buffer, offset, 4);
             result[i] = colour;
         }
         return count === 1 ? result[0] : result;
     }
 
     public readPackedNormal(count?: number) {
-        if (count == null)
+        if (count === null) {
             count = 1;
-        var values = this.readUint8Array(count * 2);
-        var result = new Array(count);
-        for (var i = 0; i < count; i++) {
-            var uv = new Uint8Array(values.buffer, i * 2, 2);
+        }
+        const values = this.readUint8Array(count * 2);
+        const result = new Array(count);
+        for (let i = 0; i < count; i++) {
+            const uv = new Uint8Array(values.buffer, i * 2, 2);
             result[i] = uv;
         }
         return count === 1 ? result[0] : result;
     }
 
     public readMatrix4x4(count?: number) {
-        if (count == null)
+        if (count === null) {
             count = 1;
-        var values = this.readFloat32Array(count * 16);
-        var result = new Array(count);
-        for (var i = 0; i < count; i++) {
-            var offset = i * 16 * 4;
-            var matrix = new Float32Array(values.buffer, offset, 16);
+        }
+        const values = this.readFloat32Array(count * 16);
+        const result = new Array(count);
+        for (let i = 0; i < count; i++) {
+            const offset = i * 16 * 4;
+            const matrix = new Float32Array(values.buffer, offset, 16);
             result[i] = matrix;
         }
         return count === 1 ? result[0] : result;
     }
 
     public readMatrix4x4_64(count?: number) {
-        if (count == null)
+        if (count === null) {
             count = 1;
-        var values = this.readFloat64Array(count * 16);
-        var result = new Array(count);
-        for (var i = 0; i < count; i++) {
-            var offset = i * 16 * 8;
-            var matrix = new Float64Array(values.buffer, offset, 16);
+        }
+        const values = this.readFloat64Array(count * 16);
+        const result = new Array(count);
+        for (let i = 0; i < count; i++) {
+            const offset = i * 16 * 8;
+            const matrix = new Float64Array(values.buffer, offset, 16);
             result[i] = matrix;
         }
         return count === 1 ? result[0] : result;
@@ -291,7 +302,7 @@ export class BinaryReader {
      * @param length Length of requested data. Start is at current position
      */
     public readData(length: number): ArrayBuffer {
-        let offset = this.move(length);
+        const offset = this.move(length);
         return this._buffer.slice(offset, offset + length);
     }
 }

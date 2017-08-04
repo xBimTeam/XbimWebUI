@@ -10,7 +10,7 @@ var WexBimHeader = (function () {
         var header = new WexBimHeader();
         var magicNumber = reader.readInt32();
         if (magicNumber != WexBimHeader.MagicNumber)
-            throw "This is not a valid wexbim file. Magic number mismatch.";
+            throw new Error("This is not a valid wexbim file. Magic number mismatch.");
         header.Version = reader.readByte();
         header.ShapeCount = reader.readInt32();
         header.VertexCount = reader.readInt32();
@@ -224,9 +224,9 @@ var WexBimStream = (function () {
     };
     WexBimStream.Load = function (source, callback) {
         if (source == null)
-            throw "Undefined source";
+            throw new Error("Undefined source");
         if (callback == null)
-            throw "You have to use callback to get the stream";
+            throw new Error("You have to use callback to get the stream");
         var reader = new binary_reader_1.BinaryReader();
         reader.onloaded = function (r) {
             var wexbim = WexBimStream.ReadFromStream(r);

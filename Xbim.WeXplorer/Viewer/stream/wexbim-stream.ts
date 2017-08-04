@@ -1,4 +1,4 @@
-﻿import { BinaryReader } from "../binary-reader";
+﻿ import { BinaryReader } from "../binary-reader";
 import { ProductType } from "../product-type";
 import { WexBimMesh } from "./wexbim-mesh";
 
@@ -18,12 +18,11 @@ export class WexBimHeader {
     public OneMeter: number;
     public RegionCount: number;
 
-
     public static ReadFromStream(reader: BinaryReader): WexBimHeader {
-        var header = new WexBimHeader();
-        let magicNumber = reader.readInt32();
+        const header = new WexBimHeader();
+        const magicNumber = reader.readInt32();
         if (magicNumber != WexBimHeader.MagicNumber)
-            throw "This is not a valid wexbim file. Magic number mismatch.";
+            throw new Error("This is not a valid wexbim file. Magic number mismatch.");
 
         header.Version = reader.readByte();
         header.ShapeCount = reader.readInt32();
@@ -44,28 +43,28 @@ export class WexBimRegion {
     public Population: number;
     public Centre: Float32Array;
     public BoundingBox: Float32Array;
-    public GeometryModels: Array<WexBimGeometryModel> = new Array<WexBimGeometryModel>();
+    public GeometryModels: WexBimGeometryModel[] = new Array<WexBimGeometryModel>();
 
     public MatrixCount(): number {
-        var count = 0;
-        this.GeometryModels.forEach(gm => count += gm.MatrixCount);
+        let count = 0;
+        this.GeometryModels.forEach((gm) => count += gm.MatrixCount);
         return count;
     }
 
     public ShapeCount(): number {
-        var count = 0;
-        this.GeometryModels.forEach(gm => count += gm.ShapeCount);
+        let count = 0;
+        this.GeometryModels.forEach((gm) => count += gm.ShapeCount);
         return count;
     }
     public TriangleCount(): number {
-        var count = 0;
-        this.GeometryModels.forEach(gm => count += gm.TriangleCount);
+        let count = 0;
+        this.GeometryModels.forEach((gm) => count += gm.TriangleCount);
         return count;
     }
 
     public VertexCount(): number {
-        var count = 0;
-        this.GeometryModels.forEach(gm => count += gm.VertexCount);
+        let count = 0;
+        this.GeometryModels.forEach((gm) => count += gm.VertexCount);
         return count;
     }
 
@@ -74,7 +73,7 @@ export class WexBimRegion {
     }
 
     public static ReadFromStream(reader: BinaryReader): WexBimRegion {
-        var region = new WexBimRegion();
+        const region = new WexBimRegion();
         region.Population = reader.readInt32();
         region.Centre = reader.readFloat32Array(3);
         region.BoundingBox = reader.readFloat32Array(6);
@@ -87,7 +86,7 @@ export class WexBimStyle {
     public RGBA: Float32Array;
 
     public static ReadFromStream(reader: BinaryReader): WexBimStyle {
-        var style = new WexBimStyle();
+        const style = new WexBimStyle();
         style.StyleId = reader.readInt32();
         style.RGBA = reader.readFloat32Array(4);
         return style;
@@ -103,7 +102,7 @@ export class WexBimProduct {
     public Shapes: IWexBimShape[];
 
     public static ReadFromStream(reader: BinaryReader): WexBimProduct {
-        var product = new WexBimProduct();
+        const product = new WexBimProduct();
         product.ProductLabel = reader.readInt32();
         product.ProductType = reader.readInt16();
         product.BoundingBox = reader.readFloat32Array(6);
@@ -135,7 +134,7 @@ export class WexBimShapeSingleInstance implements IWexBimShape {
     GeometryModel: WexBimGeometryModel;
 
     public static ReadFromStream(reader: BinaryReader, model: WexBimGeometryModel): WexBimShapeSingleInstance {
-        var shape = new WexBimShapeSingleInstance();
+        const shape = new WexBimShapeSingleInstance();
         shape.ProductLabel = reader.readInt32();
         shape.InstanceTypeId = reader.readInt16();
         shape.InstanceLabel = reader.readInt32();
@@ -161,7 +160,7 @@ export class WexBimShapeMultiInstance implements IWexBimShape {
     GeometryModel: WexBimGeometryModel;
 
     public static ReadFromStream(reader: BinaryReader, model: WexBimGeometryModel): WexBimShapeMultiInstance {
-        var shape = new WexBimShapeMultiInstance();
+        const shape = new WexBimShapeMultiInstance();
         shape.ProductLabel = reader.readInt32();
         shape.InstanceTypeId = reader.readInt16();
         shape.InstanceLabel = reader.readInt32();
@@ -180,7 +179,7 @@ export class WexBimGeometryModel {
     public Geometry: WexBimMesh;
 
     public get MatrixCount(): number {
-        return this.Shapes.filter(s => s instanceof WexBimShapeMultiInstance).length;
+        return this.Shapes.filter((s) => s instanceof WexBimShapeMultiInstance).length;
     }
 
     public get ShapeCount(): number {
@@ -195,26 +194,25 @@ export class WexBimGeometryModel {
     }
 
     public static ReadFromStream(reader: BinaryReader): WexBimGeometryModel {
-        var geometry = new WexBimGeometryModel();
-        var numShapes = reader.readInt32();
+        const geometry = new WexBimGeometryModel();
+        const numShapes = reader.readInt32();
         if (numShapes > 1) //we have a multi used geometry
         {
             for (let i = 0; i < numShapes; i++) {
-                var instance = WexBimShapeMultiInstance.ReadFromStream(reader, geometry);
+                const instance = WexBimShapeMultiInstance.ReadFromStream(reader, geometry);
                 geometry.Shapes[instance.ProductLabel] = instance;
             }
         }
         else //just the one
         {
-            var instance = WexBimShapeSingleInstance.ReadFromStream(reader, geometry);
+            const instance = WexBimShapeSingleInstance.ReadFromStream(reader, geometry);
             geometry.Shapes[instance.ProductLabel] = instance;
         }
         //read the geometry
-        let numBytes = reader.readInt32();
+        const numBytes = reader.readInt32();
         geometry.Geometry = new WexBimMesh(reader.readData(numBytes));
         return geometry;
     }
-
 
 }
 export class WexBimStream {
@@ -232,7 +230,7 @@ export class WexBimStream {
     }
 
     private Union(boxA: Float32Array, boxB: Float32Array): Float32Array {
-        var result = new Float32Array(6);
+        const result = new Float32Array(6);
         if (boxA == null && boxB != null) {
             result.set(boxB);
             return result;
@@ -258,7 +256,7 @@ export class WexBimStream {
     /// </summary>
     /// <param name="product"></param>
     public AddProduct(product: WexBimProduct): void {
-        let existingProduct = this.Products[product.ProductLabel];
+        const existingProduct = this.Products[product.ProductLabel];
 
         if (existingProduct) {
             existingProduct.BoundingBox = this.Union(existingProduct.BoundingBox, product.BoundingBox);
@@ -270,14 +268,14 @@ export class WexBimStream {
 
     public static Load(source: string | Blob | File | ArrayBuffer, callback: (wexbim: WexBimStream) => void): void {
         if (source == null)
-            throw "Undefined source";
+            throw new Error("Undefined source");
 
         if (callback == null)
-            throw "You have to use callback to get the stream";
+            throw new Error("You have to use callback to get the stream");
 
-        var reader = new BinaryReader();
+        const reader = new BinaryReader();
         reader.onloaded = (r) => {
-            let wexbim = WexBimStream.ReadFromStream(r);
+            const wexbim = WexBimStream.ReadFromStream(r);
             if (callback)
                 callback(wexbim);
         };
@@ -285,7 +283,7 @@ export class WexBimStream {
     }
 
     public static ReadFromStream(reader: BinaryReader): WexBimStream {
-        var wexBimStream = new WexBimStream();
+        const wexBimStream = new WexBimStream();
         wexBimStream.Header = WexBimHeader.ReadFromStream(reader);
 
         for (let i = 0; i < wexBimStream.Header.RegionCount; i++) {
@@ -300,21 +298,21 @@ export class WexBimStream {
             wexBimStream.AddProduct(WexBimProduct.ReadFromStream(reader));
         }
 
-        wexBimStream.Regions.forEach(region => {
-            let geometryCount = reader.readInt32();
+        wexBimStream.Regions.forEach((region) => {
+            const geometryCount = reader.readInt32();
             for (let i = 0; i < geometryCount; i++) {
                 region.AddGeometryModel(WexBimGeometryModel.ReadFromStream(reader));
             }
         });
 
         //set up products with shapes
-        wexBimStream.Regions.forEach(region => {
-            region.GeometryModels.forEach(model => {
-                model.Shapes.forEach(shape => {
-                    var product = wexBimStream.Products[shape.ProductLabel];
+        wexBimStream.Regions.forEach((region) => {
+            region.GeometryModels.forEach((model) => {
+                model.Shapes.forEach((shape) => {
+                    const product = wexBimStream.Products[shape.ProductLabel];
                     product.Shapes.push(shape);
                 });
-            })
+            });
         });
 
         return wexBimStream;

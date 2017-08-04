@@ -1,4 +1,4 @@
-export declare var ProductInheritance: {
+export declare let ProductInheritance: {
     name: string;
     id: number;
     abs: boolean;

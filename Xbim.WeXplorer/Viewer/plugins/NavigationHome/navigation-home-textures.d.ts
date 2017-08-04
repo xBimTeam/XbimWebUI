@@ -1,3 +1,3 @@
-export declare var HomeTextures: {
+export declare let HomeTextures: {
     en: string;
 };

@@ -1,4 +1,4 @@
-﻿import { ModelGeometry, ProductMap, Region } from "./model-geometry";
+﻿ import { ModelGeometry, ProductMap, Region } from "./model-geometry";
 import { State } from "./state";
 import { ModelPointers } from "./viewer";
 
@@ -43,15 +43,14 @@ export class ModelHandle {
     constructor(
         private _gl: WebGLRenderingContext,
         private _model: ModelGeometry) {
-        if (typeof (_gl) == 'undefined' || typeof (_model) == 'undefined') {
-            throw 'WebGL context and geometry model must be specified';
+        if (typeof (_gl) == "undefined" || typeof (_model) == "undefined") {
+            throw new Error("WebGL context and geometry model must be specified");
         }
 
         /**
-         * unique ID which can be used to identify this handle 
+         * unique ID which can be used to identify this handle
          */
         this.id = ModelHandle._instancesNum++;
-
 
         this.meter = _model.meter;
         this.InitGlBuffersAndTextures(_gl);
@@ -68,7 +67,7 @@ export class ModelHandle {
             }
         });
         //set default region if no region is defined. This shouldn't ever happen if model contains any geometry.
-        if (typeof (this.region) == 'undefined') {
+        if (typeof (this.region) == "undefined") {
             this.region = new Region();
             this.region.population = 1;
             this.region.centre = new Float32Array([0.0, 0.0, 0.0]);
@@ -77,7 +76,7 @@ export class ModelHandle {
     }
 
     private InitGlBuffersAndTextures(gl: WebGLRenderingContext): void {
-        //data structure 
+        //data structure
         this._vertexTexture = gl.createTexture();
         this._matrixTexture = gl.createTexture();
         this._styleTexture = gl.createTexture();
@@ -105,7 +104,7 @@ export class ModelHandle {
     public setActive(pointers: ModelPointers): void {
         if (this.stopped) return;
 
-        var gl = this._gl;
+        const gl = this._gl;
         //set predefined textures
         if (this._vertexTextureSize > 0) {
             gl.activeTexture(gl.TEXTURE1);
@@ -153,9 +152,9 @@ export class ModelHandle {
     public draw(mode?: DrawMode): void {
         if (this.stopped) return;
 
-        var gl = this._gl;
+        const gl = this._gl;
 
-        if (typeof (mode) === 'undefined') {
+        if (typeof (mode) === "undefined") {
             //draw image frame
             gl.drawArrays(gl.TRIANGLES, 0, this._numberOfIndices);
             return;
@@ -184,12 +183,11 @@ export class ModelHandle {
         }
     }
 
-
     public drawProduct(id: number): void {
         if (this.stopped) return;
 
-        var gl = this._gl;
-        var map = this.getProductMap(id);
+        const gl = this._gl;
+        const map = this.getProductMap(id);
 
         if (map != null) {
             map.spans.forEach((span) => {
@@ -200,16 +198,16 @@ export class ModelHandle {
     }
 
     public getProductMap(id: number): ProductMap {
-        var map = this._model.productMaps[id];
-        if (typeof (map) !== 'undefined') return map;
+        const map = this._model.productMaps[id];
+        if (typeof (map) !== "undefined") return map;
         return null;
     }
 
     public getProductMaps(ids: number[]): ProductMap[] {
-        let result = new Array<ProductMap>();
-        ids.forEach(id => {
-            var map = this._model.productMaps[id];
-            if (typeof (map) !== 'undefined')
+        const result = new Array<ProductMap>();
+        ids.forEach((id) => {
+            const map = this._model.productMaps[id];
+            if (typeof (map) !== "undefined")
                 result.push(map);
         });
 
@@ -217,7 +215,7 @@ export class ModelHandle {
     }
 
     public unload() {
-        var gl = this._gl;
+        const gl = this._gl;
 
         gl.deleteTexture(this._vertexTexture);
         gl.deleteTexture(this._matrixTexture);
@@ -248,7 +246,6 @@ export class ModelHandle {
         this._matrixTextureSize = ModelHandle.bufferTexture(gl, this._matrixTexture, model.matrices, 4);
         this._styleTextureSize = ModelHandle.bufferTexture(gl, this._styleTexture, model.styles);
 
-
         //Forget everything except for states and styles (this should save some RAM).
         //data is already loaded to GPU by now
         model.normals = null;
@@ -262,7 +259,7 @@ export class ModelHandle {
     }
 
     private bufferData(pointer, data) {
-        var gl = this._gl;
+        const gl = this._gl;
         gl.bindBuffer(gl.ARRAY_BUFFER, pointer);
         gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
     }
@@ -270,15 +267,15 @@ export class ModelHandle {
     public static bufferTexture(gl: WebGLRenderingContext, pointer: WebGLTexture, data: any, numberOfComponents?: number): number {
 
         if (data.length == 0) {
-            let dummySize = 2;
+            const dummySize = 2;
             gl.bindTexture(gl.TEXTURE_2D, pointer);
             //2 x 2 transparent black dummy pixels texture
-            let image = new Uint8Array([
+            const image = new Uint8Array([
                 0, 0, 0, 0,
                 0, 0, 0, 0,
                 0, 0, 0, 0,
-                0, 0, 0, 0
-            ])
+                0, 0, 0, 0,
+            ]);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, dummySize, dummySize, 0, gl.RGBA, gl.UNSIGNED_BYTE, image);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
@@ -287,7 +284,7 @@ export class ModelHandle {
             return dummySize;
         }
 
-        var fp = data instanceof Float32Array;
+        const fp = data instanceof Float32Array;
 
         //compute size of the image (length should be correct already)
         let size = 0;
@@ -297,13 +294,12 @@ export class ModelHandle {
             //recompute to smaller size, but make it +1 to make sure it is all right
             size = Math.ceil(Math.sqrt(Math.ceil(data.length / numberOfComponents))) + 1;
         } else {
-            var dim = Math.sqrt(data.byteLength / 4);
+            const dim = Math.sqrt(data.byteLength / 4);
             size = Math.ceil(dim);
         }
 
-
         if (size == 0) return 0;
-        if (size > maxSize) throw 'Too much data! It cannot fit into the texture.';
+        if (size > maxSize) throw new Error("Too much data! It cannot fit into the texture.");
 
         gl.bindTexture(gl.TEXTURE_2D, pointer);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0); //this is our convention
@@ -312,14 +308,14 @@ export class ModelHandle {
 
         if (fp) {
             //create new data buffer and fill it in with data
-            var image: Float32Array = null;
+            let image: Float32Array = null;
             if (size * size * numberOfComponents != data.length) {
                 image = new Float32Array(size * size * numberOfComponents);
                 image.set(data);
             } else {
                 image = data;
             }
-            var type = null;
+            let type = null;
             switch (numberOfComponents) {
                 case 1:
                     type = gl.ALPHA;
@@ -336,7 +332,6 @@ export class ModelHandle {
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, size, size, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(data.buffer));
         }
 
-
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); //Prevents s-coordinate wrapping (repeating).
@@ -346,56 +341,56 @@ export class ModelHandle {
     }
 
     public getState(id: number): State {
-        if (typeof (id) === 'undefined') throw 'id must be defined';
-        var map = this.getProductMap(id);
+        if (typeof (id) === "undefined") throw new Error("id must be defined");
+        const map = this.getProductMap(id);
         if (map === null) return null;
 
-        var span = map.spans[0];
-        if (typeof (span) == 'undefined') return null;
+        const span = map.spans[0];
+        if (typeof (span) == "undefined") return null;
 
         return this._model.states[span[0] * 2];
     }
 
     public getStyle(id: number): number {
-        if (typeof (id) === 'undefined') throw 'id must be defined';
-        var map = this.getProductMap(id);
+        if (typeof (id) === "undefined") throw new Error("id must be defined");
+        const map = this.getProductMap(id);
         if (map === null) return null;
 
-        var span = map.spans[0];
-        if (typeof (span) == 'undefined') return null;
+        const span = map.spans[0];
+        if (typeof (span) == "undefined") return null;
 
         return this._model.states[span[0] * 2 + 1];
     }
 
     public setState(state: State, args: number | number[]): void {
-        if (typeof (state) != 'number' && state < 0 && state > 255
-        ) throw 'You have to specify state as an ID of state or index in style pallete.';
-        if (typeof (args) == 'undefined')
-            throw 'You have to specify products as an array of product IDs or as a product type ID';
+        if (typeof (state) != "number" && state < 0 && state > 255
+        ) throw new Error("You have to specify state as an ID of state or index in style pallete.");
+        if (typeof (args) == "undefined")
+            throw new Error("You have to specify products as an array of product IDs or as a product type ID");
 
-        var maps = [];
+        const maps = [];
         //it is type
-        if (typeof (args) == 'number') {
-            for (var n in this._model.productMaps) {
-                var map = this._model.productMaps[n];
+        if (typeof (args) == "number") {
+            for (const n in this._model.productMaps) {
+                const map = this._model.productMaps[n];
                 if (map.type == args) maps.push(map);
             }
         }
         //it is a list of IDs
         else {
-            for (var l = 0; l < args.length; l++) {
-                var id = args[l];
-                var map = this.getProductMap(id);
+            for (let l = 0; l < args.length; l++) {
+                const id = args[l];
+                const map = this.getProductMap(id);
                 if (map != null) maps.push(map);
             }
         }
 
         //shift +1 if it is an overlay colour style or 0 if it is a state.
-        var shift = state <= 225 ? 1 : 0;
+        const shift = state <= 225 ? 1 : 0;
         maps.forEach((map) => {
             map.spans.forEach((span) => {
                 //set state or style
-                for (var k = span[0]; k < span[1]; k++) {
+                for (let k = span[0]; k < span[1]; k++) {
                     this._model.states[k * 2 + shift] = state;
                 }
             });
@@ -406,7 +401,7 @@ export class ModelHandle {
     }
 
     public resetStates(): void {
-        for (var i = 0; i < this._model.states.length; i += 2) {
+        for (let i = 0; i < this._model.states.length; i += 2) {
             this._model.states[i] = State.UNDEFINED;
         }
         //buffer data to GPU
@@ -414,43 +409,43 @@ export class ModelHandle {
     }
 
     public resetStyles(): void {
-        for (var i = 0; i < this._model.states.length; i += 2) {
+        for (let i = 0; i < this._model.states.length; i += 2) {
             this._model.states[i + 1] = State.UNSTYLED;
         }
         //buffer data to GPU
         this.bufferData(this._stateBuffer, this._model.states);
-    };
+    }
 
-    public getModelState(): Array<Array<number>> {
-        var result = [];
-        var products = this._model.productMaps;
-        for (var i in products) {
+    public getModelState(): number[][] {
+        const result = [];
+        const products = this._model.productMaps;
+        for (const i in products) {
             if (!products.hasOwnProperty(i)) {
                 continue;
             }
-            var map = products[i];
-            var span = map.spans[0];
-            if (typeof (span) == 'undefined') continue;
+            const map = products[i];
+            const span = map.spans[0];
+            if (typeof (span) == "undefined") continue;
 
-            var state = this._model.states[span[0] * 2];
-            var style = this._model.states[span[0] * 2 + 1];
+            const state = this._model.states[span[0] * 2];
+            const style = this._model.states[span[0] * 2 + 1];
 
             result.push([map.productID, state + (style << 8)]);
         }
         return result;
     }
 
-    public restoreModelState(state: Array<Array<number>>): void {
+    public restoreModelState(state: number[][]): void {
         state.forEach((s) => {
-            var id = s[0];
-            var style = s[1] >> 8;
-            var state = s[1] - (style << 8);
+            const id = s[0];
+            const style = s[1] >> 8;
+            const state = s[1] - (style << 8);
 
-            var map = this.getProductMap(id);
+            const map = this.getProductMap(id);
             if (map != null) {
                 map.spans.forEach((span) => {
                     //set state or style
-                    for (var k = span[0]; k < span[1]; k++) {
+                    for (let k = span[0]; k < span[1]; k++) {
                         this._model.states[k * 2] = state;
                         this._model.states[k * 2 + 1] = style;
                     }
@@ -466,5 +461,5 @@ export class ModelHandle {
 
 export enum DrawMode {
     SOLID,
-    TRANSPARENT
+    TRANSPARENT,
 }

@@ -26,14 +26,13 @@ export class glMatrix {
 
     // Configuration Constants
     public static EPSILON = 0.000001;
-    public static ARRAY_TYPE = (typeof Float32Array !== 'undefined') ? Float32Array : Array;
+    public static ARRAY_TYPE = (typeof Float32Array !== "undefined") ? Float32Array : Array;
     public static RANDOM = Math.random;
     public static ENABLE_SIMD = false;
 
     // Capability detection
-    public static SIMD_AVAILABLE = (glMatrix.ARRAY_TYPE === Float32Array) && typeof (window['SIMD']) !== 'undefined';
-    public static USE_SIMD = glMatrix.ENABLE_SIMD && glMatrix.SIMD_AVAILABLE;
-
+    // public static SIMD_AVAILABLE = (glMatrix.ARRAY_TYPE === Float32Array) && typeof (window.SIMD) !== "undefined";
+    // public static USE_SIMD = glMatrix.ENABLE_SIMD && glMatrix.SIMD_AVAILABLE;
 
     private static degree: number = Math.PI / 180;
 
@@ -46,7 +45,6 @@ export class glMatrix {
         glMatrix.ARRAY_TYPE = type;
     }
 
-
     /**
     * Convert Degree To Radian
     *
@@ -58,9 +56,9 @@ export class glMatrix {
 
     /**
      * Tests whether or not the arguments have approximately the same value, within an absolute
-     * or relative tolerance of glMatrix.EPSILON (an absolute tolerance is used for values less 
+     * or relative tolerance of glMatrix.EPSILON (an absolute tolerance is used for values less
      * than or equal to 1.0, and a relative tolerance is used for larger values)
-     * 
+     *
      * @param {Number} a The first number to test.
      * @param {Number} b The second number to test.
      * @returns {Boolean} True if the numbers are approximately equal, false otherwise.

@@ -28,8 +28,8 @@ export class mat3 {
     *
     * @returns {mat3} a new 3x3 matrix
     */
-    public static create = function (): Float32Array {
-        var out = new Float32Array(9);
+    public static create = function(): Float32Array {
+        let out = new Float32Array(9);
         out[0] = 1;
         out[1] = 0;
         out[2] = 0;
@@ -60,5 +60,5 @@ export class mat3 {
         out[7] = a[9];
         out[8] = a[10];
         return out;
-    };
+    }
 }

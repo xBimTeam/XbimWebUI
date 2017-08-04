@@ -1,6 +1,4 @@
-export interface ReadIndex {
-    (view: DataView, offset: number): number;
-}
+export declare type ReadIndex = (view: DataView, offset: number) => number;
 export declare class WexBimMesh {
     private _array;
     private _view;

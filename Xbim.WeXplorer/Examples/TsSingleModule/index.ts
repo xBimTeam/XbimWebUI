@@ -53,4 +53,7 @@ viewer.on('pick', (e: { id: number, event: MouseEvent }) => {
 //    div.style.display = "none";
 //});
 
-window["v"] = viewer;
+//make the viewer available in console as global
+window["viewer"] = viewer;
+window["State"] = State;
+window["ProductType"] = ProductType;

@@ -49,8 +49,8 @@ export declare class ModelHandle {
     setState(state: State, args: number | number[]): void;
     resetStates(): void;
     resetStyles(): void;
-    getModelState(): Array<Array<number>>;
-    restoreModelState(state: Array<Array<number>>): void;
+    getModelState(): number[][];
+    restoreModelState(state: number[][]): void;
 }
 export declare enum DrawMode {
     SOLID = 0,

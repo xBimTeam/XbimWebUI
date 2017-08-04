@@ -2,15 +2,15 @@
   "name": "xbim-webui",
   "version": "0.1.41",
   "devDependencies": {
-    "dts-bundle": "^0.7.2",
-    "jsdoc": "3.3.0",
-    "webpack": "^2.4.1",
-    "worker-loader": "^0.8.0",
     "@types/node": "7.0.18",
+    "dts-bundle": "^0.7.2",
+    "es6-shim": "0.35.3",
+    "jsdoc": "3.3.0",
     "ts-loader": "2.0.3",
-    "typescript": "2.3.2",
-    "es6-shim" : "0.35.3"
-
+    "tslint": "^5.5.0",
+    "typescript": "^2.3.2",
+    "webpack": "^2.4.1",
+    "worker-loader": "^0.8.0"
   },
   "files": [
     "Browser/*",
@@ -24,7 +24,9 @@
   ],
   "scripts": {
     "jsdoc": "jsdoc -c jsdoc.config.json",
-    "tsc": "tsc", 
-    "webpack:dev": "SET NODE_ENV=development&& webpack"
+    "tsc": "tsc",
+    "webpack:dev": "SET NODE_ENV=development&& webpack",
+    "tslint" : "tslint -c tslint.json 'Viewer/**/*.ts'",
+    "tslint:fix" : "tslint -c tslint.json --fix './Viewer/binary-reader.ts'"
   }
 }

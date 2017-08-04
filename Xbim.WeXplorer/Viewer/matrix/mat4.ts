@@ -19,8 +19,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. */
 
 import { glMatrix } from "./common";
-import { vec3 } from "./vec3";
 import { quat } from "./quat";
+import { vec3 } from "./vec3";
 
 export class mat4 {
     /**
@@ -29,7 +29,7 @@ export class mat4 {
  * @returns {mat4} a new 4x4 matrix
  */
     public static create(): Float32Array {
-        var out = new Float32Array(16);
+        let out = new Float32Array(16);
         out[0] = 1;
         out[1] = 0;
         out[2] = 0;
@@ -47,7 +47,7 @@ export class mat4 {
         out[14] = 0;
         out[15] = 1;
         return out;
-    };
+    }
 
     /**
      * Creates a new mat4 initialized with values from an existing matrix
@@ -56,7 +56,7 @@ export class mat4 {
      * @returns {mat4} a new 4x4 matrix
      */
     public static clone(a: Float32Array): Float32Array {
-        var out = new Float32Array(16);
+        let out = new Float32Array(16);
         out[0] = a[0];
         out[1] = a[1];
         out[2] = a[2];
@@ -74,7 +74,7 @@ export class mat4 {
         out[14] = a[14];
         out[15] = a[15];
         return out;
-    };
+    }
 
     /**
      * Copy the values from one mat4 to another
@@ -101,7 +101,7 @@ export class mat4 {
         out[14] = a[14];
         out[15] = a[15];
         return out;
-    };
+    }
 
     /**
      * Create a new mat4 with the given values
@@ -125,7 +125,7 @@ export class mat4 {
      * @returns {mat4} A new mat4
      */
     public static fromValues(m00: number, m01: number, m02: number, m03: number, m10: number, m11: number, m12: number, m13: number, m20: number, m21: number, m22: number, m23: number, m30: number, m31: number, m32: number, m33: number): Float32Array {
-        var out = new Float32Array(16);
+        let out = new Float32Array(16);
         out[0] = m00;
         out[1] = m01;
         out[2] = m02;
@@ -143,7 +143,7 @@ export class mat4 {
         out[14] = m32;
         out[15] = m33;
         return out;
-    };
+    }
 
     /**
      * Set the components of a mat4 to the given values
@@ -185,8 +185,7 @@ export class mat4 {
         out[14] = m32;
         out[15] = m33;
         return out;
-    };
-
+    }
 
     /**
      * Set a mat4 to the identity matrix
@@ -212,7 +211,7 @@ export class mat4 {
         out[14] = 0;
         out[15] = 1;
         return out;
-    };
+    }
 
     /**
      * Transpose the values of a mat4 not using SIMD
@@ -224,7 +223,7 @@ export class mat4 {
     public static transpose(out: Float32Array, a: Float32Array): Float32Array {
         // If we are transposing ourselves we can skip a few steps but have to cache some values
         if (out === a) {
-            var a01 = a[1], a02 = a[2], a03 = a[3],
+            let a01 = a[1], a02 = a[2], a03 = a[3],
                 a12 = a[6], a13 = a[7],
                 a23 = a[11];
 
@@ -260,9 +259,8 @@ export class mat4 {
         }
 
         return out;
-    };
+    }
 
-  
     /**
      * Inverts a mat4 not using SIMD
      *
@@ -271,7 +269,7 @@ export class mat4 {
      * @returns {mat4} out
      */
     public static invert(out: Float32Array, a: Float32Array): Float32Array{
-        var a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3],
+        let a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3],
             a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7],
             a20 = a[8], a21 = a[9], a22 = a[10], a23 = a[11],
             a30 = a[12], a31 = a[13], a32 = a[14], a33 = a[15],
@@ -315,9 +313,8 @@ export class mat4 {
         out[15] = (a20 * b03 - a21 * b01 + a22 * b00) * det;
 
         return out;
-    };
+    }
 
-    
     /**
      * Calculates the adjugate of a mat4 not using SIMD
      *
@@ -326,7 +323,7 @@ export class mat4 {
      * @returns {mat4} out
      */
     public static adjoint(out: Float32Array, a: Float32Array): Float32Array {
-        var a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3],
+        let a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3],
             a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7],
             a20 = a[8], a21 = a[9], a22 = a[10], a23 = a[11],
             a30 = a[12], a31 = a[13], a32 = a[14], a33 = a[15];
@@ -348,8 +345,8 @@ export class mat4 {
         out[14] = -(a00 * (a11 * a32 - a12 * a31) - a10 * (a01 * a32 - a02 * a31) + a30 * (a01 * a12 - a02 * a11));
         out[15] = (a00 * (a11 * a22 - a12 * a21) - a10 * (a01 * a22 - a02 * a21) + a20 * (a01 * a12 - a02 * a11));
         return out;
-    };
-    
+    }
+
     /**
      * Calculates the determinant of a mat4
      *
@@ -357,7 +354,7 @@ export class mat4 {
      * @returns {Number} determinant of a
      */
     public static determinant(a: Float32Array): number {
-        var a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3],
+        let a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3],
             a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7],
             a20 = a[8], a21 = a[9], a22 = a[10], a23 = a[11],
             a30 = a[12], a31 = a[13], a32 = a[14], a33 = a[15],
@@ -377,8 +374,7 @@ export class mat4 {
 
         // Calculate the determinant
         return b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
-    };
-    
+    }
 
     /**
      * Multiplies two mat4's explicitly not using SIMD
@@ -389,13 +385,13 @@ export class mat4 {
      * @returns {mat4} out
      */
     public static multiply(out: Float32Array, a: Float32Array, b: Float32Array): Float32Array {
-        var a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3],
+        let a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3],
             a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7],
             a20 = a[8], a21 = a[9], a22 = a[10], a23 = a[11],
             a30 = a[12], a31 = a[13], a32 = a[14], a33 = a[15];
 
         // Cache only the current line of the second matrix
-        var b0 = b[0], b1 = b[1], b2 = b[2], b3 = b[3];
+        let b0 = b[0], b1 = b[1], b2 = b[2], b3 = b[3];
         out[0] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
         out[1] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
         out[2] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
@@ -419,8 +415,8 @@ export class mat4 {
         out[14] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
         out[15] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
         return out;
-    };
-    
+    }
+
     /**
      * Alias for {@link mat4.multiply}
      * @function
@@ -436,7 +432,7 @@ export class mat4 {
      * @returns {mat4} out
      */
     public static translate(out: Float32Array, a: Float32Array, v: vec3 | number[]) {
-        var x = v[0], y = v[1], z = v[2],
+        let x = v[0], y = v[1], z = v[2],
             a00, a01, a02, a03,
             a10, a11, a12, a13,
             a20, a21, a22, a23;
@@ -462,8 +458,8 @@ export class mat4 {
         }
 
         return out;
-    };
-    
+    }
+
     /**
      * Scales the mat4 by the dimensions in the given vec3 not using vectorization
      *
@@ -473,7 +469,7 @@ export class mat4 {
      * @returns {mat4} out
      **/
     public static scale(out: Float32Array, a: Float32Array, v: vec3): Float32Array {
-        var x = v[0], y = v[1], z = v[2];
+        let x = v[0], y = v[1], z = v[2];
 
         out[0] = a[0] * x;
         out[1] = a[1] * x;
@@ -492,9 +488,8 @@ export class mat4 {
         out[14] = a[14];
         out[15] = a[15];
         return out;
-    };
+    }
 
-    
     /**
      * Rotates a mat4 by the given angle around the given axis
      *
@@ -505,7 +500,7 @@ export class mat4 {
      * @returns {mat4} out
      */
     public static rotate(out: Float32Array, a: Float32Array, rad: number, axis: vec3 | number[]): Float32Array {
-        var x = axis[0], y = axis[1], z = axis[2],
+        let x = axis[0], y = axis[1], z = axis[2],
             len = Math.sqrt(x * x + y * y + z * z),
             s, c, t,
             a00, a01, a02, a03,
@@ -556,7 +551,7 @@ export class mat4 {
             out[15] = a[15];
         }
         return out;
-    };
+    }
 
     /**
      * Rotates a matrix by the given angle around the X axis not using SIMD
@@ -567,7 +562,7 @@ export class mat4 {
      * @returns {mat4} out
      */
     public static rotateX(out: Float32Array, a: Float32Array, rad: number): Float32Array {
-        var s = Math.sin(rad),
+        let s = Math.sin(rad),
             c = Math.cos(rad),
             a10 = a[4],
             a11 = a[5],
@@ -599,9 +594,8 @@ export class mat4 {
         out[10] = a22 * c - a12 * s;
         out[11] = a23 * c - a13 * s;
         return out;
-    };
+    }
 
-   
     /**
      * Rotates a matrix by the given angle around the Y axis not using SIMD
      *
@@ -611,7 +605,7 @@ export class mat4 {
      * @returns {mat4} out
      */
     public static rotateY(out: Float32Array, a: Float32Array, rad: number): Float32Array {
-        var s = Math.sin(rad),
+        let s = Math.sin(rad),
             c = Math.cos(rad),
             a00 = a[0],
             a01 = a[1],
@@ -643,9 +637,8 @@ export class mat4 {
         out[10] = a02 * s + a22 * c;
         out[11] = a03 * s + a23 * c;
         return out;
-    };
+    }
 
-   
     /**
      * Rotates a matrix by the given angle around the Z axis not using SIMD
      *
@@ -655,7 +648,7 @@ export class mat4 {
      * @returns {mat4} out
      */
     public static rotateZ(out: Float32Array, a: Float32Array, rad: number): Float32Array {
-        var s = Math.sin(rad),
+        let s = Math.sin(rad),
             c = Math.cos(rad),
             a00 = a[0],
             a01 = a[1],
@@ -687,8 +680,8 @@ export class mat4 {
         out[6] = a12 * c - a02 * s;
         out[7] = a13 * c - a03 * s;
         return out;
-    };
-    
+    }
+
     /**
      * Creates a matrix from a vector translation
      * This is equivalent to (but much faster than):
@@ -764,7 +757,7 @@ export class mat4 {
      * @returns {mat4} out
      */
     public static fromRotation(out: Float32Array, rad: number, axis: vec3): Float32Array {
-        var x = axis[0], y = axis[1], z = axis[2],
+        let x = axis[0], y = axis[1], z = axis[2],
             len = Math.sqrt(x * x + y * y + z * z),
             s, c, t;
 
@@ -811,7 +804,7 @@ export class mat4 {
      * @returns {mat4} out
      */
     public static fromXRotation(out: Float32Array, rad: number): Float32Array {
-        var s = Math.sin(rad),
+        let s = Math.sin(rad),
             c = Math.cos(rad);
 
         // Perform axis-specific matrix multiplication
@@ -846,7 +839,7 @@ export class mat4 {
      * @returns {mat4} out
      */
     public static fromYRotation(out: Float32Array, rad: number): Float32Array {
-        var s = Math.sin(rad),
+        let s = Math.sin(rad),
             c = Math.cos(rad);
 
         // Perform axis-specific matrix multiplication
@@ -881,7 +874,7 @@ export class mat4 {
      * @returns {mat4} out
      */
     public static fromZRotation(out: Float32Array, rad: number): Float32Array {
-        var s = Math.sin(rad),
+        let s = Math.sin(rad),
             c = Math.cos(rad);
 
         // Perform axis-specific matrix multiplication
@@ -921,7 +914,7 @@ export class mat4 {
      */
     public static fromRotationTranslation(out: Float32Array, q: quat, v: vec3): Float32Array {
         // Quaternion math
-        var x = q[0], y = q[1], z = q[2], w = q[3],
+        let x = q[0], y = q[1], z = q[2], w = q[3],
             x2 = x + x,
             y2 = y + y,
             z2 = z + z,
@@ -954,7 +947,7 @@ export class mat4 {
         out[15] = 1;
 
         return out;
-    };
+    }
 
     /**
      * Returns the translation vector component of a transformation
@@ -971,12 +964,12 @@ export class mat4 {
         out[2] = mat[14];
 
         return out;
-    };
+    }
 
     /**
      * Returns the scaling factor component of a transformation
      *  matrix. If a matrix is built with fromRotationTranslationScale
-     *  with a normalized Quaternion paramter, the returned vector will be 
+     *  with a normalized Quaternion paramter, the returned vector will be
      *  the same as the scaling vector
      *  originally supplied.
      * @param  {vec3} out Vector to receive scaling factor component
@@ -984,7 +977,7 @@ export class mat4 {
      * @return {vec3} out
      */
     public static getScaling(out: vec3, mat: Float32Array): vec3 {
-        var m11 = mat[0],
+        let m11 = mat[0],
             m12 = mat[1],
             m13 = mat[2],
             m21 = mat[4],
@@ -999,7 +992,7 @@ export class mat4 {
         out[2] = Math.sqrt(m31 * m31 + m32 * m32 + m33 * m33);
 
         return out;
-    };
+    }
 
     /**
      * Returns a quaternion representing the rotational component
@@ -1012,8 +1005,8 @@ export class mat4 {
      */
     public static getRotation(out: quat, mat: Float32Array): quat {
         // Algorithm taken from http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
-        var trace = mat[0] + mat[5] + mat[10];
-        var S = 0;
+        let trace = mat[0] + mat[5] + mat[10];
+        let S = 0;
 
         if (trace > 0) {
             S = Math.sqrt(trace + 1.0) * 2;
@@ -1042,7 +1035,7 @@ export class mat4 {
         }
 
         return out;
-    };
+    }
 
     /**
      * Creates a matrix from a quaternion rotation, vector translation and vector scale
@@ -1063,7 +1056,7 @@ export class mat4 {
      */
     public static fromRotationTranslationScale(out: Float32Array, q: quat, v: vec3, s: vec3): Float32Array {
         // Quaternion math
-        var x = q[0], y = q[1], z = q[2], w = q[3],
+        let x = q[0], y = q[1], z = q[2], w = q[3],
             x2 = x + x,
             y2 = y + y,
             z2 = z + z,
@@ -1099,7 +1092,7 @@ export class mat4 {
         out[15] = 1;
 
         return out;
-    };
+    }
 
     /**
      * Creates a matrix from a quaternion rotation, vector translation and vector scale, rotating and scaling around the given origin
@@ -1123,7 +1116,7 @@ export class mat4 {
      */
     public static fromRotationTranslationScaleOrigin(out: Float32Array, q: quat, v: vec3, s: vec3, o: vec3): Float32Array {
         // Quaternion math
-        var x = q[0], y = q[1], z = q[2], w = q[3],
+        let x = q[0], y = q[1], z = q[2], w = q[3],
             x2 = x + x,
             y2 = y + y,
             z2 = z + z,
@@ -1164,7 +1157,7 @@ export class mat4 {
         out[15] = 1;
 
         return out;
-    };
+    }
 
     /**
      * Calculates a 4x4 matrix from the given quaternion
@@ -1175,7 +1168,7 @@ export class mat4 {
      * @returns {mat4} out
      */
     public static fromQuat(out: Float32Array, q: quat): Float32Array {
-        var x = q[0], y = q[1], z = q[2], w = q[3],
+        let x = q[0], y = q[1], z = q[2], w = q[3],
             x2 = x + x,
             y2 = y + y,
             z2 = z + z,
@@ -1211,7 +1204,7 @@ export class mat4 {
         out[15] = 1;
 
         return out;
-    };
+    }
 
     /**
      * Generates a frustum matrix with the given bounds
@@ -1226,7 +1219,7 @@ export class mat4 {
      * @returns {mat4} out
      */
     public static frustum(out: Float32Array, left: number, right: number, bottom: number, top: number, near: number, far: number): Float32Array {
-        var rl = 1 / (right - left),
+        let rl = 1 / (right - left),
             tb = 1 / (top - bottom),
             nf = 1 / (near - far);
         out[0] = (near * 2) * rl;
@@ -1246,7 +1239,7 @@ export class mat4 {
         out[14] = (far * near * 2) * nf;
         out[15] = 0;
         return out;
-    };
+    }
 
     /**
      * Generates a perspective projection matrix with the given bounds
@@ -1259,7 +1252,7 @@ export class mat4 {
      * @returns {mat4} out
      */
     public static perspective(out: Float32Array, fovy: number, aspect: number, near: number, far: number): Float32Array {
-        var f = 1.0 / Math.tan(fovy / 2),
+        let f = 1.0 / Math.tan(fovy / 2),
             nf = 1 / (near - far);
         out[0] = f / aspect;
         out[1] = 0;
@@ -1278,7 +1271,7 @@ export class mat4 {
         out[14] = (2 * far * near) * nf;
         out[15] = 0;
         return out;
-    };
+    }
 
     /**
      * Generates a perspective projection matrix with the given field of view.
@@ -1292,7 +1285,7 @@ export class mat4 {
      * @returns {mat4} out
      */
     public static perspectiveFromFieldOfView(out: Float32Array, fov: { upDegrees: number, downDegrees: number, leftDegrees: number, rightDegrees: number }, near: number, far: number): Float32Array {
-        var upTan = Math.tan(fov.upDegrees * Math.PI / 180.0),
+        let upTan = Math.tan(fov.upDegrees * Math.PI / 180.0),
             downTan = Math.tan(fov.downDegrees * Math.PI / 180.0),
             leftTan = Math.tan(fov.leftDegrees * Math.PI / 180.0),
             rightTan = Math.tan(fov.rightDegrees * Math.PI / 180.0),
@@ -1331,7 +1324,7 @@ export class mat4 {
      * @returns {mat4} out
      */
     public static ortho(out: Float32Array, left: number, right: number, bottom: number, top: number, near: number, far: number): Float32Array {
-        var lr = 1 / (left - right),
+        let lr = 1 / (left - right),
             bt = 1 / (bottom - top),
             nf = 1 / (near - far);
         out[0] = -2 * lr;
@@ -1351,7 +1344,7 @@ export class mat4 {
         out[14] = (far + near) * nf;
         out[15] = 1;
         return out;
-    };
+    }
 
     /**
      * Generates a look-at matrix with the given eye position, focal point, and up axis
@@ -1363,7 +1356,7 @@ export class mat4 {
      * @returns {mat4} out
      */
     public static lookAt(out: Float32Array, eye: vec3 | number[], center: vec3 | number[], up: vec3 | number[]): Float32Array {
-        var x0, x1, x2, y0, y1, y2, z0, z1, z2, len,
+        let x0, x1, x2, y0, y1, y2, z0, z1, z2, len,
             eyex = eye[0],
             eyey = eye[1],
             eyez = eye[2],
@@ -1438,7 +1431,7 @@ export class mat4 {
         out[15] = 1;
 
         return out;
-    };
+    }
 
     /**
      * Returns a string representation of a mat4
@@ -1447,11 +1440,11 @@ export class mat4 {
      * @returns {String} string representation of the matrix
      */
     public static str(a: Float32Array): string {
-        return 'mat4(' + a[0] + ', ' + a[1] + ', ' + a[2] + ', ' + a[3] + ', ' +
-            a[4] + ', ' + a[5] + ', ' + a[6] + ', ' + a[7] + ', ' +
-            a[8] + ', ' + a[9] + ', ' + a[10] + ', ' + a[11] + ', ' +
-            a[12] + ', ' + a[13] + ', ' + a[14] + ', ' + a[15] + ')';
-    };
+        return "mat4(" + a[0] + ", " + a[1] + ", " + a[2] + ", " + a[3] + ", " +
+            a[4] + ", " + a[5] + ", " + a[6] + ", " + a[7] + ", " +
+            a[8] + ", " + a[9] + ", " + a[10] + ", " + a[11] + ", " +
+            a[12] + ", " + a[13] + ", " + a[14] + ", " + a[15] + ")";
+    }
 
     /**
      * Returns Frobenius norm of a mat4
@@ -1460,8 +1453,8 @@ export class mat4 {
      * @returns {Number} Frobenius norm
      */
     public static frob(a: Float32Array): number {
-        return (Math.sqrt(Math.pow(a[0], 2) + Math.pow(a[1], 2) + Math.pow(a[2], 2) + Math.pow(a[3], 2) + Math.pow(a[4], 2) + Math.pow(a[5], 2) + Math.pow(a[6], 2) + Math.pow(a[7], 2) + Math.pow(a[8], 2) + Math.pow(a[9], 2) + Math.pow(a[10], 2) + Math.pow(a[11], 2) + Math.pow(a[12], 2) + Math.pow(a[13], 2) + Math.pow(a[14], 2) + Math.pow(a[15], 2)))
-    };
+        return (Math.sqrt(Math.pow(a[0], 2) + Math.pow(a[1], 2) + Math.pow(a[2], 2) + Math.pow(a[3], 2) + Math.pow(a[4], 2) + Math.pow(a[5], 2) + Math.pow(a[6], 2) + Math.pow(a[7], 2) + Math.pow(a[8], 2) + Math.pow(a[9], 2) + Math.pow(a[10], 2) + Math.pow(a[11], 2) + Math.pow(a[12], 2) + Math.pow(a[13], 2) + Math.pow(a[14], 2) + Math.pow(a[15], 2)));
+    }
 
     /**
      * Adds two mat4's
@@ -1489,7 +1482,7 @@ export class mat4 {
         out[14] = a[14] + b[14];
         out[15] = a[15] + b[15];
         return out;
-    };
+    }
 
     /**
      * Subtracts matrix b from matrix a
@@ -1517,7 +1510,7 @@ export class mat4 {
         out[14] = a[14] - b[14];
         out[15] = a[15] - b[15];
         return out;
-    };
+    }
 
     /**
      * Alias for {@link mat4.subtract}
@@ -1551,7 +1544,7 @@ export class mat4 {
         out[14] = a[14] * b;
         out[15] = a[15] * b;
         return out;
-    };
+    }
 
     /**
      * Adds two mat4's after multiplying each element of the second operand by a scalar value.
@@ -1580,7 +1573,7 @@ export class mat4 {
         out[14] = a[14] + (b[14] * scale);
         out[15] = a[15] + (b[15] * scale);
         return out;
-    };
+    }
 
     /**
      * Returns whether or not the matrices have exactly the same elements in the same position (when compared with ===)
@@ -1594,7 +1587,7 @@ export class mat4 {
             a[4] === b[4] && a[5] === b[5] && a[6] === b[6] && a[7] === b[7] &&
             a[8] === b[8] && a[9] === b[9] && a[10] === b[10] && a[11] === b[11] &&
             a[12] === b[12] && a[13] === b[13] && a[14] === b[14] && a[15] === b[15];
-    };
+    }
 
     /**
      * Returns whether or not the matrices have approximately the same elements in the same position.
@@ -1604,12 +1597,12 @@ export class mat4 {
      * @returns {Boolean} True if the matrices are equal, false otherwise.
      */
     public static equals(a: Float32Array, b: Float32Array): boolean {
-        var a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3],
+        let a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3],
             a4 = a[4], a5 = a[5], a6 = a[6], a7 = a[7],
             a8 = a[8], a9 = a[9], a10 = a[10], a11 = a[11],
             a12 = a[12], a13 = a[13], a14 = a[14], a15 = a[15];
 
-        var b0 = b[0], b1 = b[1], b2 = b[2], b3 = b[3],
+        let b0 = b[0], b1 = b[1], b2 = b[2], b3 = b[3],
             b4 = b[4], b5 = b[5], b6 = b[6], b7 = b[7],
             b8 = b[8], b9 = b[9], b10 = b[10], b11 = b[11],
             b12 = b[12], b13 = b[13], b14 = b[14], b15 = b[15];
@@ -1630,5 +1623,5 @@ export class mat4 {
             Math.abs(a13 - b13) <= glMatrix.EPSILON * Math.max(1.0, Math.abs(a13), Math.abs(b13)) &&
             Math.abs(a14 - b14) <= glMatrix.EPSILON * Math.max(1.0, Math.abs(a14), Math.abs(b14)) &&
             Math.abs(a15 - b15) <= glMatrix.EPSILON * Math.max(1.0, Math.abs(a15), Math.abs(b15)));
-    };
+    }
 }

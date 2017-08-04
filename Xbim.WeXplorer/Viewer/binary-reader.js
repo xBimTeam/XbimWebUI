@@ -28,72 +28,75 @@ var BinaryReader = (function () {
      */
     BinaryReader.prototype.getSubReader = function (length) {
         var reader = new BinaryReader();
-        //get slice of the data
+        // get slice of the data
         var data = this._buffer.slice(this._position, this._position + length);
-        //load is synchronous with ArrayBuffer argument
+        // load is synchronous with ArrayBuffer argument
         reader.load(data);
-        //move position after the data island
+        // move position after the data island
         this._position += length;
-        //return new reader
+        // return new reader
         return reader;
     };
     /**
-     * Pass url string, blob, file of byte array to this function to initialize the reader. Only array buffer takes imidiate effect.
-     * Othe sources are loaded asynchronously and you need to use 'onloaded' delegate to use the reader only after it is initialized woth the data.
+     * Pass url string, blob, file of byte array to this function to initialize the reader. Only array buffer takes
+     * imidiate effect. Othe sources are loaded asynchronously and you need to use 'onloaded' delegate to use the
+     * reader only after it is initialized woth the data.
      * @param source URL string of the file or BLOB or File or ArrayBuffer object
      */
     BinaryReader.prototype.load = function (source) {
         this._position = 0;
         var self = this;
-        if (typeof (source) == 'undefined' || source == null)
-            throw 'Source must be defined';
-        if (typeof (source) == 'string') {
-            var xhr;
-            xhr = new XMLHttpRequest();
-            xhr.open("GET", source, true);
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState == 4 && xhr.status == 200) {
-                    var fReader = new FileReader();
-                    fReader.onloadend = function () {
-                        if (fReader.result) {
-                            //set data buffer for next processing
-                            self._buffer = fReader.result;
+        if (typeof (source) === "undefined" || source === null) {
+            throw new Error("Source must be defined");
+        }
+        if (typeof (source) === "string") {
+            var xhr_1;
+            xhr_1 = new XMLHttpRequest();
+            xhr_1.open("GET", source, true);
+            xhr_1.onreadystatechange = function () {
+                if (xhr_1.readyState === 4 && xhr_1.status === 200) {
+                    var fReader_1 = new FileReader();
+                    fReader_1.onloadend = function () {
+                        if (fReader_1.result) {
+                            // set data buffer for next processing
+                            self._buffer = fReader_1.result;
                             self._view = new DataView(self._buffer);
-                            //do predefined processing of the data
+                            // do predefined processing of the data
                             if (self.onloaded) {
                                 self.onloaded(self);
                             }
                         }
                     };
-                    fReader.readAsArrayBuffer(xhr.response);
+                    fReader_1.readAsArrayBuffer(xhr_1.response);
                 }
-                //throw exception as a warning
-                if (xhr.readyState == 4 && xhr.status != 200) {
-                    var msg = 'Failed to fetch binary data from server. Server code: ' +
-                        xhr.status +
-                        '. This might be due to CORS policy of your browser if you run this as a local file.';
-                    if (self.onerror)
+                // throw exception as a warning
+                if (xhr_1.readyState === 4 && xhr_1.status != 200) {
+                    var msg = "Failed to fetch binary data from server. Server code: " +
+                        xhr_1.status +
+                        ". This might be due to CORS policy of your browser if you run this as a local file.";
+                    if (self.onerror) {
                         self.onerror(msg);
+                    }
                     throw msg;
                 }
             };
-            xhr.responseType = 'blob';
-            xhr.send();
+            xhr_1.responseType = "blob";
+            xhr_1.send();
         }
         else if (source instanceof Blob || source instanceof File) {
-            var fReader = new FileReader();
-            fReader.onloadend = function () {
-                if (fReader.result) {
-                    //set data buffer for next processing
-                    self._buffer = fReader.result;
+            var fReader_2 = new FileReader();
+            fReader_2.onloadend = function () {
+                if (fReader_2.result) {
+                    // set data buffer for next processing
+                    self._buffer = fReader_2.result;
                     self._view = new DataView(self._buffer);
-                    //do predefined processing of the data
+                    // do predefined processing of the data
                     if (self.onloaded) {
                         self.onloaded(self);
                     }
                 }
             };
-            fReader.readAsArrayBuffer(source);
+            fReader_2.readAsArrayBuffer(source);
         }
         else if (source instanceof ArrayBuffer) {
             this._buffer = source;
@@ -104,22 +107,24 @@ var BinaryReader = (function () {
         }
     };
     BinaryReader.prototype.seek = function (position) {
-        if (position < 0 || position > this._buffer.byteLength)
-            throw "Position out of range.";
+        if (position < 0 || position > this._buffer.byteLength) {
+            throw new Error("Position out of range.");
+        }
         this._position = position;
     };
     BinaryReader.prototype.isEOF = function () {
-        if (this._position == null)
-            throw "Position is not defined";
-        return this._position == this._buffer.byteLength;
+        if (this._position === null) {
+            throw new Error("Position is not defined");
+        }
+        return this._position === this._buffer.byteLength;
     };
     BinaryReader.prototype.readArray = function (unitSize, count, ctor) {
-        if (count == null)
+        if (count === null) {
             count = 1;
+        }
         var length = unitSize * count;
         var offset = this._position;
         this._position += length;
-        var result;
         return count === 1
             ? new ctor(this._buffer.slice(offset, offset + length))[0]
             : new ctor(this._buffer.slice(offset, offset + length));
@@ -186,31 +191,34 @@ var BinaryReader = (function () {
     };
     //functions for a higher objects like points, colours and matrices
     BinaryReader.prototype.readChar = function (count) {
-        if (count == null)
+        if (count === null) {
             count = 1;
+        }
         var bytes = this.readByteArray(count);
         var result = new Array(count);
-        for (var i in bytes) {
+        for (var i = 0; i < bytes.length; i++) {
             result[i] = String.fromCharCode(bytes[i]);
         }
         return count === 1 ? result[0] : result;
     };
     BinaryReader.prototype.readPoint = function (count) {
-        if (count == null)
+        if (count === null) {
             count = 1;
+        }
         var coords = this.readFloat32Array(count * 3);
         var result = new Array(count);
         for (var i = 0; i < count; i++) {
             var offset = i * 3 * 4;
-            //only create new view on the buffer so that no new memory is allocated
+            // only create new view on the buffer so that no new memory is allocated
             var point = new Float32Array(coords.buffer, offset, 3);
             result[i] = point;
         }
         return count === 1 ? result[0] : result;
     };
     BinaryReader.prototype.readRgba = function (count) {
-        if (count == null)
+        if (count === null) {
             count = 1;
+        }
         var values = this.readByteArray(count * 4);
         var result = new Array(count);
         for (var i = 0; i < count; i++) {
@@ -221,8 +229,9 @@ var BinaryReader = (function () {
         return count === 1 ? result[0] : result;
     };
     BinaryReader.prototype.readPackedNormal = function (count) {
-        if (count == null)
+        if (count === null) {
             count = 1;
+        }
         var values = this.readUint8Array(count * 2);
         var result = new Array(count);
         for (var i = 0; i < count; i++) {
@@ -232,8 +241,9 @@ var BinaryReader = (function () {
         return count === 1 ? result[0] : result;
     };
     BinaryReader.prototype.readMatrix4x4 = function (count) {
-        if (count == null)
+        if (count === null) {
             count = 1;
+        }
         var values = this.readFloat32Array(count * 16);
         var result = new Array(count);
         for (var i = 0; i < count; i++) {
@@ -244,8 +254,9 @@ var BinaryReader = (function () {
         return count === 1 ? result[0] : result;
     };
     BinaryReader.prototype.readMatrix4x4_64 = function (count) {
-        if (count == null)
+        if (count === null) {
             count = 1;
+        }
         var values = this.readFloat64Array(count * 16);
         var result = new Array(count);
         for (var i = 0; i < count; i++) {

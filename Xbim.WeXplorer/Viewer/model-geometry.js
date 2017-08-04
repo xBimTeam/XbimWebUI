@@ -1,25 +1,25 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var binary_reader_1 = require("./binary-reader");
-var triangulated_shape_1 = require("./triangulated-shape");
-var state_1 = require("./state");
 var product_type_1 = require("./product-type");
+var state_1 = require("./state");
+var triangulated_shape_1 = require("./triangulated-shape");
 var ModelGeometry = (function () {
     function ModelGeometry() {
         this.meter = 1000;
         //this will be used to change appearance of the objects
-        //map objects have a format: 
+        //map objects have a format:
         //map = {
         //	productID: int,
         //	type: int,
         //	bBox: Float32Array(6),
         //	spans: [Int32Array([int, int]),Int32Array([int, int]), ...] //spanning indexes defining shapes of product and it's state
         //};
-        this.iVertex = 0;
-        this.iIndexForward = 0;
-        this.iIndexBackward = 0;
-        this.iTransform = 0;
-        this.iMatrix = 0;
+        this._iVertex = 0;
+        this._iIndexForward = 0;
+        this._iIndexBackward = 0;
+        this._iTransform = 0;
+        this._iMatrix = 0;
         this.productMaps = {};
         this._styleMap = new StyleMap();
     }
@@ -28,19 +28,15 @@ var ModelGeometry = (function () {
         var br = binReader;
         var magicNumber = br.readInt32();
         if (magicNumber != 94132117)
-            throw 'Magic number mismatch.';
+            throw new Error("Magic number mismatch.");
         var version = br.readByte();
         var numShapes = br.readInt32();
         var numVertices = br.readInt32();
         var numTriangles = br.readInt32();
         var numMatrices = br.readInt32();
-        ;
         var numProducts = br.readInt32();
-        ;
         var numStyles = br.readInt32();
-        ;
         this.meter = br.readFloat32();
-        ;
         var numRegions = br.readInt16();
         //create target buffers of correct sizes (avoid reallocation of memory, work with native typed arrays)
         this.vertices = new Float32Array(this.square(4, numVertices * 3));
@@ -55,11 +51,11 @@ var ModelGeometry = (function () {
         this.productMaps = {};
         this.regions = new Array(numRegions);
         //initial values for indices for iterations over data
-        this.iVertex = 0;
-        this.iIndexForward = 0;
-        this.iIndexBackward = numTriangles * 3;
-        this.iTransform = 0;
-        this.iMatrix = 0;
+        this._iVertex = 0;
+        this._iIndexForward = 0;
+        this._iIndexBackward = numTriangles * 3;
+        this._iTransform = 0;
+        this._iMatrix = 0;
         for (var i = 0; i < numRegions; i++) {
             var region = new Region();
             region.population = br.readInt32();
@@ -88,7 +84,7 @@ var ModelGeometry = (function () {
                 productID: productLabel,
                 type: prodType,
                 bBox: bBox,
-                spans: []
+                spans: [],
             };
             this.productMaps[productLabel] = map;
         }
@@ -118,20 +114,20 @@ var ModelGeometry = (function () {
             //older versions use less safety and just iterate over in a single loop
             for (var iShape = 0; iShape < numShapes; iShape++) {
                 //reed shape representations
-                var shapes_1 = this.readShape(version);
+                var shapes = this.readShape(version);
                 //read shape geometry
                 var geometry = new triangulated_shape_1.TriangulatedShape();
                 geometry.parse(br);
                 //feed data arays
-                this.feedDataArrays(shapes_1, geometry);
+                this.feedDataArrays(shapes, geometry);
             }
         }
         //binary reader should be at the end by now
         if (!br.isEOF()) {
-            throw new Error('Binary reader is not at the end of the file.');
+            throw new Error("Binary reader is not at the end of the file.");
         }
         //set value of transparent index divider for two phase rendering (simplified ordering)
-        this.transparentIndex = this.iIndexForward;
+        this.transparentIndex = this._iIndexForward;
     };
     /**
      * Get size of arrays to be square (usable for texture data)
@@ -139,7 +135,7 @@ var ModelGeometry = (function () {
      * @param count
      */
     ModelGeometry.prototype.square = function (arity, count) {
-        if (typeof (arity) == 'undefined' || typeof (count) == 'undefined') {
+        if (typeof (arity) == "undefined" || typeof (count) == "undefined") {
             throw new Error('Wrong arguments for "square" function.');
         }
         if (count == 0)
@@ -160,10 +156,10 @@ var ModelGeometry = (function () {
             var iIndex = 0;
             //set iIndex according to transparency either from beginning or at the end
             if (shape.transparent) {
-                iIndex = _this.iIndexBackward - geometry.indices.length;
+                iIndex = _this._iIndexBackward - geometry.indices.length;
             }
             else {
-                iIndex = _this.iIndexForward;
+                iIndex = _this._iIndexForward;
             }
             var begin = iIndex;
             var map = _this.productMaps[shape.pLabel];
@@ -173,18 +169,18 @@ var ModelGeometry = (function () {
                     productID: 0,
                     type: product_type_1.ProductType.IFCOPENINGELEMENT,
                     bBox: new Float32Array(6),
-                    spans: []
+                    spans: [],
                 };
                 _this.productMaps[shape.pLabel] = map;
             }
             _this.normals.set(geometry.normals, iIndex * 2);
-            //switch spaces and openings off by default 
+            //switch spaces and openings off by default
             var state = map.type == product_type_1.ProductType.IFCSPACE || map.type == product_type_1.ProductType.IFCOPENINGELEMENT
                 ? state_1.State.HIDDEN
                 : 0xFF; //0xFF is for the default state
             //fix indices to right absolute position. It is relative to the shape.
             for (var i = 0; i < geometry.indices.length; i++) {
-                _this.indices[iIndex] = geometry.indices[i] + _this.iVertex / 3;
+                _this.indices[iIndex] = geometry.indices[i] + _this._iVertex / 3;
                 _this.products[iIndex] = shape.pLabel;
                 _this.styleIndices[iIndex] = shape.style;
                 _this.transformations[iIndex] = shape.transform; //shape.pLabel == 33698 || shape.pLabel == 33815 ? -1 : shape.transform;
@@ -195,14 +191,14 @@ var ModelGeometry = (function () {
             var end = iIndex;
             map.spans.push(new Int32Array([begin, end]));
             if (shape.transparent)
-                _this.iIndexBackward -= geometry.indices.length;
+                _this._iIndexBackward -= geometry.indices.length;
             else
-                _this.iIndexForward += geometry.indices.length;
+                _this._iIndexForward += geometry.indices.length;
         }, this);
         //copy geometry and keep track of amount so that we can fix indices to right position
         //this must be the last step to have correct iVertex number above
-        this.vertices.set(geometry.vertices, this.iVertex);
-        this.iVertex += geometry.vertices.length;
+        this.vertices.set(geometry.vertices, this._iVertex);
+        this._iVertex += geometry.vertices.length;
     };
     ModelGeometry.prototype.readShape = function (version) {
         var br = this._reader;
@@ -217,8 +213,8 @@ var ModelGeometry = (function () {
             if (repetition > 1) {
                 //version 1 had lower precission of transformation matrices
                 transformation = version === 1 ? br.readFloat32Array(16) : br.readFloat64Array(16);
-                this.matrices.set(transformation, this.iMatrix);
-                this.iMatrix += 16;
+                this.matrices.set(transformation, this._iMatrix);
+                this._iMatrix += 16;
             }
             var styleItem = this._styleMap.GetStyle(styleId);
             if (styleItem === null)
@@ -228,7 +224,7 @@ var ModelGeometry = (function () {
                 iLabel: instanceLabel,
                 style: styleItem.index,
                 transparent: styleItem.transparent,
-                transform: transformation != null ? this.iTransform++ : -1
+                transform: transformation != null ? this._iTransform++ : -1,
             });
         }
         return shapeList;

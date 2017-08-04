@@ -1,29 +1,28 @@
-﻿import { IPlugin, Viewer } from "../../viewer";
+﻿ import { mat3 } from "../../matrix/mat3";
+import { mat4 } from "../../matrix/mat4";
+import { vec3 } from "../../matrix/vec3";
+import { IPlugin, Viewer } from "../../viewer";
 import { CubeShaders } from "./navigation-cube-shaders";
 import { CubeTextures } from "./navigation-cube-textures";
-import { mat4 } from "../../matrix/mat4";
-import { mat3 } from "../../matrix/mat3";
-import { vec3 } from "../../matrix/vec3";
-
 
 export class NavigationCube implements IPlugin {
 
     /**
      * This is constructor of the Navigation Cube plugin for {@link Viewer xBIM Viewer}. It gets optional Image as an argument.
      * The image will be used as a texture of the navigation cube. If you don't specify eny image default one will be used.
-     * Image has to be square and its size has to be power of 2. 
+     * Image has to be square and its size has to be power of 2.
      * @name xNavigationCube
      * @constructor
-     * @classdesc This is a plugin for Viewer which renders interactive navigation cube. It is customizable in terms of alpha 
+     * @classdesc This is a plugin for Viewer which renders interactive navigation cube. It is customizable in terms of alpha
      * behaviour and its position on the viewer canvas. Use of plugin:
-     *  
+     *
      *     var cube = new xNavigationCube();
      *     viewer.addPlugin(cube);
-     * 
+     *
      * You can specify your own texture of the cube as an [Image](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/Image)
      * object argumen in constructor. If you don't specify any image default texture will be used (you can also use this one and enhance it if you want):
-     * 
-     * ![Cube texture](cube_texture.png) 
+     *
+     * ![Cube texture](cube_texture.png)
      *
      * @param {Image} [image = null] - optional image to be used for a cube texture.
     */
@@ -68,36 +67,36 @@ export class NavigationCube implements IPlugin {
     private _region: number[];
 
     /**
-    * Size of the cube relative to the size of viewer canvas. This has to be a positive number between [0,1] Default value is 0.15. 
+    * Size of the cube relative to the size of viewer canvas. This has to be a positive number between [0,1] Default value is 0.15.
     * @member {Number} xNavigationCube#ratio
     */
     public ratio = 0.15;
     /**
-    * Active parts of the navigation cube are highlighted so that user can recognize which part is active. 
+    * Active parts of the navigation cube are highlighted so that user can recognize which part is active.
     * This should be a positive number between [0,2]. If the value is less than 1 active area is darker.
-    * If the value is greater than 1 active area is lighter. Default value is 1.2. 
+    * If the value is greater than 1 active area is lighter. Default value is 1.2.
     * @member {Number} xNavigationCube#highlighting
     */
     public highlighting = 1.2;
 
     /**
     * Navigation cube has two transparency states. One is when user hovers over the cube and the second when the cursor is anywhere else.
-    * This is for the hovering shate and it should be a positive number between [0,1]. If the value is less than 1 cube will be semitransparent 
-    * when user hovers over. Default value is 1.0. 
+    * This is for the hovering shate and it should be a positive number between [0,1]. If the value is less than 1 cube will be semitransparent
+    * when user hovers over. Default value is 1.0.
     * @member {Number} xNavigationCube#activeAlpha
     */
     public activeAlpha = 1.0;
 
     /**
     * Navigation cube has two transparency states. One is when user hovers over the cube and the second when the cursor is anywhere else.
-    * This is for the non-hovering shate and it should be a positive number between [0,1]. If the value is less than 1 cube will be semitransparent 
-    * when user is not hovering over. Default value is 0.3. 
+    * This is for the non-hovering shate and it should be a positive number between [0,1]. If the value is less than 1 cube will be semitransparent
+    * when user is not hovering over. Default value is 0.3.
     * @member {Number} xNavigationCube#passiveAlpha
     */
     public passiveAlpha = 0.7;
 
     /**
-    * It is possible to place navigation cube to any of the corners of the canvas using this property. Default value is cube.BOTTOM_RIGHT. 
+    * It is possible to place navigation cube to any of the corners of the canvas using this property. Default value is cube.BOTTOM_RIGHT.
     * Allowed values are cube.BOTTOM_RIGHT, cube.BOTTOM_LEFT, cube.TOP_RIGHT and cube.TOP_LEFT.
     * @member {Enum} xNavigationCube#position
     */
@@ -132,11 +131,11 @@ export class NavigationCube implements IPlugin {
     private _originalNavigation: any;
 
     public init(viewer: Viewer) {
-        var self = this;
+        let self = this;
         this.viewer = viewer;
-        var gl = this.viewer.gl;
+        const gl = this.viewer.gl;
 
-        //create own shader 
+        //create own shader
         this._shader = null;
         this._initShader();
 
@@ -178,15 +177,14 @@ export class NavigationCube implements IPlugin {
         gl.bufferData(gl.ARRAY_BUFFER, this.ids, gl.STATIC_DRAW);
 
         //create texture
-        var self = this;
         this._texture = gl.createTexture();
         if (typeof (this._image) === "undefined") {
             //add HTML UI to viewer port
-            var data = CubeTextures.en;
-            var image = new Image();
+            const data = CubeTextures.en;
+            const image = new Image();
             self._image = image;
             image.addEventListener("load",
-                function () {
+                function() {
                     //load image texture into GPU
                     gl.bindTexture(gl.TEXTURE_2D, self._texture);
                     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
@@ -206,29 +204,28 @@ export class NavigationCube implements IPlugin {
             gl.generateMipmap(gl.TEXTURE_2D);
         }
 
-
-        //reset original shader program 
+        //reset original shader program
         gl.useProgram(this.viewer._shaderProgram);
 
-        viewer._canvas.addEventListener('mousemove',
-            function (event) {
-                var startX = event.clientX;
-                var startY = event.clientY;
+        viewer._canvas.addEventListener("mousemove",
+            function(event) {
+                const startX = event.clientX;
+                const startY = event.clientY;
 
                 //get coordinates within canvas (with the right orientation)
-                var r = viewer._canvas.getBoundingClientRect();
-                var x = startX - r.left;
-                var y = viewer._height - (startY - r.top);
+                const r = viewer._canvas.getBoundingClientRect();
+                const x = startX - r.left;
+                const y = viewer._height - (startY - r.top);
 
                 //cube hasn't been drawn yet
                 if (!self._region) {
                     return;
                 }
 
-                let minX = self._region[0] * viewer._width;
-                let maxX = self._region[2] * viewer._width;
-                let minY = self._region[1] * viewer._height;
-                let maxY = self._region[3] * viewer._height;
+                const minX = self._region[0] * viewer._width;
+                const maxX = self._region[2] * viewer._width;
+                const minY = self._region[1] * viewer._height;
+                const maxY = self._region[3] * viewer._height;
 
                 if (x < minX || x > maxX || y < minY || y > maxY) {
                     self._alpha = self.passiveAlpha;
@@ -237,7 +234,7 @@ export class NavigationCube implements IPlugin {
                 }
 
                 //this is for picking
-                var id = viewer.getID(x, y);
+                const id = viewer.getID(x, y);
 
                 if (id >= self.TOP && id <= self.BACK_LEFT) {
                     self._alpha = self.activeAlpha;
@@ -251,18 +248,18 @@ export class NavigationCube implements IPlugin {
 
         self._drag = false;
 
-        viewer._canvas.addEventListener('mousedown',
-            function (event) {
-                var startX = event.clientX;
-                var startY = event.clientY;
+        viewer._canvas.addEventListener("mousedown",
+            function(event) {
+                const startX = event.clientX;
+                const startY = event.clientY;
 
                 //get coordinates within canvas (with the right orientation)
-                var r = viewer._canvas.getBoundingClientRect();
-                var viewX = startX - r.left;
-                var viewY = viewer._height - (startY - r.top);
+                const r = viewer._canvas.getBoundingClientRect();
+                const viewX = startX - r.left;
+                const viewY = viewer._height - (startY - r.top);
 
                 //this is for picking
-                var id = viewer.getID(viewX, viewY);
+                const id = viewer.getID(viewX, viewY);
 
                 if (id >= self.TOP && id <= self.BACK_LEFT) {
                     //change viewer navigation mode to be 'orbit'
@@ -273,8 +270,8 @@ export class NavigationCube implements IPlugin {
             },
             true);
 
-        window.addEventListener('mouseup',
-            function (event) {
+        window.addEventListener("mouseup",
+            function(event) {
                 if (self._drag === true) {
                     viewer.navigationMode = self._originalNavigation;
                 }
@@ -291,28 +288,28 @@ export class NavigationCube implements IPlugin {
     onBeforePick(id) {
         if (id >= this.TOP && id <= this.BACK_LEFT) {
 
-            var dir = vec3.create();
-            var distance = this.viewer._distance;
-            var diagonalRatio = 1.3;
+            let dir = vec3.create();
+            let distance = this.viewer._distance;
+            const diagonalRatio = 1.3;
 
             switch (id) {
                 case this.TOP:
-                    this.viewer.show('top');
+                    this.viewer.show("top");
                     return true;
                 case this.BOTTOM:
-                    this.viewer.show('bottom');
+                    this.viewer.show("bottom");
                     return true;
                 case this.LEFT:
-                    this.viewer.show('left');
+                    this.viewer.show("left");
                     return true;
                 case this.RIGHT:
-                    this.viewer.show('right');
+                    this.viewer.show("right");
                     return true;
                 case this.FRONT:
-                    this.viewer.show('front');
+                    this.viewer.show("front");
                     return true;
                 case this.BACK:
-                    this.viewer.show('back');
+                    this.viewer.show("back");
                     return true;
                 case this.TOP_LEFT_FRONT:
                     dir = vec3.fromValues(-1, -1, 1);
@@ -397,13 +394,13 @@ export class NavigationCube implements IPlugin {
                     break;
             }
 
-            var o = this.viewer._origin;
-            var heading = vec3.fromValues(0, 0, 1);
-            var origin = vec3.fromValues(o[0], o[1], o[2]);
+            const o = this.viewer._origin;
+            const heading = vec3.fromValues(0, 0, 1);
+            const origin = vec3.fromValues(o[0], o[1], o[2]);
 
             dir = vec3.normalize(vec3.create(), dir);
-            var shift = vec3.scale(vec3.create(), dir, distance);
-            var camera = vec3.add(vec3.create(), origin, shift);
+            const shift = vec3.scale(vec3.create(), dir, distance);
+            const camera = vec3.add(vec3.create(), origin, shift);
 
             //use look-at function to set up camera and target
             mat4.lookAt(this.viewer.mvMatrix, camera, origin, heading);
@@ -413,7 +410,7 @@ export class NavigationCube implements IPlugin {
     }
 
     onAfterDraw() {
-        var gl = this.setActive();
+        const gl = this.setActive();
         //set uniform for colour coding to false
         gl.uniform1i(this._colourCodingUniformPointer, 0);
         this.draw();
@@ -423,7 +420,7 @@ export class NavigationCube implements IPlugin {
     onBeforeDrawId() { }
 
     onAfterDrawId() {
-        var gl = this.setActive();
+        const gl = this.setActive();
         //set uniform for colour coding to false
         gl.uniform1i(this._colourCodingUniformPointer, 1);
         this.draw();
@@ -434,7 +431,7 @@ export class NavigationCube implements IPlugin {
     onBeforeGetId(id) { return false; }
 
     setActive() {
-        var gl = this.viewer.gl;
+        const gl = this.viewer.gl;
         //set own shader
         gl.useProgram(this._shader);
 
@@ -442,7 +439,7 @@ export class NavigationCube implements IPlugin {
     }
 
     setInactive() {
-        var gl = this.viewer.gl;
+        const gl = this.viewer.gl;
         //set viewer shader
         gl.useProgram(this.viewer._shaderProgram);
     }
@@ -450,15 +447,15 @@ export class NavigationCube implements IPlugin {
     private draw() {
         if (!this._initialized) return;
 
-        var gl = this.viewer.gl;
+        const gl = this.viewer.gl;
 
         //set navigation data from Viewer to this shader
-        var pMatrix = mat4.create();
-        var height = 1.0 / this.ratio;
-        var width = height / this.viewer._height * this.viewer._width;
+        const pMatrix = mat4.create();
+        const height = 1.0 / this.ratio;
+        const width = height / this.viewer._height * this.viewer._width;
 
-        var regionX = this.ratio * this.viewer._height / this.viewer._width * 2.0;
-        var regionY = this.ratio * 2.0;
+        const regionX = this.ratio * this.viewer._height / this.viewer._width * 2.0;
+        const regionY = this.ratio * 2.0;
 
         //create orthogonal projection matrix
         switch (this.position) {
@@ -506,7 +503,7 @@ export class NavigationCube implements IPlugin {
         }
 
         //extract just a rotation from model-view matrix
-        var rotation = mat3.fromMat4(mat3
+        const rotation = mat3.fromMat4(mat3
             .create(),
             this.viewer.mvMatrix);
         gl.uniformMatrix4fv(this._pMatrixUniformPointer, false, pMatrix);
@@ -528,7 +525,7 @@ export class NavigationCube implements IPlugin {
         gl.bindTexture(gl.TEXTURE_2D, this._texture);
         gl.uniform1i(this._textureUniformPointer, 1);
 
-        var cfEnabled = gl.getParameter(gl.CULL_FACE);
+        const cfEnabled = gl.getParameter(gl.CULL_FACE);
         if (!cfEnabled) gl.enable(gl.CULL_FACE);
 
         //draw the cube as an element array
@@ -541,23 +538,23 @@ export class NavigationCube implements IPlugin {
 
     private _initShader(): void {
 
-        var gl = this.viewer.gl;
-        var viewer = this.viewer;
-        var compile = function (shader, code) {
+        const gl = this.viewer.gl;
+        const viewer = this.viewer;
+        const compile = function(shader, code) {
             gl.shaderSource(shader, code);
             gl.compileShader(shader);
             if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
                 viewer.error(gl.getShaderInfoLog(shader));
                 return null;
             }
-        }
+        };
 
         //fragment shader
-        var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+        const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
         compile(fragmentShader, CubeShaders.cube_fshader);
 
         //vertex shader (the more complicated one)
-        var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+        const vertexShader = gl.createShader(gl.VERTEX_SHADER);
         compile(vertexShader, CubeShaders.cube_vshader);
 
         //link program
@@ -567,10 +564,9 @@ export class NavigationCube implements IPlugin {
         gl.linkProgram(this._shader);
 
         if (!gl.getProgramParameter(this._shader, gl.LINK_STATUS)) {
-            viewer.error('Could not initialise shaders for a navigation cube plugin');
+            viewer.error("Could not initialise shaders for a navigation cube plugin");
         }
     }
-
 
     vertices = new Float32Array([
         // Front face
@@ -584,7 +580,6 @@ export class NavigationCube implements IPlugin {
         -0.3, 0.5, 0.3,
         0.3, 0.5, 0.3,
         0.3, 0.5, -0.3,
-
 
         // Top face
         -0.3, -0.3, 0.5,
@@ -843,7 +838,6 @@ export class NavigationCube implements IPlugin {
         -0.5, 0.5, -0.3,
     ]);
 
-
     //// Front face
     //-0.5, -0.5, -0.5,
     // 0.5, -0.5, -0.5,
@@ -888,17 +882,17 @@ export class NavigationCube implements IPlugin {
         16, 17, 18, 16, 18, 19, // Right face
         20, 21, 22, 20, 22, 23, // Left face
 
-        //top - left - front 
+        //top - left - front
         0 + 24, 1 + 24, 2 + 24, 0 + 24, 2 + 24, 3 + 24,
         4 + 24, 5 + 24, 6 + 24, 4 + 24, 6 + 24, 7 + 24,
         8 + 24, 9 + 24, 10 + 24, 8 + 24, 10 + 24, 11 + 24,
 
-        //top-right-front 
+        //top-right-front
         0 + 36, 1 + 36, 2 + 36, 0 + 36, 2 + 36, 3 + 36,
         4 + 36, 5 + 36, 6 + 36, 4 + 36, 6 + 36, 7 + 36,
         8 + 36, 9 + 36, 10 + 36, 8 + 36, 10 + 36, 11 + 36,
 
-        //top-left-back 
+        //top-left-back
         0 + 48, 1 + 48, 2 + 48, 0 + 48, 2 + 48, 3 + 48,
         4 + 48, 5 + 48, 6 + 48, 4 + 48, 6 + 48, 7 + 48,
         8 + 48, 9 + 48, 10 + 48, 8 + 48, 10 + 48, 11 + 48,
@@ -913,12 +907,12 @@ export class NavigationCube implements IPlugin {
         4 + 72, 5 + 72, 6 + 72, 4 + 72, 6 + 72, 7 + 72,
         8 + 72, 9 + 72, 10 + 72, 8 + 72, 10 + 72, 11 + 72,
 
-        //bottom-right-front 
+        //bottom-right-front
         0 + 84, 2 + 84, 1 + 84, 0 + 84, 3 + 84, 2 + 84,
         4 + 84, 5 + 84, 6 + 84, 4 + 84, 6 + 84, 7 + 84,
         8 + 84, 9 + 84, 10 + 84, 8 + 84, 10 + 84, 11 + 84,
 
-        //bottom-left-back 
+        //bottom-left-back
         0 + 96, 2 + 96, 1 + 96, 0 + 96, 3 + 96, 2 + 96,
         4 + 96, 5 + 96, 6 + 96, 4 + 96, 6 + 96, 7 + 96,
         8 + 96, 9 + 96, 10 + 96, 8 + 96, 10 + 96, 11 + 96,
@@ -1027,7 +1021,6 @@ export class NavigationCube implements IPlugin {
         2.0 / 3.0 + 1.0 / 15.0, 1.0 / 3.0 - 1.0 / 15.0,
         2.0 / 3.0 + 1.0 / 15.0, 0.0 / 3.0 + 1.0 / 15.0,
 
-
         // Top face
         2.0 / 3.0 + 1.0 / 15.0, 1.0 / 3.0 + 1.0 / 15.0,
         1.0 - 1.0 / 15.0, 1.0 / 3.0 + 1.0 / 15.0,
@@ -1052,7 +1045,7 @@ export class NavigationCube implements IPlugin {
         1.0 / 3.0 + 1.0 / 15.0, 2.0 / 3.0 - 1.0 / 15.0,
         1.0 / 3.0 + 1.0 / 15.0, 1.0 / 3.0 + 1.0 / 15.0,
 
-        //top - left - front 
+        //top - left - front
         2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
         2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
         2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
@@ -1066,7 +1059,7 @@ export class NavigationCube implements IPlugin {
         1.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
         1.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
 
-        //top-right-front 
+        //top-right-front
         2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
         2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
         2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
@@ -1080,7 +1073,7 @@ export class NavigationCube implements IPlugin {
         1.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
         1.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
 
-        //top-left-back 
+        //top-left-back
         2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
         2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
         2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
@@ -1094,7 +1087,7 @@ export class NavigationCube implements IPlugin {
         2.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
         2.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
 
-        //top-right-back 
+        //top-right-back
         2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
         2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
         2.0 / 3.0 + 1.0 / 30.0, 1.0 / 3.0 + 1.0 / 30.0,
@@ -1108,7 +1101,7 @@ export class NavigationCube implements IPlugin {
         2.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
         2.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
 
-        //bottom - left - front 
+        //bottom - left - front
         1.0 / 30.0, 1.0 / 30.0,
         1.0 / 30.0, 1.0 / 30.0,
         1.0 / 30.0, 1.0 / 30.0,
@@ -1122,7 +1115,7 @@ export class NavigationCube implements IPlugin {
         1.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
         1.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
 
-        //bottom-right-front 
+        //bottom-right-front
         1.0 / 30.0, 1.0 / 30.0,
         1.0 / 30.0, 1.0 / 30.0,
         1.0 / 30.0, 1.0 / 30.0,
@@ -1136,7 +1129,7 @@ export class NavigationCube implements IPlugin {
         1.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
         1.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
 
-        //bottom-left-back 
+        //bottom-left-back
         1.0 / 30.0, 1.0 / 30.0,
         1.0 / 30.0, 1.0 / 30.0,
         1.0 / 30.0, 1.0 / 30.0,
@@ -1150,7 +1143,7 @@ export class NavigationCube implements IPlugin {
         2.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
         2.0 / 3.0 + 1.0 / 30.0, 1.0 / 30.0,
 
-        //bottom-right-back 
+        //bottom-right-back
         1.0 / 30.0, 1.0 / 30.0,
         1.0 / 30.0, 1.0 / 30.0,
         1.0 / 30.0, 1.0 / 30.0,

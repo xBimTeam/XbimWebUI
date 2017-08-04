@@ -8,7 +8,6 @@ var isDevelop = process.env.NODE_ENV === 'development';
 
 var entries = {};
 entries['xbim-viewer'] = './xbim-viewer.ts';
-entries['xbim-browser'] = './xbim-browser.ts';
 entries['xbim-geometry-loader'] = './Viewer/workers/geometry-loader.ts';
 
 var plugins = [];
@@ -31,7 +30,6 @@ module.exports = {
     entry: entries,
     output: {
         path: path.join(__dirname, "Build"),
-        //library: 'Xbim',
         libraryTarget: 'umd',
         sourceMapFilename: isDevelop ? '[name].js.map' : '[name].min.js.map',
         filename: isDevelop ? '[name].js' : '[name].min.js',
