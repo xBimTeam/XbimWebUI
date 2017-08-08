@@ -4,7 +4,14 @@ import { ModelPointers } from "./viewer";
 export declare class ModelHandle {
     private _gl;
     private _model;
+    /**
+     * ID used to manipulate this handle/model
+     */
     id: number;
+    /**
+     * Tag used to identify the model
+     */
+    tag: any;
     /**
     * Conversion factor to one meter from model units
     */

@@ -634,8 +634,10 @@ export class Viewer {
         //helper function for setting of the distance based on camera field of view and size of the product's bounding box
         var setDistance = function (bBox: number[] | Float32Array) {
             let size = Math.sqrt(bBox[3] * bBox[3] + bBox[4] * bBox[4] + bBox[5] * bBox[5]);
-            let ratio = Math.max(viewer.width, viewer.height) / Math.min(viewer.width, viewer.height);
-            //viewer._distance = size / Math.tan(viewer.perspectiveCamera.fov * Math.PI / 180.0) * ratio / 2.0;
+            //set ratio to 1 if the viewer has no size (for example if canvas is not added to DOM yet)
+            let ratio = (viewer.width > 0 && viewer.height > 0) ?
+                Math.max(viewer.width, viewer.height) / Math.min(viewer.width, viewer.height) :
+                1;
             viewer.distance = size / ratio / (Math.tan(viewer.perspectiveCamera.fov * Math.PI / 180.0 / 2.0) * 2.0);
         }
 
@@ -789,6 +791,8 @@ export class Viewer {
         var gl = this.setActive();
 
         var handle = new ModelHandle(viewer.gl, geometry);
+        //assign handle used to identify the model
+        handle.tag = tag;
         viewer._handles.push(handle);
 
         //get one meter size from model and set it to shader

@@ -9,6 +9,10 @@ var ModelHandle = (function () {
         this._gl = _gl;
         this._model = _model;
         /**
+         * Tag used to identify the model
+         */
+        this.tag = null;
+        /**
         * indicates if this model should be used in a rendering loop or not.
         */
         this.stopped = false;

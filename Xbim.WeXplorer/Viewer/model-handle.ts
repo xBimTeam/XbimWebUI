@@ -6,8 +6,15 @@ import { ModelPointers } from "./viewer";
 //make up a model in GPU
 export class ModelHandle {
 
-    //ID used to manipulate this handle
+    /**
+     * ID used to manipulate this handle/model
+     */
     public id: number;
+
+    /**
+     * Tag used to identify the model
+     */
+    public tag: any = null;
 
     /**
     * Conversion factor to one meter from model units
