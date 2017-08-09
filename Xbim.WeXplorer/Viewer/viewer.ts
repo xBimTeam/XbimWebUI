@@ -874,7 +874,9 @@ export class Viewer {
             gl.shaderSource(shader, code);
             gl.compileShader(shader);
             if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-                viewer.error(gl.getShaderInfoLog(shader));
+                const err = gl.getShaderInfoLog(shader);
+                viewer.error(err);
+                console.error(err);
                 return null;
             }
         }

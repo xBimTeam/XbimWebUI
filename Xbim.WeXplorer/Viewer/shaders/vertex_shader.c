@@ -49,7 +49,7 @@ varying vec3 vPosition;
 //state passed to fragment shader
 varying float vDiscard;
 
-vec3 getNormal() {
+vec3 getNormal(mat4 transform) {
 	float U = aNormal[0];
 	float V = aNormal[1];
 	float PI = 3.1415926535897932384626433832795;
@@ -59,8 +59,24 @@ vec3 getNormal() {
 	float x = sin(lon) * sin(lat);
 	float z = cos(lon) * sin(lat);
 	float y = cos(lat);
-	return normalize(vec3(x, y, z));
+	
+	vec3 normal = vec3(x, y, z);
+	if (aTransformationIndex < 0.0) {
+		return normalize(normal);
+	}
+
+	//TODO: this transformation should be normal = n*M<-1T> (using transposed inverse matrix)
+	mat3 normTrans = mat3(transform);
+
+	return normalize(vec3(normTrans * normal));
 }
+
+//mat3 inverse(mat3 m) {
+//	float det = m[0][0] * (m[1][1] * m[2][2] - m[2][1] * m[1][2])
+//		- m[1][0] * (m[0][1] * m[2][2] - m[0][2] * m[2][1])
+//		+ m[2][0] * (m[0][1] * m[1][2] - m[0][2] * m[1][1]);
+//
+//}
 
 vec4 getIdColor() {
 	float product = floor(aProduct + 0.5);
@@ -99,26 +115,33 @@ vec4 getColor() {
 	return texture2D(uStateStyleSampler, coords);
 }
 
-vec3 getVertexPosition() {
+vec3 getVertexPosition(mat4 transform) {
 	int index = int(floor(aVertexIndex + 0.5));
 	vec2 coords = getTextureCoordinates(index, uVertexTextureSize);
 	vec3 point = vec3(texture2D(uVertexSampler, coords));
+
 	if (aTransformationIndex < 0.0) {
 		return point;
+	}
+
+	return vec3(transform * vec4(point, 1.0));
+}
+
+mat4 getTransform() {
+	if (aTransformationIndex < 0.0) {
+		return mat4(1.0);
 	}
 
 	int tIndex = int(floor(aTransformationIndex + 0.5));
 
 	tIndex *= 4;
 	//get transformation matrix 4x4 and transform the point
-	mat4 transform = mat4(
+	return mat4(
 		texture2D(uMatrixSampler, getTextureCoordinates(tIndex, uMatrixTextureSize)),
 		texture2D(uMatrixSampler, getTextureCoordinates(tIndex + 1, uMatrixTextureSize)),
 		texture2D(uMatrixSampler, getTextureCoordinates(tIndex + 2, uMatrixTextureSize)),
 		texture2D(uMatrixSampler, getTextureCoordinates(tIndex + 3, uMatrixTextureSize))
 	);
-
-	return vec3(transform * vec4(point, 1.0));
 }
 
 void main(void) {
@@ -137,8 +160,9 @@ void main(void) {
 	}
 
 	//transform data to simulate camera perspective and position
-	vec3 vertex = getVertexPosition();
-	vec3 normal = getNormal();
+	mat4 transform = getTransform();
+	vec3 vertex = getVertexPosition(transform);
+	vec3 normal = getNormal(transform);
 	vec3 backNormal = normal * -1.0;
 
 	if (uColorCoding) {
