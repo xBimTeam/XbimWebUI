@@ -857,11 +857,10 @@ export class Viewer {
         //remove from the array
         var index = this._handles.indexOf(handle);
         this._handles.splice(index, 1);
-        this._numberOfActiveModels = this._handles.length;
+        this._numberOfActiveModels = this._handles.length; 
 
         //unload and delete
         handle.unload();
-        //delete handle; // TODO -> TS1102 error: delete cannot be called for a variable in strict mode -> is it necessary here / are there any other references left?
     }
 
     //this function should be only called once during initialization

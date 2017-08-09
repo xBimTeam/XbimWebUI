@@ -1,4 +1,4 @@
-﻿/// <binding ProjectOpened='Watch - Development' />
+/// <binding ProjectOpened='Watch - Development, Watch - Production' />
 var webpack = require('webpack');
 var path = require("path");
 var fs = require("fs");

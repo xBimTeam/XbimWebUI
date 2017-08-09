@@ -65,7 +65,10 @@ vec3 getNormal(mat4 transform) {
 		return normalize(normal);
 	}
 
-	//TODO: this transformation should be normal = n*M<-1T> (using transposed inverse matrix)
+	// TODO: this transformation should be normal = n*M<-1T> (using transposed inverse matrix). 
+	// Current implementation will not work correctly for transformations containing scaling.
+	// But GL ES 1.0 doesn't contain built-in functions for these matrix operations and most of
+	// our transformations are just translations and rotations
 	mat3 normTrans = mat3(transform);
 
 	return normalize(vec3(normTrans * normal));
