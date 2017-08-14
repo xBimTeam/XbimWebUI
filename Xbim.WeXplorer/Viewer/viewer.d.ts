@@ -122,26 +122,29 @@ export declare class Viewer {
     *
     * @function Viewer#setState
     * @param {State} state - One of {@link State State} enumeration values.
+    * @param {Number} modelId [optional]- Id of the model
     * @param {Number[] | Number} target - Target of the change. It can either be array of product IDs or product type from {@link xProductType xProductType}.
     */
-    setState(state: State, target: number | number[]): void;
+    setState(state: State, target: number | number[], modelId?: number): void;
+    private forHandleOrAll<T>(callback, modelId);
     /**
     * Use this function to get state of the products in the model. You can compare result of this function
     * with one of values from {@link xState xState} enumeration. 0xFF is the default value.
     *
     * @function Viewer#getState
     * @param {Number} id - Id of the product. You would typically get the id from {@link Viewer#event:pick pick event} or similar event.
+    * @param {Number} modelId [optional]- Id of the model
     */
-    getState(id: number): any;
+    getState(id: number, modelId?: number): number;
     /**
     * Use this function to reset state of all products to 'UNDEFINED' which means visible and not highlighted.
     * You can use optional hideSpaces parameter if you also want to show spaces. They will be hidden by default.
     *
     * @function Viewer#resetStates
     * @param {Bool} [hideSpaces = true] - Default state is UNDEFINED which would also show spaces. That is often not
-    * desired so it can be excluded with this parameter.
+    * @param {Number} [modelId = null] - Optional Model ID. Id no ID is specified states are reset for all models.
     */
-    resetStates(hideSpaces: boolean): void;
+    resetStates(hideSpaces?: boolean, modelId?: number): void;
     /**
      * Gets complete model state and style. Resulting object can be used to restore the state later on.
      *
@@ -163,29 +166,33 @@ export declare class Viewer {
     * @function Viewer#setStyle
     * @param style - style defined in {@link Viewer#defineStyle defineStyle()} method
     * @param {Number[] | Number} target - Target of the change. It can either be array of product IDs or product type from {@link xProductType xProductType}.
+    * @param {Number} modelId [optional] - Optional ID of a specific model.
     */
-    setStyle(style: number, target: number | number[]): void;
+    setStyle(style: number, target: number | number[], modelId?: number): void;
     /**
     * Use this function to get overriding colour style of the products in the model. The number you get is the index of
     * your custom colour which you have defined in {@link Viewer#defineStyle defineStyle()} function. 0xFF is the default value.
     *
     * @function Viewer#getStyle
     * @param {Number} id - Id of the product. You would typically get the id from {@link Viewer#event:pick pick event} or similar event.
+    * @param {Number} modelId [optional] - Optional Model ID. If not defined first style available for a product with certain ID will be returned. This might be ambiguous.
     */
-    getStyle(id: number): any;
+    getStyle(id: number, modelId?: number): void;
     /**
     * Use this function to reset appearance of all products to their default styles.
     *
     * @function Viewer#resetStyles
+    * @param {Number} modelId [optional] - Optional ID of a specific model.
     */
-    resetStyles(): void;
+    resetStyles(modelId?: number): void;
     /**
     *
     * @function Viewer#getProductType
-    * @return {Number} Product type ID. This is either null if no type is identified or one of {@link xProductType type ids}.
     * @param {Number} prodID - Product ID. You can get this value either from semantic structure of the model or by listening to {@link Viewer#event:pick pick} event.
+    * @param {Number} modelId [optional] - Optional Model ID. If not defined first type of a product with certain ID will be returned. This might be ambiguous.
+    * @return {Number} Product type ID. This is either null if no type is identified or one of {@link xProductType type ids}.
     */
-    getProductType(prodId: number): any;
+    getProductType(prodId: number, modelId?: number): number;
     /**
     * Use this method to set position of camera. Use it after {@link Viewer#setCameraTarget setCameraTarget()} to get desired result.
     *
@@ -199,9 +206,10 @@ export declare class Viewer {
     * if you call functions like {@link Viewer.show show()} or {@link Viewer#zoomTo zoomTo()}.
     * @function Viewer#setCameraTarget
     * @param {Number} prodId [optional] Product ID. You can get ID either from semantic structure of the model or from {@link Viewer#event:pick pick event}.
+    * @param {Number} modelId [optional] - Optional ID of a specific model.
     * @return {Bool} True if the target exists and is set, False otherwise
     */
-    setCameraTarget(prodId?: number): boolean;
+    setCameraTarget(prodId?: number, modelId?: number): boolean;
     private getMergedRegion();
     private getBiggestRegion();
     /**
@@ -278,7 +286,7 @@ export declare class Viewer {
     */
     show(type: string): void;
     error(msg: any): void;
-    getID(x: any, y: any): number;
+    getID(x: any, y: any, modelId?: boolean): number;
     /**
     * Use this function to start animation of the model. If you start animation before geometry is loaded it will wait for content to render it.
     * This function is bound to browser framerate of the screen so it will stop consuming any resources if you switch to another tab.

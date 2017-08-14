@@ -98,7 +98,7 @@ export class ModelHandle {
     /**
      * Static counter to keep unique ID of the model handles
      */
-    private static _instancesNum = 0;
+    private static _instancesNum = 1;
 
     //this function sets this model as an active one
     //it needs an argument 'pointers' which contains pointers to

@@ -52,7 +52,7 @@ viewer.show("back");
 viewer.on("pick", function (arg) {
     var span = document.getElementById("coords");
     if (span) {
-        span.innerHTML = arg.id;
+        span.innerHTML = `Product id: ${arg.id}, model: ${arg.model}`;
     }
 });
 viewer.on("mouseDown", function (arg) {

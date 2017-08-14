@@ -353,15 +353,39 @@ var Viewer = (function () {
     *
     * @function Viewer#setState
     * @param {State} state - One of {@link State State} enumeration values.
+    * @param {Number} modelId [optional]- Id of the model
     * @param {Number[] | Number} target - Target of the change. It can either be array of product IDs or product type from {@link xProductType xProductType}.
     */
-    Viewer.prototype.setState = function (state, target) {
-        if (typeof (state) == 'undefined' || !(state >= 225 && state <= 255))
-            throw 'State has to be defined as 225 - 255. Use xState enum.';
-        this._handles.forEach(function (handle) {
-            handle.setState(state, target);
-        });
+    Viewer.prototype.setState = function (state, target, modelId) {
+        if (typeof (state) == 'undefined' || !(state >= 225 && state <= 255)) {
+            throw new Error('State has to be defined as 225 - 255. Use xState enum.');
+        }
+        if (typeof (target) === 'undefined' || target === null) {
+            throw new Error('Target must be defined either as type ID or as a list of product IDs');
+        }
+        this.forHandleOrAll(function (h) { h.setState(state, target); }, modelId);
         this._stylingChanged = true;
+    };
+    Viewer.prototype.forHandleOrAll = function (callback, modelId) {
+        if (typeof (modelId) !== 'undefined') {
+            var handle = this._handles.filter(function (h, i, a) {
+                return h.id === modelId;
+            }).pop();
+            if (!handle) {
+                throw new Error("Model with id '" + modelId + "' doesn't exist.");
+            }
+            return callback(handle);
+        }
+        else {
+            var result_1 = null;
+            this._handles.forEach(function (handle) {
+                var value = callback(handle);
+                if (typeof (value) !== 'undefined') {
+                    result_1 = value;
+                }
+            });
+            return result_1;
+        }
     };
     /**
     * Use this function to get state of the products in the model. You can compare result of this function
@@ -369,16 +393,12 @@ var Viewer = (function () {
     *
     * @function Viewer#getState
     * @param {Number} id - Id of the product. You would typically get the id from {@link Viewer#event:pick pick event} or similar event.
+    * @param {Number} modelId [optional]- Id of the model
     */
-    Viewer.prototype.getState = function (id) {
-        var state = null;
-        this._handles.forEach(function (handle) {
-            state = handle.getState(id);
-            if (state !== null) {
-                return;
-            }
-        });
-        return state;
+    Viewer.prototype.getState = function (id, modelId) {
+        return this.forHandleOrAll(function (h) {
+            return h.getState(id);
+        }, modelId);
     };
     /**
     * Use this function to reset state of all products to 'UNDEFINED' which means visible and not highlighted.
@@ -386,19 +406,14 @@ var Viewer = (function () {
     *
     * @function Viewer#resetStates
     * @param {Bool} [hideSpaces = true] - Default state is UNDEFINED which would also show spaces. That is often not
-    * desired so it can be excluded with this parameter.
+    * @param {Number} [modelId = null] - Optional Model ID. Id no ID is specified states are reset for all models.
     */
-    Viewer.prototype.resetStates = function (hideSpaces) {
-        this._handles.forEach(function (handle) {
-            handle.resetStates();
-        });
-        //hide spaces
-        hideSpaces = typeof (hideSpaces) != 'undefined' ? hideSpaces : true;
-        if (hideSpaces) {
-            this._handles.forEach(function (handle) {
-                handle.setState(state_1.State.HIDDEN, product_type_1.ProductType.IFCSPACE);
-            });
-        }
+    Viewer.prototype.resetStates = function (hideSpaces, modelId) {
+        this.forHandleOrAll(function (h) {
+            h.resetStates();
+            if (hideSpaces)
+                h.setState(state_1.State.HIDDEN, product_type_1.ProductType.IFCSPACE);
+        }, modelId);
         this._stylingChanged = true;
     };
     /**
@@ -435,8 +450,9 @@ var Viewer = (function () {
     * @function Viewer#setStyle
     * @param style - style defined in {@link Viewer#defineStyle defineStyle()} method
     * @param {Number[] | Number} target - Target of the change. It can either be array of product IDs or product type from {@link xProductType xProductType}.
+    * @param {Number} modelId [optional] - Optional ID of a specific model.
     */
-    Viewer.prototype.setStyle = function (style, target) {
+    Viewer.prototype.setStyle = function (style, target, modelId) {
         if (typeof (style) == 'undefined' || !(style >= 0 && style <= 225))
             throw 'Style has to be defined as 0 - 225 where 225 is for default style.';
         var c = [
@@ -448,9 +464,9 @@ var Viewer = (function () {
         if (c[0] == 0 && c[1] == 0 && c[2] == 0 && c[3] == 0 && console && console.warn)
             console
                 .warn('You have used undefined colour for restyling. Elements with this style will have transparent black colour and hence will be invisible.');
-        this._handles.forEach(function (handle) {
+        this.forHandleOrAll(function (handle) {
             handle.setState(style, target);
-        });
+        }, modelId);
         this._stylingChanged = true;
     };
     /**
@@ -459,41 +475,39 @@ var Viewer = (function () {
     *
     * @function Viewer#getStyle
     * @param {Number} id - Id of the product. You would typically get the id from {@link Viewer#event:pick pick event} or similar event.
+    * @param {Number} modelId [optional] - Optional Model ID. If not defined first style available for a product with certain ID will be returned. This might be ambiguous.
     */
-    Viewer.prototype.getStyle = function (id) {
-        this._handles.forEach(function (handle) {
-            var style = handle.getStyle(id);
-            if (style !== null) {
-                return style;
-            }
-        });
-        return null;
+    Viewer.prototype.getStyle = function (id, modelId) {
+        this.forHandleOrAll(function (handle) {
+            return handle.getStyle(id);
+        }, modelId);
     };
     /**
     * Use this function to reset appearance of all products to their default styles.
     *
     * @function Viewer#resetStyles
+    * @param {Number} modelId [optional] - Optional ID of a specific model.
     */
-    Viewer.prototype.resetStyles = function () {
-        this._handles.forEach(function (handle) {
+    Viewer.prototype.resetStyles = function (modelId) {
+        this.forHandleOrAll(function (handle) {
             handle.resetStyles();
-        });
+        }, modelId);
         this._stylingChanged = true;
     };
     /**
     *
     * @function Viewer#getProductType
-    * @return {Number} Product type ID. This is either null if no type is identified or one of {@link xProductType type ids}.
     * @param {Number} prodID - Product ID. You can get this value either from semantic structure of the model or by listening to {@link Viewer#event:pick pick} event.
+    * @param {Number} modelId [optional] - Optional Model ID. If not defined first type of a product with certain ID will be returned. This might be ambiguous.
+    * @return {Number} Product type ID. This is either null if no type is identified or one of {@link xProductType type ids}.
     */
-    Viewer.prototype.getProductType = function (prodId) {
-        var pType = null;
-        this._handles.forEach(function (handle) {
+    Viewer.prototype.getProductType = function (prodId, modelId) {
+        return this.forHandleOrAll(function (handle) {
             var map = handle.getProductMap(prodId);
-            if (map)
-                pType = map.type;
-        });
-        return pType;
+            if (map) {
+                return map.type;
+            }
+        }, modelId);
     };
     /**
     * Use this method to set position of camera. Use it after {@link Viewer#setCameraTarget setCameraTarget()} to get desired result.
@@ -512,9 +526,10 @@ var Viewer = (function () {
     * if you call functions like {@link Viewer.show show()} or {@link Viewer#zoomTo zoomTo()}.
     * @function Viewer#setCameraTarget
     * @param {Number} prodId [optional] Product ID. You can get ID either from semantic structure of the model or from {@link Viewer#event:pick pick event}.
+    * @param {Number} modelId [optional] - Optional ID of a specific model.
     * @return {Bool} True if the target exists and is set, False otherwise
     */
-    Viewer.prototype.setCameraTarget = function (prodId) {
+    Viewer.prototype.setCameraTarget = function (prodId, modelId) {
         var viewer = this;
         //helper function for setting of the distance based on camera field of view and size of the product's bounding box
         var setDistance = function (bBox) {
@@ -526,13 +541,12 @@ var Viewer = (function () {
         //set navigation origin and default distance to the product BBox
         if (typeof (prodId) !== 'undefined' && prodId != null) {
             //get product BBox and set it's centre as a navigation origin
-            var bbox = null;
-            this._handles.forEach(function (handle) {
+            var bbox = this.forHandleOrAll(function (handle) {
                 var map = handle.getProductMap(prodId);
                 if (map) {
-                    bbox = map.bBox;
+                    return map.bBox;
                 }
-            });
+            }, modelId);
             if (bbox) {
                 this._origin = [bbox[0] + bbox[3] / 2.0, bbox[1] + bbox[4] / 2.0, bbox[2] + bbox[5] / 2.0];
                 setDistance(bbox);
@@ -542,8 +556,9 @@ var Viewer = (function () {
                 return false;
         }
         else {
-            //get region extent and set it's centre as a navigation origin
-            var region = viewer.getMergedRegion();
+            var region = this.forHandleOrAll(function (handle) {
+                return handle.region;
+            }, modelId);
             if (region) {
                 this._origin = [region.centre[0], region.centre[1], region.centre[2]];
                 setDistance(region.bbox);
@@ -781,6 +796,7 @@ var Viewer = (function () {
         var startY = null;
         var button = 'L';
         var id = -1;
+        var modelId = -1;
         //set initial conditions so that different gestures can be identified
         var handleMouseDown = function (event) {
             mouseDown = true;
@@ -794,14 +810,16 @@ var Viewer = (function () {
             var viewY = viewer._height - (startY - r.top);
             //this is for picking
             id = viewer.getID(viewX, viewY);
+            modelId = viewer.getID(viewX, viewY, true);
             /**
             * Occurs when mousedown event happens on underlying canvas.
             *
             * @event Viewer#mouseDown
             * @type {object}
-            * @param {Number} id - product ID of the element or null if there wasn't any product under mouse
+            * @param {Number} id - product ID of the element or -1 if there wasn't any product under mouse
+            * @param {Number} model - model ID of the element or -1 if there wasn't any product under mouse
             */
-            viewer.fire('mouseDown', { id: id });
+            viewer.fire('mouseDown', { id: id, model: modelId });
             //keep information about the mouse button
             switch (event.button) {
                 case 0:
@@ -842,7 +860,7 @@ var Viewer = (function () {
                 * @param {Number} id - product ID of the element or null if there wasn't any product under mouse
                 */
                 if (!handled)
-                    viewer.fire('pick', { id: id });
+                    viewer.fire('pick', { id: id, model: modelId });
             }
             viewer.enableTextSelection();
         };
@@ -918,14 +936,30 @@ var Viewer = (function () {
         this._canvas.addEventListener('mousemove', function () {
             viewer._userAction = true;
         }, true);
-        /**
-        * Occurs when user double clicks on model.
-        *
-        * @event Viewer#dblclick
-        * @type {object}
-        * @param {Number} id - product ID of the element or null if there wasn't any product under mouse
-        */
-        this._canvas.addEventListener('dblclick', function () { viewer.fire('dblclick', { id: id }); }, true);
+        //set initial conditions so that different gestures can be identified
+        var handleDoubleClick = function (event) {
+            lastMouseX = event.clientX;
+            lastMouseY = event.clientY;
+            startX = event.clientX;
+            startY = event.clientY;
+            //get coordinates within canvas (with the right orientation)
+            var r = viewer._canvas.getBoundingClientRect();
+            var viewX = startX - r.left;
+            var viewY = viewer._height - (startY - r.top);
+            //this is for picking
+            id = viewer.getID(viewX, viewY);
+            modelId = viewer.getID(viewX, viewY, true);
+            /**
+            * Occurs when mousedown event happens on underlying canvas.
+            *
+            * @event Viewer#dblclick
+            * @type {object}
+            * @param {Number} id - product ID of the element or -1 if there wasn't any product under mouse
+            * @param {Number} model - model ID of the element or -1 if there wasn't any product under mouse
+            */
+            viewer.fire('dblclick', { id: id, model: modelId });
+        };
+        this._canvas.addEventListener('dblclick', function (event) { return handleDoubleClick(event); }, true);
     };
     Viewer.prototype._initTouchNavigationEvents = function () {
         var _this = this;
@@ -1018,6 +1052,7 @@ var Viewer = (function () {
         var maximumLengthBetweenDoubleTaps = 200;
         var lastTap = new Date();
         var id = -1;
+        var modelId = -1;
         //set initial conditions so that different gestures can be identified
         var handleTouchStart = function (event) {
             if (event.touches.length !== 1) {
@@ -1032,10 +1067,11 @@ var Viewer = (function () {
             var viewY = _this._height - (lastTouchY - r.top);
             //this is for picking
             id = _this.getID(viewX, viewY);
+            modelId = _this.getID(viewX, viewY, true);
             var now = new Date();
             var isDoubleTap = (now.getTime() - lastTap.getTime()) < maximumLengthBetweenDoubleTaps;
             if (isDoubleTap) {
-                _this.fire('dblclick', { id: id });
+                _this.fire('dblclick', { id: id, model: modelId });
             }
             ;
             lastTap = now;
@@ -1045,8 +1081,9 @@ var Viewer = (function () {
             * @event Viewer#mouseDown
             * @type {object}
             * @param {Number} id - product ID of the element or null if there wasn't any product under mouse
+            * @param {Number} model - model ID
             */
-            _this.fire('mouseDown', { id: id });
+            _this.fire('mouseDown', { id: id, model: modelId });
             _this.disableTextSelection();
         };
         var handleTouchEnd = function (event) {
@@ -1075,7 +1112,7 @@ var Viewer = (function () {
                 * @param {Number} id - product ID of the element or null if there wasn't any product under mouse
                 */
                 if (!handled)
-                    _this.fire('pick', { id: id });
+                    _this.fire('pick', { id: id, model: modelId });
             }
             _this.enableTextSelection();
         };
@@ -1189,7 +1226,7 @@ var Viewer = (function () {
             gl.uniform4fv(this._clippingPlaneBUniformPointer, new Float32Array(this._clippingPlaneB));
         }
         //use normal colour representation (1 would cause shader to use colour coding of IDs)
-        gl.uniform1i(this._colorCodingUniformPointer, 0);
+        gl.uniform1i(this._colorCodingUniformPointer, ColourCoding.NONE);
         //update highlighting colour
         gl.uniform4fv(this._highlightingColourUniformPointer, new Float32Array([
             this.highlightingColour[0] / 255.0,
@@ -1202,7 +1239,6 @@ var Viewer = (function () {
         if (this.renderingMode == RenderingMode.XRAY) {
             //two passes - first one for non-transparent objects, second one for all the others
             gl.disable(gl.CULL_FACE);
-            gl.depthMask(false);
             this._handles.forEach(function (handle) {
                 if (!handle.stopped) {
                     handle.setActive(_this._pointers);
@@ -1217,7 +1253,6 @@ var Viewer = (function () {
                     handle.draw('transparent');
                 }
             });
-            gl.depthMask(true);
         }
         else {
             gl.disable(gl.CULL_FACE);
@@ -1357,8 +1392,9 @@ var Viewer = (function () {
     };
     //this renders the colour coded model into the memory buffer
     //not to the canvas and use it to identify ID of the object from that
-    Viewer.prototype.getID = function (x, y) {
+    Viewer.prototype.getID = function (x, y, modelId) {
         var _this = this;
+        if (modelId === void 0) { modelId = false; }
         //call all before-drawId plugins
         this._plugins.forEach(function (plugin) {
             if (!plugin.onBeforeDrawId) {
@@ -1404,10 +1440,13 @@ var Viewer = (function () {
         gl.clearColor(0, 0, 0, 0); //zero colour for no-values
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         //set uniform for colour coding
-        gl.uniform1i(this._colorCodingUniformPointer, 1);
+        gl.uniform1i(this._colorCodingUniformPointer, ColourCoding.PRODUCTS);
         //render colour coded image using latest buffered data
         this._handles.forEach(function (handle) {
             if (!handle.stopped && handle.pickable) {
+                if (modelId) {
+                    gl.uniform1i(_this._colorCodingUniformPointer, handle.id);
+                }
                 handle.setActive(_this._pointers);
                 handle.draw();
             }
@@ -1869,6 +1908,11 @@ var ModelPointers = (function () {
     return ModelPointers;
 }());
 exports.ModelPointers = ModelPointers;
+var ColourCoding;
+(function (ColourCoding) {
+    ColourCoding[ColourCoding["NONE"] = -1] = "NONE";
+    ColourCoding[ColourCoding["PRODUCTS"] = -2] = "PRODUCTS";
+})(ColourCoding || (ColourCoding = {}));
 var RenderingMode;
 (function (RenderingMode) {
     RenderingMode[RenderingMode["NORMAL"] = 0] = "NORMAL";

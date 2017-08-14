@@ -2,7 +2,7 @@
 import { ProductType } from './product-type';
 import { ProductInheritance } from './product-inheritance';
 import { ModelGeometry, Region } from './model-geometry';
-import { ModelHandle} from './model-handle';
+import { ModelHandle } from './model-handle';
 import { Shaders } from './shaders/shaders';
 
 //ported libraries
@@ -292,7 +292,7 @@ export class Viewer {
 
     private _events: { [id: string]: Function[]; };
     private _numberOfActiveModels: number;
-    private _lastStates: {[id: string] : string};
+    private _lastStates: { [id: string]: string };
     private _visualStateAttributes: string[];
     public renderingMode: RenderingMode;
     private _clippingPlaneA: number[];
@@ -447,15 +447,42 @@ export class Viewer {
     *
     * @function Viewer#setState
     * @param {State} state - One of {@link State State} enumeration values.
+    * @param {Number} modelId [optional]- Id of the model
     * @param {Number[] | Number} target - Target of the change. It can either be array of product IDs or product type from {@link xProductType xProductType}.
     */
-    public setState(state: State, target: number | number[]) {
-        if (typeof (state) == 'undefined' || !(state >= 225 && state <= 255)) throw 'State has to be defined as 225 - 255. Use xState enum.';
-        this._handles.forEach((handle) => {
-            handle.setState(state, target);
-        });
+    public setState(state: State, target: number | number[], modelId?: number) {
+        if (typeof (state) == 'undefined' || !(state >= 225 && state <= 255)) {
+            throw new Error('State has to be defined as 225 - 255. Use xState enum.');
+        }
+        if (typeof (target) === 'undefined' || target === null) {
+            throw new Error('Target must be defined either as type ID or as a list of product IDs');
+        }
+
+        this.forHandleOrAll((h: ModelHandle) => { h.setState(state, target); }, modelId);
         this._stylingChanged = true;
     }
+
+    private forHandleOrAll<T>(callback: (h: ModelHandle) => T, modelId: number): T {
+        if (typeof (modelId) !== 'undefined') {
+            let handle = this._handles.filter((h, i, a) => {
+                return h.id === modelId;
+            }).pop();
+            if (!handle) {
+                throw new Error(`Model with id '${modelId}' doesn't exist.`);
+            }
+            return callback(handle);
+        } else {
+            let result: T = null;
+            this._handles.forEach((handle) => {
+                let value = callback(handle);
+                if (typeof (value) !== 'undefined') {
+                    result = value;
+                }
+            });
+            return result;
+        }
+    }
+
 
     /**
     * Use this function to get state of the products in the model. You can compare result of this function 
@@ -463,16 +490,12 @@ export class Viewer {
     *
     * @function Viewer#getState
     * @param {Number} id - Id of the product. You would typically get the id from {@link Viewer#event:pick pick event} or similar event.
+    * @param {Number} modelId [optional]- Id of the model
     */
-    public getState(id: number) {
-        var state = null;
-        this._handles.forEach((handle) => {
-            state = handle.getState(id);
-            if (state !== null) {
-                return;
-            }
-        });
-        return state;
+    public getState(id: number, modelId?: number): number {
+        return this.forHandleOrAll((h: ModelHandle) => {
+            return h.getState(id);
+        }, modelId);
     }
 
     /**
@@ -480,20 +503,16 @@ export class Viewer {
     * You can use optional hideSpaces parameter if you also want to show spaces. They will be hidden by default.
     * 
     * @function Viewer#resetStates
-    * @param {Bool} [hideSpaces = true] - Default state is UNDEFINED which would also show spaces. That is often not 
-    * desired so it can be excluded with this parameter.
+    * @param {Bool} [hideSpaces = true] - Default state is UNDEFINED which would also show spaces. That is often not
+    * @param {Number} [modelId = null] - Optional Model ID. Id no ID is specified states are reset for all models.
     */
-    public resetStates(hideSpaces: boolean) {
-        this._handles.forEach((handle) => {
-            handle.resetStates();
-        });
-        //hide spaces
-        hideSpaces = typeof (hideSpaces) != 'undefined' ? hideSpaces : true;
-        if (hideSpaces) {
-            this._handles.forEach((handle) => {
-                handle.setState(State.HIDDEN, ProductType.IFCSPACE);
-            });
-        }
+    public resetStates(hideSpaces?: boolean, modelId?: number): void {
+        this.forHandleOrAll((h: ModelHandle) => {
+            h.resetStates();
+            if (hideSpaces)
+                h.setState(State.HIDDEN, ProductType.IFCSPACE);
+        }, modelId);
+       
         this._stylingChanged = true;
     }
 
@@ -535,8 +554,9 @@ export class Viewer {
     * @function Viewer#setStyle
     * @param style - style defined in {@link Viewer#defineStyle defineStyle()} method
     * @param {Number[] | Number} target - Target of the change. It can either be array of product IDs or product type from {@link xProductType xProductType}.
+    * @param {Number} modelId [optional] - Optional ID of a specific model.
     */
-    public setStyle(style: number, target: number | number[]) {
+    public setStyle(style: number, target: number | number[], modelId?: number) {
         if (typeof (style) == 'undefined' || !(style >= 0 && style <= 225)
         ) throw 'Style has to be defined as 0 - 225 where 225 is for default style.';
         var c = [
@@ -549,9 +569,10 @@ export class Viewer {
             console
                 .warn('You have used undefined colour for restyling. Elements with this style will have transparent black colour and hence will be invisible.');
 
-        this._handles.forEach((handle) => {
+        this.forHandleOrAll((handle: ModelHandle) => {
             handle.setState(style, target);
-        });
+        }, modelId);
+        
         this._stylingChanged = true;
     }
 
@@ -561,42 +582,42 @@ export class Viewer {
     *
     * @function Viewer#getStyle
     * @param {Number} id - Id of the product. You would typically get the id from {@link Viewer#event:pick pick event} or similar event.
+    * @param {Number} modelId [optional] - Optional Model ID. If not defined first style available for a product with certain ID will be returned. This might be ambiguous.
     */
-    public getStyle(id: number) {
-        this._handles.forEach((handle) => {
-            var style = handle.getStyle(id);
-            if (style !== null) {
-                return style;
-            }
-        });
-        return null;
+    public getStyle(id: number, modelId?: number) {
+        this.forHandleOrAll((handle: ModelHandle) => {
+            return handle.getStyle(id);
+        }, modelId);
     }
 
     /**
     * Use this function to reset appearance of all products to their default styles.
     *
     * @function Viewer#resetStyles 
+    * @param {Number} modelId [optional] - Optional ID of a specific model.
     */
-    public resetStyles() {
-        this._handles.forEach((handle) => {
+    public resetStyles(modelId?: number): void {
+        this.forHandleOrAll((handle: ModelHandle) => {
             handle.resetStyles();
-        });
+        }, modelId);
+
         this._stylingChanged = true;
     }
 
     /**
     * 
     * @function Viewer#getProductType
-    * @return {Number} Product type ID. This is either null if no type is identified or one of {@link xProductType type ids}.
     * @param {Number} prodID - Product ID. You can get this value either from semantic structure of the model or by listening to {@link Viewer#event:pick pick} event.
+    * @param {Number} modelId [optional] - Optional Model ID. If not defined first type of a product with certain ID will be returned. This might be ambiguous.
+    * @return {Number} Product type ID. This is either null if no type is identified or one of {@link xProductType type ids}.
     */
-    public getProductType(prodId: number) {
-        var pType = null;
-        this._handles.forEach((handle) => {
-            var map = handle.getProductMap(prodId);
-            if (map) pType = map.type;
-        });
-        return pType;
+    public getProductType(prodId: number, modelId?: number): number {
+        return this.forHandleOrAll((handle: ModelHandle) => {
+            let map = handle.getProductMap(prodId);
+            if (map) {
+                return map.type;
+            }
+        }, modelId);
     }
 
     /**
@@ -616,9 +637,10 @@ export class Viewer {
     * if you call functions like {@link Viewer.show show()} or {@link Viewer#zoomTo zoomTo()}.
     * @function Viewer#setCameraTarget
     * @param {Number} prodId [optional] Product ID. You can get ID either from semantic structure of the model or from {@link Viewer#event:pick pick event}.
+    * @param {Number} modelId [optional] - Optional ID of a specific model.
     * @return {Bool} True if the target exists and is set, False otherwise
     */
-    public setCameraTarget(prodId?: number): boolean{
+    public setCameraTarget(prodId?: number, modelId?: number): boolean {
         var viewer = this;
         //helper function for setting of the distance based on camera field of view and size of the product's bounding box
         var setDistance = function (bBox: number[] | Float32Array) {
@@ -631,13 +653,12 @@ export class Viewer {
         //set navigation origin and default distance to the product BBox
         if (typeof (prodId) !== 'undefined' && prodId != null) {
             //get product BBox and set it's centre as a navigation origin
-            var bbox = null;
-            this._handles.forEach((handle) => {
+            let bbox = this.forHandleOrAll((handle: ModelHandle) => {
                 let map = handle.getProductMap(prodId);
                 if (map) {
-                    bbox = map.bBox;
+                    return map.bBox;
                 }
-            });
+            }, modelId);
             if (bbox) {
                 this._origin = [bbox[0] + bbox[3] / 2.0, bbox[1] + bbox[4] / 2.0, bbox[2] + bbox[5] / 2.0];
                 setDistance(bbox);
@@ -648,8 +669,10 @@ export class Viewer {
         //set navigation origin and default distance to the merged region composed 
         //from all models which are not stopped at the moment
         else {
-            //get region extent and set it's centre as a navigation origin
-            let region = viewer.getMergedRegion();
+            let region: Region = this.forHandleOrAll((handle: ModelHandle) => {
+                return handle.region;
+            }, modelId);
+
             if (region) {
                 this._origin = [region.centre[0], region.centre[1], region.centre[2]]
                 setDistance(region.bbox);
@@ -661,7 +684,7 @@ export class Viewer {
     private getMergedRegion(): Region {
         let region = new Region();
         this._handles
-            .filter((h, i, a) =>  !h.stopped )
+            .filter((h, i, a) => !h.stopped)
             .forEach((h, i, a) => {
                 region = region.merge(h.region);
             });
@@ -920,6 +943,7 @@ export class Viewer {
         var startY = null;
         var button = 'L';
         var id = -1;
+        var modelId = -1;
 
         //set initial conditions so that different gestures can be identified
         var handleMouseDown = (event: MouseEvent) => {
@@ -936,15 +960,17 @@ export class Viewer {
 
             //this is for picking
             id = viewer.getID(viewX, viewY);
+            modelId = viewer.getID(viewX, viewY, true);
 
             /**
             * Occurs when mousedown event happens on underlying canvas.
             *
             * @event Viewer#mouseDown
             * @type {object}
-            * @param {Number} id - product ID of the element or null if there wasn't any product under mouse
+            * @param {Number} id - product ID of the element or -1 if there wasn't any product under mouse
+            * @param {Number} model - model ID of the element or -1 if there wasn't any product under mouse
             */
-            viewer.fire('mouseDown', { id: id });
+            viewer.fire('mouseDown', { id: id, model: modelId });
 
 
             //keep information about the mouse button
@@ -996,7 +1022,7 @@ export class Viewer {
                 * @type {object}
                 * @param {Number} id - product ID of the element or null if there wasn't any product under mouse
                 */
-                if (!handled) viewer.fire('pick', { id: id });
+                if (!handled) viewer.fire('pick', { id: id, model: modelId });
             }
 
             viewer.enableTextSelection();
@@ -1098,15 +1124,34 @@ export class Viewer {
             },
             true);
 
+        //set initial conditions so that different gestures can be identified
+        var handleDoubleClick = (event: MouseEvent) => {
+            lastMouseX = event.clientX;
+            lastMouseY = event.clientY;
+            startX = event.clientX;
+            startY = event.clientY;
 
-        /**
-        * Occurs when user double clicks on model.
-        *
-        * @event Viewer#dblclick
-        * @type {object}
-        * @param {Number} id - product ID of the element or null if there wasn't any product under mouse
-        */
-        this._canvas.addEventListener('dblclick', () => { viewer.fire('dblclick', { id: id }); }, true);
+            //get coordinates within canvas (with the right orientation)
+            var r = viewer._canvas.getBoundingClientRect();
+            var viewX = startX - r.left;
+            var viewY = viewer._height - (startY - r.top);
+
+            //this is for picking
+            id = viewer.getID(viewX, viewY);
+            modelId = viewer.getID(viewX, viewY, true);
+
+            /**
+            * Occurs when mousedown event happens on underlying canvas.
+            *
+            * @event Viewer#dblclick
+            * @type {object}
+            * @param {Number} id - product ID of the element or -1 if there wasn't any product under mouse
+            * @param {Number} model - model ID of the element or -1 if there wasn't any product under mouse
+            */
+            viewer.fire('dblclick', { id: id, model: modelId });
+        };
+       
+        this._canvas.addEventListener('dblclick', (event) => handleDoubleClick(event), true);
     }
 
     private _initTouchNavigationEvents() {
@@ -1204,6 +1249,7 @@ export class Viewer {
         var lastTap = new Date();
 
         var id = -1;
+        var modelId = -1;
 
         //set initial conditions so that different gestures can be identified
         var handleTouchStart = (event: TouchEvent) => {
@@ -1222,11 +1268,12 @@ export class Viewer {
 
             //this is for picking
             id = this.getID(viewX, viewY);
+            modelId = this.getID(viewX, viewY, true);
 
             var now = new Date();
             var isDoubleTap = (now.getTime() - lastTap.getTime()) < maximumLengthBetweenDoubleTaps;
             if (isDoubleTap) {
-                this.fire('dblclick', { id: id });
+                this.fire('dblclick', { id: id, model: modelId });
             };
             lastTap = now;
 
@@ -1236,8 +1283,9 @@ export class Viewer {
             * @event Viewer#mouseDown
             * @type {object}
             * @param {Number} id - product ID of the element or null if there wasn't any product under mouse
+            * @param {Number} model - model ID
             */
-            this.fire('mouseDown', { id: id });
+            this.fire('mouseDown', { id: id, model: modelId });
 
             this.disableTextSelection();
         };
@@ -1273,7 +1321,7 @@ export class Viewer {
                 * @type {object}
                 * @param {Number} id - product ID of the element or null if there wasn't any product under mouse
                 */
-                if (!handled) this.fire('pick', { id: id });
+                if (!handled) this.fire('pick', { id: id, model: modelId });
             }
 
             this.enableTextSelection();
@@ -1431,7 +1479,7 @@ export class Viewer {
             gl.uniform4fv(this._clippingPlaneBUniformPointer, new Float32Array(this._clippingPlaneB));
         }
         //use normal colour representation (1 would cause shader to use colour coding of IDs)
-        gl.uniform1i(this._colorCodingUniformPointer, 0);
+        gl.uniform1i(this._colorCodingUniformPointer, ColourCoding.NONE);
 
         //update highlighting colour
         gl.uniform4fv(this._highlightingColourUniformPointer,
@@ -1621,7 +1669,7 @@ export class Viewer {
 
     //this renders the colour coded model into the memory buffer
     //not to the canvas and use it to identify ID of the object from that
-    public getID(x, y) {
+    public getID(x, y, modelId: boolean = false) {
 
         //call all before-drawId plugins
         this._plugins.forEach((plugin) => {
@@ -1678,11 +1726,14 @@ export class Viewer {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         //set uniform for colour coding
-        gl.uniform1i(this._colorCodingUniformPointer, 1);
+        gl.uniform1i(this._colorCodingUniformPointer, ColourCoding.PRODUCTS);
 
         //render colour coded image using latest buffered data
-        this._handles.forEach( (handle) => {
+        this._handles.forEach((handle) => {
             if (!handle.stopped && handle.pickable) {
+                if (modelId) {
+                    gl.uniform1i(this._colorCodingUniformPointer, handle.id);
+                }
                 handle.setActive(this._pointers);
                 handle.draw();
             }
@@ -1718,7 +1769,7 @@ export class Viewer {
         if (hasValue) {
             var id = result[0] + result[1] * 256 + result[2] * 256 * 256;
             var handled = false;
-            this._plugins.forEach( (plugin) => {
+            this._plugins.forEach((plugin) => {
                 if (!plugin.onBeforeGetId) {
                     return;
                 }
@@ -2226,6 +2277,11 @@ export class ModelPointers {
         gl.enableVertexAttribArray(this.StyleAttrPointer);
         gl.enableVertexAttribArray(this.TransformationAttrPointer);
     }
+}
+
+enum ColourCoding {
+    NONE = -1,
+    PRODUCTS = -2
 }
 
 export enum RenderingMode {
