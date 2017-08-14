@@ -12,7 +12,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xbim.Aim.DataProvider;
 using Xbim.Aim.Edm;
-using Xbim.Aim.Edm.DbInitializers;
 
 namespace WexbimHarness
 {
@@ -38,13 +37,13 @@ namespace WexbimHarness
             try
             {
                 
-                //always create a fresh DB
-                using (var createContext = new AimDbContext("SqlContext"))
-                {
-                    createContext.Database.Delete();
-                    createContext.Database.Create();
-                    createContext.Database.Initialize(true);
-                }
+                ////always create a fresh DB
+                //using (var createContext = new AimDbContext("SqlContext"))
+                //{
+                //    createContext.Database.Delete();
+                //    createContext.Database.Create();
+                //    createContext.Database.Initialize(true);
+                //}
             }
             catch (Exception ex)
             {
@@ -150,7 +149,7 @@ namespace WexbimHarness
 
                         string sqlConnectionString = ConfigurationManager.ConnectionStrings["SqlContext"].ConnectionString;
 
-                        ifcConnection.CopyTo(sqlConnectionString, assetModel, false, cancellationSource.Token, progressReporter);
+                        ifcConnection.CopyTo(sqlConnectionString, assetModel, cancellationSource.Token, progressReporter);
                        
                         cancellationSource.Dispose();
                         ifcConnection.Close();

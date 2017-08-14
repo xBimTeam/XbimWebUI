@@ -905,21 +905,6 @@
             	<c>true</c> if this instance can convert the specified value type; otherwise, <c>false</c>.
             </returns>
         </member>
-        <member name="T:Newtonsoft.Json.FloatParseHandling">
-            <summary>
-            Specifies how floating point numbers, e.g. 1.0 and 9.9, are parsed when reading JSON text.
-            </summary>
-        </member>
-        <member name="F:Newtonsoft.Json.FloatParseHandling.Double">
-            <summary>
-            Floating point numbers are parsed to <see cref="F:Newtonsoft.Json.FloatParseHandling.Double"/>.
-            </summary>
-        </member>
-        <member name="F:Newtonsoft.Json.FloatParseHandling.Decimal">
-            <summary>
-            Floating point numbers are parsed to <see cref="F:Newtonsoft.Json.FloatParseHandling.Decimal"/>.
-            </summary>
-        </member>
         <member name="T:Newtonsoft.Json.DateFormatHandling">
             <summary>
             Specifies how dates are formatted when writing JSON text.
@@ -1036,6 +1021,21 @@
         <member name="F:Newtonsoft.Json.FloatFormatHandling.DefaultValue">
             <summary>
             Write special floating point values as the property's default value in JSON, e.g. 0.0 for a <see cref="T:System.Double"/> property, <c>null</c> for a <see cref="T:System.Nullable`1"/> of <see cref="T:System.Double"/> property.
+            </summary>
+        </member>
+        <member name="T:Newtonsoft.Json.FloatParseHandling">
+            <summary>
+            Specifies how floating point numbers, e.g. 1.0 and 9.9, are parsed when reading JSON text.
+            </summary>
+        </member>
+        <member name="F:Newtonsoft.Json.FloatParseHandling.Double">
+            <summary>
+            Floating point numbers are parsed to <see cref="F:Newtonsoft.Json.FloatParseHandling.Double"/>.
+            </summary>
+        </member>
+        <member name="F:Newtonsoft.Json.FloatParseHandling.Decimal">
+            <summary>
+            Floating point numbers are parsed to <see cref="F:Newtonsoft.Json.FloatParseHandling.Decimal"/>.
             </summary>
         </member>
         <member name="T:Newtonsoft.Json.Formatting">
@@ -6586,56 +6586,6 @@
             If this is <c>null</c>, default load settings will be used.</param>
             <returns>A <see cref="T:Newtonsoft.Json.Linq.JProperty"/> that contains the JSON that was read from the specified <see cref="T:Newtonsoft.Json.JsonReader"/>.</returns>
         </member>
-        <member name="T:Newtonsoft.Json.Linq.JRaw">
-            <summary>
-            Represents a raw JSON string.
-            </summary>
-        </member>
-        <member name="M:Newtonsoft.Json.Linq.JRaw.CreateAsync(Newtonsoft.Json.JsonReader,System.Threading.CancellationToken)">
-            <summary>
-            Asynchronously creates an instance of <see cref="T:Newtonsoft.Json.Linq.JRaw"/> with the content of the reader's current token.
-            </summary>
-            <param name="reader">The reader.</param>
-            <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="P:System.Threading.CancellationToken.None"/>.</param>
-            <returns>A <see cref="T:System.Threading.Tasks.Task`1"/> representing the asynchronous creation. The <see cref="P:System.Threading.Tasks.Task`1.Result"/>
-            property returns an instance of <see cref="T:Newtonsoft.Json.Linq.JRaw"/> with the content of the reader's current token.</returns>
-        </member>
-        <member name="M:Newtonsoft.Json.Linq.JRaw.#ctor(Newtonsoft.Json.Linq.JRaw)">
-            <summary>
-            Initializes a new instance of the <see cref="T:Newtonsoft.Json.Linq.JRaw"/> class from another <see cref="T:Newtonsoft.Json.Linq.JRaw"/> object.
-            </summary>
-            <param name="other">A <see cref="T:Newtonsoft.Json.Linq.JRaw"/> object to copy from.</param>
-        </member>
-        <member name="M:Newtonsoft.Json.Linq.JRaw.#ctor(System.Object)">
-            <summary>
-            Initializes a new instance of the <see cref="T:Newtonsoft.Json.Linq.JRaw"/> class.
-            </summary>
-            <param name="rawJson">The raw json.</param>
-        </member>
-        <member name="M:Newtonsoft.Json.Linq.JRaw.Create(Newtonsoft.Json.JsonReader)">
-            <summary>
-            Creates an instance of <see cref="T:Newtonsoft.Json.Linq.JRaw"/> with the content of the reader's current token.
-            </summary>
-            <param name="reader">The reader.</param>
-            <returns>An instance of <see cref="T:Newtonsoft.Json.Linq.JRaw"/> with the content of the reader's current token.</returns>
-        </member>
-        <member name="T:Newtonsoft.Json.Linq.JsonMergeSettings">
-            <summary>
-            Specifies the settings used when merging JSON.
-            </summary>
-        </member>
-        <member name="P:Newtonsoft.Json.Linq.JsonMergeSettings.MergeArrayHandling">
-            <summary>
-            Gets or sets the method used when merging JSON arrays.
-            </summary>
-            <value>The method used when merging JSON arrays.</value>
-        </member>
-        <member name="P:Newtonsoft.Json.Linq.JsonMergeSettings.MergeNullValueHandling">
-            <summary>
-            Gets or sets how null value properties are merged.
-            </summary>
-            <value>How null value properties are merged.</value>
-        </member>
         <member name="T:Newtonsoft.Json.Linq.JPropertyDescriptor">
             <summary>
             Represents a view of a <see cref="T:Newtonsoft.Json.Linq.JProperty"/>.
@@ -6722,6 +6672,78 @@
             <returns>
             The hash code for the name of the member.
             </returns>
+        </member>
+        <member name="T:Newtonsoft.Json.Linq.JRaw">
+            <summary>
+            Represents a raw JSON string.
+            </summary>
+        </member>
+        <member name="M:Newtonsoft.Json.Linq.JRaw.CreateAsync(Newtonsoft.Json.JsonReader,System.Threading.CancellationToken)">
+            <summary>
+            Asynchronously creates an instance of <see cref="T:Newtonsoft.Json.Linq.JRaw"/> with the content of the reader's current token.
+            </summary>
+            <param name="reader">The reader.</param>
+            <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="P:System.Threading.CancellationToken.None"/>.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.Task`1"/> representing the asynchronous creation. The <see cref="P:System.Threading.Tasks.Task`1.Result"/>
+            property returns an instance of <see cref="T:Newtonsoft.Json.Linq.JRaw"/> with the content of the reader's current token.</returns>
+        </member>
+        <member name="M:Newtonsoft.Json.Linq.JRaw.#ctor(Newtonsoft.Json.Linq.JRaw)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Newtonsoft.Json.Linq.JRaw"/> class from another <see cref="T:Newtonsoft.Json.Linq.JRaw"/> object.
+            </summary>
+            <param name="other">A <see cref="T:Newtonsoft.Json.Linq.JRaw"/> object to copy from.</param>
+        </member>
+        <member name="M:Newtonsoft.Json.Linq.JRaw.#ctor(System.Object)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Newtonsoft.Json.Linq.JRaw"/> class.
+            </summary>
+            <param name="rawJson">The raw json.</param>
+        </member>
+        <member name="M:Newtonsoft.Json.Linq.JRaw.Create(Newtonsoft.Json.JsonReader)">
+            <summary>
+            Creates an instance of <see cref="T:Newtonsoft.Json.Linq.JRaw"/> with the content of the reader's current token.
+            </summary>
+            <param name="reader">The reader.</param>
+            <returns>An instance of <see cref="T:Newtonsoft.Json.Linq.JRaw"/> with the content of the reader's current token.</returns>
+        </member>
+        <member name="T:Newtonsoft.Json.Linq.JsonLoadSettings">
+            <summary>
+            Specifies the settings used when loading JSON.
+            </summary>
+        </member>
+        <member name="M:Newtonsoft.Json.Linq.JsonLoadSettings.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Newtonsoft.Json.Linq.JsonLoadSettings"/> class.
+            </summary>
+        </member>
+        <member name="P:Newtonsoft.Json.Linq.JsonLoadSettings.CommentHandling">
+            <summary>
+            Gets or sets how JSON comments are handled when loading JSON.
+            </summary>
+            <value>The JSON comment handling.</value>
+        </member>
+        <member name="P:Newtonsoft.Json.Linq.JsonLoadSettings.LineInfoHandling">
+            <summary>
+            Gets or sets how JSON line info is handled when loading JSON.
+            </summary>
+            <value>The JSON line info handling.</value>
+        </member>
+        <member name="T:Newtonsoft.Json.Linq.JsonMergeSettings">
+            <summary>
+            Specifies the settings used when merging JSON.
+            </summary>
+        </member>
+        <member name="P:Newtonsoft.Json.Linq.JsonMergeSettings.MergeArrayHandling">
+            <summary>
+            Gets or sets the method used when merging JSON arrays.
+            </summary>
+            <value>The method used when merging JSON arrays.</value>
+        </member>
+        <member name="P:Newtonsoft.Json.Linq.JsonMergeSettings.MergeNullValueHandling">
+            <summary>
+            Gets or sets how null value properties are merged.
+            </summary>
+            <value>How null value properties are merged.</value>
         </member>
         <member name="T:Newtonsoft.Json.Linq.JToken">
             <summary>
@@ -8316,28 +8338,6 @@
             	<paramref name="obj"/> is not of the same type as this instance.
             </exception>
         </member>
-        <member name="T:Newtonsoft.Json.Linq.JsonLoadSettings">
-            <summary>
-            Specifies the settings used when loading JSON.
-            </summary>
-        </member>
-        <member name="M:Newtonsoft.Json.Linq.JsonLoadSettings.#ctor">
-            <summary>
-            Initializes a new instance of the <see cref="T:Newtonsoft.Json.Linq.JsonLoadSettings"/> class.
-            </summary>
-        </member>
-        <member name="P:Newtonsoft.Json.Linq.JsonLoadSettings.CommentHandling">
-            <summary>
-            Gets or sets how JSON comments are handled when loading JSON.
-            </summary>
-            <value>The JSON comment handling.</value>
-        </member>
-        <member name="P:Newtonsoft.Json.Linq.JsonLoadSettings.LineInfoHandling">
-            <summary>
-            Gets or sets how JSON line info is handled when loading JSON.
-            </summary>
-            <value>The JSON line info handling.</value>
-        </member>
         <member name="T:Newtonsoft.Json.Linq.MergeArrayHandling">
             <summary>
             Specifies how JSON arrays are merged together.
@@ -9126,71 +9126,6 @@
             </note>
             </summary>
         </member>
-        <member name="T:Newtonsoft.Json.Serialization.ISerializationBinder">
-            <summary>
-            Allows users to control class loading and mandate what class to load.
-            </summary>
-        </member>
-        <member name="M:Newtonsoft.Json.Serialization.ISerializationBinder.BindToType(System.String,System.String)">
-            <summary>
-            When implemented, controls the binding of a serialized object to a type.
-            </summary>
-            <param name="assemblyName">Specifies the <see cref="T:System.Reflection.Assembly"/> name of the serialized object.</param>
-            <param name="typeName">Specifies the <see cref="T:System.Type"/> name of the serialized object</param>
-            <returns>The type of the object the formatter creates a new instance of.</returns>
-        </member>
-        <member name="M:Newtonsoft.Json.Serialization.ISerializationBinder.BindToName(System.Type,System.String@,System.String@)">
-            <summary>
-            When implemented, controls the binding of a serialized object to a type.
-            </summary>
-            <param name="serializedType">The type of the object the formatter creates a new instance of.</param>
-            <param name="assemblyName">Specifies the <see cref="T:System.Reflection.Assembly"/> name of the serialized object.</param>
-            <param name="typeName">Specifies the <see cref="T:System.Type"/> name of the serialized object.</param>
-        </member>
-        <member name="T:Newtonsoft.Json.Serialization.SnakeCaseNamingStrategy">
-            <summary>
-            A snake case naming strategy.
-            </summary>
-        </member>
-        <member name="M:Newtonsoft.Json.Serialization.SnakeCaseNamingStrategy.#ctor(System.Boolean,System.Boolean)">
-            <summary>
-            Initializes a new instance of the <see cref="T:Newtonsoft.Json.Serialization.SnakeCaseNamingStrategy"/> class.
-            </summary>
-            <param name="processDictionaryKeys">
-            A flag indicating whether dictionary keys should be processed.
-            </param>
-            <param name="overrideSpecifiedNames">
-            A flag indicating whether explicitly specified property names should be processed,
-            e.g. a property name customized with a <see cref="T:Newtonsoft.Json.JsonPropertyAttribute"/>.
-            </param>
-        </member>
-        <member name="M:Newtonsoft.Json.Serialization.SnakeCaseNamingStrategy.#ctor(System.Boolean,System.Boolean,System.Boolean)">
-            <summary>
-            Initializes a new instance of the <see cref="T:Newtonsoft.Json.Serialization.SnakeCaseNamingStrategy"/> class.
-            </summary>
-            <param name="processDictionaryKeys">
-            A flag indicating whether dictionary keys should be processed.
-            </param>
-            <param name="overrideSpecifiedNames">
-            A flag indicating whether explicitly specified property names should be processed,
-            e.g. a property name customized with a <see cref="T:Newtonsoft.Json.JsonPropertyAttribute"/>.
-            </param>
-            <param name="processExtensionDataNames">
-            A flag indicating whether extension data names should be processed.
-            </param>
-        </member>
-        <member name="M:Newtonsoft.Json.Serialization.SnakeCaseNamingStrategy.#ctor">
-            <summary>
-            Initializes a new instance of the <see cref="T:Newtonsoft.Json.Serialization.SnakeCaseNamingStrategy"/> class.
-            </summary>
-        </member>
-        <member name="M:Newtonsoft.Json.Serialization.SnakeCaseNamingStrategy.ResolvePropertyName(System.String)">
-            <summary>
-            Resolves the specified property name.
-            </summary>
-            <param name="name">The property name to resolve.</param>
-            <returns>The resolved property name.</returns>
-        </member>
         <member name="T:Newtonsoft.Json.Serialization.CamelCaseNamingStrategy">
             <summary>
             A camel case naming strategy.
@@ -9666,59 +9601,6 @@
             <param name="type">The type to resolve a contract for.</param>
             <returns>The contract for a given type.</returns>
         </member>
-        <member name="T:Newtonsoft.Json.Serialization.NamingStrategy">
-            <summary>
-            A base class for resolving how property names and dictionary keys are serialized.
-            </summary>
-        </member>
-        <member name="P:Newtonsoft.Json.Serialization.NamingStrategy.ProcessDictionaryKeys">
-            <summary>
-            A flag indicating whether dictionary keys should be processed.
-            Defaults to <c>false</c>.
-            </summary>
-        </member>
-        <member name="P:Newtonsoft.Json.Serialization.NamingStrategy.ProcessExtensionDataNames">
-            <summary>
-            A flag indicating whether extension data names should be processed.
-            Defaults to <c>false</c>.
-            </summary>
-        </member>
-        <member name="P:Newtonsoft.Json.Serialization.NamingStrategy.OverrideSpecifiedNames">
-            <summary>
-            A flag indicating whether explicitly specified property names,
-            e.g. a property name customized with a <see cref="T:Newtonsoft.Json.JsonPropertyAttribute"/>, should be processed.
-            Defaults to <c>false</c>.
-            </summary>
-        </member>
-        <member name="M:Newtonsoft.Json.Serialization.NamingStrategy.GetPropertyName(System.String,System.Boolean)">
-            <summary>
-            Gets the serialized name for a given property name.
-            </summary>
-            <param name="name">The initial property name.</param>
-            <param name="hasSpecifiedName">A flag indicating whether the property has had a name explicitly specified.</param>
-            <returns>The serialized property name.</returns>
-        </member>
-        <member name="M:Newtonsoft.Json.Serialization.NamingStrategy.GetExtensionDataName(System.String)">
-            <summary>
-            Gets the serialized name for a given extension data name.
-            </summary>
-            <param name="name">The initial extension data name.</param>
-            <returns>The serialized extension data name.</returns>
-        </member>
-        <member name="M:Newtonsoft.Json.Serialization.NamingStrategy.GetDictionaryKey(System.String)">
-            <summary>
-            Gets the serialized key for a given dictionary key.
-            </summary>
-            <param name="key">The initial dictionary key.</param>
-            <returns>The serialized dictionary key.</returns>
-        </member>
-        <member name="M:Newtonsoft.Json.Serialization.NamingStrategy.ResolvePropertyName(System.String)">
-            <summary>
-            Resolves the specified property name.
-            </summary>
-            <param name="name">The property name to resolve.</param>
-            <returns>The resolved property name.</returns>
-        </member>
         <member name="T:Newtonsoft.Json.Serialization.IReferenceResolver">
             <summary>
             Used to resolve references when serializing and deserializing JSON by the <see cref="T:Newtonsoft.Json.JsonSerializer"/>.
@@ -9757,6 +9639,27 @@
             <param name="context">The serialization context.</param>
             <param name="reference">The reference.</param>
             <param name="value">The object to reference.</param>
+        </member>
+        <member name="T:Newtonsoft.Json.Serialization.ISerializationBinder">
+            <summary>
+            Allows users to control class loading and mandate what class to load.
+            </summary>
+        </member>
+        <member name="M:Newtonsoft.Json.Serialization.ISerializationBinder.BindToType(System.String,System.String)">
+            <summary>
+            When implemented, controls the binding of a serialized object to a type.
+            </summary>
+            <param name="assemblyName">Specifies the <see cref="T:System.Reflection.Assembly"/> name of the serialized object.</param>
+            <param name="typeName">Specifies the <see cref="T:System.Type"/> name of the serialized object</param>
+            <returns>The type of the object the formatter creates a new instance of.</returns>
+        </member>
+        <member name="M:Newtonsoft.Json.Serialization.ISerializationBinder.BindToName(System.Type,System.String@,System.String@)">
+            <summary>
+            When implemented, controls the binding of a serialized object to a type.
+            </summary>
+            <param name="serializedType">The type of the object the formatter creates a new instance of.</param>
+            <param name="assemblyName">Specifies the <see cref="T:System.Reflection.Assembly"/> name of the serialized object.</param>
+            <param name="typeName">Specifies the <see cref="T:System.Type"/> name of the serialized object.</param>
         </member>
         <member name="T:Newtonsoft.Json.Serialization.ITraceWriter">
             <summary>
@@ -10428,6 +10331,59 @@
             A <see cref="T:System.String"/> of the most recent trace messages.
             </returns>
         </member>
+        <member name="T:Newtonsoft.Json.Serialization.NamingStrategy">
+            <summary>
+            A base class for resolving how property names and dictionary keys are serialized.
+            </summary>
+        </member>
+        <member name="P:Newtonsoft.Json.Serialization.NamingStrategy.ProcessDictionaryKeys">
+            <summary>
+            A flag indicating whether dictionary keys should be processed.
+            Defaults to <c>false</c>.
+            </summary>
+        </member>
+        <member name="P:Newtonsoft.Json.Serialization.NamingStrategy.ProcessExtensionDataNames">
+            <summary>
+            A flag indicating whether extension data names should be processed.
+            Defaults to <c>false</c>.
+            </summary>
+        </member>
+        <member name="P:Newtonsoft.Json.Serialization.NamingStrategy.OverrideSpecifiedNames">
+            <summary>
+            A flag indicating whether explicitly specified property names,
+            e.g. a property name customized with a <see cref="T:Newtonsoft.Json.JsonPropertyAttribute"/>, should be processed.
+            Defaults to <c>false</c>.
+            </summary>
+        </member>
+        <member name="M:Newtonsoft.Json.Serialization.NamingStrategy.GetPropertyName(System.String,System.Boolean)">
+            <summary>
+            Gets the serialized name for a given property name.
+            </summary>
+            <param name="name">The initial property name.</param>
+            <param name="hasSpecifiedName">A flag indicating whether the property has had a name explicitly specified.</param>
+            <returns>The serialized property name.</returns>
+        </member>
+        <member name="M:Newtonsoft.Json.Serialization.NamingStrategy.GetExtensionDataName(System.String)">
+            <summary>
+            Gets the serialized name for a given extension data name.
+            </summary>
+            <param name="name">The initial extension data name.</param>
+            <returns>The serialized extension data name.</returns>
+        </member>
+        <member name="M:Newtonsoft.Json.Serialization.NamingStrategy.GetDictionaryKey(System.String)">
+            <summary>
+            Gets the serialized key for a given dictionary key.
+            </summary>
+            <param name="key">The initial dictionary key.</param>
+            <returns>The serialized dictionary key.</returns>
+        </member>
+        <member name="M:Newtonsoft.Json.Serialization.NamingStrategy.ResolvePropertyName(System.String)">
+            <summary>
+            Resolves the specified property name.
+            </summary>
+            <param name="name">The property name to resolve.</param>
+            <returns>The resolved property name.</returns>
+        </member>
         <member name="T:Newtonsoft.Json.Serialization.ObjectConstructor`1">
             <summary>
             Represents a method that constructs an object.
@@ -10490,20 +10446,49 @@
             <param name="target">The target to get the value from.</param>
             <returns>The value.</returns>
         </member>
-        <member name="T:Newtonsoft.Json.TypeNameAssemblyFormatHandling">
+        <member name="T:Newtonsoft.Json.Serialization.SnakeCaseNamingStrategy">
             <summary>
-            Indicates the method that will be used during deserialization for locating and loading assemblies.
+            A snake case naming strategy.
             </summary>
         </member>
-        <member name="F:Newtonsoft.Json.TypeNameAssemblyFormatHandling.Simple">
+        <member name="M:Newtonsoft.Json.Serialization.SnakeCaseNamingStrategy.#ctor(System.Boolean,System.Boolean)">
             <summary>
-            In simple mode, the assembly used during deserialization need not match exactly the assembly used during serialization. Specifically, the version numbers need not match as the <c>LoadWithPartialName</c> method of the <see cref="T:System.Reflection.Assembly"/> class is used to load the assembly.
+            Initializes a new instance of the <see cref="T:Newtonsoft.Json.Serialization.SnakeCaseNamingStrategy"/> class.
+            </summary>
+            <param name="processDictionaryKeys">
+            A flag indicating whether dictionary keys should be processed.
+            </param>
+            <param name="overrideSpecifiedNames">
+            A flag indicating whether explicitly specified property names should be processed,
+            e.g. a property name customized with a <see cref="T:Newtonsoft.Json.JsonPropertyAttribute"/>.
+            </param>
+        </member>
+        <member name="M:Newtonsoft.Json.Serialization.SnakeCaseNamingStrategy.#ctor(System.Boolean,System.Boolean,System.Boolean)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Newtonsoft.Json.Serialization.SnakeCaseNamingStrategy"/> class.
+            </summary>
+            <param name="processDictionaryKeys">
+            A flag indicating whether dictionary keys should be processed.
+            </param>
+            <param name="overrideSpecifiedNames">
+            A flag indicating whether explicitly specified property names should be processed,
+            e.g. a property name customized with a <see cref="T:Newtonsoft.Json.JsonPropertyAttribute"/>.
+            </param>
+            <param name="processExtensionDataNames">
+            A flag indicating whether extension data names should be processed.
+            </param>
+        </member>
+        <member name="M:Newtonsoft.Json.Serialization.SnakeCaseNamingStrategy.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Newtonsoft.Json.Serialization.SnakeCaseNamingStrategy"/> class.
             </summary>
         </member>
-        <member name="F:Newtonsoft.Json.TypeNameAssemblyFormatHandling.Full">
+        <member name="M:Newtonsoft.Json.Serialization.SnakeCaseNamingStrategy.ResolvePropertyName(System.String)">
             <summary>
-            In full mode, the assembly used during deserialization must match exactly the assembly used during serialization. The <c>Load</c> method of the <see cref="T:System.Reflection.Assembly"/> class is used to load the assembly.
+            Resolves the specified property name.
             </summary>
+            <param name="name">The property name to resolve.</param>
+            <returns>The resolved property name.</returns>
         </member>
         <member name="T:Newtonsoft.Json.StringEscapeHandling">
             <summary>
@@ -10523,6 +10508,21 @@
         <member name="F:Newtonsoft.Json.StringEscapeHandling.EscapeHtml">
             <summary>
             HTML (&lt;, &gt;, &amp;, &apos;, &quot;) and control characters (e.g. newline) are escaped.
+            </summary>
+        </member>
+        <member name="T:Newtonsoft.Json.TypeNameAssemblyFormatHandling">
+            <summary>
+            Indicates the method that will be used during deserialization for locating and loading assemblies.
+            </summary>
+        </member>
+        <member name="F:Newtonsoft.Json.TypeNameAssemblyFormatHandling.Simple">
+            <summary>
+            In simple mode, the assembly used during deserialization need not match exactly the assembly used during serialization. Specifically, the version numbers need not match as the <c>LoadWithPartialName</c> method of the <see cref="T:System.Reflection.Assembly"/> class is used to load the assembly.
+            </summary>
+        </member>
+        <member name="F:Newtonsoft.Json.TypeNameAssemblyFormatHandling.Full">
+            <summary>
+            In full mode, the assembly used during deserialization must match exactly the assembly used during serialization. The <c>Load</c> method of the <see cref="T:System.Reflection.Assembly"/> class is used to load the assembly.
             </summary>
         </member>
         <member name="T:Newtonsoft.Json.TypeNameHandling">
