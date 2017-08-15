@@ -507,7 +507,7 @@ export class Viewer {
             if (hideSpaces)
                 h.setState(State.HIDDEN, ProductType.IFCSPACE);
         }, modelId);
-       
+
         this._stylingChanged = true;
     }
 
@@ -583,7 +583,7 @@ export class Viewer {
         this.forHandleOrAll((handle: ModelHandle) => {
             handle.setState(style, target);
         }, modelId);
-        
+
         this._stylingChanged = true;
     }
 
@@ -880,7 +880,7 @@ export class Viewer {
         //remove from the array
         var index = this._handles.indexOf(handle);
         this._handles.splice(index, 1);
-        this._numberOfActiveModels = this._handles.length; 
+        this._numberOfActiveModels = this._handles.length;
 
         //unload and delete
         handle.unload();
@@ -962,16 +962,17 @@ export class Viewer {
      */
     private _initContextMenuEvent() {
         this.canvas.addEventListener("contextmenu", (event: MouseEvent) => {
-
+            let ids = this.getIdsFromEvent(event);
             /**
             * Occurs when mousedown event happens on underlying canvas.
             *
             * @event Viewer#contextMenu
             * @type {object}
             * @param {Number} id - product ID of the element or null if there wasn't any product under mouse
+            * @param {Number} model - Model ID
             * @param {MouseEvent} event - original event as captured by the viewer
             */
-            this.fire("contextMenu", { event: event, id: this.getIdFromEvent(event) })
+            this.fire("contextMenu", { event: event, id: ids.id, model: ids.model })
 
             event.preventDefault();
             return false;
@@ -1014,8 +1015,9 @@ export class Viewer {
             * @type {object}
             * @param {Number} id - product ID of the element or -1 if there wasn't any product under mouse
             * @param {Number} model - model ID of the element or -1 if there wasn't any product under mouse
+            * @param {MouseEvent} event - original HTML event
             */
-            viewer.fire('mouseDown', { id: id, model: modelId });
+            viewer.fire('mouseDown', { id: id, model: modelId, event: event });
 
 
             //keep information about the mouse button
@@ -1066,8 +1068,12 @@ export class Viewer {
                 * @event Viewer#pick
                 * @type {object}
                 * @param {Number} id - product ID of the element or null if there wasn't any product under mouse
+                * @param {Number} model - Model ID
+                * @param {MouseEvent} event - Original HTML event
                 */
-                if (!handled) viewer.fire('pick', { id: id, model: modelId, event: event });
+                if (!handled) {
+                    viewer.fire('pick', { id: id, model: modelId, event: event });
+                }
             }
 
             viewer.enableTextSelection();
@@ -1146,11 +1152,24 @@ export class Viewer {
             this.navigate('zoom', sign(event.deltaX) * -1.0, sign(event.deltaY) * -1.0);
         }
 
+        let handleDoubleClick = (event: MouseEvent) => {
+            let ids = viewer.getIdsFromEvent(event);
 
+            /**
+             * Occurs when mousedown event happens on underlying canvas.
+             *
+             * @event Viewer#dblclick
+             * @type {object}
+             * @param {Number} id - product ID of the element or -1 if there wasn't any product under mouse
+             * @param {Number} model - model ID of the element or -1 if there wasn't any product under mouse
+             * @param {MouseEvent} event - Original HTML event
+             */
+            viewer.fire('dblclick', { id: ids.id, model: ids.model, event: event });
+        }
 
         //watch resizing of canvas every 500ms
-        var elementHeight = viewer.height;
-        var elementWidth = viewer.width;
+        let elementHeight = viewer.height;
+        let elementWidth = viewer.width;
         setInterval(() => {
             if (viewer.canvas.offsetHeight !== elementHeight || viewer.canvas.offsetWidth !== elementWidth) {
                 elementHeight = viewer.height = viewer.canvas.height = viewer.canvas.offsetHeight;
@@ -1159,60 +1178,34 @@ export class Viewer {
         },
             500);
 
-
         //attach callbacks
         this.canvas.addEventListener('mousedown', (event) => handleMouseDown(event), true);
         this.canvas.addEventListener('wheel', (event) => handleMouseScroll(event), true);
+        this.canvas.addEventListener('dblclick', (event) => handleDoubleClick(event), true);
         window.addEventListener('mouseup', (event) => handleMouseUp(event), true);
         window.addEventListener('mousemove', (event) => handleMouseMove(event), true);
 
+        // user doing anything should cause redraw in case there is any for of interaction
         this.canvas.addEventListener('mousemove',
             () => {
                 viewer._userAction = true;
             },
             true);
 
-        //set initial conditions so that different gestures can be identified
-        var handleDoubleClick = (event: MouseEvent) => {
-            lastMouseX = event.clientX;
-            lastMouseY = event.clientY;
-            startX = event.clientX;
-            startY = event.clientY;
+        //listen to key events to help navigation
+        document.addEventListener('keydown', (event: KeyboardEvent) => {
+            if (event.key === 'Shift') {
+                this._isShiftKeyDown = true;
+                return;
+            }
+        }, false);
 
-            //get coordinates within canvas (with the right orientation)
-            var r = viewer.canvas.getBoundingClientRect();
-            var viewX = startX - r.left;
-            var viewY = viewer.height - (startY - r.top);
-
-            //this is for picking
-            id = viewer.getID(viewX, viewY);
-            modelId = viewer.getID(viewX, viewY, true);
-
-            /**
-            * Occurs when mousedown event happens on underlying canvas.
-            *
-            * @event Viewer#dblclick
-            * @type {object}
-            * @param {Number} id - product ID of the element or -1 if there wasn't any product under mouse
-            * @param {Number} model - model ID of the element or -1 if there wasn't any product under mouse
-            */
-            this.canvas.addEventListener('dblclick', (event) => handleDoubleClick(event), true);
-
-            //listen to key events to help navigation
-            document.addEventListener('keydown', (event: KeyboardEvent) => {
-                if (event.key === 'Shift') {
-                    this._isShiftKeyDown = true;
-                    return;
-                }
-            }, false);
-
-            document.addEventListener('keyup', (event: KeyboardEvent) => {
-                if (event.key === 'Shift') {
-                    this._isShiftKeyDown = false;
-                    return;
-                }
-            }, false);
-        }
+        document.addEventListener('keyup', (event: KeyboardEvent) => {
+            if (event.key === 'Shift') {
+                this._isShiftKeyDown = false;
+                return;
+            }
+        }, false);
     }
 
     private _initTouchNavigationEvents() {
@@ -1334,7 +1327,7 @@ export class Viewer {
             var now = new Date();
             var isDoubleTap = (now.getTime() - lastTap.getTime()) < maximumLengthBetweenDoubleTaps;
             if (isDoubleTap) {
-                this.fire('dblclick', { id: id, model: modelId });
+                this.fire('dblclick', { id: id, model: modelId, event: event });
             };
             lastTap = now;
 
@@ -1345,8 +1338,9 @@ export class Viewer {
             * @type {object}
             * @param {Number} id - product ID of the element or null if there wasn't any product under mouse
             * @param {Number} model - model ID
+            * @param {MouseEvent} event - original HTML event
             */
-            this.fire('mouseDown', { id: id, model: modelId });
+            this.fire('mouseDown', { id: id, model: modelId, event: event });
 
             this.disableTextSelection();
         };
@@ -1381,8 +1375,10 @@ export class Viewer {
                 * @event Viewer#pick
                 * @type {object}
                 * @param {Number} id - product ID of the element or null if there wasn't any product under mouse
+                * @param {Number} model - Model ID
+                * @param {Event} event - Original HTML event
                 */
-                if (!handled) this.fire('pick', { id: id, model: modelId });
+                if (!handled) this.fire('pick', { id: id, model: modelId, event: event });
             }
 
             this.enableTextSelection();
@@ -1726,7 +1722,7 @@ export class Viewer {
         this.fire('error', { message: msg });
     }
 
-    public getIdFromEvent(event: MouseEvent): number {
+    public getIdsFromEvent(event: MouseEvent | Touch): { id: number, model: number } {
         let x = event.clientX;
         let y = event.clientY;
 
@@ -1735,13 +1731,18 @@ export class Viewer {
         let viewX = x - r.left;
         let viewY = this.height - (y - r.top);
 
-        //this is for picking
-        return this.getID(viewX, viewY);
+        //get product id and model id
+        return { id: this.getID(viewX, viewY, false), model: this.getID(viewX, viewY, true) };
     }
 
     //this renders the colour coded model into the memory buffer
     //not to the canvas and use it to identify ID of the object from that
     public getID(x: number, y: number, modelId: boolean = false): number {
+
+        //skip all the GPU work if there is only one model loaded and model ID is requested
+        if (modelId && this._handles.length === 1) {
+            return this._handles[0].id;
+        }
 
         //call all before-drawId plugins
         this._plugins.forEach((plugin) => {
