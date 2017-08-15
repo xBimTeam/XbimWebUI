@@ -383,7 +383,7 @@ var ModelHandle = (function () {
 /**
  * Static counter to keep unique ID of the model handles
  */
-ModelHandle._instancesNum = 0;
+ModelHandle._instancesNum = 1;
 exports.ModelHandle = ModelHandle;
 var DrawMode;
 (function (DrawMode) {

@@ -21,7 +21,7 @@ uniform float uMeter;
 
 //sets if all the colours are only to be used for colour coding of IDs
 //this is used for picking
-uniform bool uColorCoding;
+uniform int uColorCoding;
 
 //used for 3 states in x-ray rendering (no x-ray, only highlighted, only non-highlighted as semitransparent)
 uniform int uRenderingMode;
@@ -74,18 +74,13 @@ vec3 getNormal(mat4 transform) {
 	return normalize(vec3(normTrans * normal));
 }
 
-//mat3 inverse(mat3 m) {
-//	float det = m[0][0] * (m[1][1] * m[2][2] - m[2][1] * m[1][2])
-//		- m[1][0] * (m[0][1] * m[2][2] - m[0][2] * m[2][1])
-//		+ m[2][0] * (m[0][1] * m[1][2] - m[0][2] * m[1][1]);
+vec4 getIdColor(float id) {
+	float B = floor(id / (256.0*256.0));
+	float G = floor((id - B * 256.0*256.0) / 256.0);
+	float R = mod(id, 256.0);
 //
 //}
 
-vec4 getIdColor() {
-	float product = floor(aProduct + 0.5);
-	float B = floor(product / (256.0*256.0));
-	float G = floor((product - B * 256.0*256.0) / 256.0);
-	float R = mod(product, 256.0);
 	return vec4(R / 255.0, G / 255.0, B / 255.0, 1.0);
 }
 
@@ -168,12 +163,18 @@ void main(void) {
 	vec3 normal = getNormal(transform);
 	vec3 backNormal = normal * -1.0;
 
-	if (uColorCoding) {
-		vec4 idColor = getIdColor();
+	//product colour coding
+	if (uColorCoding == -2) {
+		float id = floor(aProduct + 0.5);
+		vec4 idColor = getIdColor(id);
 		vFrontColor = idColor;
 		vBackColor = idColor;
-	}
-	else {
+	} else if (uColorCoding >= 0) { //model colour coding
+		float id = float(uColorCoding);
+		vec4 idColor = getIdColor(id);
+		vFrontColor = idColor;
+		vBackColor = idColor;
+	} else {
 		//ulightA[3] represents intensity of the light
 		float lightAIntensity = ulightA[3];
 		vec3 lightADirection = normalize(ulightA.xyz - vertex);
