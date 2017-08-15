@@ -1247,7 +1247,8 @@ export class Viewer {
                 lastTouchY_1 = event.touches[0].clientY;
                 // force-setting navigation mode to 'free-orbit' currently for touch navigation since regular orbit
                 // feels awkward and un-intuitive on touch devices
-                this.navigate('free-orbit', deltaX, deltaY);
+                // MC: I prefer fixed orbit as it doesn't allow for wierd angles
+                this.navigate('orbit', deltaX, deltaY);
             } else if (event.touches.length === 2) {
                 // touch move with two fingers -> zoom
                 var distanceBefore = Math.sqrt((lastTouchX_1 - lastTouchX_2) * (lastTouchX_1 - lastTouchX_2) +
@@ -1457,11 +1458,13 @@ export class Viewer {
     * @function Viewer#draw
     * @fires Viewer#frame
     */
-    public draw() {
-        if (!this._geometryLoaded || this._handles.length == 0 || !(this._stylingChanged || this.isChanged())) {
-            if (!this._userAction) return;
+    public draw(force: boolean = false, callback?: () => void) {
+        if (!force) {
+            if (!this._isRunning || !this._geometryLoaded || this._handles.length == 0 || !(this._stylingChanged || this.isChanged())) {
+                if (!this._userAction) return;
+            }
+            this._userAction = false;
         }
-        this._userAction = false;
 
         //call all before-draw plugins
         this._plugins.forEach((plugin) => {
@@ -1595,6 +1598,10 @@ export class Viewer {
             plugin.onAfterDraw();
         });
 
+        if (callback) {
+            callback();
+        }
+
         /**
          * Occurs after every frame in animation. Don't do anything heavy weighted in here as it will happen about 60 times in a second all the time.
          *
@@ -1667,7 +1674,7 @@ export class Viewer {
     * Directions of this views are defined by the coordinate system. Target and distance are defined by {@link Viewer#setCameraTarget setCameraTarget()} method to certain product ID
     * or to the model extent if {@link Viewer#setCameraTarget setCameraTarget()} is called with no arguments.
     */
-    public show(type: string) {
+    public show(type: string, callback?: () => void) {
         var origin = this.origin;
         var distance = this.distance;
         var camera = [0, 0, 0];
@@ -1679,6 +1686,8 @@ export class Viewer {
                 mat4.translate(this.mvMatrix,
                     mat4.create(),
                     [origin[0] * -1.0, origin[1] * -1.0, (distance + origin[2]) * -1.0]);
+                // force redraw
+                this.draw(true, callback);
                 return;
             case 'bottom':
                 //only move to origin and up and rotate 180 degrees around Y axis
@@ -1690,6 +1699,8 @@ export class Viewer {
                 this
                     .mvMatrix = rotationZ;
                 // mat4.translate(mat4.create(), rotationZ, [0, 0, -1.0 * distance]);
+                // force redraw
+                this.draw(true, callback);
                 return;
 
             case 'front':
@@ -1707,8 +1718,11 @@ export class Viewer {
             default:
                 break;
         }
-        //use look-at function to set up camera and target
+        // use look-at function to set up camera and target
         mat4.lookAt(this.mvMatrix, camera, origin, heading);
+
+        // force redraw
+        this.draw(true, callback);
     }
 
     public error(msg) {
@@ -1877,6 +1891,8 @@ export class Viewer {
         }
 
         this._isRunning = true;
+        this._userAction = true; // force redraw in case some config has changed
+
         var viewer = this;
         var lastTime = new Date();
         var counter = 0;
@@ -1915,7 +1931,7 @@ export class Viewer {
     * @param {Number} id [optional] - Optional ID of the model to be stopped. You can get this ID from {@link Viewer#event:loaded loaded} event.
     */
     public stop(id?: number) {
-        if (typeof (id) == 'undefined') {
+        if (typeof (id) === 'undefined') {
             this._isRunning = false;
             return;
         }
