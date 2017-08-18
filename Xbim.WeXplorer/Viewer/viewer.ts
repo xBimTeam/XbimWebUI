@@ -1585,10 +1585,11 @@ export class Viewer {
     * Use this method to zoom to specified element. If you don't specify a product ID it will zoom to full extent.
     * @function Viewer#zoomTo
     * @param {Number} [id] Product ID
+    * @param {Number} [model] Model ID
     * @return {Bool} True if target exists and zoom was successful, False otherwise
     */
-    public zoomTo(id?: number) {
-        var found = this.setCameraTarget(id);
+    public zoomTo(id?: number, model?: number) {
+        var found = this.setCameraTarget(id, model);
         if (!found) return false;
 
         var eye = this.getCameraPosition();
@@ -1612,7 +1613,7 @@ export class Viewer {
     * Directions of this views are defined by the coordinate system. Target and distance are defined by {@link Viewer#setCameraTarget setCameraTarget()} method to certain product ID
     * or to the model extent if {@link Viewer#setCameraTarget setCameraTarget()} is called with no arguments.
     */
-    public show(type: string) {
+    public show(type: 'top' | 'bottom' | 'front' | 'back' | 'left' | 'right' ) {
         var origin = this._origin;
         var distance = this._distance;
         var camera = [0, 0, 0];
@@ -2198,6 +2199,7 @@ export class Viewer {
     */
     public unclip(): void {
         this.clippingPlaneA = null;
+        this.clippingPlaneB = null;
     }
 
     public set clippingPlaneA(plane: number[]) {
