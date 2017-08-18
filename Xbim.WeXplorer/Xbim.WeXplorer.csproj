@@ -61,8 +61,6 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Build\xbim-browser.css" />
-    <Content Include="Build\xbim-browser.min.js" />
     <Content Include="Build\xbim-geometry-loader.js" />
     <Content Include="Build\xbim-geometry-loader.min.js" />
     <Content Include="Build\xbim-viewer.min.js" />
@@ -82,7 +80,6 @@
     <Content Include="Libs\system.js" />
     <Content Include="Resources\bootstrap.css" />
     <Content Include="Utilities\TypingsBundler.exe" />
-    <Content Include="Build\xbim-browser.js" />
     <Content Include="Build\xbim-viewer.js" />
     <Content Include="Examples\TsSingleModule\index.html" />
     <Content Include="Examples\BasicJsExample\index.html" />
