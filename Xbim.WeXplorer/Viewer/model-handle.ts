@@ -17,17 +17,24 @@ export class ModelHandle {
     public tag: any = null;
 
     /**
-    * Conversion factor to one meter from model units
-    */
+     * Conversion factor to one meter from model units
+     */
     public meter: number;
 
     /**
-    * indicates if this model should be used in a rendering loop or not.
-    */
+     * indicates if this model should be used in a rendering loop or not.
+     */
     public stopped: boolean = false;
 
-    //participates in picking operation only if true
+    /**
+     * participates in picking operation only if true
+     */
     public pickable: boolean = true;
+
+    /**
+     * participates in clipping operation only if true
+     */
+    public clippable: boolean = true;
 
     private _numberOfIndices: number;
     private _vertexTextureSize: number;
