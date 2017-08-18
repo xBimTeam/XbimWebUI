@@ -1675,7 +1675,7 @@ export class Viewer {
     * Directions of this views are defined by the coordinate system. Target and distance are defined by {@link Viewer#setCameraTarget setCameraTarget()} method to certain product ID
     * or to the model extent if {@link Viewer#setCameraTarget setCameraTarget()} is called with no arguments.
     */
-    public show(type: : 'top' | 'bottom' | 'front' | 'back' | 'left' | 'right', callback?: () => void) {
+    public show(type: 'top' | 'bottom' | 'front' | 'back' | 'left' | 'right', callback?: () => void) {
         var origin = this.origin;
         var distance = this.distance;
         var camera = [0, 0, 0];
