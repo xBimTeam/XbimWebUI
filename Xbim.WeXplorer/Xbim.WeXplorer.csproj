@@ -133,8 +133,8 @@
     <Content Include="Resources\doctemplate\static\styles\prettify-tomorrow.css" />
     <Content Include="Resources\doctemplate\static\styles\xbrowser-styles.css" />
     <Content Include="Resources\doctemplate\static\styles\xviewer-styles.css" />
-    <Content Include="Tutorials\2_Safe_Hello_building.md" />
-    <Content Include="Tutorials\1_Hello_building.json" />
+    <Content Include="Resources\tutorials\2_Safe_Hello_building.md" />
+    <Content Include="Resources\tutorials\1_Hello_building.json" />
     <Content Include="Resources\doctemplate\static\5_Colourful_building.live.html" />
     <Content Include="tests\data\LakesideRestaurant.json" />
     <Content Include="tests\data\SampleHouse.wexbim" />
@@ -147,7 +147,7 @@
     <Content Include="Examples\WexBimStreamTest\wexbimtest.html" />
     <Content Include="Libs\gl-matrix\LICENSE.md" />
     <Content Include="tests\data\network.wexbim" />
-    <None Include="Tutorials\1_Hello_building.md" />
+    <None Include="Resources\tutorials\1_Hello_building.md" />
     <Content Include="Examples\SimpleWexbimViewer\index.html" />
     <Content Include="Viewer\shaders\fragment_shader.c" />
     <Content Include="Viewer\shaders\vertex_shader.c" />
@@ -222,15 +222,15 @@
     <Content Include="Resources\doctemplate\tmpl\tutorial.tmpl" />
     <Content Include="Resources\doctemplate\tmpl\type.tmpl" />
     <Content Include="Resources\doctemplate\static\data\SampleHouse.wexbim" />
-    <Content Include="Tutorials\2_Safe_Hello_building.json" />
-    <Content Include="Tutorials\3_Eventful_building.md" />
-    <Content Include="Tutorials\3_Eventful_building.json" />
-    <Content Include="Tutorials\4_Building_seen_from_everywhere.md" />
-    <Content Include="Tutorials\4_Building_seen_from_everywhere.json" />
-    <Content Include="Tutorials\5_Colourful_building.md" />
-    <Content Include="Tutorials\5_Colourful_building.json" />
-    <Content Include="Tutorials\6_Building_described.md" />
-    <Content Include="Tutorials\6_Building_described.json" />
+    <Content Include="Resources\tutorials\2_Safe_Hello_building.json" />
+    <Content Include="Resources\tutorials\3_Eventful_building.md" />
+    <Content Include="Resources\tutorials\3_Eventful_building.json" />
+    <Content Include="Resources\tutorials\4_Building_seen_from_everywhere.md" />
+    <Content Include="Resources\tutorials\4_Building_seen_from_everywhere.json" />
+    <Content Include="Resources\tutorials\5_Colourful_building.md" />
+    <Content Include="Resources\tutorials\5_Colourful_building.json" />
+    <Content Include="Resources\tutorials\6_Building_described.md" />
+    <Content Include="Resources\tutorials\6_Building_described.json" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
