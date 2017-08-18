@@ -188,11 +188,14 @@ FakesAssemblies/
 *.css.map
 
 
-
+# Source folder containing just TypeScript. All *.js, *.d.ts and *.js.map files are generated
 Xbim.WeXplorer/Viewer/**/*.js
 Xbim.WeXplorer/Viewer/**/*.d.ts
-Xbim.WeXplorer/xbim-browser.d.ts
-Xbim.WeXplorer/xbim-browser.js
+Xbim.WeXplorer/Viewer/**/*.js.map
+
 Xbim.WeXplorer/xbim-viewer.d.ts
 Xbim.WeXplorer/xbim-viewer.js
+Xbim.WeXplorer/xbim-viewer.js.map
+
+# Target folder for binary utilities (shader generator, typings bundler, ...)
 Xbim.WeXplorer/Utilities
