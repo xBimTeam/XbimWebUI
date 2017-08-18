@@ -85,7 +85,6 @@
     <Content Include="Libs\system.js" />
     <Content Include="Resources\bootstrap.css" />
     <Content Include="Utilities\TypingsBundler.exe" />
-    <Content Include="Viewer\browser\xbim-browser.css" />
     <Content Include="Build\xbim-browser.js" />
     <Content Include="Build\xbim-viewer.js" />
     <Content Include="Examples\TsSingleModule\index.html" />
@@ -193,21 +192,10 @@
     <Content Include="Examples\TsModulesExample\index.html" />
     <Content Include="Web.config" />
     <Content Include="Viewer\workers\tsconfig.json" />
-    <TypeScriptCompile Include="xbim-browser.ts" />
     <TypeScriptCompile Include="xbim-viewer.ts" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <TypeScriptCompile Include="Viewer\browser\attribute-dictionary.ts" />
-    <TypeScriptCompile Include="Viewer\browser\browser.ts" />
-    <TypeScriptCompile Include="Viewer\browser\cobie-utils.ts" />
-    <TypeScriptCompile Include="Viewer\browser\cobieuk-utils.ts" />
-    <TypeScriptCompile Include="Viewer\browser\visual-assignment-set.ts" />
-    <TypeScriptCompile Include="Viewer\browser\visual-attribute.ts" />
-    <TypeScriptCompile Include="Viewer\browser\visual-entity.ts" />
-    <TypeScriptCompile Include="Viewer\browser\visual-model.ts" />
-    <TypeScriptCompile Include="Viewer\browser\visual-property.ts" />
-    <TypeScriptCompile Include="Viewer\browser\visual-templates.ts" />
     <TypeScriptCompile Include="Examples\TsSingleModule\index.ts" />
     <TypeScriptCompile Include="Viewer\common\dictionary.ts" />
     <TypeScriptCompile Include="Viewer\scene\node-product-shape.ts" />
