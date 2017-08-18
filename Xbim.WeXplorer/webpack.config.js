@@ -8,7 +8,6 @@ var isDevelop = process.env.NODE_ENV === 'development';
 
 var entries = {};
 entries['xbim-viewer'] = './xbim-viewer.ts';
-entries['xbim-browser'] = './xbim-browser.ts';
 entries['xbim-geometry-loader'] = './Viewer/workers/geometry-loader.ts';
 
 var plugins = [];
