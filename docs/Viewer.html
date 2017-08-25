@@ -1530,7 +1530,7 @@ If you want interactive model call <a href="Viewer.html#start">start()</a> metho
     
         
 
-        <h4 class="name" id="getProductType"><span class="type-signature"></span>getProductType<span class="signature">(prodID)</span><span class="type-signature"> &rarr; {Number}</span></h4>
+        <h4 class="name" id="getProductType"><span class="type-signature"></span>getProductType<span class="signature">(prodID, modelId<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {Number}</span></h4>
 
         
     
@@ -1559,6 +1559,8 @@ If you want interactive model call <a href="Viewer.html#start">start()</a> metho
         <th>Type</th>
 
         
+        <th>Attributes</th>
+        
 
         
 
@@ -1584,10 +1586,51 @@ If you want interactive model call <a href="Viewer.html#start">start()</a> metho
             </td>
 
             
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
 
             
 
             <td class="description last"><p>Product ID. You can get this value either from semantic structure of the model or by listening to <a href="Viewer.html#event:pick">pick</a> event.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>modelId</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>Optional Model ID. If not defined first type of a product with certain ID will be returned. This might be ambiguous.</p></td>
         </tr>
 
     
@@ -1677,7 +1720,7 @@ If you want interactive model call <a href="Viewer.html#start">start()</a> metho
     
         
 
-        <h4 class="name" id="getState"><span class="type-signature"></span>getState<span class="signature">(id)</span><span class="type-signature"></span></h4>
+        <h4 class="name" id="getState"><span class="type-signature"></span>getState<span class="signature">(id, modelId<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
 
         
     
@@ -1711,6 +1754,8 @@ with one of values from xState enumeration. 0xFF is the default value.</p>
         <th>Type</th>
 
         
+        <th>Attributes</th>
+        
 
         
 
@@ -1736,10 +1781,51 @@ with one of values from xState enumeration. 0xFF is the default value.</p>
             </td>
 
             
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
 
             
 
             <td class="description last"><p>Id of the product. You would typically get the id from <a href="Viewer.html#event:pick">pick event</a> or similar event.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>modelId</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>Id of the model</p></td>
         </tr>
 
     
@@ -1807,7 +1893,7 @@ with one of values from xState enumeration. 0xFF is the default value.</p>
     
         
 
-        <h4 class="name" id="getStyle"><span class="type-signature"></span>getStyle<span class="signature">(id)</span><span class="type-signature"></span></h4>
+        <h4 class="name" id="getStyle"><span class="type-signature"></span>getStyle<span class="signature">(id, modelId<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
 
         
     
@@ -1841,6 +1927,8 @@ your custom colour which you have defined in <a href="Viewer.html#defineStyle">d
         <th>Type</th>
 
         
+        <th>Attributes</th>
+        
 
         
 
@@ -1866,10 +1954,51 @@ your custom colour which you have defined in <a href="Viewer.html#defineStyle">d
             </td>
 
             
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
 
             
 
             <td class="description last"><p>Id of the product. You would typically get the id from <a href="Viewer.html#event:pick">pick event</a> or similar event.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>modelId</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>Optional Model ID. If not defined first style available for a product with certain ID will be returned. This might be ambiguous.</p></td>
         </tr>
 
     
@@ -2729,7 +2858,7 @@ before draw, after draw etc. This makes it possible to implement functionality t
     
         
 
-        <h4 class="name" id="resetStates"><span class="type-signature"></span>resetStates<span class="signature">(hideSpaces<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+        <h4 class="name" id="resetStates"><span class="type-signature"></span>resetStates<span class="signature">(hideSpaces<span class="signature-attributes">opt</span>, modelId<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
 
         
     
@@ -2811,8 +2940,46 @@ You can use optional hideSpaces parameter if you also want to show spaces. They 
                 </td>
             
 
-            <td class="description last"><p>Default state is UNDEFINED which would also show spaces. That is often not
-desired so it can be excluded with this parameter.</p></td>
+            <td class="description last"><p>Default state is UNDEFINED which would also show spaces. That is often not</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>modelId</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last"><p>Optional Model ID. Id no ID is specified states are reset for all models.</p></td>
         </tr>
 
     
@@ -2880,7 +3047,7 @@ desired so it can be excluded with this parameter.</p></td>
     
         
 
-        <h4 class="name" id="resetStyles"><span class="type-signature"></span>resetStyles<span class="signature">()</span><span class="type-signature"></span></h4>
+        <h4 class="name" id="resetStyles"><span class="type-signature"></span>resetStyles<span class="signature">(modelId<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
 
         
     
@@ -2899,6 +3066,66 @@ desired so it can be excluded with this parameter.</p></td>
 
     
 
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>modelId</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>Optional ID of a specific model.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
     
 
     
@@ -3219,7 +3446,7 @@ desired so it can be excluded with this parameter.</p></td>
     
         
 
-        <h4 class="name" id="setCameraTarget"><span class="type-signature"></span>setCameraTarget<span class="signature">(prodId)</span><span class="type-signature"> &rarr; {Bool}</span></h4>
+        <h4 class="name" id="setCameraTarget"><span class="type-signature"></span>setCameraTarget<span class="signature">(prodId, modelId<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {Bool}</span></h4>
 
         
     
@@ -3254,6 +3481,8 @@ if you call functions like show() or <a href="Viewer.html#zoomTo">zoomTo()</a>.<
         <th>Type</th>
 
         
+        <th>Attributes</th>
+        
 
         
 
@@ -3279,10 +3508,51 @@ if you call functions like show() or <a href="Viewer.html#zoomTo">zoomTo()</a>.<
             </td>
 
             
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
 
             
 
             <td class="description last"><p>[optional] Product ID. You can get ID either from semantic structure of the model or from <a href="Viewer.html#event:pick">pick event</a>.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>modelId</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>Optional ID of a specific model.</p></td>
         </tr>
 
     
@@ -3372,7 +3642,7 @@ if you call functions like show() or <a href="Viewer.html#zoomTo">zoomTo()</a>.<
     
         
 
-        <h4 class="name" id="setState"><span class="type-signature"></span>setState<span class="signature">(state, target)</span><span class="type-signature"></span></h4>
+        <h4 class="name" id="setState"><span class="type-signature"></span>setState<span class="signature">(state, modelId<span class="signature-attributes">opt</span>, target)</span><span class="type-signature"></span></h4>
 
         
     
@@ -3406,6 +3676,8 @@ Target is either enumeration from xProductType or array of product IDs. If you s
         <th>Type</th>
 
         
+        <th>Attributes</th>
+        
 
         
 
@@ -3431,10 +3703,51 @@ Target is either enumeration from xProductType or array of product IDs. If you s
             </td>
 
             
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
 
             
 
             <td class="description last"><p>One of <a href="global.html#State">State</a> enumeration values.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>modelId</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>Id of the model</p></td>
         </tr>
 
     
@@ -3456,6 +3769,14 @@ Target is either enumeration from xProductType or array of product IDs. If you s
             
             </td>
 
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
             
 
             
@@ -3528,7 +3849,7 @@ Target is either enumeration from xProductType or array of product IDs. If you s
     
         
 
-        <h4 class="name" id="setStyle"><span class="type-signature"></span>setStyle<span class="signature">(style, target)</span><span class="type-signature"></span></h4>
+        <h4 class="name" id="setStyle"><span class="type-signature"></span>setStyle<span class="signature">(style, target, modelId<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
 
         
     
@@ -3563,6 +3884,8 @@ Use <a href="Viewer.html#defineStyle">defineStyle()</a> to define styling first.
         <th>Type</th>
 
         
+        <th>Attributes</th>
+        
 
         
 
@@ -3582,6 +3905,14 @@ Use <a href="Viewer.html#defineStyle">defineStyle()</a> to define styling first.
             
             </td>
 
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
             
 
             
@@ -3609,10 +3940,51 @@ Use <a href="Viewer.html#defineStyle">defineStyle()</a> to define styling first.
             </td>
 
             
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
 
             
 
             <td class="description last"><p>Target of the change. It can either be array of product IDs or product type from xProductType.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>modelId</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>Optional ID of a specific model.</p></td>
         </tr>
 
     
@@ -4331,7 +4703,7 @@ All models are pickable by default when loaded.</p>
     
         
 
-        <h4 class="name" id="zoomTo"><span class="type-signature"></span>zoomTo<span class="signature">(id<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {Bool}</span></h4>
+        <h4 class="name" id="zoomTo"><span class="type-signature"></span>zoomTo<span class="signature">(id<span class="signature-attributes">opt</span>, model<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {Bool}</span></h4>
 
         
     
@@ -4405,6 +4777,39 @@ All models are pickable by default when loaded.</p>
             
 
             <td class="description last"><p>Product ID</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>model</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>Model ID</p></td>
         </tr>
 
     
@@ -4511,7 +4916,7 @@ All models are pickable by default when loaded.</p>
 
     
     <div class="description">
-        <p>Occurs when user double clicks on model.</p>
+        <p>Occurs when mousedown event happens on underlying canvas.</p>
     </div>
     
 
@@ -4573,7 +4978,30 @@ All models are pickable by default when loaded.</p>
 
             
 
-            <td class="description last"><p>product ID of the element or null if there wasn't any product under mouse</p></td>
+            <td class="description last"><p>product ID of the element or -1 if there wasn't any product under mouse</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>model</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>model ID of the element or -1 if there wasn't any product under mouse</p></td>
         </tr>
 
     
@@ -5200,6 +5628,29 @@ This ID can later be used to unload or temporarily stop the model.</p>
         </tr>
 
     
+
+        <tr>
+            
+                <td class="name"><code>model</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>model ID</p></td>
+        </tr>
+
+    
     </tbody>
 </table>
     
@@ -5335,7 +5786,30 @@ This ID can later be used to unload or temporarily stop the model.</p>
 
             
 
-            <td class="description last"><p>product ID of the element or null if there wasn't any product under mouse</p></td>
+            <td class="description last"><p>product ID of the element or -1 if there wasn't any product under mouse</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>model</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>model ID of the element or -1 if there wasn't any product under mouse</p></td>
         </tr>
 
     
@@ -5687,13 +6161,13 @@ This ID can later be used to unload or temporarily stop the model.</p>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="OrthogonalCamera.html">OrthogonalCamera</a></li><li><a href="PerspectiveCamera.html">PerspectiveCamera</a></li><li><a href="Prerequisites.html">Prerequisites</a></li><li><a href="Viewer.html">Viewer</a></li><li><a href="xNavigationCube.html">xNavigationCube</a></li><li><a href="xNavigationHome.html">xNavigationHome</a></li></ul><h3>Events</h3><ul><li><a href="Viewer.html#event:dblclick">dblclick</a></li><li><a href="Viewer.html#event:error">error</a></li><li><a href="Viewer.html#event:fps">fps</a></li><li><a href="Viewer.html#event:frame">frame</a></li><li><a href="Viewer.html#event:loaded">loaded</a></li><li><a href="Viewer.html#event:mouseDown">mouseDown</a></li><li><a href="Viewer.html#event:mouseDown">mouseDown</a></li><li><a href="Viewer.html#event:pick">pick</a></li><li><a href="Viewer.html#event:pick">pick</a></li><li><a href="xViewer.html#event:clipped">clipped</a></li><li><a href="xViewer.html#event:unclipped">unclipped</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-1_Hello_building.html">Hello building!</a></li><li><a href="tutorial-2_Safe_Hello_building.html">Safe 'Hello building!'</a></li><li><a href="tutorial-3_Eventful_building.html">Eventful building</a></li><li><a href="tutorial-4_Building_seen_from_everywhere.html">Building seen from everywhere ...</a></li><li><a href="tutorial-5_Colourful_building.html">Colourful building</a></li><li><a href="tutorial-6_Building_described.html">Building described</a></li></ul><h3>Global</h3><ul><li><a href="global.html#ProductType">ProductType</a></li><li><a href="global.html#State">State</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="NavigationCube.html">NavigationCube</a></li><li><a href="NavigationHome.html">NavigationHome</a></li><li><a href="OrthogonalCamera.html">OrthogonalCamera</a></li><li><a href="PerspectiveCamera.html">PerspectiveCamera</a></li><li><a href="Prerequisites.html">Prerequisites</a></li><li><a href="Viewer.html">Viewer</a></li></ul><h3>Events</h3><ul><li><a href="Viewer.html#event:dblclick">dblclick</a></li><li><a href="Viewer.html#event:error">error</a></li><li><a href="Viewer.html#event:fps">fps</a></li><li><a href="Viewer.html#event:frame">frame</a></li><li><a href="Viewer.html#event:loaded">loaded</a></li><li><a href="Viewer.html#event:mouseDown">mouseDown</a></li><li><a href="Viewer.html#event:mouseDown">mouseDown</a></li><li><a href="Viewer.html#event:pick">pick</a></li><li><a href="Viewer.html#event:pick">pick</a></li><li><a href="xViewer.html#event:clipped">clipped</a></li><li><a href="xViewer.html#event:unclipped">unclipped</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-1_Hello_building.html">Hello building!</a></li><li><a href="tutorial-2_Safe_Hello_building.html">Safe 'Hello building!'</a></li><li><a href="tutorial-3_Eventful_building.html">Eventful building</a></li><li><a href="tutorial-4_Building_seen_from_everywhere.html">Building seen from everywhere ...</a></li><li><a href="tutorial-5_Colourful_building.html">Colourful building</a></li><li><a href="tutorial-6_Building_described.html">Building described</a></li></ul><h3>Global</h3><ul><li><a href="global.html#ProductType">ProductType</a></li><li><a href="global.html#State">State</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0</a> on Fri May 05 2017 10:30:44 GMT+0200 (W. Europe Summer Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0</a> on Fri Aug 25 2017 09:18:44 GMT+0200 (W. Europe Summer Time)
 </footer>
 
 <script> prettyPrint(); </script>

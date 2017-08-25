@@ -447,7 +447,7 @@ export class Viewer {
     *
     * @function Viewer#setState
     * @param {State} state - One of {@link State State} enumeration values.
-    * @param {Number} modelId [optional]- Id of the model
+    * @param {Number} [modelId] - Id of the model
     * @param {Number[] | Number} target - Target of the change. It can either be array of product IDs or product type from {@link xProductType xProductType}.
     */
     public setState(state: State, target: number | number[], modelId?: number) {
@@ -490,7 +490,7 @@ export class Viewer {
     *
     * @function Viewer#getState
     * @param {Number} id - Id of the product. You would typically get the id from {@link Viewer#event:pick pick event} or similar event.
-    * @param {Number} modelId [optional]- Id of the model
+    * @param {Number} [modelId] - Id of the model
     */
     public getState(id: number, modelId?: number): number {
         return this.forHandleOrAll((h: ModelHandle) => {
@@ -554,7 +554,7 @@ export class Viewer {
     * @function Viewer#setStyle
     * @param style - style defined in {@link Viewer#defineStyle defineStyle()} method
     * @param {Number[] | Number} target - Target of the change. It can either be array of product IDs or product type from {@link xProductType xProductType}.
-    * @param {Number} modelId [optional] - Optional ID of a specific model.
+    * @param {Number} [modelId] - Optional ID of a specific model.
     */
     public setStyle(style: number, target: number | number[], modelId?: number) {
         if (typeof (style) == 'undefined' || !(style >= 0 && style <= 225)
@@ -582,7 +582,7 @@ export class Viewer {
     *
     * @function Viewer#getStyle
     * @param {Number} id - Id of the product. You would typically get the id from {@link Viewer#event:pick pick event} or similar event.
-    * @param {Number} modelId [optional] - Optional Model ID. If not defined first style available for a product with certain ID will be returned. This might be ambiguous.
+    * @param {Number} [modelId] - Optional Model ID. If not defined first style available for a product with certain ID will be returned. This might be ambiguous.
     */
     public getStyle(id: number, modelId?: number) {
         this.forHandleOrAll((handle: ModelHandle) => {
@@ -594,7 +594,7 @@ export class Viewer {
     * Use this function to reset appearance of all products to their default styles.
     *
     * @function Viewer#resetStyles 
-    * @param {Number} modelId [optional] - Optional ID of a specific model.
+    * @param {Number} [modelId] - Optional ID of a specific model.
     */
     public resetStyles(modelId?: number): void {
         this.forHandleOrAll((handle: ModelHandle) => {
@@ -608,7 +608,7 @@ export class Viewer {
     * 
     * @function Viewer#getProductType
     * @param {Number} prodID - Product ID. You can get this value either from semantic structure of the model or by listening to {@link Viewer#event:pick pick} event.
-    * @param {Number} modelId [optional] - Optional Model ID. If not defined first type of a product with certain ID will be returned. This might be ambiguous.
+    * @param {Number} [modelId] - Optional Model ID. If not defined first type of a product with certain ID will be returned. This might be ambiguous.
     * @return {Number} Product type ID. This is either null if no type is identified or one of {@link xProductType type ids}.
     */
     public getProductType(prodId: number, modelId?: number): number {
@@ -637,7 +637,7 @@ export class Viewer {
     * if you call functions like {@link Viewer.show show()} or {@link Viewer#zoomTo zoomTo()}.
     * @function Viewer#setCameraTarget
     * @param {Number} prodId [optional] Product ID. You can get ID either from semantic structure of the model or from {@link Viewer#event:pick pick event}.
-    * @param {Number} modelId [optional] - Optional ID of a specific model.
+    * @param {Number} [modelId] - Optional ID of a specific model.
     * @return {Bool} True if the target exists and is set, False otherwise
     */
     public setCameraTarget(prodId?: number, modelId?: number): boolean {

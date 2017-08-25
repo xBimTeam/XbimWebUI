@@ -6,12 +6,12 @@ var NavigationHome = (function () {
     /**
      * This is constructor of the Home plugin for {@link Viewer xBIM Viewer}. It gets optional Image object as an argument. If no image
      * is specified there is a default one (which is not very prety).
-     * @name xNavigationHome
+     * @name NavigationHome
      * @constructor
      * @classdesc This is a plugin for Viewer which renders interactive home button. It is customizable in terms of alpha
      * behaviour and its position on the viewer canvas as well as definition of the distance and view direction. Use of plugin:
      *
-     *     var home = new xNavigationHome();
+     *     var home = new NavigationHome();
      *     viewer.addPlugin(home);
      *
      *
@@ -20,41 +20,41 @@ var NavigationHome = (function () {
     function NavigationHome(image) {
         /**
         * Size of the the home button relative to the size of viewer canvas. This has to be a positive number between [0,1] Default value is 0.2.
-        * @member {Number} xNavigationHome#ratio
+        * @member {Number} NavigationHome#ratio
         */
         this.ratio = 0.2;
         /**
         * Position of the the home button relative to the size of viewer canvas. This has to be a positive number between [0,1] Default value is 0.05.
-        * @member {Number} xNavigationHome#placementX
+        * @member {Number} NavigationHome#placementX
         */
         this.placementX = 0.05;
         /**
         * Position of the the home button relative to the size of viewer canvas. This has to be a positive number between [0,1] Default value is 0.05.
-        * @member {Number} xNavigationHome#placementY
+        * @member {Number} NavigationHome#placementY
         */
         this.placementY = 0.05;
         /**
         * Navigation home button has two transparency states. One is when user hovers over the cube and the second when the cursor is anywhere else.
         * This is for the hovering shate and it should be a positive number between [0,1]. If the value is less than 1 cube will be semitransparent
         * when user hovers over. Default value is 1.0.
-        * @member {Number} xNavigationHome#activeAlpha
+        * @member {Number} NavigationHome#activeAlpha
         */
         this.activeAlpha = 1.0;
         /**
         * Navigation home button has two transparency states. One is when user hovers over the cube and the second when the cursor is anywhere else.
         * This is for the non-hovering shate and it should be a positive number between [0,1]. If the value is less than 1 cube will be semitransparent
         * when user is not hovering over. Default value is 0.3.
-        * @member {Number} xNavigationHome#passiveAlpha
+        * @member {Number} NavigationHome#passiveAlpha
         */
         this.passiveAlpha = 0.3;
         /**
         * Distance to be used for a home view. If null, default viewer distance for a full extent mode is used. Default value: null
-        * @member {Number} xNavigationHome#distance
+        * @member {Number} NavigationHome#distance
         */
         this.distance = null;
         /**
         * View direction to be used for a home view. Default value: [1, 1, -1]
-        * @member {Number} xNavigationHome#viewDirection
+        * @member {Number} NavigationHome#viewDirection
         */
         this.viewDirection = [1, 1, -1];
         //private variables
