@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Class: OrthogonalCamera</title>
+    <title>Class: NavigationCube</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 	
-		<h1 class="page-title">Class: OrthogonalCamera</h1>
+		<h1 class="page-title">Class: NavigationCube</h1>
     
     
 
@@ -29,10 +29,15 @@
 <header>
     
         <h2>
-        OrthogonalCamera
+        NavigationCube
         </h2>
         
-            <div class="class-description"><p>This is a structure that holds settings of orthogonal camera. If you want to switch viewer to use orthogonal camera set <a href="Viewer.html#camera">camera</a> to 'orthogonal'.</p></div>
+            <div class="class-description"><p>This is a plugin for Viewer which renders interactive navigation cube. It is customizable in terms of alpha
+behaviour and its position on the viewer canvas. Use of plugin:</p>
+<pre class="prettyprint source"><code>var cube = new NavigationCube();
+viewer.addPlugin(cube);</code></pre><p>You can specify your own texture of the cube as an <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/Image">Image</a>
+object argumen in constructor. If you don't specify any image default texture will be used (you can also use this one and enhance it if you want):</p>
+<p><img src="cube_texture.png" alt="Cube texture"></p></div>
         
     
 </header>
@@ -47,7 +52,7 @@
         <h2>Constructor</h2>
         
 
-        <h4 class="name" id="OrthogonalCamera"><span class="type-signature"></span>new OrthogonalCamera<span class="signature">()</span><span class="type-signature"></span></h4>
+        <h4 class="name" id="NavigationCube"><span class="type-signature"></span>new NavigationCube<span class="signature">(image<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
 
         
     
@@ -56,7 +61,9 @@
 
     
     <div class="description">
-        <p>This is only a structure. Don't call the constructor.</p>
+        <p>This is constructor of the Navigation Cube plugin for <a href="Viewer.html">xBIM Viewer</a>. It gets optional Image as an argument.
+The image will be used as a texture of the navigation cube. If you don't specify eny image default one will be used.
+Image has to be square and its size has to be power of 2.</p>
     </div>
     
 
@@ -66,6 +73,74 @@
 
     
 
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>image</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Image</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last"><p>optional image to be used for a cube texture.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
     
 
     
@@ -141,11 +216,17 @@
         <dl>
             
 <dt>
-    <h4 class="name" id="bottom"><span class="type-signature"></span>bottom<span class="type-signature"> :Number</span></h4>
+    <h4 class="name" id="activeAlpha"><span class="type-signature"></span>activeAlpha<span class="type-signature"> :Number</span></h4>
 
     
 </dt>
 <dd>
+    
+    <div class="description">
+        <p>Navigation cube has two transparency states. One is when user hovers over the cube and the second when the cursor is anywhere else.
+This is for the hovering shate and it should be a positive number between [0,1]. If the value is less than 1 cube will be semitransparent
+when user hovers over. Default value is 1.0.</p>
+    </div>
     
 
     
@@ -207,11 +288,17 @@
         
             
 <dt>
-    <h4 class="name" id="far"><span class="type-signature"></span>far<span class="type-signature"> :Number</span></h4>
+    <h4 class="name" id="highlighting"><span class="type-signature"></span>highlighting<span class="type-signature"> :Number</span></h4>
 
     
 </dt>
 <dd>
+    
+    <div class="description">
+        <p>Active parts of the navigation cube are highlighted so that user can recognize which part is active.
+This should be a positive number between [0,2]. If the value is less than 1 active area is darker.
+If the value is greater than 1 active area is lighter. Default value is 1.2.</p>
+    </div>
     
 
     
@@ -273,11 +360,17 @@
         
             
 <dt>
-    <h4 class="name" id="left"><span class="type-signature"></span>left<span class="type-signature"> :Number</span></h4>
+    <h4 class="name" id="passiveAlpha"><span class="type-signature"></span>passiveAlpha<span class="type-signature"> :Number</span></h4>
 
     
 </dt>
 <dd>
+    
+    <div class="description">
+        <p>Navigation cube has two transparency states. One is when user hovers over the cube and the second when the cursor is anywhere else.
+This is for the non-hovering shate and it should be a positive number between [0,1]. If the value is less than 1 cube will be semitransparent
+when user is not hovering over. Default value is 0.3.</p>
+    </div>
     
 
     
@@ -339,11 +432,16 @@
         
             
 <dt>
-    <h4 class="name" id="near"><span class="type-signature"></span>near<span class="type-signature"> :Number</span></h4>
+    <h4 class="name" id="position"><span class="type-signature"></span>position<span class="type-signature"> :Enum</span></h4>
 
     
 </dt>
 <dd>
+    
+    <div class="description">
+        <p>It is possible to place navigation cube to any of the corners of the canvas using this property. Default value is cube.BOTTOM_RIGHT.
+Allowed values are cube.BOTTOM_RIGHT, cube.BOTTOM_LEFT, cube.TOP_RIGHT and cube.TOP_LEFT.</p>
+    </div>
     
 
     
@@ -351,7 +449,7 @@
         <ul>
             <li>
                 
-<span class="param-type">Number</span>
+<span class="param-type">Enum</span>
 
 
             </li>
@@ -405,77 +503,15 @@
         
             
 <dt>
-    <h4 class="name" id="right"><span class="type-signature"></span>right<span class="type-signature"> :Number</span></h4>
+    <h4 class="name" id="ratio"><span class="type-signature"></span>ratio<span class="type-signature"> :Number</span></h4>
 
     
 </dt>
 <dd>
     
-
-    
-        <h5>Type:</h5>
-        <ul>
-            <li>
-                
-<span class="param-type">Number</span>
-
-
-            </li>
-        </ul>
-    
-
-    
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-    
-
-    
-</dd>
-
-        
-            
-<dt>
-    <h4 class="name" id="top"><span class="type-signature"></span>top<span class="type-signature"> :Number</span></h4>
-
-    
-</dt>
-<dd>
+    <div class="description">
+        <p>Size of the cube relative to the size of viewer canvas. This has to be a positive number between [0,1] Default value is 0.15.</p>
+    </div>
     
 
     

@@ -8,12 +8,12 @@ export class NavigationHome implements IPlugin {
     /**
      * This is constructor of the Home plugin for {@link Viewer xBIM Viewer}. It gets optional Image object as an argument. If no image
      * is specified there is a default one (which is not very prety). 
-     * @name xNavigationHome
+     * @name NavigationHome
      * @constructor
      * @classdesc This is a plugin for Viewer which renders interactive home button. It is customizable in terms of alpha 
      * behaviour and its position on the viewer canvas as well as definition of the distance and view direction. Use of plugin:
      *  
-     *     var home = new xNavigationHome();
+     *     var home = new NavigationHome();
      *     viewer.addPlugin(home);
      * 
      *
@@ -28,18 +28,18 @@ export class NavigationHome implements IPlugin {
     private _viewer: Viewer;
     /**
     * Size of the the home button relative to the size of viewer canvas. This has to be a positive number between [0,1] Default value is 0.2. 
-    * @member {Number} xNavigationHome#ratio
+    * @member {Number} NavigationHome#ratio
     */
     public ratio: number = 0.2;
     /**
     * Position of the the home button relative to the size of viewer canvas. This has to be a positive number between [0,1] Default value is 0.05. 
-    * @member {Number} xNavigationHome#placementX
+    * @member {Number} NavigationHome#placementX
     */
     public placementX: number = 0.05;
 
     /**
     * Position of the the home button relative to the size of viewer canvas. This has to be a positive number between [0,1] Default value is 0.05. 
-    * @member {Number} xNavigationHome#placementY
+    * @member {Number} NavigationHome#placementY
     */
     public placementY: number = 0.05;
 
@@ -47,7 +47,7 @@ export class NavigationHome implements IPlugin {
     * Navigation home button has two transparency states. One is when user hovers over the cube and the second when the cursor is anywhere else.
     * This is for the hovering shate and it should be a positive number between [0,1]. If the value is less than 1 cube will be semitransparent 
     * when user hovers over. Default value is 1.0. 
-    * @member {Number} xNavigationHome#activeAlpha
+    * @member {Number} NavigationHome#activeAlpha
     */
     public activeAlpha: number = 1.0;
 
@@ -55,19 +55,19 @@ export class NavigationHome implements IPlugin {
     * Navigation home button has two transparency states. One is when user hovers over the cube and the second when the cursor is anywhere else.
     * This is for the non-hovering shate and it should be a positive number between [0,1]. If the value is less than 1 cube will be semitransparent 
     * when user is not hovering over. Default value is 0.3. 
-    * @member {Number} xNavigationHome#passiveAlpha
+    * @member {Number} NavigationHome#passiveAlpha
     */
     public passiveAlpha: number = 0.3;
 
     /**
     * Distance to be used for a home view. If null, default viewer distance for a full extent mode is used. Default value: null
-    * @member {Number} xNavigationHome#distance
+    * @member {Number} NavigationHome#distance
     */
     public distance: number = null;
 
     /**
     * View direction to be used for a home view. Default value: [1, 1, -1]
-    * @member {Number} xNavigationHome#viewDirection
+    * @member {Number} NavigationHome#viewDirection
     */
     public viewDirection: number[] = [1, 1, -1];
 
