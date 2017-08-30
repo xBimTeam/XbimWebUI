@@ -14,11 +14,8 @@ var plugins = [];
 plugins.push(new webpack.BannerPlugin({banner: banner,  raw: true }));
 
 var tsLoader = 'ts-loader?' + JSON.stringify({
-    compilerOptions: {
-        declaration: false
-    },
     visualStudioErrorFormat: true,
-    transpileOnly: true
+    transpileOnly: false
 });
 
 module.exports = {

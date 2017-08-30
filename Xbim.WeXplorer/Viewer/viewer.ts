@@ -850,6 +850,10 @@ export class Viewer {
             ]);
         }
 
+        viewer._geometryLoaded = true;
+        // force redraw so when 'loaded' is called listeners can operate with current canvas.
+        viewer.draw(true);
+
         /**
          * Occurs when geometry model is loaded into the viewer. This event returns object containing ID of the model.
          * This ID can later be used to unload or temporarily stop the model.
@@ -861,7 +865,6 @@ export class Viewer {
          * 
         */
         viewer.fire('loaded', { id: handle.id, tag: tag })
-        viewer._geometryLoaded = true;
     };
 
     /**
