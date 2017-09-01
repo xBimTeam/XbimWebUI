@@ -4,6 +4,7 @@ import { ProductInheritance } from './product-inheritance';
 import { ModelGeometry, Region } from './model-geometry';
 import { ModelHandle, DrawMode } from './model-handle';
 import { Shaders } from './shaders/shaders';
+import { Framebuffer } from './framebuffer';
 
 //ported libraries
 import { WebGLUtils } from './common/webgl-utils';
@@ -511,14 +512,23 @@ export class Viewer {
         this._stylingChanged = true;
     }
 
-    public getCurrentImageHtml(): HTMLImageElement {
+    public getCurrentImageHtml(width: number = this.width, height: number = this.height): HTMLImageElement {
         var element = document.createElement("img") as HTMLImageElement;
-        element.src = this.getCurrentImageDataUrl();
+        element.src = this.getCurrentImageDataUrl(width, height);
         return element;
     }
 
-    public getCurrentImageDataUrl(): string {
-        return this.canvas.toDataURL('image/png');
+    public getCurrentImageDataUrl(width: number = this.width, height: number = this.height): string {
+        //use background framebuffer
+        let frame = new Framebuffer(this.gl, width, height);
+
+        //force draw into defined framebuffer
+        this.draw(true, frame);
+
+        let result = frame.getImageDataUrl();
+        //free resources
+        frame.delete();
+        return result;
     }
 
     public getCurrentImageBlob(callback: (blob: Blob) => void): void {
@@ -1461,7 +1471,7 @@ export class Viewer {
     * @function Viewer#draw
     * @fires Viewer#frame
     */
-    public draw(force: boolean = false, callback?: () => void) {
+    public draw(force: boolean, framebuffer?: Framebuffer) {
         if (!force) {
             if (!this._isRunning || !this._geometryLoaded || this._handles.length == 0 || !(this._stylingChanged || this.isChanged())) {
                 if (!this._userAction) return;
@@ -1474,16 +1484,29 @@ export class Viewer {
             if (!plugin.onBeforeDraw) {
                 return;
             }
-            plugin.onBeforeDraw();
+            plugin.onBeforeDraw(width, height);
         });
-
-        //styles are up to date when new frame is drawn
-        this._stylingChanged = false;
 
         var gl = this.setActive();
 
+        //styles are up to date when new frame is drawn
+        if (this._stylingChanged) {
+            //update overlay styles
+            gl.activeTexture(gl.TEXTURE4);
+            gl.bindTexture(gl.TEXTURE_2D, this._stateStyleTexture);
+            gl.uniform1i(this._stateStyleSamplerUniform, 4);
+            //set the flag
+            this._stylingChanged = false;
+        }
+
         gl.useProgram(this._shaderProgram);
-        gl.viewport(0, 0, this.width, this.height);
+
+        let width = framebuffer ? framebuffer.width : this.width;
+        let height = framebuffer ? framebuffer.height : this.height;
+
+
+        gl.viewport(0, 0, width, height);
+
         gl.clearColor(this.background[0] / 255,
             this.background[1] / 255,
             this.background[2] / 255,
@@ -1495,7 +1518,7 @@ export class Viewer {
             case 'perspective':
                 mat4.perspective(this._pMatrix,
                     this.perspectiveCamera.fov * Math.PI / 180.0,
-                    this.width / this.height,
+                    width / height,
                     this.perspectiveCamera.near,
                     this.perspectiveCamera.far);
                 break;
@@ -1513,7 +1536,7 @@ export class Viewer {
             default:
                 mat4.perspective(this._pMatrix,
                     this.perspectiveCamera.fov * Math.PI / 180.0,
-                    this.width / this.height,
+                    width / height,
                     this.perspectiveCamera.near,
                     this.perspectiveCamera.far);
                 break;
@@ -1525,10 +1548,6 @@ export class Viewer {
         gl.uniform4fv(this._lightAUniformPointer, new Float32Array(this.lightA));
         gl.uniform4fv(this._lightBUniformPointer, new Float32Array(this.lightB));
 
-        //overlay styles
-        gl.activeTexture(gl.TEXTURE4);
-        gl.bindTexture(gl.TEXTURE_2D, this._stateStyleTexture);
-        gl.uniform1i(this._stateStyleSamplerUniform, 4);
 
         //clipping
         gl.uniform1i(this._clippingAUniformPointer, this._clippingA ? 1 : 0);
@@ -1553,6 +1572,14 @@ export class Viewer {
                 ]));
 
         gl.uniform1i(this._renderingModeUniformPointer, this.renderingMode);
+
+        // bind buffer if defined
+        if (framebuffer) {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer.framebuffer);
+        } else {
+            //set framebuffer to render into canvas (in case it was set for rendering to different framebuffer)
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        }
 
         //check for x-ray mode
         if (this.renderingMode == RenderingMode.XRAY) {
@@ -1598,12 +1625,8 @@ export class Viewer {
             if (!plugin.onAfterDraw) {
                 return;
             }
-            plugin.onAfterDraw();
+            plugin.onAfterDraw(width, height);
         });
-
-        if (callback) {
-            callback();
-        }
 
         /**
          * Occurs after every frame in animation. Don't do anything heavy weighted in here as it will happen about 60 times in a second all the time.
@@ -1611,7 +1634,9 @@ export class Viewer {
          * @event Viewer#frame 
          * @type {object}
          */
-        this.fire('frame', {});
+        if (!framebuffer && !force) {
+            this.fire('frame', {});
+        }
     };
 
     private _lastActiveHandlesCount: number = 0;
@@ -1678,22 +1703,20 @@ export class Viewer {
     * Directions of this views are defined by the coordinate system. Target and distance are defined by {@link Viewer#setCameraTarget setCameraTarget()} method to certain product ID
     * or to the model extent if {@link Viewer#setCameraTarget setCameraTarget()} is called with no arguments.
     */
-    public show(type: 'top' | 'bottom' | 'front' | 'back' | 'left' | 'right', callback?: () => void) {
-        var origin = this.origin;
-        var distance = this.distance;
-        var camera = [0, 0, 0];
-        var heading = [0, 0, 1];
+    public show(type: ViewType) {
+        let origin = this.origin;
+        let distance = this.distance;
+        let camera = [0, 0, 0];
+        let heading = [0, 0, 1];
         switch (type) {
             //top and bottom are different because these are singular points for look-at function if heading is [0,0,1]
-            case 'top':
+            case ViewType.TOP:
                 //only move to origin and up (negative values because we move camera against model)
                 mat4.translate(this.mvMatrix,
                     mat4.create(),
                     [origin[0] * -1.0, origin[1] * -1.0, (distance + origin[2]) * -1.0]);
-                // force redraw
-                this.draw(true, callback);
                 return;
-            case 'bottom':
+            case ViewType.BOTTOM:
                 //only move to origin and up and rotate 180 degrees around Y axis
                 var toOrigin = mat4.translate(mat4.create(),
                     mat4.create(),
@@ -1703,31 +1726,49 @@ export class Viewer {
                 this
                     .mvMatrix = rotationZ;
                 // mat4.translate(mat4.create(), rotationZ, [0, 0, -1.0 * distance]);
-                // force redraw
-                this.draw(true, callback);
                 return;
 
-            case 'front':
+            case ViewType.FRONT:
                 camera = [origin[0], origin[1] - distance, origin[2]];
                 break;
-            case 'back':
+            case ViewType.BACK:
                 camera = [origin[0], origin[1] + distance, origin[2]];
                 break;
-            case 'left':
+            case ViewType.LEFT:
                 camera = [origin[0] - distance, origin[1], origin[2]];
                 break;
-            case 'right':
+            case ViewType.RIGHT:
                 camera = [origin[0] + distance, origin[1], origin[2]];
+                break;
+            case ViewType.DEFAULT:
+                let a = Math.sqrt(distance * distance / 3);
+                camera = [origin[0] - a, origin[1] - a, origin[2] + a]
                 break;
             default:
                 break;
         }
         // use look-at function to set up camera and target
         mat4.lookAt(this.mvMatrix, camera, origin, heading);
-
-        // force redraw
-        this.draw(true, callback);
     }
+
+    private _rotationOn: boolean = false;
+    public startRotation() {
+        this._rotationOn = true;
+        let interval = 30; // ms
+        let rotate = () => {
+            if (!this._rotationOn) {
+                return;
+            }
+            mat4.rotateZ(this.mvMatrix, new Float32Array(this.mvMatrix), 0.2 * Math.PI / 180.0);
+            setTimeout(rotate, interval);
+        };
+        setTimeout(rotate, interval);
+    }
+
+    public stopRotation(): void {
+        this._rotationOn = false;
+    }
+
 
     public error(msg) {
         /**
@@ -1920,7 +1961,7 @@ export class Viewer {
 
             if (viewer._isRunning) {
                 window.requestAnimationFrame(tick)
-                viewer.draw()
+                viewer.draw(false)
             }
         }
 
@@ -2022,7 +2063,12 @@ export class Viewer {
         }
         //call the callbacks
         handlers.slice().forEach(function (handler) {
-            handler(args);
+            try {
+                handler(args);
+            }
+            catch (e) {
+                console.error(e);
+            }
         });
     }
 
@@ -2384,10 +2430,20 @@ export enum RenderingMode {
     XRAY = 2
 }
 
+export enum ViewType {
+    TOP,
+    BOTTOM,
+    FRONT,
+    BACK,
+    LEFT,
+    RIGHT,
+    DEFAULT
+}
+
 export interface IPlugin {
 
-    onBeforeDraw(): void;
-    onAfterDraw(): void;
+    onBeforeDraw(width: number, height: number): void;
+    onAfterDraw(width: number, height: number): void;
 
     onBeforeDrawId(): void;
     onAfterDrawId(): void;

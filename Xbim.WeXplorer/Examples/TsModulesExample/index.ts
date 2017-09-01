@@ -1,4 +1,4 @@
-﻿import { Viewer, RenderingMode } from "../../Viewer/viewer";
+﻿import { Viewer, RenderingMode, ViewType } from "../../Viewer/viewer";
 import { State } from "../../Viewer/state";
 import { ProductType } from "../../Viewer/product-type";
 import { NavigationCube } from "../../Viewer/plugins/NavigationCube/navigation-cube";
@@ -36,6 +36,7 @@ document['viewer'] = viewer;
 document['types'] = types;
 document['states'] = states;
 document['RenderingMode'] = RenderingMode;
+document['ViewType'] = ViewType;
 
 viewer.background = [0, 0, 0, 0];
 viewer.on("error", function (arg) {
@@ -48,7 +49,7 @@ viewer.on("error", function (arg) {
 var model = "";
 if (typeof (QueryString["model"]) == "undefined") model = "/tests/data/SampleHouse.wexbim";
 else model = "/tests/data/" + QueryString["model"] + ".wexbim";
-viewer.show("back");
+viewer.show(ViewType.BACK);
 viewer.on("pick", function (arg) {
     var span = document.getElementById("coords");
     if (span) {
@@ -64,6 +65,15 @@ viewer.on("fps", function (fps) {
         span.innerHTML = fps;
     }
 });
+
+viewer.on("loaded", () => {
+    let image = viewer.getCurrentImageHtml(200, 100);
+    image.style.width = '100%';
+    let initialImage = document.getElementById("initialSnapshot");
+    initialImage.appendChild(image);
+    viewer.startRotation();
+});
+
 var span = document.getElementById("fpt") as HTMLElement;
 if (span) {
     span.innerHTML = "0";
@@ -111,6 +121,7 @@ document['takeSnapshot'] = function () {
 }  
 
 viewer.on("pick", function (args) {
+    viewer.stopRotation();
     var id = args.id;
     var radios = document.getElementsByName("radioHiding");
     for (var i in radios) {

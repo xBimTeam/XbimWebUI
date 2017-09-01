@@ -1,4 +1,4 @@
-﻿import { IPlugin, Viewer } from "../../viewer";
+﻿import { IPlugin, Viewer, ViewType } from "../../viewer";
 import { CubeShaders } from "./navigation-cube-shaders";
 import { CubeTextures } from "./navigation-cube-textures";
 import { mat4 } from "../../matrix/mat4";
@@ -282,7 +282,7 @@ export class NavigationCube implements IPlugin {
 
     }
 
-    onBeforeDraw() { }
+    onBeforeDraw(width: number, height: number) { }
 
     onBeforePick(id) {
         if (id >= this.TOP && id <= this.BACK_LEFT) {
@@ -293,22 +293,22 @@ export class NavigationCube implements IPlugin {
 
             switch (id) {
                 case this.TOP:
-                    this.viewer.show('top');
+                    this.viewer.show(ViewType.TOP);
                     return true;
                 case this.BOTTOM:
-                    this.viewer.show('bottom');
+                    this.viewer.show(ViewType.BOTTOM);
                     return true;
                 case this.LEFT:
-                    this.viewer.show('left');
+                    this.viewer.show(ViewType.LEFT);
                     return true;
                 case this.RIGHT:
-                    this.viewer.show('right');
+                    this.viewer.show(ViewType.RIGHT);
                     return true;
                 case this.FRONT:
-                    this.viewer.show('front');
+                    this.viewer.show(ViewType.FRONT);
                     return true;
                 case this.BACK:
-                    this.viewer.show('back');
+                    this.viewer.show(ViewType.BACK);
                     return true;
                 case this.TOP_LEFT_FRONT:
                     dir = vec3.fromValues(-1, -1, 1);
@@ -408,11 +408,11 @@ export class NavigationCube implements IPlugin {
         return false;
     }
 
-    onAfterDraw() {
+    onAfterDraw(width: number, height: number) {
         var gl = this.setActive();
         //set uniform for colour coding to false
         gl.uniform1i(this._colourCodingUniformPointer, 0);
-        this.draw();
+        this.draw(width, height);
     }
 
     onBeforeDrawId() { }
@@ -421,7 +421,7 @@ export class NavigationCube implements IPlugin {
         var gl = this.setActive();
         //set uniform for colour coding to false
         gl.uniform1i(this._colourCodingUniformPointer, 1);
-        this.draw();
+        this.draw(this.viewer.width, this.viewer.height);
     }
 
     //return false because this doesn't catch any ID event
@@ -435,7 +435,7 @@ export class NavigationCube implements IPlugin {
         return gl;
     }
 
-    private draw() {
+    private draw(viewerWidth: number, viewerHeight: number) {
         if (!this._initialized) return;
 
         var gl = this.viewer.gl;
@@ -443,9 +443,9 @@ export class NavigationCube implements IPlugin {
         //set navigation data from Viewer to this shader
         var pMatrix = mat4.create();
         var height = 1.0 / this.ratio;
-        var width = height / this.viewer.height * this.viewer.width;
+        var width = height / viewerHeight * viewerWidth;
 
-        var regionX = this.ratio * this.viewer.height / this.viewer.width * 2.0;
+        var regionX = this.ratio * viewerHeight / viewerWidth * 2.0;
         var regionY = this.ratio * 2.0;
 
         //create orthogonal projection matrix

@@ -29,10 +29,13 @@
                 position: absolute;
                 top: 20px;
                 z-index: 1;
+                padding: 1em;
             }
 
             .left-panel{
                 left: 20px;
+                max-width: 300px;
+                background-color: lightblue;
             }
 
             .right-panel{
@@ -79,7 +82,10 @@
                     Take snapshot
                 </button>
                 <br />
-                <div id="snapshot" style="max-width:20%; overflow:hidden"></div>
+                <div id="snapshot"></div>
+                <div id="initialSnapshot">
+
+                </div>
             </div>
 		    <div id="errLog" style="color: red">
 		        
@@ -93,12 +99,13 @@
 				<button onclick="viewer.navigationMode = 'zoom'">Zoom</button>
 			</div>
 			<div>
-				<button onclick="viewer.show('front')">Front</button>
-				<button onclick="viewer.show('back')">Back</button>
-				<button onclick="viewer.show('top')">Top</button>
-				<button onclick="viewer.show('bottom')">Bottom</button>
-				<button onclick="viewer.show('left')">Left</button>
-				<button onclick="viewer.show('right')">Right</button>
+                <button onclick="viewer.show(ViewType.DEFAULT)">Default</button>
+				<button onclick="viewer.show(ViewType.FRONT)">Front</button>
+				<button onclick="viewer.show(ViewType.BACK)">Back</button>
+				<button onclick="viewer.show(ViewType.TOP)">Top</button>
+				<button onclick="viewer.show(ViewType.BOTTOM)">Bottom</button>
+				<button onclick="viewer.show(ViewType.LEFT)">Left</button>
+				<button onclick="viewer.show(ViewType.RIGHT)">Right</button>
 			</div>
 		
 			<div>
