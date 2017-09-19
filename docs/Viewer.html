@@ -2066,7 +2066,7 @@ your custom colour which you have defined in <a href="Viewer.html#defineStyle">d
     
         
 
-        <h4 class="name" id="load"><span class="type-signature"></span>load<span class="signature">(model, tag)</span><span class="type-signature"></span></h4>
+        <h4 class="name" id="load"><span class="type-signature"></span>load<span class="signature">(loaderUrl, model, tag)</span><span class="type-signature"></span></h4>
 
         
     
@@ -2075,11 +2075,10 @@ your custom colour which you have defined in <a href="Viewer.html#defineStyle">d
 
     
     <div class="description">
-        <p>This method is used to load model data into viewer. Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data. Any other type of argument will throw an exception.
-Region extend is determined based on the region of the model
-Default view if 'front'. If you want to define different view you have to set it up in handler of <a href="Viewer.html#event:loaded">loaded</a> event. <br>
+        <p>This method uses WebWorker if available to load the model into this viewer.
+Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data. Any other type of argument will throw an exception.
 You can load more than one model if they occupy the same space, use the same scale and have unique product IDs. Duplicated IDs won't affect
-visualization itself but would cause unexpected user interaction (picking, zooming, ...)</p>
+visualization itself but would cause unexpected user interaction (picking, zooming, ...).</p>
     </div>
     
 
@@ -2111,6 +2110,29 @@ visualization itself but would cause unexpected user interaction (picking, zoomi
     </thead>
 
     <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>loaderUrl</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Url of the 'xbim-geometry-loader.js' script which will be called as a worker</p></td>
+        </tr>
+
     
 
         <tr>
@@ -2233,7 +2255,7 @@ visualization itself but would cause unexpected user interaction (picking, zoomi
     
         
 
-        <h4 class="name" id="load"><span class="type-signature"></span>load<span class="signature">(loaderUrl, model, tag)</span><span class="type-signature"></span></h4>
+        <h4 class="name" id="load"><span class="type-signature"></span>load<span class="signature">(model, tag)</span><span class="type-signature"></span></h4>
 
         
     
@@ -2242,10 +2264,11 @@ visualization itself but would cause unexpected user interaction (picking, zoomi
 
     
     <div class="description">
-        <p>This method uses WebWorker if available to load the model into this viewer.
-Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data. Any other type of argument will throw an exception.
+        <p>This method is used to load model data into viewer. Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data. Any other type of argument will throw an exception.
+Region extend is determined based on the region of the model
+Default view if 'front'. If you want to define different view you have to set it up in handler of <a href="Viewer.html#event:loaded">loaded</a> event. <br>
 You can load more than one model if they occupy the same space, use the same scale and have unique product IDs. Duplicated IDs won't affect
-visualization itself but would cause unexpected user interaction (picking, zooming, ...).</p>
+visualization itself but would cause unexpected user interaction (picking, zooming, ...)</p>
     </div>
     
 
@@ -2277,29 +2300,6 @@ visualization itself but would cause unexpected user interaction (picking, zoomi
     </thead>
 
     <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>loaderUrl</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">String</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>Url of the 'xbim-geometry-loader.js' script which will be called as a worker</p></td>
-        </tr>
-
     
 
         <tr>
@@ -5624,7 +5624,7 @@ This ID can later be used to unload or temporarily stop the model.</p>
 
             
 
-            <td class="description last"><p>product ID of the element or null if there wasn't any product under mouse</p></td>
+            <td class="description last"><p>product ID of the element or -1 if there wasn't any product under mouse</p></td>
         </tr>
 
     
@@ -5647,7 +5647,7 @@ This ID can later be used to unload or temporarily stop the model.</p>
 
             
 
-            <td class="description last"><p>model ID</p></td>
+            <td class="description last"><p>model ID of the element or -1 if there wasn't any product under mouse</p></td>
         </tr>
 
     
@@ -5786,7 +5786,169 @@ This ID can later be used to unload or temporarily stop the model.</p>
 
             
 
-            <td class="description last"><p>product ID of the element or -1 if there wasn't any product under mouse</p></td>
+            <td class="description last"><p>product ID of the element or null if there wasn't any product under mouse</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>model</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>model ID</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+    
+
+    
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<dt>
+    
+        
+
+        <h4 class="name" id="event:pick">pick</h4>
+
+        
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>Occurs when user click on model.</p>
+    </div>
+    
+
+    
+
+    
+        <h5>Type:</h5>
+        <ul>
+            <li>
+                
+<span class="param-type">object</span>
+
+
+            </li>
+        </ul>
+    
+
+    
+
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>id</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>product ID of the element or null if there wasn't any product under mouse</p></td>
         </tr>
 
     
@@ -5871,284 +6033,6 @@ This ID can later be used to unload or temporarily stop the model.</p>
     
 </dd>
 
-        
-            
-<dt>
-    
-        
-
-        <h4 class="name" id="event:pick">pick</h4>
-
-        
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        <p>Occurs when user click on model.</p>
-    </div>
-    
-
-    
-
-    
-        <h5>Type:</h5>
-        <ul>
-            <li>
-                
-<span class="param-type">object</span>
-
-
-            </li>
-        </ul>
-    
-
-    
-
-    
-        <h5>Parameters:</h5>
-        
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>id</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>product ID of the element or null if there wasn't any product under mouse</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-    
-
-    
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dd>
-
-        
-            
-<dt>
-    
-        
-
-        <h4 class="name" id="event:pick">pick</h4>
-
-        
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        <p>Occurs when user click on model.</p>
-    </div>
-    
-
-    
-
-    
-        <h5>Type:</h5>
-        <ul>
-            <li>
-                
-<span class="param-type">object</span>
-
-
-            </li>
-        </ul>
-    
-
-    
-
-    
-        <h5>Parameters:</h5>
-        
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>id</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>product ID of the element or null if there wasn't any product under mouse</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-    
-
-    
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dd>
-
         </dl>
     
 </article>
@@ -6161,13 +6045,13 @@ This ID can later be used to unload or temporarily stop the model.</p>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="NavigationCube.html">NavigationCube</a></li><li><a href="NavigationHome.html">NavigationHome</a></li><li><a href="OrthogonalCamera.html">OrthogonalCamera</a></li><li><a href="PerspectiveCamera.html">PerspectiveCamera</a></li><li><a href="Prerequisites.html">Prerequisites</a></li><li><a href="Viewer.html">Viewer</a></li></ul><h3>Events</h3><ul><li><a href="Viewer.html#event:dblclick">dblclick</a></li><li><a href="Viewer.html#event:error">error</a></li><li><a href="Viewer.html#event:fps">fps</a></li><li><a href="Viewer.html#event:frame">frame</a></li><li><a href="Viewer.html#event:loaded">loaded</a></li><li><a href="Viewer.html#event:mouseDown">mouseDown</a></li><li><a href="Viewer.html#event:mouseDown">mouseDown</a></li><li><a href="Viewer.html#event:pick">pick</a></li><li><a href="Viewer.html#event:pick">pick</a></li><li><a href="xViewer.html#event:clipped">clipped</a></li><li><a href="xViewer.html#event:unclipped">unclipped</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-1_Hello_building.html">Hello building!</a></li><li><a href="tutorial-2_Safe_Hello_building.html">Safe 'Hello building!'</a></li><li><a href="tutorial-3_Eventful_building.html">Eventful building</a></li><li><a href="tutorial-4_Building_seen_from_everywhere.html">Building seen from everywhere ...</a></li><li><a href="tutorial-5_Colourful_building.html">Colourful building</a></li><li><a href="tutorial-6_Building_described.html">Building described</a></li></ul><h3>Global</h3><ul><li><a href="global.html#ProductType">ProductType</a></li><li><a href="global.html#State">State</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="NavigationCube.html">NavigationCube</a></li><li><a href="NavigationHome.html">NavigationHome</a></li><li><a href="OrthogonalCamera.html">OrthogonalCamera</a></li><li><a href="PerspectiveCamera.html">PerspectiveCamera</a></li><li><a href="Prerequisites.html">Prerequisites</a></li><li><a href="Viewer.html">Viewer</a></li></ul><h3>Events</h3><ul><li><a href="Viewer.html#event:dblclick">dblclick</a></li><li><a href="Viewer.html#event:error">error</a></li><li><a href="Viewer.html#event:fps">fps</a></li><li><a href="Viewer.html#event:frame">frame</a></li><li><a href="Viewer.html#event:loaded">loaded</a></li><li><a href="Viewer.html#event:mouseDown">mouseDown</a></li><li><a href="Viewer.html#event:mouseDown">mouseDown</a></li><li><a href="Viewer.html#event:pick">pick</a></li><li><a href="xViewer.html#event:clipped">clipped</a></li><li><a href="xViewer.html#event:unclipped">unclipped</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-1_Hello_building.html">Hello building!</a></li><li><a href="tutorial-2_Safe_Hello_building.html">Safe 'Hello building!'</a></li><li><a href="tutorial-3_Eventful_building.html">Eventful building</a></li><li><a href="tutorial-4_Building_seen_from_everywhere.html">Building seen from everywhere ...</a></li><li><a href="tutorial-5_Colourful_building.html">Colourful building</a></li><li><a href="tutorial-6_Building_described.html">Building described</a></li></ul><h3>Global</h3><ul><li><a href="global.html#ProductType">ProductType</a></li><li><a href="global.html#State">State</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0</a> on Fri Aug 25 2017 09:18:44 GMT+0200 (W. Europe Summer Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0</a> on Tue Sep 19 2017 08:34:16 GMT+0200 (Central Europe Summer Time)
 </footer>
 
 <script> prettyPrint(); </script>
