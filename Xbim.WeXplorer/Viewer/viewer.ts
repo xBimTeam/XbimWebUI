@@ -512,7 +512,7 @@ export class Viewer {
             if (hideSpaces)
                 h.setState(State.HIDDEN, ProductType.IFCSPACE);
         }, modelId);
-       
+
         this._stylingChanged = true;
     }
 
@@ -522,13 +522,47 @@ export class Viewer {
      * @param {Number} id - Model ID which you can get from {@link Viewer#event:loaded loaded} event.
      * @returns {Array} - Array representing model state in compact form suitable for serialization
      */
-    public getModelState(id: number) {
+    public getModelState(id: number): Array<Array<number>> {
         var handle = this._handles[id];
         if (typeof (handle) === 'undefined') {
             throw "Model doesn't exist";
         }
 
         return handle.getModelState();
+    }
+
+    /**
+     * Gets complete model state and style. Resulting object can be used to restore the state later on.
+     * 
+     * @param {Number} id - Model ID which you can get from {@link Viewer#event:loaded loaded} event.
+     * @returns {Array} - Array representing model state in compact form suitable for serialization
+     */
+    public get ModelIds(): number[] {
+        let ids = [];
+        this._handles.forEach((e, i, a) => {
+            ids.push(e.id);
+        });
+        return ids;
+    }
+
+    public get ModelIdsOn(): number[] {
+        let ids = [];
+        this._handles.forEach((handle, i, a) => {
+            if (!handle.stopped) {
+                ids.push(handle.id);
+            }
+        });
+        return ids;
+    }
+
+    public get ModelIdsOff(): number[] {
+        let ids = [];
+        this._handles.forEach((handle, i, a) => {
+            if (handle.stopped) {
+                ids.push(handle.id);
+            }
+        });
+        return ids;
     }
 
     /**
@@ -572,7 +606,7 @@ export class Viewer {
         this.forHandleOrAll((handle: ModelHandle) => {
             handle.setState(style, target);
         }, modelId);
-        
+
         this._stylingChanged = true;
     }
 
@@ -1151,7 +1185,7 @@ export class Viewer {
             */
             viewer.fire('dblclick', { id: id, model: modelId });
         };
-       
+
         this._canvas.addEventListener('dblclick', (event) => handleDoubleClick(event), true);
     }
 
@@ -1607,7 +1641,7 @@ export class Viewer {
     * Directions of this views are defined by the coordinate system. Target and distance are defined by {@link Viewer#setCameraTarget setCameraTarget()} method to certain product ID
     * or to the model extent if {@link Viewer#setCameraTarget setCameraTarget()} is called with no arguments.
     */
-    public show(type: 'top' | 'bottom' | 'front' | 'back' | 'left' | 'right' ) {
+    public show(type: 'top' | 'bottom' | 'front' | 'back' | 'left' | 'right') {
         var origin = this._origin;
         var distance = this._distance;
         var camera = [0, 0, 0];

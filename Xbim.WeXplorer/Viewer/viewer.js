@@ -429,6 +429,49 @@ var Viewer = (function () {
         }
         return handle.getModelState();
     };
+    Object.defineProperty(Viewer.prototype, "ModelIds", {
+        /**
+         * Gets complete model state and style. Resulting object can be used to restore the state later on.
+         *
+         * @param {Number} id - Model ID which you can get from {@link Viewer#event:loaded loaded} event.
+         * @returns {Array} - Array representing model state in compact form suitable for serialization
+         */
+        get: function () {
+            var ids = [];
+            this._handles.forEach(function (e, i, a) {
+                ids.push(e.id);
+            });
+            return ids;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Viewer.prototype, "ModelIdsOn", {
+        get: function () {
+            var ids = [];
+            this._handles.forEach(function (handle, i, a) {
+                if (!handle.stopped) {
+                    ids.push(handle.id);
+                }
+            });
+            return ids;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Viewer.prototype, "ModelIdsOff", {
+        get: function () {
+            var ids = [];
+            this._handles.forEach(function (handle, i, a) {
+                if (handle.stopped) {
+                    ids.push(handle.id);
+                }
+            });
+            return ids;
+        },
+        enumerable: true,
+        configurable: true
+    });
     /**
      * Restores model state from the data previously captured with {@link Viewer#getModelState getModelState()} function
      * @param {Number} id - ID of the model

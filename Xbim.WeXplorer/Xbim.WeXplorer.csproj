@@ -215,6 +215,8 @@
     <TypeScriptCompile Include="Viewer\scene\node-product-shape.ts" />
     <TypeScriptCompile Include="Viewer\stream\wexbim-mesh.ts" />
     <TypeScriptCompile Include="Viewer\stream\wexbim-stream.ts" />
+    <TypeScriptCompile Include="Viewer\transactions\session.ts" />
+    <TypeScriptCompile Include="Viewer\transactions\viewer-session.ts" />
     <TypeScriptCompile Include="Viewer\workers\geometry-loader.ts" />
     <TypeScriptCompile Include="Examples\WexBimStreamTest\wexbimtest.ts" />
   </ItemGroup>

@@ -151,7 +151,16 @@ export declare class Viewer {
      * @param {Number} id - Model ID which you can get from {@link Viewer#event:loaded loaded} event.
      * @returns {Array} - Array representing model state in compact form suitable for serialization
      */
-    getModelState(id: number): number[][];
+    getModelState(id: number): Array<Array<number>>;
+    /**
+     * Gets complete model state and style. Resulting object can be used to restore the state later on.
+     *
+     * @param {Number} id - Model ID which you can get from {@link Viewer#event:loaded loaded} event.
+     * @returns {Array} - Array representing model state in compact form suitable for serialization
+     */
+    readonly ModelIds: number[];
+    readonly ModelIdsOn: number[];
+    readonly ModelIdsOff: number[];
     /**
      * Restores model state from the data previously captured with {@link Viewer#getModelState getModelState()} function
      * @param {Number} id - ID of the model
