@@ -32,7 +32,7 @@ export class BinaryReader {
         //get slice of the data
         var data = this._buffer.slice(this._position, this._position + length);
         //load is synchronous with ArrayBuffer argument
-        reader.load(data);
+        reader.load(data, null);
 
         //move position after the data island
         this._position += length;
@@ -45,15 +45,15 @@ export class BinaryReader {
      * Pass url string, blob, file of byte array to this function to initialize the reader. Only array buffer takes imidiate effect.
      * Othe sources are loaded asynchronously and you need to use 'onloaded' delegate to use the reader only after it is initialized woth the data.
      * @param source URL string of the file or BLOB or File or ArrayBuffer object
+     * @param headers http headers to be used to fetch data
      */
-    public load(source: string | Blob | File | ArrayBuffer): void {
+    public load(source: string | Blob | File | ArrayBuffer, headers: { [name: string]: string }): void {
         this._position = 0;
         var self = this;
 
         if (typeof (source) == 'undefined' || source == null) throw 'Source must be defined';
         if (typeof (source) == 'string') {
-            var xhr;
-            xhr = new XMLHttpRequest();
+            const xhr = new XMLHttpRequest();
             xhr.open("GET", source, true);
             xhr.onreadystatechange = function () {
                 if (xhr.readyState == 4 && xhr.status == 200) {
@@ -82,6 +82,12 @@ export class BinaryReader {
                 }
             };
             xhr.responseType = 'blob';
+            if (typeof headers !== 'undefined') {
+                Object.keys(headers).forEach(header => {
+                    const value = headers[header];
+                    xhr.setRequestHeader(header, value);
+                });
+            }
             xhr.send();
         } else if (source instanceof Blob || source instanceof File) {
             var fReader = new FileReader();

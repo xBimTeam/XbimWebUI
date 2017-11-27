@@ -281,7 +281,7 @@ export class WexBimStream {
             if (callback)
                 callback(wexbim);
         };
-        reader.load(source);
+        reader.load(source, null);
     }
 
     public static ReadFromStream(reader: BinaryReader): WexBimStream {

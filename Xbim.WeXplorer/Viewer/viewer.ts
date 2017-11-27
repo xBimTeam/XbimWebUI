@@ -761,9 +761,10 @@ export class Viewer {
     * @param {String} loaderUrl - Url of the 'xbim-geometry-loader.js' script which will be called as a worker
     * @param {String | Blob | File} model - Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data.
     * @param {Any} tag [optional] - Tag to be used to identify the model in {@link Viewer#event:loaded loaded} event.
+    * @param {Object} headers [optional] - Headers to be used for request. This can be used for authorized access for example.
     * @fires Viewer#loaded
     */
-    public loadAsync(loaderUrl: string, model: string | Blob | File, tag?: any): void {
+    public loadAsync(loaderUrl: string, model: string | Blob | File, tag?: any, headers?: { [name: string]: string }): void {
         if (typeof (model) == 'undefined') throw 'You have to specify model to load.';
         if (typeof (model) != 'string' && !(model instanceof Blob))
             throw 'Model has to be specified either as a URL to wexBIM file or Blob object representing the wexBIM file.';
@@ -771,7 +772,7 @@ export class Viewer {
 
         //fall back to synchronous loading if worker is not available
         if (typeof (Worker) === 'undefined') {
-            this.load(model, tag);
+            this.load(model, tag, headers);
         }
 
         var worker = new Worker(loaderUrl);
@@ -785,7 +786,7 @@ export class Viewer {
             self.error(e.message);
         };
 
-        worker.postMessage(model);
+        worker.postMessage({ model: model, headers: headers});
         //console.log('Message posted to worker');
         return;
     }
@@ -799,9 +800,10 @@ export class Viewer {
     * @function Viewer#load
     * @param {String | Blob | File} model - Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data.
     * @param {Any} tag [optional] - Tag to be used to identify the model in {@link Viewer#event:loaded loaded} event.
+    * @param {Object} headers [optional] - Headers to be used for request. This can be used for authorized access for example.
     * @fires Viewer#loaded
     */
-    public load(model: string | Blob | File, tag?: any) {
+    public load(model: string | Blob | File, tag?: any, headers?: {[name: string]: string}) {
         if (typeof (model) == 'undefined') throw 'You have to specify model to load.';
         if (typeof (model) != 'string' && !(model instanceof Blob))
             throw 'Model has to be specified either as a URL to wexBIM file or Blob object representing the wexBIM file.';
@@ -814,7 +816,7 @@ export class Viewer {
         geometry.onerror = function (msg) {
             viewer.error(msg);
         }
-        geometry.load(model);
+        geometry.load(model, headers);
     }
 
     //this is a private function used to add loaded geometry as a new handle and to set up camera and 
@@ -1383,8 +1385,6 @@ export class Viewer {
                 },
                     this);
 
-                * @param {Number} model - Model ID
-                * @param {Event} event - Original HTML event
                 if (!handled) this.fire('pick', { id: id, model: modelId, event: event });
             }
 

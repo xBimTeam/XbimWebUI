@@ -16,5 +16,5 @@ reader.onloaded = function (r) {
         msg.innerHTML = "Not finished... :-(";
     }
 };
-reader.load(source);
+reader.load(source, null);
 //# sourceMappingURL=wexbimtest.js.map

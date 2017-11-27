@@ -16,5 +16,5 @@ reader.onloaded = r => {
         msg.innerHTML = "Not finished... :-(";
     }
 };
-reader.load(source);
+reader.load(source, null);
 

@@ -5,22 +5,12 @@ var product_type_1 = require("./product-type");
 var model_geometry_1 = require("./model-geometry");
 var model_handle_1 = require("./model-handle");
 var shaders_1 = require("./shaders/shaders");
+var framebuffer_1 = require("./framebuffer");
 //ported libraries
 var webgl_utils_1 = require("./common/webgl-utils");
 var vec3_1 = require("./matrix/vec3");
 var mat3_1 = require("./matrix/mat3");
 var mat4_1 = require("./matrix/mat4");
-//reexport these classes to make them available when viewer is the root package
-var state_2 = require("./state");
-exports.State = state_2.State;
-var product_type_2 = require("./product-type");
-exports.ProductType = product_type_2.ProductType;
-var product_inheritance_1 = require("./product-inheritance");
-exports.ProductInheritance = product_inheritance_1.ProductInheritance;
-var navigation_cube_1 = require("./plugins/NavigationCube/navigation-cube");
-exports.NavigationCube = navigation_cube_1.NavigationCube;
-var navigation_home_1 = require("./plugins/NavigationHome/navigation-home");
-exports.NavigationHome = navigation_home_1.NavigationHome;
 var Viewer = (function () {
     /**
     * This is constructor of the xBIM Viewer. It gets HTMLCanvasElement or string ID as an argument. Viewer will than be initialized
@@ -35,17 +25,19 @@ var Viewer = (function () {
     * @param {string | HTMLCanvasElement} canvas - string ID of the canvas or HTML canvas element.
     */
     function Viewer(canvas) {
+        this._isShiftKeyDown = false;
         this._lastActiveHandlesCount = 0;
+        this._rotationOn = false;
         if (typeof (canvas) == 'undefined') {
             throw 'Canvas has to be defined';
         }
         if (typeof (canvas['nodeName']) != 'undefined' && canvas['nodeName'] === 'CANVAS') {
-            this._canvas = canvas;
+            this.canvas = canvas;
         }
         if (typeof (canvas) == 'string') {
-            this._canvas = document.getElementById(canvas);
+            this.canvas = document.getElementById(canvas);
         }
-        if (this._canvas == null) {
+        if (this.canvas == null) {
             throw 'You have to specify canvas either as an ID of HTML element or the element itself';
         }
         /**
@@ -143,7 +135,7 @@ var Viewer = (function () {
         */
         this._clippingPlaneB = [0, 0, 0, 0];
         //*************************** Do all the set up of WebGL **************************
-        var gl = webgl_utils_1.WebGLUtils.setupWebGL(this._canvas);
+        var gl = webgl_utils_1.WebGLUtils.setupWebGL(this.canvas, { preserveDrawingBuffer: true });
         //do not even initialize this object if WebGL is not supported
         if (!gl) {
             return;
@@ -167,8 +159,8 @@ var Viewer = (function () {
         gl.enable(gl.BLEND);
         //cache canvas width and height and change it only when size change
         // it is better to cache this value because it is used frequently and it takes a time to get a value from HTML
-        this._width = this._canvas.width = this._canvas.offsetWidth;
-        this._height = this._canvas.height = this._canvas.offsetHeight;
+        this.width = this.canvas.width = this.canvas.offsetWidth;
+        this.height = this.canvas.height = this.canvas.offsetHeight;
         this._geometryLoaded = false;
         //number of active models is used to indicate that state has changed
         this._numberOfActiveModels = 0;
@@ -176,8 +168,8 @@ var Viewer = (function () {
         this._lastStates = {};
         this._visualStateAttributes = [
             'perspectiveCamera', 'orthogonalCamera', 'camera', 'background', 'lightA', 'lightB',
-            'renderingMode', '_clippingA', '_clippingB', 'mvMatrix', '_pMatrix', '_distance', '_origin', 'highlightingColour',
-            '_numberOfActiveModels', "_width", "_height"
+            'renderingMode', '_clippingA', '_clippingB', 'mvMatrix', '_pMatrix', 'distance', 'origin', 'highlightingColour',
+            '_numberOfActiveModels', "width", "height"
         ];
         this._stylingChanged = true;
         //this is to indicate that user has done some interaction
@@ -191,9 +183,9 @@ var Viewer = (function () {
         this.mvMatrix = mat4_1.mat4.create(); //world matrix
         this._pMatrix = mat4_1.mat4.create(); //camera matrix (this can be either perspective or orthogonal camera)
         //Navigation settings - coordinates in the WCS of the origin used for orbiting and panning
-        this._origin = [0, 0, 0];
+        this.origin = [0, 0, 0];
         //Default distance for default views (top, bottom, left, right, front, back)
-        this._distance = 0;
+        this.distance = 0;
         //shader program used for rendering
         this._shaderProgram = null;
         //Array of handles which can eventually contain handles to one or more models.
@@ -211,6 +203,9 @@ var Viewer = (function () {
         //initialize touch events to capute user interaction on touch devices
         this._initTouchNavigationEvents();
         this._initTouchTapEvents();
+        //disable default context menu as it doesn't make much sense for the viewer
+        //it can be replaced by custom menu when listening to 'contextMenu' of the viewer
+        this._initContextMenuEvent();
         //This array keeps data for overlay styles.
         this._stateStyles = new Uint8Array(15 * 15 * 4);
         this._stateStyleTexture = gl.createTexture();
@@ -311,10 +306,10 @@ var Viewer = (function () {
     * @param {object} plugin - plug-in object
     */
     Viewer.prototype.addPlugin = function (plugin) {
-        this._plugins.push(plugin);
         if (!plugin.init)
             return;
         plugin.init(this);
+        this._plugins.push(plugin);
     };
     /**
     * Removes plugin from the viewer. Plugins can implement certain methods which get called in certain moments in time like
@@ -343,7 +338,8 @@ var Viewer = (function () {
         var colData = new Uint8Array(colour);
         this._stateStyles.set(colData, index * 4);
         //reset data in GPU
-        model_handle_1.ModelHandle.bufferTexture(this.gl, this._stateStyleTexture, this._stateStyles);
+        var gl = this.setActive();
+        model_handle_1.ModelHandle.bufferTexture(gl, this._stateStyleTexture, this._stateStyles);
         //set flag
         this._stylingChanged = true;
     };
@@ -415,6 +411,28 @@ var Viewer = (function () {
                 h.setState(state_1.State.HIDDEN, product_type_1.ProductType.IFCSPACE);
         }, modelId);
         this._stylingChanged = true;
+    };
+    Viewer.prototype.getCurrentImageHtml = function (width, height) {
+        if (width === void 0) { width = this.width; }
+        if (height === void 0) { height = this.height; }
+        var element = document.createElement("img");
+        element.src = this.getCurrentImageDataUrl(width, height);
+        return element;
+    };
+    Viewer.prototype.getCurrentImageDataUrl = function (width, height) {
+        if (width === void 0) { width = this.width; }
+        if (height === void 0) { height = this.height; }
+        //use background framebuffer
+        var frame = new framebuffer_1.Framebuffer(this.gl, width, height);
+        //force draw into defined framebuffer
+        this.draw(true, frame);
+        var result = frame.getImageDataUrl();
+        //free resources
+        frame.delete();
+        return result;
+    };
+    Viewer.prototype.getCurrentImageBlob = function (callback) {
+        return this.canvas.toBlob(callback, 'image/png');
     };
     /**
      * Gets complete model state and style. Resulting object can be used to restore the state later on.
@@ -518,7 +536,7 @@ var Viewer = (function () {
     Viewer.prototype.setCameraPosition = function (coordinates) {
         if (typeof (coordinates) == 'undefined')
             throw 'Parameter coordinates must be defined';
-        mat4_1.mat4.lookAt(this.mvMatrix, coordinates, this._origin, [0, 0, 1]);
+        mat4_1.mat4.lookAt(this.mvMatrix, coordinates, this.origin, [0, 0, 1]);
     };
     /**
     * This method sets navigation origin to the centroid of specified product's bounding box or to the centre of model if no product ID is specified.
@@ -534,9 +552,11 @@ var Viewer = (function () {
         //helper function for setting of the distance based on camera field of view and size of the product's bounding box
         var setDistance = function (bBox) {
             var size = Math.sqrt(bBox[3] * bBox[3] + bBox[4] * bBox[4] + bBox[5] * bBox[5]);
-            var ratio = Math.max(viewer._width, viewer._height) / Math.min(viewer._width, viewer._height);
-            //viewer._distance = size / Math.tan(viewer.perspectiveCamera.fov * Math.PI / 180.0) * ratio / 2.0;
-            viewer._distance = size / ratio / (Math.tan(viewer.perspectiveCamera.fov * Math.PI / 180.0 / 2.0) * 2.0);
+            //set ratio to 1 if the viewer has no size (for example if canvas is not added to DOM yet)
+            var ratio = (viewer.width > 0 && viewer.height > 0) ?
+                Math.max(viewer.width, viewer.height) / Math.min(viewer.width, viewer.height) :
+                1;
+            viewer.distance = size / ratio / (Math.tan(viewer.perspectiveCamera.fov * Math.PI / 180.0 / 2.0) * 2.0);
         };
         //set navigation origin and default distance to the product BBox
         if (typeof (prodId) !== 'undefined' && prodId != null) {
@@ -548,7 +568,7 @@ var Viewer = (function () {
                 }
             }, modelId);
             if (bbox) {
-                this._origin = [bbox[0] + bbox[3] / 2.0, bbox[1] + bbox[4] / 2.0, bbox[2] + bbox[5] / 2.0];
+                this.origin = [bbox[0] + bbox[3] / 2.0, bbox[1] + bbox[4] / 2.0, bbox[2] + bbox[5] / 2.0];
                 setDistance(bbox);
                 return true;
             }
@@ -560,7 +580,7 @@ var Viewer = (function () {
                 return handle.region;
             }, modelId);
             if (region) {
-                this._origin = [region.centre[0], region.centre[1], region.centre[2]];
+                this.origin = [region.centre[0], region.centre[1], region.centre[2]];
                 setDistance(region.bbox);
             }
             return true;
@@ -620,9 +640,10 @@ var Viewer = (function () {
     * @param {String} loaderUrl - Url of the 'xbim-geometry-loader.js' script which will be called as a worker
     * @param {String | Blob | File} model - Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data.
     * @param {Any} tag [optional] - Tag to be used to identify the model in {@link Viewer#event:loaded loaded} event.
+    * @param {Object} headers [optional] - Headers to be used for request. This can be used for authorized access for example.
     * @fires Viewer#loaded
     */
-    Viewer.prototype.loadAsync = function (loaderUrl, model, tag) {
+    Viewer.prototype.loadAsync = function (loaderUrl, model, tag, headers) {
         if (typeof (model) == 'undefined')
             throw 'You have to specify model to load.';
         if (typeof (model) != 'string' && !(model instanceof Blob))
@@ -630,7 +651,7 @@ var Viewer = (function () {
         var self = this;
         //fall back to synchronous loading if worker is not available
         if (typeof (Worker) === 'undefined') {
-            this.load(model, tag);
+            this.load(model, tag, headers);
         }
         var worker = new Worker(loaderUrl);
         worker.onmessage = function (msg) {
@@ -641,7 +662,7 @@ var Viewer = (function () {
         worker.onerror = function (e) {
             self.error(e.message);
         };
-        worker.postMessage(model);
+        worker.postMessage({ model: model, headers: headers });
         //console.log('Message posted to worker');
         return;
     };
@@ -654,9 +675,10 @@ var Viewer = (function () {
     * @function Viewer#load
     * @param {String | Blob | File} model - Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data.
     * @param {Any} tag [optional] - Tag to be used to identify the model in {@link Viewer#event:loaded loaded} event.
+    * @param {Object} headers [optional] - Headers to be used for request. This can be used for authorized access for example.
     * @fires Viewer#loaded
     */
-    Viewer.prototype.load = function (model, tag) {
+    Viewer.prototype.load = function (model, tag, headers) {
         if (typeof (model) == 'undefined')
             throw 'You have to specify model to load.';
         if (typeof (model) != 'string' && !(model instanceof Blob))
@@ -669,18 +691,19 @@ var Viewer = (function () {
         geometry.onerror = function (msg) {
             viewer.error(msg);
         };
-        geometry.load(model);
+        geometry.load(model, headers);
     };
     //this is a private function used to add loaded geometry as a new handle and to set up camera and 
     //default view if this is the first geometry loaded
     Viewer.prototype.addHandle = function (geometry, tag) {
         var viewer = this;
-        var gl = this.gl;
+        var gl = this.setActive();
         var handle = new model_handle_1.ModelHandle(viewer.gl, geometry);
+        //assign handle used to identify the model
+        handle.tag = tag;
         viewer._handles.push(handle);
-        handle.feedGPU();
         //get one meter size from model and set it to shader
-        var meter = handle.model.meter;
+        var meter = handle.meter;
         gl.uniform1f(viewer._meterUniformPointer, meter);
         //only set camera parameters and the view if this is the first model
         if (viewer._handles.length === 1) {
@@ -697,15 +720,18 @@ var Viewer = (function () {
             var ratio = 1.8;
             viewer.orthogonalCamera.top = maxSize / ratio;
             viewer.orthogonalCamera.bottom = maxSize / ratio * -1;
-            viewer.orthogonalCamera.left = maxSize / ratio * -1 * viewer._width / viewer._height;
-            viewer.orthogonalCamera.right = maxSize / ratio * viewer._width / viewer._height;
+            viewer.orthogonalCamera.left = maxSize / ratio * -1 * viewer.width / viewer.height;
+            viewer.orthogonalCamera.right = maxSize / ratio * viewer.width / viewer.height;
             //set default view
             viewer.setCameraTarget();
-            var dist = Math.sqrt(viewer._distance * viewer._distance * 1.5);
+            var dist = Math.sqrt(viewer.distance * viewer.distance * 1.5);
             viewer.setCameraPosition([
                 region.centre[0] + dist * -1.0, region.centre[1] + dist * -1.0, region.centre[2] + dist
             ]);
         }
+        viewer._geometryLoaded = true;
+        // force redraw so when 'loaded' is called listeners can operate with current canvas.
+        viewer.draw(true);
         /**
          * Occurs when geometry model is loaded into the viewer. This event returns object containing ID of the model.
          * This ID can later be used to unload or temporarily stop the model.
@@ -717,7 +743,6 @@ var Viewer = (function () {
          *
         */
         viewer.fire('loaded', { id: handle.id, tag: tag });
-        viewer._geometryLoaded = true;
     };
     ;
     /**
@@ -737,7 +762,6 @@ var Viewer = (function () {
         this._numberOfActiveModels = this._handles.length;
         //unload and delete
         handle.unload();
-        //delete handle; // TODO -> TS1102 error: delete cannot be called for a variable in strict mode -> is it necessary here / are there any other references left?
     };
     //this function should be only called once during initialization
     //or when shader set-up changes
@@ -748,7 +772,9 @@ var Viewer = (function () {
             gl.shaderSource(shader, code);
             gl.compileShader(shader);
             if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-                viewer.error(gl.getShaderInfoLog(shader));
+                var err = gl.getShaderInfoLog(shader);
+                viewer.error(err);
+                console.error(err);
                 return null;
             }
         };
@@ -768,8 +794,15 @@ var Viewer = (function () {
         }
         gl.useProgram(this._shaderProgram);
     };
-    Viewer.prototype._initAttributesAndUniforms = function () {
+    Viewer.prototype.setActive = function () {
         var gl = this.gl;
+        //set own shader in case other shader program was used before
+        gl.useProgram(this._shaderProgram);
+        return gl;
+    };
+    Viewer.prototype._initAttributesAndUniforms = function () {
+        var gl = this.setActive();
+        ;
         //create pointers to uniform variables for transformations
         this._pMatrixUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uPMatrix');
         this._mvMatrixUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uMVMatrix');
@@ -785,6 +818,28 @@ var Viewer = (function () {
         this._highlightingColourUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uHighlightColour');
         this._stateStyleSamplerUniform = gl.getUniformLocation(this._shaderProgram, 'uStateStyleSampler');
         this._pointers = new ModelPointers(gl, this._shaderProgram);
+    };
+    /**
+     * Prevents default context menu to appear. Custom menu can be created instead by listening to contextmenu event
+     * of the viewer. Nothing is displayed othervise.
+     */
+    Viewer.prototype._initContextMenuEvent = function () {
+        var _this = this;
+        this.canvas.addEventListener("contextmenu", function (event) {
+            var ids = _this.getIdsFromEvent(event);
+            /**
+            * Occurs when mousedown event happens on underlying canvas.
+            *
+            * @event Viewer#contextMenu
+            * @type {object}
+            * @param {Number} id - product ID of the element or null if there wasn't any product under mouse
+            * @param {Number} model - Model ID
+            * @param {MouseEvent} event - original event as captured by the viewer
+            */
+            _this.fire("contextMenu", { event: event, id: ids.id, model: ids.model });
+            event.preventDefault();
+            return false;
+        }, true);
     };
     Viewer.prototype._initMouseEvents = function () {
         var _this = this;
@@ -805,9 +860,9 @@ var Viewer = (function () {
             startX = event.clientX;
             startY = event.clientY;
             //get coordinates within canvas (with the right orientation)
-            var r = viewer._canvas.getBoundingClientRect();
+            var r = viewer.canvas.getBoundingClientRect();
             var viewX = startX - r.left;
-            var viewY = viewer._height - (startY - r.top);
+            var viewY = viewer.height - (startY - r.top);
             //this is for picking
             id = viewer.getID(viewX, viewY);
             modelId = viewer.getID(viewX, viewY, true);
@@ -818,8 +873,9 @@ var Viewer = (function () {
             * @type {object}
             * @param {Number} id - product ID of the element or -1 if there wasn't any product under mouse
             * @param {Number} model - model ID of the element or -1 if there wasn't any product under mouse
+            * @param {MouseEvent} event - original HTML event
             */
-            viewer.fire('mouseDown', { id: id, model: modelId });
+            viewer.fire('mouseDown', { id: id, model: modelId, event: event });
             //keep information about the mouse button
             switch (event.button) {
                 case 0:
@@ -858,10 +914,12 @@ var Viewer = (function () {
                 * @event Viewer#pick
                 * @type {object}
                 * @param {Number} id - product ID of the element or null if there wasn't any product under mouse
-                * @param {Number} model - model ID of the element or -1 if there wasn't any product under mouse
+                * @param {Number} model - Model ID
+                * @param {MouseEvent} event - Original HTML event
                 */
-                if (!handled)
-                    viewer.fire('pick', { id: id, model: modelId });
+                if (!handled) {
+                    viewer.fire('pick', { id: id, model: modelId, event: event });
+                }
             }
             viewer.enableTextSelection();
         };
@@ -879,22 +937,27 @@ var Viewer = (function () {
             lastMouseX = newX;
             lastMouseY = newY;
             if (button === 'left') {
-                switch (viewer.navigationMode) {
-                    case 'free-orbit':
-                        _this.navigate('free-orbit', deltaX, deltaY);
-                        break;
-                    case 'fixed-orbit':
-                    case 'orbit':
-                        _this.navigate('orbit', deltaX, deltaY);
-                        break;
-                    case 'pan':
-                        _this.navigate('pan', deltaX, deltaY);
-                        break;
-                    case 'zoom':
-                        _this.navigate('zoom', deltaX, deltaY);
-                        break;
-                    default:
-                        break;
+                if (viewer._isShiftKeyDown) {
+                    _this.navigate('pan', deltaX, deltaY);
+                }
+                else {
+                    switch (viewer.navigationMode) {
+                        case 'free-orbit':
+                            _this.navigate('free-orbit', deltaX, deltaY);
+                            break;
+                        case 'fixed-orbit':
+                        case 'orbit':
+                            _this.navigate('orbit', deltaX, deltaY);
+                            break;
+                        case 'pan':
+                            _this.navigate('pan', deltaX, deltaY);
+                            break;
+                        case 'zoom':
+                            _this.navigate('zoom', deltaX, deltaY);
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
             if (button === 'middle' || button === 'right') {
@@ -920,47 +983,51 @@ var Viewer = (function () {
             //deltaX and deltaY have very different values in different web browsers so fixed value is used for constant functionality.
             _this.navigate('zoom', sign(event.deltaX) * -1.0, sign(event.deltaY) * -1.0);
         };
+        var handleDoubleClick = function (event) {
+            var ids = viewer.getIdsFromEvent(event);
+            /**
+             * Occurs when mousedown event happens on underlying canvas.
+             *
+             * @event Viewer#dblclick
+             * @type {object}
+             * @param {Number} id - product ID of the element or -1 if there wasn't any product under mouse
+             * @param {Number} model - model ID of the element or -1 if there wasn't any product under mouse
+             * @param {MouseEvent} event - Original HTML event
+             */
+            viewer.fire('dblclick', { id: ids.id, model: ids.model, event: event });
+        };
         //watch resizing of canvas every 500ms
         var elementHeight = viewer.height;
         var elementWidth = viewer.width;
         setInterval(function () {
-            if (viewer._canvas.offsetHeight !== elementHeight || viewer._canvas.offsetWidth !== elementWidth) {
-                elementHeight = viewer._height = viewer._canvas.height = viewer._canvas.offsetHeight;
-                elementWidth = viewer._width = viewer._canvas.width = viewer._canvas.offsetWidth;
+            if (viewer.canvas.offsetHeight !== elementHeight || viewer.canvas.offsetWidth !== elementWidth) {
+                elementHeight = viewer.height = viewer.canvas.height = viewer.canvas.offsetHeight;
+                elementWidth = viewer.width = viewer.canvas.width = viewer.canvas.offsetWidth;
             }
         }, 500);
         //attach callbacks
-        this._canvas.addEventListener('mousedown', function (event) { return handleMouseDown(event); }, true);
-        this._canvas.addEventListener('wheel', function (event) { return handleMouseScroll(event); }, true);
+        this.canvas.addEventListener('mousedown', function (event) { return handleMouseDown(event); }, true);
+        this.canvas.addEventListener('wheel', function (event) { return handleMouseScroll(event); }, true);
+        this.canvas.addEventListener('dblclick', function (event) { return handleDoubleClick(event); }, true);
         window.addEventListener('mouseup', function (event) { return handleMouseUp(event); }, true);
         window.addEventListener('mousemove', function (event) { return handleMouseMove(event); }, true);
-        this._canvas.addEventListener('mousemove', function () {
+        // user doing anything should cause redraw in case there is any for of interaction
+        this.canvas.addEventListener('mousemove', function () {
             viewer._userAction = true;
         }, true);
-        //set initial conditions so that different gestures can be identified
-        var handleDoubleClick = function (event) {
-            lastMouseX = event.clientX;
-            lastMouseY = event.clientY;
-            startX = event.clientX;
-            startY = event.clientY;
-            //get coordinates within canvas (with the right orientation)
-            var r = viewer._canvas.getBoundingClientRect();
-            var viewX = startX - r.left;
-            var viewY = viewer._height - (startY - r.top);
-            //this is for picking
-            id = viewer.getID(viewX, viewY);
-            modelId = viewer.getID(viewX, viewY, true);
-            /**
-            * Occurs when mousedown event happens on underlying canvas.
-            *
-            * @event Viewer#dblclick
-            * @type {object}
-            * @param {Number} id - product ID of the element or -1 if there wasn't any product under mouse
-            * @param {Number} model - model ID of the element or -1 if there wasn't any product under mouse
-            */
-            viewer.fire('dblclick', { id: id, model: modelId });
-        };
-        this._canvas.addEventListener('dblclick', function (event) { return handleDoubleClick(event); }, true);
+        //listen to key events to help navigation
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Shift') {
+                _this._isShiftKeyDown = true;
+                return;
+            }
+        }, false);
+        document.addEventListener('keyup', function (event) {
+            if (event.key === 'Shift') {
+                _this._isShiftKeyDown = false;
+                return;
+            }
+        }, false);
     };
     Viewer.prototype._initTouchNavigationEvents = function () {
         var _this = this;
@@ -998,7 +1065,8 @@ var Viewer = (function () {
                 lastTouchY_1 = event.touches[0].clientY;
                 // force-setting navigation mode to 'free-orbit' currently for touch navigation since regular orbit
                 // feels awkward and un-intuitive on touch devices
-                _this.navigate('free-orbit', deltaX, deltaY);
+                // MC: I prefer fixed orbit as it doesn't allow for wierd angles
+                _this.navigate('orbit', deltaX, deltaY);
             }
             else if (event.touches.length === 2) {
                 // touch move with two fingers -> zoom
@@ -1042,8 +1110,8 @@ var Viewer = (function () {
                 _this.navigate('pan', panFactor * directionX, panFactor * directionY);
             }
         };
-        this._canvas.addEventListener('touchstart', function (event) { return handleTouchStart(event); }, true);
-        this._canvas.addEventListener('touchmove', function (event) { return handleTouchMove(event); }, true);
+        this.canvas.addEventListener('touchstart', function (event) { return handleTouchStart(event); }, true);
+        this.canvas.addEventListener('touchmove', function (event) { return handleTouchMove(event); }, true);
     };
     Viewer.prototype._initTouchTapEvents = function () {
         var _this = this;
@@ -1063,16 +1131,16 @@ var Viewer = (function () {
             lastTouchX = event.touches[0].clientX;
             lastTouchY = event.touches[0].clientY;
             //get coordinates within canvas (with the right orientation)
-            var r = _this._canvas.getBoundingClientRect();
+            var r = _this.canvas.getBoundingClientRect();
             var viewX = lastTouchX - r.left;
-            var viewY = _this._height - (lastTouchY - r.top);
+            var viewY = _this.height - (lastTouchY - r.top);
             //this is for picking
             id = _this.getID(viewX, viewY);
             modelId = _this.getID(viewX, viewY, true);
             var now = new Date();
             var isDoubleTap = (now.getTime() - lastTap.getTime()) < maximumLengthBetweenDoubleTaps;
             if (isDoubleTap) {
-                _this.fire('dblclick', { id: id, model: modelId });
+                _this.fire('dblclick', { id: id, model: modelId, event: event });
             }
             ;
             lastTap = now;
@@ -1083,8 +1151,9 @@ var Viewer = (function () {
             * @type {object}
             * @param {Number} id - product ID of the element or null if there wasn't any product under mouse
             * @param {Number} model - model ID
+            * @param {MouseEvent} event - original HTML event
             */
-            _this.fire('mouseDown', { id: id, model: modelId });
+            _this.fire('mouseDown', { id: id, model: modelId, event: event });
             _this.disableTextSelection();
         };
         var handleTouchEnd = function (event) {
@@ -1106,24 +1175,24 @@ var Viewer = (function () {
                     handled = handled || plugin.onBeforePick(id);
                 }, _this);
                 if (!handled)
-                    _this.fire('pick', { id: id, model: modelId });
+                    _this.fire('pick', { id: id, model: modelId, event: event });
             }
             _this.enableTextSelection();
         };
-        this._canvas.addEventListener('touchstart', function (event) { return handleTouchStart(event); }, true);
-        this._canvas.addEventListener('touchend', function (event) { return handleTouchEnd(event); }, true);
+        this.canvas.addEventListener('touchstart', function (event) { return handleTouchStart(event); }, true);
+        this.canvas.addEventListener('touchend', function (event) { return handleTouchEnd(event); }, true);
     };
     Viewer.prototype.navigate = function (type, deltaX, deltaY) {
         if (!this._handles || !this._handles[0])
             return;
         //translation in WCS is position from [0, 0, 0]
-        var origin = this._origin;
+        var origin = this.origin;
         var camera = this.getCameraPosition();
         //get origin coordinates in view space
         var mvOrigin = vec3_1.vec3.transformMat4(vec3_1.vec3.create(), origin, this.mvMatrix);
         //movement factor needs to be dependant on the distance but one meter is a minimum so that movement wouldn't stop when camera is in 0 distance from navigation origin
         var distanceVec = vec3_1.vec3.subtract(vec3_1.vec3.create(), origin, camera);
-        var distance = Math.max(vec3_1.vec3.vectorLength(distanceVec), this._handles[0].model.meter);
+        var distance = Math.max(vec3_1.vec3.vectorLength(distanceVec), this._handles[0].meter);
         //move to the navigation origin in view space
         var transform = mat4_1.mat4.translate(mat4_1.mat4.create(), mat4_1.mat4.create(), mvOrigin);
         //function for conversion from degrees to radians
@@ -1166,39 +1235,48 @@ var Viewer = (function () {
     * @function Viewer#draw
     * @fires Viewer#frame
     */
-    Viewer.prototype.draw = function () {
+    Viewer.prototype.draw = function (force, framebuffer) {
         var _this = this;
-        if (!this._geometryLoaded || this._handles.length == 0 || !(this._stylingChanged || this.isChanged())) {
-            if (!this._userAction)
-                return;
+        if (!force) {
+            if (!this._isRunning || !this._geometryLoaded || this._handles.length == 0 || !(this._stylingChanged || this.isChanged())) {
+                if (!this._userAction)
+                    return;
+            }
+            this._userAction = false;
         }
-        this._userAction = false;
         //call all before-draw plugins
         this._plugins.forEach(function (plugin) {
             if (!plugin.onBeforeDraw) {
                 return;
             }
-            plugin.onBeforeDraw();
+            plugin.onBeforeDraw(width, height);
         });
+        var gl = this.setActive();
         //styles are up to date when new frame is drawn
-        this._stylingChanged = false;
-        var gl = this.gl;
-        var width = this._width;
-        var height = this._height;
+        if (this._stylingChanged) {
+            //update overlay styles
+            gl.activeTexture(gl.TEXTURE4);
+            gl.bindTexture(gl.TEXTURE_2D, this._stateStyleTexture);
+            gl.uniform1i(this._stateStyleSamplerUniform, 4);
+            //set the flag
+            this._stylingChanged = false;
+        }
         gl.useProgram(this._shaderProgram);
+        var width = framebuffer ? framebuffer.width : this.width;
+        var height = framebuffer ? framebuffer.height : this.height;
         gl.viewport(0, 0, width, height);
         gl.clearColor(this.background[0] / 255, this.background[1] / 255, this.background[2] / 255, this.background[3] / 255);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         //set up camera
         switch (this.camera) {
             case 'perspective':
-                mat4_1.mat4.perspective(this._pMatrix, this.perspectiveCamera.fov * Math.PI / 180.0, this._width / this._height, this.perspectiveCamera.near, this.perspectiveCamera.far);
+                mat4_1.mat4.perspective(this._pMatrix, this.perspectiveCamera.fov * Math.PI / 180.0, width / height, this.perspectiveCamera.near, this.perspectiveCamera.far);
                 break;
             case 'orthogonal':
                 mat4_1.mat4.ortho(this._pMatrix, this.orthogonalCamera.left, this.orthogonalCamera.right, this.orthogonalCamera.bottom, this.orthogonalCamera.top, this.orthogonalCamera.near, this.orthogonalCamera.far);
                 break;
             default:
-                mat4_1.mat4.perspective(this._pMatrix, this.perspectiveCamera.fov * Math.PI / 180.0, this._width / this._height, this.perspectiveCamera.near, this.perspectiveCamera.far);
+                mat4_1.mat4.perspective(this._pMatrix, this.perspectiveCamera.fov * Math.PI / 180.0, width / height, this.perspectiveCamera.near, this.perspectiveCamera.far);
                 break;
         }
         //set uniforms (these may quickly change between calls to draw)
@@ -1206,10 +1284,6 @@ var Viewer = (function () {
         gl.uniformMatrix4fv(this._mvMatrixUniformPointer, false, this.mvMatrix);
         gl.uniform4fv(this._lightAUniformPointer, new Float32Array(this.lightA));
         gl.uniform4fv(this._lightBUniformPointer, new Float32Array(this.lightB));
-        //overlay styles
-        gl.activeTexture(gl.TEXTURE4);
-        gl.bindTexture(gl.TEXTURE_2D, this._stateStyleTexture);
-        gl.uniform1i(this._stateStyleSamplerUniform, 4);
         //clipping
         gl.uniform1i(this._clippingAUniformPointer, this._clippingA ? 1 : 0);
         gl.uniform1i(this._clippingBUniformPointer, this._clippingB ? 1 : 0);
@@ -1229,6 +1303,14 @@ var Viewer = (function () {
             this.highlightingColour[3] / 255.0
         ]));
         gl.uniform1i(this._renderingModeUniformPointer, this.renderingMode);
+        // bind buffer if defined
+        if (framebuffer) {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer.framebuffer);
+        }
+        else {
+            //set framebuffer to render into canvas (in case it was set for rendering to different framebuffer)
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        }
         //check for x-ray mode
         if (this.renderingMode == RenderingMode.XRAY) {
             //two passes - first one for non-transparent objects, second one for all the others
@@ -1236,7 +1318,7 @@ var Viewer = (function () {
             this._handles.forEach(function (handle) {
                 if (!handle.stopped) {
                     handle.setActive(_this._pointers);
-                    handle.draw('solid');
+                    handle.draw(model_handle_1.DrawMode.SOLID);
                 }
             });
             //transparent objects should have only one side so that they are even more transparent.
@@ -1244,7 +1326,7 @@ var Viewer = (function () {
             this._handles.forEach(function (handle) {
                 if (!handle.stopped) {
                     handle.setActive(_this._pointers);
-                    handle.draw('transparent');
+                    handle.draw(model_handle_1.DrawMode.TRANSPARENT);
                 }
             });
         }
@@ -1255,13 +1337,13 @@ var Viewer = (function () {
             this._handles.forEach(function (handle) {
                 if (!handle.stopped) {
                     handle.setActive(_this._pointers);
-                    handle.draw('solid');
+                    handle.draw(model_handle_1.DrawMode.SOLID);
                 }
             });
             this._handles.forEach(function (handle) {
                 if (!handle.stopped) {
                     handle.setActive(_this._pointers);
-                    handle.draw('transparent');
+                    handle.draw(model_handle_1.DrawMode.TRANSPARENT);
                 }
             });
         }
@@ -1270,7 +1352,7 @@ var Viewer = (function () {
             if (!plugin.onAfterDraw) {
                 return;
             }
-            plugin.onAfterDraw();
+            plugin.onAfterDraw(width, height);
         });
         /**
          * Occurs after every frame in animation. Don't do anything heavy weighted in here as it will happen about 60 times in a second all the time.
@@ -1278,7 +1360,9 @@ var Viewer = (function () {
          * @event Viewer#frame
          * @type {object}
          */
-        this.fire('frame', {});
+        if (!framebuffer && !force) {
+            this.fire('frame', {});
+        }
     };
     ;
     Viewer.prototype.isChanged = function () {
@@ -1321,12 +1405,12 @@ var Viewer = (function () {
             return false;
         var eye = this.getCameraPosition();
         var dir = vec3_1.vec3.create();
-        vec3_1.vec3.subtract(dir, eye, this._origin);
+        vec3_1.vec3.subtract(dir, eye, this.origin);
         dir = vec3_1.vec3.normalize(vec3_1.vec3.create(), dir);
         var translation = vec3_1.vec3.create();
-        vec3_1.vec3.scale(translation, dir, this._distance * 1.2);
-        vec3_1.vec3.add(eye, translation, this._origin);
-        mat4_1.mat4.lookAt(this.mvMatrix, eye, this._origin, [0, 0, 1]);
+        vec3_1.vec3.scale(translation, dir, this.distance * 1.2);
+        vec3_1.vec3.add(eye, translation, this.origin);
+        mat4_1.mat4.lookAt(this.mvMatrix, eye, this.origin, [0, 0, 1]);
         return true;
     };
     /**
@@ -1338,17 +1422,17 @@ var Viewer = (function () {
     * or to the model extent if {@link Viewer#setCameraTarget setCameraTarget()} is called with no arguments.
     */
     Viewer.prototype.show = function (type) {
-        var origin = this._origin;
-        var distance = this._distance;
+        var origin = this.origin;
+        var distance = this.distance;
         var camera = [0, 0, 0];
         var heading = [0, 0, 1];
         switch (type) {
             //top and bottom are different because these are singular points for look-at function if heading is [0,0,1]
-            case 'top':
+            case ViewType.TOP:
                 //only move to origin and up (negative values because we move camera against model)
                 mat4_1.mat4.translate(this.mvMatrix, mat4_1.mat4.create(), [origin[0] * -1.0, origin[1] * -1.0, (distance + origin[2]) * -1.0]);
                 return;
-            case 'bottom':
+            case ViewType.BOTTOM:
                 //only move to origin and up and rotate 180 degrees around Y axis
                 var toOrigin = mat4_1.mat4.translate(mat4_1.mat4.create(), mat4_1.mat4.create(), [origin[0] * -1.0, origin[1] * +1.0, (origin[2] + distance) * -1]);
                 var rotationY = mat4_1.mat4.rotateY(mat4_1.mat4.create(), toOrigin, Math.PI);
@@ -1357,23 +1441,43 @@ var Viewer = (function () {
                     .mvMatrix = rotationZ;
                 // mat4.translate(mat4.create(), rotationZ, [0, 0, -1.0 * distance]);
                 return;
-            case 'front':
+            case ViewType.FRONT:
                 camera = [origin[0], origin[1] - distance, origin[2]];
                 break;
-            case 'back':
+            case ViewType.BACK:
                 camera = [origin[0], origin[1] + distance, origin[2]];
                 break;
-            case 'left':
+            case ViewType.LEFT:
                 camera = [origin[0] - distance, origin[1], origin[2]];
                 break;
-            case 'right':
+            case ViewType.RIGHT:
                 camera = [origin[0] + distance, origin[1], origin[2]];
+                break;
+            case ViewType.DEFAULT:
+                var a = Math.sqrt(distance * distance / 3);
+                camera = [origin[0] - a, origin[1] - a, origin[2] + a];
                 break;
             default:
                 break;
         }
-        //use look-at function to set up camera and target
+        // use look-at function to set up camera and target
         mat4_1.mat4.lookAt(this.mvMatrix, camera, origin, heading);
+    };
+    Viewer.prototype.startRotation = function () {
+        var _this = this;
+        this._rotationOn = true;
+        var interval = 30; // ms
+        var rotate = function () {
+            if (!_this._rotationOn) {
+                return;
+            }
+            mat4_1.mat4.rotateZ(_this.mvMatrix, new Float32Array(_this.mvMatrix), 0.2 * Math.PI / 180.0);
+            setTimeout(rotate, interval);
+        };
+        setTimeout(rotate, interval);
+    };
+    Viewer.prototype.stopRotation = function () {
+        this._rotationOn = false;
     };
     Viewer.prototype.error = function (msg) {
         /**
@@ -1385,11 +1489,25 @@ var Viewer = (function () {
         */
         this.fire('error', { message: msg });
     };
+    Viewer.prototype.getIdsFromEvent = function (event) {
+        var x = event.clientX;
+        var y = event.clientY;
+        //get coordinates within canvas (with the right orientation)
+        var r = this.canvas.getBoundingClientRect();
+        var viewX = x - r.left;
+        var viewY = this.height - (y - r.top);
+        //get product id and model id
+        return { id: this.getID(viewX, viewY, false), model: this.getID(viewX, viewY, true) };
+    };
     //this renders the colour coded model into the memory buffer
     //not to the canvas and use it to identify ID of the object from that
     Viewer.prototype.getID = function (x, y, modelId) {
         var _this = this;
         if (modelId === void 0) { modelId = false; }
+        //skip all the GPU work if there is only one model loaded and model ID is requested
+        if (modelId && this._handles.length === 1) {
+            return this._handles[0].id;
+        }
         //call all before-drawId plugins
         this._plugins.forEach(function (plugin) {
             if (!plugin.onBeforeDrawId) {
@@ -1399,9 +1517,9 @@ var Viewer = (function () {
         });
         //it is not necessary to render the image in full resolution so this factor is used for less resolution. 
         var factor = 2;
-        var gl = this.gl;
-        var width = this._width / factor;
-        var height = this._height / factor;
+        var gl = this.setActive();
+        var width = this.width / factor;
+        var height = this.height / factor;
         x = x / factor;
         y = y / factor;
         //create framebuffer
@@ -1502,6 +1620,7 @@ var Viewer = (function () {
             return;
         }
         this._isRunning = true;
+        this._userAction = true; // force redraw in case some config has changed
         var viewer = this;
         var lastTime = new Date();
         var counter = 0;
@@ -1523,7 +1642,7 @@ var Viewer = (function () {
             }
             if (viewer._isRunning) {
                 window.requestAnimationFrame(tick);
-                viewer.draw();
+                viewer.draw(false);
             }
         }
         tick();
@@ -1536,7 +1655,7 @@ var Viewer = (function () {
     * @param {Number} id [optional] - Optional ID of the model to be stopped. You can get this ID from {@link Viewer#event:loaded loaded} event.
     */
     Viewer.prototype.stop = function (id) {
-        if (typeof (id) == 'undefined') {
+        if (typeof (id) === 'undefined') {
             this._isRunning = false;
             return;
         }
@@ -1614,7 +1733,12 @@ var Viewer = (function () {
         }
         //call the callbacks
         handlers.slice().forEach(function (handler) {
-            handler(args);
+            try {
+                handler(args);
+            }
+            catch (e) {
+                console.error(e);
+            }
         });
     };
     Viewer.prototype.disableTextSelection = function () {
@@ -1656,13 +1780,13 @@ var Viewer = (function () {
         //create SVG overlay
         var svg = document.createElementNS(ns, 'svg');
         //document.body.appendChild(svg);
-        var cRect = getOffsetRect(this._canvas);
+        var cRect = getOffsetRect(this.canvas);
         svg['style'].position = 'absolute';
         svg['style'].top = cRect.top + 'px';
         svg['style'].left = cRect.left + 'px';
         svg['style']['z-index'] = 100;
-        svg.setAttribute('width', this._width.toString());
-        svg.setAttribute('height', this._height.toString());
+        svg.setAttribute('width', this.width.toString());
+        svg.setAttribute('height', this.height.toString());
         return svg;
     };
     /**
@@ -1762,8 +1886,8 @@ var Viewer = (function () {
             var inverse = mat4_1.mat4.create();
             mat4_1.mat4.invert(inverse, transform);
             //get normalized coordinates the point in WebGL CS
-            var x1 = position.x / (viewer._width / 2.0) - 1.0;
-            var y1 = 1.0 - position.y / (viewer._height / 2.0);
+            var x1 = position.x / (viewer.width / 2.0) - 1.0;
+            var y1 = 1.0 - position.y / (viewer.height / 2.0);
             //First point in WCS
             var A = vec3_1.vec3.create();
             vec3_1.vec3.transformMat4(A, [x1, y1, -1], inverse); //near clipping plane
@@ -1915,4 +2039,14 @@ var RenderingMode;
     RenderingMode[RenderingMode["GRAYSCALE"] = 1] = "GRAYSCALE";
     RenderingMode[RenderingMode["XRAY"] = 2] = "XRAY";
 })(RenderingMode = exports.RenderingMode || (exports.RenderingMode = {}));
+var ViewType;
+(function (ViewType) {
+    ViewType[ViewType["TOP"] = 0] = "TOP";
+    ViewType[ViewType["BOTTOM"] = 1] = "BOTTOM";
+    ViewType[ViewType["FRONT"] = 2] = "FRONT";
+    ViewType[ViewType["BACK"] = 3] = "BACK";
+    ViewType[ViewType["LEFT"] = 4] = "LEFT";
+    ViewType[ViewType["RIGHT"] = 5] = "RIGHT";
+    ViewType[ViewType["DEFAULT"] = 6] = "DEFAULT";
+})(ViewType = exports.ViewType || (exports.ViewType = {}));
 //# sourceMappingURL=viewer.js.map

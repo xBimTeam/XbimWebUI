@@ -277,7 +277,7 @@ export class ModelGeometry {
     }
 
     //Source has to be either URL of wexBIM file or Blob representing wexBIM file
-    public load(source) {
+    public load(source, headers: { [name: string]: string }) {
         //binary reading
         let br = new BinaryReader();
         let self = this;
@@ -290,7 +290,7 @@ export class ModelGeometry {
         br.onerror = function (msg) {
             if (self.onerror) self.onerror(msg);
         };
-        br.load(source);
+        br.load(source, headers);
     }
 
     public onloaded: (geometry: ModelGeometry) => void;

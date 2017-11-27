@@ -1,24 +1,7 @@
 import { State } from './state';
-export { State } from './state';
-export { ProductType } from './product-type';
-export { ProductInheritance } from './product-inheritance';
-export { NavigationCube } from "./plugins/NavigationCube/navigation-cube";
-export { NavigationHome } from "./plugins/NavigationHome/navigation-home";
+import { Framebuffer } from './framebuffer';
 export declare class Viewer {
-    /**
-    * This is constructor of the xBIM Viewer. It gets HTMLCanvasElement or string ID as an argument. Viewer will than be initialized
-    * in the context of specified canvas. Any other argument will throw exception.
-    * @name Viewer
-    * @constructor
-    * @classdesc This is the main and the only class you need to load and render IFC models in wexBIM format. This viewer is part of
-    * xBIM toolkit which can be used to create wexBIM files from IFC, ifcZIP and ifcXML. WexBIM files are highly optimized for
-    * transmition over internet and rendering performance. Viewer uses WebGL technology for hardware accelerated 3D rendering and SVG for
-    * certain kinds of user interaction. This means that it won't work with obsolete and non-standard-compliant browsers like IE10 and less.
-    *
-    * @param {string | HTMLCanvasElement} canvas - string ID of the canvas or HTML canvas element.
-    */
-    constructor(canvas: string | HTMLCanvasElement);
-    _canvas: HTMLCanvasElement;
+    canvas: HTMLCanvasElement;
     perspectiveCamera: {
         fov: number;
         near: number;
@@ -32,13 +15,19 @@ export declare class Viewer {
         near: number;
         far: number;
     };
-    _width: number;
-    private width;
-    _height: number;
-    private height;
-    _distance: number;
+    width: number;
+    height: number;
+    distance: number;
     camera: 'perspective' | 'orthogonal';
     background: number[];
+    highlightingColour: number[];
+    navigationMode: 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none';
+    origin: number[];
+    lightA: number[];
+    lightB: number[];
+    gl: WebGLRenderingContext;
+    mvMatrix: Float32Array;
+    renderingMode: RenderingMode;
     private _isRunning;
     private _stateStyles;
     private _stateStyleTexture;
@@ -46,13 +35,8 @@ export declare class Viewer {
     private _plugins;
     private _stylingChanged;
     private _handles;
-    highlightingColour: number[];
-    navigationMode: 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none';
     private _userAction;
-    _shaderProgram: WebGLProgram;
-    _origin: number[];
-    lightA: number[];
-    lightB: number[];
+    private _shaderProgram;
     private _mvMatrixUniformPointer;
     private _pMatrixUniformPointer;
     private _lightAUniformPointer;
@@ -70,17 +54,28 @@ export declare class Viewer {
     private _numberOfActiveModels;
     private _lastStates;
     private _visualStateAttributes;
-    renderingMode: RenderingMode;
     private _clippingPlaneA;
     private _clippingA;
     private _clippingPlaneB;
     private _clippingB;
     private _lastClippingPoint;
-    gl: WebGLRenderingContext;
-    mvMatrix: Float32Array;
+    private _isShiftKeyDown;
     private _fpt;
     private _pMatrix;
     private _pointers;
+    /**
+    * This is constructor of the xBIM Viewer. It gets HTMLCanvasElement or string ID as an argument. Viewer will than be initialized
+    * in the context of specified canvas. Any other argument will throw exception.
+    * @name Viewer
+    * @constructor
+    * @classdesc This is the main and the only class you need to load and render IFC models in wexBIM format. This viewer is part of
+    * xBIM toolkit which can be used to create wexBIM files from IFC, ifcZIP and ifcXML. WexBIM files are highly optimized for
+    * transmition over internet and rendering performance. Viewer uses WebGL technology for hardware accelerated 3D rendering and SVG for
+    * certain kinds of user interaction. This means that it won't work with obsolete and non-standard-compliant browsers like IE10 and less.
+    *
+    * @param {string | HTMLCanvasElement} canvas - string ID of the canvas or HTML canvas element.
+    */
+    constructor(canvas: string | HTMLCanvasElement);
     /**
     * This is a static function which should always be called before Viewer is instantiated.
     * It will check all prerequisites of the viewer and will report all issues. If Prerequisities.errors contain
@@ -145,19 +140,22 @@ export declare class Viewer {
     * @param {Number} [modelId = null] - Optional Model ID. Id no ID is specified states are reset for all models.
     */
     resetStates(hideSpaces?: boolean, modelId?: number): void;
+    getCurrentImageHtml(width?: number, height?: number): HTMLImageElement;
+    getCurrentImageDataUrl(width?: number, height?: number): string;
+    getCurrentImageBlob(callback: (blob: Blob) => void): void;
     /**
      * Gets complete model state and style. Resulting object can be used to restore the state later on.
      *
      * @param {Number} id - Model ID which you can get from {@link Viewer#event:loaded loaded} event.
      * @returns {Array} - Array representing model state in compact form suitable for serialization
      */
-    getModelState(id: number): number[][];
+    getModelState(id: number): Array<Array<number>>;
     /**
      * Restores model state from the data previously captured with {@link Viewer#getModelState getModelState()} function
      * @param {Number} id - ID of the model
      * @param {Array} state - State of the model as obtained from {@link Viewer#getModelState getModelState()} function
      */
-    restoreModelState(id: number, state: any[]): void;
+    restoreModelState(id: number, state: Array<Array<number>>): void;
     /**
     * Use this method for restyling of the model. This doesn't change the default appearance of the products so you can think about it as an overlay. You can
     * remove the overlay if you set the style to {@link xState#UNSTYLED xState.UNSTYLED} value. You can combine restyling and hiding in this way.
@@ -227,9 +225,12 @@ export declare class Viewer {
     * @param {String} loaderUrl - Url of the 'xbim-geometry-loader.js' script which will be called as a worker
     * @param {String | Blob | File} model - Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data.
     * @param {Any} tag [optional] - Tag to be used to identify the model in {@link Viewer#event:loaded loaded} event.
+    * @param {Object} headers [optional] - Headers to be used for request. This can be used for authorized access for example.
     * @fires Viewer#loaded
     */
-    loadAsync(loaderUrl: string, model: string | Blob | File, tag?: any): void;
+    loadAsync(loaderUrl: string, model: string | Blob | File, tag?: any, headers?: {
+        [name: string]: string;
+    }): void;
     /**
     * This method is used to load model data into viewer. Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data. Any other type of argument will throw an exception.
     * Region extend is determined based on the region of the model
@@ -239,9 +240,12 @@ export declare class Viewer {
     * @function Viewer#load
     * @param {String | Blob | File} model - Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data.
     * @param {Any} tag [optional] - Tag to be used to identify the model in {@link Viewer#event:loaded loaded} event.
+    * @param {Object} headers [optional] - Headers to be used for request. This can be used for authorized access for example.
     * @fires Viewer#loaded
     */
-    load(model: string | Blob | File, tag?: any): void;
+    load(model: string | Blob | File, tag?: any, headers?: {
+        [name: string]: string;
+    }): void;
     private addHandle(geometry, tag?);
     /**
      * Unloads model from the GPU. This action is not reversible.
@@ -250,7 +254,13 @@ export declare class Viewer {
      */
     unload(modelId: number): void;
     _initShaders(): void;
+    private setActive();
     private _initAttributesAndUniforms();
+    /**
+     * Prevents default context menu to appear. Custom menu can be created instead by listening to contextmenu event
+     * of the viewer. Nothing is displayed othervise.
+     */
+    private _initContextMenuEvent();
     private _initMouseEvents();
     private _initTouchNavigationEvents();
     private _initTouchTapEvents();
@@ -261,7 +271,7 @@ export declare class Viewer {
     * @function Viewer#draw
     * @fires Viewer#frame
     */
-    draw(): void;
+    draw(force: boolean, framebuffer?: Framebuffer): void;
     private _lastActiveHandlesCount;
     private isChanged();
     /**
@@ -285,9 +295,16 @@ export declare class Viewer {
     * Directions of this views are defined by the coordinate system. Target and distance are defined by {@link Viewer#setCameraTarget setCameraTarget()} method to certain product ID
     * or to the model extent if {@link Viewer#setCameraTarget setCameraTarget()} is called with no arguments.
     */
-    show(type: 'top' | 'bottom' | 'front' | 'back' | 'left' | 'right'): void;
+    show(type: ViewType): void;
+    private _rotationOn;
+    startRotation(): void;
+    stopRotation(): void;
     error(msg: any): void;
-    getID(x: any, y: any, modelId?: boolean): number;
+    getIdsFromEvent(event: MouseEvent | Touch): {
+        id: number;
+        model: number;
+    };
+    getID(x: number, y: number, modelId?: boolean): number;
     /**
     * Use this function to start animation of the model. If you start animation before geometry is loaded it will wait for content to render it.
     * This function is bound to browser framerate of the screen so it will stop consuming any resources if you switch to another tab.
@@ -398,9 +415,18 @@ export declare enum RenderingMode {
     GRAYSCALE = 1,
     XRAY = 2,
 }
+export declare enum ViewType {
+    TOP = 0,
+    BOTTOM = 1,
+    FRONT = 2,
+    BACK = 3,
+    LEFT = 4,
+    RIGHT = 5,
+    DEFAULT = 6,
+}
 export interface IPlugin {
-    onBeforeDraw(): void;
-    onAfterDraw(): void;
+    onBeforeDraw(width: number, height: number): void;
+    onAfterDraw(width: number, height: number): void;
     onBeforeDrawId(): void;
     onAfterDrawId(): void;
     /**

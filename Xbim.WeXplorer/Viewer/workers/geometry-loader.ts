@@ -3,8 +3,9 @@
 //only run following script if this is created as a Worker
 if (self && self instanceof DedicatedWorkerGlobalScope ) {
     var worker = self as DedicatedWorkerGlobalScope;
-    worker.onmessage = function (e) {
-        var model = e.data;
+    worker.onmessage = function (e: MessageEvent) {
+        var model = e.data.model;
+        var headers = e.data.headers;
         var geometry = new ModelGeometry();
 
         geometry.onerror = function (msg) {
@@ -40,6 +41,6 @@ if (self && self instanceof DedicatedWorkerGlobalScope ) {
                 throw e;
             }
         };
-        geometry.load(model);
+        geometry.load(model, headers);
     };
 }

@@ -5,7 +5,8 @@ var model_geometry_1 = require("../model-geometry");
 if (self && self instanceof DedicatedWorkerGlobalScope) {
     var worker = self;
     worker.onmessage = function (e) {
-        var model = e.data;
+        var model = e.data.model;
+        var headers = e.data.headers;
         var geometry = new model_geometry_1.ModelGeometry();
         geometry.onerror = function (msg) {
             throw msg;
@@ -36,7 +37,7 @@ if (self && self instanceof DedicatedWorkerGlobalScope) {
                 throw e;
             }
         };
-        geometry.load(model);
+        geometry.load(model, headers);
     };
 }
 //# sourceMappingURL=geometry-loader.js.map
