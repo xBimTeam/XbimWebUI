@@ -30,6 +30,7 @@ export class Viewer {
 
     public gl: WebGLRenderingContext;
     public mvMatrix: Float32Array;
+    public pMatrix: Float32Array;
     public renderingMode: RenderingMode;
 
     private _isRunning: boolean;
@@ -68,7 +69,6 @@ export class Viewer {
     private _isShiftKeyDown: boolean = false;
 
     private _fpt: any;
-    private _pMatrix: any;
     private _pointers: ModelPointers;
 
     /**
@@ -239,7 +239,7 @@ export class Viewer {
         this._geometryLoaded = false;
         //number of active models is used to indicate that state has changed
         this._numberOfActiveModels = 0;
-        //this object is used to identify if anything changed before two frames (hence if it is necessary to redraw)
+        //this object is used to identify if anything changed between two frames (hence if it is necessary to redraw)
         this._lastStates = {};
         this._visualStateAttributes = [
             'perspectiveCamera', 'orthogonalCamera', 'camera', 'background', 'lightA', 'lightB',
@@ -260,7 +260,7 @@ export class Viewer {
 
         //transformation matrices
         this.mvMatrix = mat4.create(); //world matrix
-        this._pMatrix = mat4.create(); //camera matrix (this can be either perspective or orthogonal camera)
+        this.pMatrix = mat4.create(); //camera matrix (this can be either perspective or orthogonal camera)
 
         //Navigation settings - coordinates in the WCS of the origin used for orbiting and panning
         this.origin = [0, 0, 0]
@@ -396,7 +396,7 @@ export class Viewer {
     * @function Viewer#addPlugin
     * @param {object} plugin - plug-in object
     */
-    public addPlugin(plugin) {
+    public addPlugin(plugin: IPlugin) {
         if (!plugin.init) return;
 
         plugin.init(this);
@@ -409,7 +409,7 @@ export class Viewer {
     * @function Viewer#removePlugin
     * @param {object} plugin - plug-in object
     */
-    public removePlugin(plugin) {
+    public removePlugin(plugin: IPlugin) {
         var index = this._plugins.indexOf(plugin, 0);
         if (index < 0) return;
         this._plugins.splice(index, 1);
@@ -786,7 +786,7 @@ export class Viewer {
             self.error(e.message);
         };
 
-        worker.postMessage({ model: model, headers: headers});
+        worker.postMessage({ model: model, headers: headers });
         //console.log('Message posted to worker');
         return;
     }
@@ -803,7 +803,7 @@ export class Viewer {
     * @param {Object} headers [optional] - Headers to be used for request. This can be used for authorized access for example.
     * @fires Viewer#loaded
     */
-    public load(model: string | Blob | File, tag?: any, headers?: {[name: string]: string}) {
+    public load(model: string | Blob | File, tag?: any, headers?: { [name: string]: string }) {
         if (typeof (model) == 'undefined') throw 'You have to specify model to load.';
         if (typeof (model) != 'string' && !(model instanceof Blob))
             throw 'Model has to be specified either as a URL to wexBIM file or Blob object representing the wexBIM file.';
@@ -1509,7 +1509,7 @@ export class Viewer {
         //set up camera
         switch (this.camera) {
             case 'perspective':
-                mat4.perspective(this._pMatrix,
+                mat4.perspective(this.pMatrix,
                     this.perspectiveCamera.fov * Math.PI / 180.0,
                     width / height,
                     this.perspectiveCamera.near,
@@ -1517,7 +1517,7 @@ export class Viewer {
                 break;
 
             case 'orthogonal':
-                mat4.ortho(this._pMatrix,
+                mat4.ortho(this.pMatrix,
                     this.orthogonalCamera.left,
                     this.orthogonalCamera.right,
                     this.orthogonalCamera.bottom,
@@ -1527,7 +1527,7 @@ export class Viewer {
                 break;
 
             default:
-                mat4.perspective(this._pMatrix,
+                mat4.perspective(this.pMatrix,
                     this.perspectiveCamera.fov * Math.PI / 180.0,
                     width / height,
                     this.perspectiveCamera.near,
@@ -1536,7 +1536,7 @@ export class Viewer {
         }
 
         //set uniforms (these may quickly change between calls to draw)
-        gl.uniformMatrix4fv(this._pMatrixUniformPointer, false, this._pMatrix);
+        gl.uniformMatrix4fv(this._pMatrixUniformPointer, false, this.pMatrix);
         gl.uniformMatrix4fv(this._mvMatrixUniformPointer, false, this.mvMatrix);
         gl.uniform4fv(this._lightAUniformPointer, new Float32Array(this.lightA));
         gl.uniform4fv(this._lightBUniformPointer, new Float32Array(this.lightB));
@@ -1655,7 +1655,7 @@ export class Viewer {
     */
     public getCameraPosition(): Float32Array {
         var transform = mat4.create();
-        mat4.multiply(transform, this._pMatrix, this.mvMatrix);
+        mat4.multiply(transform, this.pMatrix, this.mvMatrix);
         var inv = mat4.create()
         mat4.invert(inv, transform);
         var eye = vec3.create();
@@ -1983,6 +1983,66 @@ export class Viewer {
     }
 
     /**
+    * Use this function to stop all models. You can 
+    * switch animation of the model on again by calling {@link Viewer#start start()}.
+    *
+    * @function Viewer#stopAll
+    */
+    public stopAll() {
+
+        this._handles.forEach((model) => {
+            model.stopped = true;
+            this._numberOfActiveModels--;
+        });
+
+        // we can stop the loop when there isn't anything to draw
+        this._isRunning = false;
+    }
+
+    /**
+     * Checks if the model with defined ID is currently loaded and running
+     *
+     * @param {number} id - Model ID
+     * @returns {boolean} True if model is loaded and running, false otherwise
+     */
+    public isModelOn(id: number): boolean {
+        var model = this._handles.filter(function (h) { return h.id === id; }).pop();
+        if ( !model )
+            return false;
+        return !model.stopped;
+    }
+
+    /**
+     * Checks if the model with defined ID is currently loaded in the viewer.
+     *
+     * @param {number} id - Model ID
+     * @returns {boolean} True if model is loaded, false otherwise
+     */
+    public isModelLoaded(id: number): boolean {
+        var model = this._handles.filter(function (h) { return h.id === id; }).pop();
+        if (!model)
+            return false;
+        return true;
+    }
+
+
+    /**
+    * Use this function to start all models. You can 
+    * switch animation of the model off by calling {@link Viewer#stop stop()}.
+    *
+    * @function Viewer#startAll
+    */
+    public startAll() {
+
+        this._handles.forEach((model) => {
+            model.stopped = false;
+            this._numberOfActiveModels++;
+        });
+        // make sure the viewer is running
+        this._isRunning = true;
+    }
+
+    /**
     * Use this function to stop picking of the objects in the specified model. It will behave as if not present for all picking operations.
     * All models are pickable by default when loaded.
     *
@@ -2239,7 +2299,7 @@ export class Viewer {
 
             //get inverse transformation
             var transform = mat4.create();
-            mat4.multiply(transform, viewer._pMatrix, viewer.mvMatrix);
+            mat4.multiply(transform, viewer.pMatrix, viewer.mvMatrix);
             var inverse = mat4.create();
             mat4.invert(inverse, transform);
 
@@ -2434,6 +2494,8 @@ export enum ViewType {
 }
 
 export interface IPlugin {
+
+    init(viewer: Viewer): void;
 
     onBeforeDraw(width: number, height: number): void;
     onAfterDraw(width: number, height: number): void;

@@ -27,6 +27,7 @@ export declare class Viewer {
     lightB: number[];
     gl: WebGLRenderingContext;
     mvMatrix: Float32Array;
+    pMatrix: Float32Array;
     renderingMode: RenderingMode;
     private _isRunning;
     private _stateStyles;
@@ -61,7 +62,6 @@ export declare class Viewer {
     private _lastClippingPoint;
     private _isShiftKeyDown;
     private _fpt;
-    private _pMatrix;
     private _pointers;
     /**
     * This is constructor of the xBIM Viewer. It gets HTMLCanvasElement or string ID as an argument. Viewer will than be initialized
@@ -96,14 +96,14 @@ export declare class Viewer {
     * @function Viewer#addPlugin
     * @param {object} plugin - plug-in object
     */
-    addPlugin(plugin: any): void;
+    addPlugin(plugin: IPlugin): void;
     /**
     * Removes plugin from the viewer. Plugins can implement certain methods which get called in certain moments in time like
     * before draw, after draw etc. This makes it possible to implement functionality tightly integrated into Viewer like navigation cube or others.
     * @function Viewer#removePlugin
     * @param {object} plugin - plug-in object
     */
-    removePlugin(plugin: any): void;
+    removePlugin(plugin: IPlugin): void;
     /**
     * Use this function to define up to 224 optional styles which you can use to change appearance of products and types if you pass the index specified in this function to {@link Viewer#setState setState()} function.
     * @function Viewer#defineStyle
@@ -322,6 +322,34 @@ export declare class Viewer {
     */
     stop(id?: number): void;
     /**
+    * Use this function to stop all models. You can
+    * switch animation of the model on again by calling {@link Viewer#start start()}.
+    *
+    * @function Viewer#stopAll
+    */
+    stopAll(): void;
+    /**
+     * Checks if the model with defined ID is currently loaded and running
+     *
+     * @param {number} id - Model ID
+     * @returns {boolean} True if model is loaded and running, false otherwise
+     */
+    isModelOn(id: number): boolean;
+    /**
+     * Checks if the model with defined ID is currently loaded in the viewer.
+     *
+     * @param {number} id - Model ID
+     * @returns {boolean} True if model is loaded, false otherwise
+     */
+    isModelLoaded(id: number): boolean;
+    /**
+    * Use this function to start all models. You can
+    * switch animation of the model off by calling {@link Viewer#stop stop()}.
+    *
+    * @function Viewer#startAll
+    */
+    startAll(): void;
+    /**
     * Use this function to stop picking of the objects in the specified model. It will behave as if not present for all picking operations.
     * All models are pickable by default when loaded.
     *
@@ -425,6 +453,7 @@ export declare enum ViewType {
     DEFAULT = 6,
 }
 export interface IPlugin {
+    init(viewer: Viewer): void;
     onBeforeDraw(width: number, height: number): void;
     onAfterDraw(width: number, height: number): void;
     onBeforeDrawId(): void;

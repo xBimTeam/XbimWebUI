@@ -164,7 +164,7 @@ var Viewer = (function () {
         this._geometryLoaded = false;
         //number of active models is used to indicate that state has changed
         this._numberOfActiveModels = 0;
-        //this object is used to identify if anything changed before two frames (hence if it is necessary to redraw)
+        //this object is used to identify if anything changed between two frames (hence if it is necessary to redraw)
         this._lastStates = {};
         this._visualStateAttributes = [
             'perspectiveCamera', 'orthogonalCamera', 'camera', 'background', 'lightA', 'lightB',
@@ -181,7 +181,7 @@ var Viewer = (function () {
         this._plugins = new Array();
         //transformation matrices
         this.mvMatrix = mat4_1.mat4.create(); //world matrix
-        this._pMatrix = mat4_1.mat4.create(); //camera matrix (this can be either perspective or orthogonal camera)
+        this.pMatrix = mat4_1.mat4.create(); //camera matrix (this can be either perspective or orthogonal camera)
         //Navigation settings - coordinates in the WCS of the origin used for orbiting and panning
         this.origin = [0, 0, 0];
         //Default distance for default views (top, bottom, left, right, front, back)
@@ -1270,17 +1270,17 @@ var Viewer = (function () {
         //set up camera
         switch (this.camera) {
             case 'perspective':
-                mat4_1.mat4.perspective(this._pMatrix, this.perspectiveCamera.fov * Math.PI / 180.0, width / height, this.perspectiveCamera.near, this.perspectiveCamera.far);
+                mat4_1.mat4.perspective(this.pMatrix, this.perspectiveCamera.fov * Math.PI / 180.0, width / height, this.perspectiveCamera.near, this.perspectiveCamera.far);
                 break;
             case 'orthogonal':
-                mat4_1.mat4.ortho(this._pMatrix, this.orthogonalCamera.left, this.orthogonalCamera.right, this.orthogonalCamera.bottom, this.orthogonalCamera.top, this.orthogonalCamera.near, this.orthogonalCamera.far);
+                mat4_1.mat4.ortho(this.pMatrix, this.orthogonalCamera.left, this.orthogonalCamera.right, this.orthogonalCamera.bottom, this.orthogonalCamera.top, this.orthogonalCamera.near, this.orthogonalCamera.far);
                 break;
             default:
-                mat4_1.mat4.perspective(this._pMatrix, this.perspectiveCamera.fov * Math.PI / 180.0, width / height, this.perspectiveCamera.near, this.perspectiveCamera.far);
+                mat4_1.mat4.perspective(this.pMatrix, this.perspectiveCamera.fov * Math.PI / 180.0, width / height, this.perspectiveCamera.near, this.perspectiveCamera.far);
                 break;
         }
         //set uniforms (these may quickly change between calls to draw)
-        gl.uniformMatrix4fv(this._pMatrixUniformPointer, false, this._pMatrix);
+        gl.uniformMatrix4fv(this._pMatrixUniformPointer, false, this.pMatrix);
         gl.uniformMatrix4fv(this._mvMatrixUniformPointer, false, this.mvMatrix);
         gl.uniform4fv(this._lightAUniformPointer, new Float32Array(this.lightA));
         gl.uniform4fv(this._lightBUniformPointer, new Float32Array(this.lightB));
@@ -1385,7 +1385,7 @@ var Viewer = (function () {
     */
     Viewer.prototype.getCameraPosition = function () {
         var transform = mat4_1.mat4.create();
-        mat4_1.mat4.multiply(transform, this._pMatrix, this.mvMatrix);
+        mat4_1.mat4.multiply(transform, this.pMatrix, this.mvMatrix);
         var inv = mat4_1.mat4.create();
         mat4_1.mat4.invert(inv, transform);
         var eye = vec3_1.vec3.create();
@@ -1666,6 +1666,60 @@ var Viewer = (function () {
         this._numberOfActiveModels--;
     };
     /**
+    * Use this function to stop all models. You can
+    * switch animation of the model on again by calling {@link Viewer#start start()}.
+    *
+    * @function Viewer#stopAll
+    */
+    Viewer.prototype.stopAll = function () {
+        var _this = this;
+        this._handles.forEach(function (model) {
+            model.stopped = true;
+            _this._numberOfActiveModels--;
+        });
+        // we can stop the loop when there isn't anything to draw
+        this._isRunning = false;
+    };
+    /**
+     * Checks if the model with defined ID is currently loaded and running
+     *
+     * @param {number} id - Model ID
+     * @returns {boolean} True if model is loaded and running, false otherwise
+     */
+    Viewer.prototype.isModelOn = function (id) {
+        var model = this._handles.filter(function (h) { return h.id === id; }).pop();
+        if (!model)
+            return false;
+        return !model.stopped;
+    };
+    /**
+     * Checks if the model with defined ID is currently loaded in the viewer.
+     *
+     * @param {number} id - Model ID
+     * @returns {boolean} True if model is loaded, false otherwise
+     */
+    Viewer.prototype.isModelLoaded = function (id) {
+        var model = this._handles.filter(function (h) { return h.id === id; }).pop();
+        if (!model)
+            return false;
+        return true;
+    };
+    /**
+    * Use this function to start all models. You can
+    * switch animation of the model off by calling {@link Viewer#stop stop()}.
+    *
+    * @function Viewer#startAll
+    */
+    Viewer.prototype.startAll = function () {
+        var _this = this;
+        this._handles.forEach(function (model) {
+            model.stopped = false;
+            _this._numberOfActiveModels++;
+        });
+        // make sure the viewer is running
+        this._isRunning = true;
+    };
+    /**
     * Use this function to stop picking of the objects in the specified model. It will behave as if not present for all picking operations.
     * All models are pickable by default when loaded.
     *
@@ -1882,7 +1936,7 @@ var Viewer = (function () {
             viewer.enableTextSelection();
             //get inverse transformation
             var transform = mat4_1.mat4.create();
-            mat4_1.mat4.multiply(transform, viewer._pMatrix, viewer.mvMatrix);
+            mat4_1.mat4.multiply(transform, viewer.pMatrix, viewer.mvMatrix);
             var inverse = mat4_1.mat4.create();
             mat4_1.mat4.invert(inverse, transform);
             //get normalized coordinates the point in WebGL CS
