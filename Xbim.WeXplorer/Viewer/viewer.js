@@ -556,7 +556,7 @@ var Viewer = (function () {
             var ratio = (viewer.width > 0 && viewer.height > 0) && viewer.width < viewer.height ?
                 Math.min(viewer.width, viewer.height) / Math.max(viewer.width, viewer.height) :
                 1;
-            viewer.distance = size / (Math.tan(viewer.perspectiveCamera.fov * Math.PI / 180.0 / 2.0) * 2.0) / ratio;
+            viewer.distance = size / (Math.tan(viewer.perspectiveCamera.fov * Math.PI / 180.0 / 2.0 * ratio) * 2.0);
         };
         //set navigation origin and default distance to the product BBox
         if (typeof (prodId) !== 'undefined' && prodId != null) {
