@@ -384,9 +384,8 @@ export declare class Viewer {
     */
     off(eventName: string, callback: any): void;
     private fire(eventName, args);
-    private disableTextSelection();
-    private enableTextSelection();
-    private getSVGOverlay();
+    disableTextSelection(): void;
+    enableTextSelection(): void;
     /**
     * This method can be used to get parameter of the current clipping plane. If no clipping plane is active
     * this returns [[0,0,0],[0,0,0]];
@@ -396,23 +395,15 @@ export declare class Viewer {
     */
     getClip(): number[][];
     /**
-    * Use this method to clip the model. If you call the function with no arguments interactive clipping will start. This is based on SVG overlay
-    * so SVG support is necessary for it. But as WebGL is more advanced technology than SVG it is sound assumption that it is present in the browser.
-    * Use {@link xViewer.check xViewer.check()} to make sure it is supported at the very beginning of using of xViewer. Use {@link xViewer#unclip unclip()} method to
+    * Use this method to clip the model. Use {@link xViewer#unclip unclip()} method to
     * unset clipping plane.
     *
     * @function xViewer#clip
-    * @param {Number[]} [point] - point in clipping plane
-    * @param {Number[]} [normal] - normal pointing to the half space which will be hidden
+    * @param {Number[]} point - point in clipping plane
+    * @param {Number[]} normal - normal pointing to the half space which will be hidden
     * @fires xViewer#clipped
     */
-    clip(point?: number[], normal?: number[]): void;
-    /**
-    * This method is only active when interactive clipping is active. It stops interactive clipping operation.
-    *
-    * @function xViewer#stopClipping
-    */
-    stopClipping(): void;
+    clip(point: number[], normal: number[]): void;
     /**
     * This method will cancel any clipping plane if it is defined. Use {@link xViewer#clip clip()}
     * method to define clipping by point and normal of the plane or interactively if you call it with no arguments.

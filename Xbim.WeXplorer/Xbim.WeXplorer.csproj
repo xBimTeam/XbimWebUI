@@ -22,6 +22,7 @@
     <IISExpressUseClassicPipelineMode />
     <TypeScriptToolsVersion>2.3</TypeScriptToolsVersion>
     <UseGlobalApplicationHostFile />
+    <Use64BitIISExpress />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -160,6 +161,7 @@
     <Content Include="Examples\TsModulesExample\index.html" />
     <Content Include="Web.config" />
     <Content Include="Viewer\workers\tsconfig.json" />
+    <TypeScriptCompile Include="Viewer\plugins\InteractiveClipping\interactive-clipping.ts" />
     <TypeScriptCompile Include="xbim-viewer.ts" />
   </ItemGroup>
   <ItemGroup>
