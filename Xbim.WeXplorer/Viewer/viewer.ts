@@ -667,10 +667,10 @@ export class Viewer {
         var setDistance = function (bBox: number[] | Float32Array) {
             let size = Math.sqrt(bBox[3] * bBox[3] + bBox[4] * bBox[4] + bBox[5] * bBox[5]);
             //set ratio to 1 if the viewer has no size (for example if canvas is not added to DOM yet)
-            let ratio = (viewer.width > 0 && viewer.height > 0) ?
-                Math.max(viewer.width, viewer.height) / Math.min(viewer.width, viewer.height) :
+            let ratio = (viewer.width > 0 && viewer.height > 0) && viewer.width < viewer.height ?
+                Math.min(viewer.width, viewer.height) / Math.max(viewer.width, viewer.height) :
                 1;
-            viewer.distance = size / ratio / (Math.tan(viewer.perspectiveCamera.fov * Math.PI / 180.0 / 2.0) * 2.0);
+            viewer.distance = size / (Math.tan(viewer.perspectiveCamera.fov * Math.PI / 180.0 / 2.0) * 2.0) / ratio;
         }
 
         //set navigation origin and default distance to the product BBox
@@ -834,9 +834,6 @@ export class Viewer {
 
         //only set camera parameters and the view if this is the first model
         if (viewer._handles.length === 1) {
-            //set centre and default distance based on the most populated region in the model
-            viewer.setCameraTarget();
-
             //set perspective camera near and far based on 1 meter dimension and size of the model
             var region = handle.region;
             var maxSize = Math.max(region.bbox[3], region.bbox[4], region.bbox[5]);
@@ -852,12 +849,11 @@ export class Viewer {
             viewer.orthogonalCamera.left = maxSize / ratio * -1 * viewer.width / viewer.height;
             viewer.orthogonalCamera.right = maxSize / ratio * viewer.width / viewer.height;
 
-            //set default view
+            //set centre and default distance based on the most populated region in the model
             viewer.setCameraTarget();
-            var dist = Math.sqrt(viewer.distance * viewer.distance * 1.5);
-            viewer.setCameraPosition([
-                region.centre[0] + dist * -1.0, region.centre[1] + dist * -1.0, region.centre[2] + dist
-            ]);
+
+            //set default view
+            viewer.show(ViewType.DEFAULT);
         }
 
         viewer._geometryLoaded = true;
