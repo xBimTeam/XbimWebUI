@@ -301,6 +301,18 @@ export class Viewer {
 
         //this has a constant size 15 which is defined in vertex shader
         ModelHandle.bufferTexture(gl, this._stateStyleTexture, this._stateStyles);
+
+        // watch resizing on every frame
+        let elementHeight = this.height;
+        let elementWidth = this.width;
+        const watchCanvasSize = () => {
+            if (this.canvas.offsetHeight !== elementHeight || this.canvas.offsetWidth !== elementWidth) {
+                elementHeight = this.height = this.canvas.height = this.canvas.offsetHeight;
+                elementWidth = this.width = this.canvas.width = this.canvas.offsetWidth;
+            }
+            window.requestAnimationFrame(watchCanvasSize);
+        };
+        watchCanvasSize();
     }
 
     /**
@@ -567,7 +579,7 @@ export class Viewer {
      * @param {Array} state - State of the model as obtained from {@link Viewer#getModelState getModelState()} function
      */
     public restoreModelState(id: number, state: Array<Array<number>>) {
-        var handle = this._handles[id];
+        var handle = this.getHandle(id);
         if (typeof (handle) === 'undefined') {
             throw "Model doesn't exist";
         }
@@ -1184,17 +1196,6 @@ export class Viewer {
              */
             viewer.fire('dblclick', { id: ids.id, model: ids.model, event: event });
         }
-
-        //watch resizing of canvas every 500ms
-        let elementHeight = viewer.height;
-        let elementWidth = viewer.width;
-        setInterval(() => {
-            if (viewer.canvas.offsetHeight !== elementHeight || viewer.canvas.offsetWidth !== elementWidth) {
-                elementHeight = viewer.height = viewer.canvas.height = viewer.canvas.offsetHeight;
-                elementWidth = viewer.width = viewer.canvas.width = viewer.canvas.offsetWidth;
-            }
-        },
-            500);
 
         //attach callbacks
         this.canvas.addEventListener('mousedown', (event) => handleMouseDown(event), true);

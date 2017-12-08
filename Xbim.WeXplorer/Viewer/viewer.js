@@ -25,6 +25,7 @@ var Viewer = (function () {
     * @param {string | HTMLCanvasElement} canvas - string ID of the canvas or HTML canvas element.
     */
     function Viewer(canvas) {
+        var _this = this;
         this._isShiftKeyDown = false;
         this._lastActiveHandlesCount = 0;
         this._rotationOn = false;
@@ -215,6 +216,17 @@ var Viewer = (function () {
         gl.uniform1i(this._stateStyleSamplerUniform, 4);
         //this has a constant size 15 which is defined in vertex shader
         model_handle_1.ModelHandle.bufferTexture(gl, this._stateStyleTexture, this._stateStyles);
+        // watch resizing on every frame
+        var elementHeight = this.height;
+        var elementWidth = this.width;
+        var watchCanvasSize = function () {
+            if (_this.canvas.offsetHeight !== elementHeight || _this.canvas.offsetWidth !== elementWidth) {
+                elementHeight = _this.height = _this.canvas.height = _this.canvas.offsetHeight;
+                elementWidth = _this.width = _this.canvas.width = _this.canvas.offsetWidth;
+            }
+            window.requestAnimationFrame(watchCanvasSize);
+        };
+        watchCanvasSize();
     }
     /**
     * This is a static function which should always be called before Viewer is instantiated.
@@ -462,7 +474,7 @@ var Viewer = (function () {
      * @param {Array} state - State of the model as obtained from {@link Viewer#getModelState getModelState()} function
      */
     Viewer.prototype.restoreModelState = function (id, state) {
-        var handle = this._handles[id];
+        var handle = this.getHandle(id);
         if (typeof (handle) === 'undefined') {
             throw "Model doesn't exist";
         }
@@ -999,15 +1011,6 @@ var Viewer = (function () {
              */
             viewer.fire('dblclick', { id: ids.id, model: ids.model, event: event });
         };
-        //watch resizing of canvas every 500ms
-        var elementHeight = viewer.height;
-        var elementWidth = viewer.width;
-        setInterval(function () {
-            if (viewer.canvas.offsetHeight !== elementHeight || viewer.canvas.offsetWidth !== elementWidth) {
-                elementHeight = viewer.height = viewer.canvas.height = viewer.canvas.offsetHeight;
-                elementWidth = viewer.width = viewer.canvas.width = viewer.canvas.offsetWidth;
-            }
-        }, 500);
         //attach callbacks
         this.canvas.addEventListener('mousedown', function (event) { return handleMouseDown(event); }, true);
         this.canvas.addEventListener('wheel', function (event) { return handleMouseScroll(event); }, true);
