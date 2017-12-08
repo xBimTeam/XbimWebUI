@@ -1,4 +1,11 @@
-﻿export var ProductInheritance = {
+﻿export class Product {
+    public name: string;
+    public id: number;
+    public abs: boolean;
+    public children?: Product[];
+}
+
+export const ProductInheritance: Product = {
     name: "IfcProduct",
     id: 20,
     abs: true,

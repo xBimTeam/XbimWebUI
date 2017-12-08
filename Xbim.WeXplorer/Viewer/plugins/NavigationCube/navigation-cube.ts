@@ -27,11 +27,11 @@ export class NavigationCube implements IPlugin {
      *
      * @param {Image} [image = null] - optional image to be used for a cube texture.
     */
-    constructor(image?) {
+    constructor(image?: ImageBitmap | ImageData | HTMLVideoElement | HTMLImageElement | HTMLCanvasElement) {
         this._image = image;
     }
 
-    private _image: any;
+    private _image: ImageBitmap | ImageData | HTMLVideoElement | HTMLImageElement | HTMLCanvasElement;
     private TOP = 1600000;
     private BOTTOM = 1600001;
     private LEFT = 1600002;
