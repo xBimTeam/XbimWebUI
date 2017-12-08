@@ -121,7 +121,14 @@ export declare class Viewer {
     * @param {Number[] | Number} target - Target of the change. It can either be array of product IDs or product type from {@link xProductType xProductType}.
     */
     setState(state: State, target: number | number[], modelId?: number): void;
-    private forHandleOrAll<T>(callback, modelId);
+    /**
+     * Executes callback for one model if modelId is specified or for all handles.
+     * If no modelId is specified, last result will get returned, not an aggregation.
+     * @param callback Function to execute
+     * @param modelId ID of the model
+     */
+    private forHandleOrAll<T>(callback, modelId?);
+    private getHandle(id);
     /**
     * Use this function to get state of the products in the model. You can compare result of this function
     * with one of values from {@link xState xState} enumeration. 0xFF is the default value.
@@ -264,6 +271,7 @@ export declare class Viewer {
     private _initMouseEvents();
     private _initTouchNavigationEvents();
     private _initTouchTapEvents();
+    private readonly meter;
     private navigate(type, deltaX, deltaY);
     /**
     * This is a static draw method. You can use it if you just want to render model once with no navigation and interaction.

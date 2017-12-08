@@ -458,11 +458,15 @@ export class Viewer {
         this._stylingChanged = true;
     }
 
-    private forHandleOrAll<T>(callback: (h: ModelHandle) => T, modelId: number): T {
+    /**
+     * Executes callback for one model if modelId is specified or for all handles.
+     * If no modelId is specified, last result will get returned, not an aggregation.
+     * @param callback Function to execute
+     * @param modelId ID of the model
+     */
+    private forHandleOrAll<T>(callback: (h: ModelHandle) => T, modelId?: number): T {
         if (typeof (modelId) !== 'undefined') {
-            let handle = this._handles.filter((h, i, a) => {
-                return h.id === modelId;
-            }).pop();
+            let handle = this.getHandle(modelId);
             if (!handle) {
                 throw new Error(`Model with id '${modelId}' doesn't exist.`);
             }
@@ -470,15 +474,20 @@ export class Viewer {
         } else {
             let result: T = null;
             this._handles.forEach((handle) => {
-                let value = callback(handle);
-                if (typeof (value) !== 'undefined') {
-                    result = value;
+                if (handle) {
+                    let value = callback(handle);
+                    if (typeof (value) !== 'undefined') {
+                        result = value;
+                    }
                 }
             });
             return result;
         }
     }
 
+    private getHandle(id: number): ModelHandle {
+        return this._handles.filter((h) => h != null && h.id == id).pop();
+    }
 
     /**
     * Use this function to get state of the products in the model. You can compare result of this function 
@@ -544,7 +553,7 @@ export class Viewer {
      * @returns {Array} - Array representing model state in compact form suitable for serialization
      */
     public getModelState(id: number): Array<Array<number>> {
-        var handle = this._handles[id];
+        var handle = this.getHandle(id);
         if (typeof (handle) === 'undefined') {
             throw "Model doesn't exist";
         }
@@ -705,8 +714,8 @@ export class Viewer {
     private getMergedRegion(): Region {
         let region = new Region();
         this._handles
-            .filter((h, i, a) => !h.stopped)
-            .forEach((h, i, a) => {
+            .filter((h) => h != null && !h.stopped)
+            .forEach((h) => {
                 region = region.merge(h.region);
             });
         return region;
@@ -718,7 +727,7 @@ export class Viewer {
         }
 
         let handle = this._handles
-            .filter((h, i, a) => { !h.stopped })
+            .filter((h) =>  h != null && !h.stopped )
             .sort((a, b) => {
                 let volA = volume(a.region.bbox);
                 let volB = volume(b.region.bbox);
@@ -879,7 +888,7 @@ export class Viewer {
      * @param {Number} modelId - ID of the model which you can get from {@link Viewer#event:loaded loaded} event.
      */
     public unload(modelId: number) {
-        var handle = this._handles.filter(function (h) { return h.id === modelId }).pop();
+        var handle = this.getHandle(modelId);
         if (typeof (handle) === 'undefined')
             throw 'Model with id: ' + modelId + " doesn't exist or was unloaded already."
 
@@ -1390,6 +1399,15 @@ export class Viewer {
         this.canvas.addEventListener('touchend', (event) => handleTouchEnd(event), true);
     }
 
+    private get meter(): number {
+        const handle = this._handles[0];
+        if (!handle) {
+            return 1.0;
+        }
+
+        return handle.meter;
+    }
+
     private navigate(type, deltaX, deltaY) {
         if (!this._handles || !this._handles[0]) return;
         //translation in WCS is position from [0, 0, 0]
@@ -1401,7 +1419,7 @@ export class Viewer {
 
         //movement factor needs to be dependant on the distance but one meter is a minimum so that movement wouldn't stop when camera is in 0 distance from navigation origin
         var distanceVec = vec3.subtract(vec3.create(), origin, camera);
-        var distance = Math.max(vec3.vectorLength(distanceVec), this._handles[0].meter);
+        var distance = Math.max(vec3.vectorLength(distanceVec), this.meter);
 
         //move to the navigation origin in view space
         var transform = mat4.translate(mat4.create(), mat4.create(), mvOrigin)
@@ -1913,11 +1931,11 @@ export class Viewer {
     */
     public start(id?: number) {
         if (typeof (id) !== 'undefined') {
-            var model = this._handles.filter(function (h) { return h.id === id; }).pop();
-            if (typeof (model) === 'undefined')
+            var handle = this.getHandle(id);
+            if (typeof (handle) === 'undefined')
                 throw "Model doesn't exist.";
 
-            model.stopped = false;
+            handle.stopped = false;
             this._numberOfActiveModels++;
             return;
         }
@@ -1968,7 +1986,7 @@ export class Viewer {
             return;
         }
 
-        var model = this._handles.filter(function (h) { return h.id === id; }).pop();
+        var model = this.getHandle(id);
         if (typeof (model) === 'undefined')
             throw "Model doesn't exist.";
 
@@ -2000,7 +2018,7 @@ export class Viewer {
      * @returns {boolean} True if model is loaded and running, false otherwise
      */
     public isModelOn(id: number): boolean {
-        var model = this._handles.filter(function (h) { return h.id === id; }).pop();
+        var model = this.getHandle(id);
         if ( !model )
             return false;
         return !model.stopped;
@@ -2013,7 +2031,7 @@ export class Viewer {
      * @returns {boolean} True if model is loaded, false otherwise
      */
     public isModelLoaded(id: number): boolean {
-        var model = this._handles.filter(function (h) { return h.id === id; }).pop();
+        var model = this.getHandle(id);
         if (!model)
             return false;
         return true;
@@ -2044,7 +2062,7 @@ export class Viewer {
     * @param {Number} id - ID of the model to be stopped. You can get this ID from {@link Viewer#event:loaded loaded} event.
     */
     public stopPicking(id: number) {
-        var model = this._handles.filter(h => { return h.id === id; }).pop();
+        var model = this.getHandle(id);
         if (typeof (model) === 'undefined')
             throw "Model doesn't exist.";
 
@@ -2059,7 +2077,7 @@ export class Viewer {
     * @param {Number} id - ID of the model to be stopped. You can get this ID from {@link Viewer#event:loaded loaded} event.
     */
     public startPicking(id: number) {
-        var model = this._handles.filter(h => { return h.id === id; }).pop();
+        var model = this.getHandle(id);
         if (typeof (model) === 'undefined')
             throw "Model doesn't exist.";
 

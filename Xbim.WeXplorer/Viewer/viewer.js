@@ -362,11 +362,15 @@ var Viewer = (function () {
         this.forHandleOrAll(function (h) { h.setState(state, target); }, modelId);
         this._stylingChanged = true;
     };
+    /**
+     * Executes callback for one model if modelId is specified or for all handles.
+     * If no modelId is specified, last result will get returned, not an aggregation.
+     * @param callback Function to execute
+     * @param modelId ID of the model
+     */
     Viewer.prototype.forHandleOrAll = function (callback, modelId) {
         if (typeof (modelId) !== 'undefined') {
-            var handle = this._handles.filter(function (h, i, a) {
-                return h.id === modelId;
-            }).pop();
+            var handle = this.getHandle(modelId);
             if (!handle) {
                 throw new Error("Model with id '" + modelId + "' doesn't exist.");
             }
@@ -375,13 +379,18 @@ var Viewer = (function () {
         else {
             var result_1 = null;
             this._handles.forEach(function (handle) {
-                var value = callback(handle);
-                if (typeof (value) !== 'undefined') {
-                    result_1 = value;
+                if (handle) {
+                    var value = callback(handle);
+                    if (typeof (value) !== 'undefined') {
+                        result_1 = value;
+                    }
                 }
             });
             return result_1;
         }
+    };
+    Viewer.prototype.getHandle = function (id) {
+        return this._handles.filter(function (h) { return h != null && h.id == id; }).pop();
     };
     /**
     * Use this function to get state of the products in the model. You can compare result of this function
@@ -441,7 +450,7 @@ var Viewer = (function () {
      * @returns {Array} - Array representing model state in compact form suitable for serialization
      */
     Viewer.prototype.getModelState = function (id) {
-        var handle = this._handles[id];
+        var handle = this.getHandle(id);
         if (typeof (handle) === 'undefined') {
             throw "Model doesn't exist";
         }
@@ -587,8 +596,8 @@ var Viewer = (function () {
     Viewer.prototype.getMergedRegion = function () {
         var region = new model_geometry_1.Region();
         this._handles
-            .filter(function (h, i, a) { return !h.stopped; })
-            .forEach(function (h, i, a) {
+            .filter(function (h) { return h != null && !h.stopped; })
+            .forEach(function (h) {
             region = region.merge(h.region);
         });
         return region;
@@ -598,7 +607,7 @@ var Viewer = (function () {
             return box[3] * box[4] * box[5];
         };
         var handle = this._handles
-            .filter(function (h, i, a) { !h.stopped; })
+            .filter(function (h) { return h != null && !h.stopped; })
             .sort(function (a, b) {
             var volA = volume(a.region.bbox);
             var volB = volume(b.region.bbox);
@@ -745,7 +754,7 @@ var Viewer = (function () {
      * @param {Number} modelId - ID of the model which you can get from {@link Viewer#event:loaded loaded} event.
      */
     Viewer.prototype.unload = function (modelId) {
-        var handle = this._handles.filter(function (h) { return h.id === modelId; }).pop();
+        var handle = this.getHandle(modelId);
         if (typeof (handle) === 'undefined')
             throw 'Model with id: ' + modelId + " doesn't exist or was unloaded already.";
         //stop for start so it doesn't interfere with the rendering loop
@@ -1176,6 +1185,17 @@ var Viewer = (function () {
         this.canvas.addEventListener('touchstart', function (event) { return handleTouchStart(event); }, true);
         this.canvas.addEventListener('touchend', function (event) { return handleTouchEnd(event); }, true);
     };
+    Object.defineProperty(Viewer.prototype, "meter", {
+        get: function () {
+            var handle = this._handles[0];
+            if (!handle) {
+                return 1.0;
+            }
+            return handle.meter;
+        },
+        enumerable: true,
+        configurable: true
+    });
     Viewer.prototype.navigate = function (type, deltaX, deltaY) {
         if (!this._handles || !this._handles[0])
             return;
@@ -1186,7 +1206,7 @@ var Viewer = (function () {
         var mvOrigin = vec3_1.vec3.transformMat4(vec3_1.vec3.create(), origin, this.mvMatrix);
         //movement factor needs to be dependant on the distance but one meter is a minimum so that movement wouldn't stop when camera is in 0 distance from navigation origin
         var distanceVec = vec3_1.vec3.subtract(vec3_1.vec3.create(), origin, camera);
-        var distance = Math.max(vec3_1.vec3.vectorLength(distanceVec), this._handles[0].meter);
+        var distance = Math.max(vec3_1.vec3.vectorLength(distanceVec), this.meter);
         //move to the navigation origin in view space
         var transform = mat4_1.mat4.translate(mat4_1.mat4.create(), mat4_1.mat4.create(), mvOrigin);
         //function for conversion from degrees to radians
@@ -1606,10 +1626,10 @@ var Viewer = (function () {
     */
     Viewer.prototype.start = function (id) {
         if (typeof (id) !== 'undefined') {
-            var model = this._handles.filter(function (h) { return h.id === id; }).pop();
-            if (typeof (model) === 'undefined')
+            var handle = this.getHandle(id);
+            if (typeof (handle) === 'undefined')
                 throw "Model doesn't exist.";
-            model.stopped = false;
+            handle.stopped = false;
             this._numberOfActiveModels++;
             return;
         }
@@ -1653,7 +1673,7 @@ var Viewer = (function () {
             this._isRunning = false;
             return;
         }
-        var model = this._handles.filter(function (h) { return h.id === id; }).pop();
+        var model = this.getHandle(id);
         if (typeof (model) === 'undefined')
             throw "Model doesn't exist.";
         model.stopped = true;
@@ -1681,7 +1701,7 @@ var Viewer = (function () {
      * @returns {boolean} True if model is loaded and running, false otherwise
      */
     Viewer.prototype.isModelOn = function (id) {
-        var model = this._handles.filter(function (h) { return h.id === id; }).pop();
+        var model = this.getHandle(id);
         if (!model)
             return false;
         return !model.stopped;
@@ -1693,7 +1713,7 @@ var Viewer = (function () {
      * @returns {boolean} True if model is loaded, false otherwise
      */
     Viewer.prototype.isModelLoaded = function (id) {
-        var model = this._handles.filter(function (h) { return h.id === id; }).pop();
+        var model = this.getHandle(id);
         if (!model)
             return false;
         return true;
@@ -1721,7 +1741,7 @@ var Viewer = (function () {
     * @param {Number} id - ID of the model to be stopped. You can get this ID from {@link Viewer#event:loaded loaded} event.
     */
     Viewer.prototype.stopPicking = function (id) {
-        var model = this._handles.filter(function (h) { return h.id === id; }).pop();
+        var model = this.getHandle(id);
         if (typeof (model) === 'undefined')
             throw "Model doesn't exist.";
         model.pickable = false;
@@ -1734,7 +1754,7 @@ var Viewer = (function () {
     * @param {Number} id - ID of the model to be stopped. You can get this ID from {@link Viewer#event:loaded loaded} event.
     */
     Viewer.prototype.startPicking = function (id) {
-        var model = this._handles.filter(function (h) { return h.id === id; }).pop();
+        var model = this.getHandle(id);
         if (typeof (model) === 'undefined')
             throw "Model doesn't exist.";
         model.pickable = true;
