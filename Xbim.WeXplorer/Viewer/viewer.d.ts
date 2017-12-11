@@ -441,6 +441,7 @@ export declare enum RenderingMode {
     NORMAL = 0,
     GRAYSCALE = 1,
     XRAY = 2,
+    _XRAY2 = 3,
 }
 export declare enum ViewType {
     TOP = 0,

@@ -1577,8 +1577,6 @@ export class Viewer {
                     this.highlightingColour[3] / 255.0
                 ]));
 
-        gl.uniform1i(this._renderingModeUniformPointer, this.renderingMode);
-
         // bind buffer if defined
         if (framebuffer) {
             gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer.framebuffer);
@@ -1587,27 +1585,36 @@ export class Viewer {
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         }
 
-        //check for x-ray mode
+        gl.uniform1i(this._renderingModeUniformPointer, this.renderingMode);
+        // check for x-ray mode. XRAY mode uses 2 phase rendering to
+        // sort out all transparency issues so that all selected objects are
+        // properly visible
         if (this.renderingMode == RenderingMode.XRAY) {
-            //two passes - first one for non-transparent objects, second one for all the others
-            gl.disable(gl.CULL_FACE);
+            gl.enable(gl.CULL_FACE);
+
+            // second pass
+            gl.uniform1i(this._renderingModeUniformPointer, RenderingMode._XRAY2);
+            // disable dept testing to see through everything properly
+            gl.disable(gl.DEPTH_TEST);
             this._handles.forEach((handle) => {
                 if (!handle.stopped) {
                     handle.setActive(this._pointers);
-                    handle.draw(DrawMode.SOLID);
+                    handle.draw();
                 }
             });
 
-            //transparent objects should have only one side so that they are even more transparent.
-            gl.enable(gl.CULL_FACE);
+            gl.uniform1i(this._renderingModeUniformPointer, RenderingMode.XRAY);
+            gl.enable(gl.DEPTH_TEST);
             this._handles.forEach((handle) => {
                 if (!handle.stopped) {
                     handle.setActive(this._pointers);
-                    handle.draw(DrawMode.TRANSPARENT);
+                    handle.draw();
                 }
             });
+
         } else {
             gl.disable(gl.CULL_FACE);
+            gl.enable(gl.DEPTH_TEST);
 
             //two runs, first for solids from all models, second for transparent objects from all models
             //this makes sure that transparent objects are always rendered at the end.
@@ -2322,7 +2329,8 @@ enum ColourCoding {
 export enum RenderingMode {
     NORMAL = 0,
     GRAYSCALE = 1,
-    XRAY = 2
+    XRAY = 2,
+    _XRAY2 = 3
 }
 
 export enum ViewType {

@@ -32,11 +32,11 @@ var viewer = new viewer_1.Viewer("xBIM-viewer");
 var types = product_type_1.ProductType;
 var states = state_1.State;
 //make these global for the page
-document['viewer'] = viewer;
-document['types'] = types;
-document['states'] = states;
-document['RenderingMode'] = viewer_1.RenderingMode;
-document['ViewType'] = viewer_1.ViewType;
+window['viewer'] = viewer;
+window['types'] = types;
+window['states'] = states;
+window['RenderingMode'] = viewer_1.RenderingMode;
+window['ViewType'] = viewer_1.ViewType;
 viewer.background = [0, 0, 0, 0];
 viewer.on("error", function (arg) {
     var container = viewer.canvas.parentNode;
@@ -71,7 +71,7 @@ viewer.on("loaded", function () {
     image.style.width = '100%';
     var initialImage = document.getElementById("initialSnapshot");
     initialImage.appendChild(image);
-    viewer.startRotation();
+    // viewer.startRotation();
 });
 var span = document.getElementById("fpt");
 if (span) {

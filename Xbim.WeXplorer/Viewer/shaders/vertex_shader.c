@@ -23,7 +23,11 @@ uniform float uMeter;
 //this is used for picking
 uniform int uColorCoding;
 
-//used for 3 states in x-ray rendering (no x-ray, only highlighted, only non-highlighted as semitransparent)
+// used for 3 states in x-ray rendering (no x-ray, only highlighted, only non-highlighted as semitransparent)
+// NORMAL = 0,
+// GRAYSCALE = 1,
+// XRAY = 2 (first pass)
+// XRAY2 = 3 (second pass)
 uniform int uRenderingMode;
 
 //sampler with vertices
@@ -95,22 +99,35 @@ vec2 getTextureCoordinates(int index, int size)
 
 
 vec4 getColor() {
+	// overriding colour is not defined
 	int restyle = int(floor(aState[1] + 0.5));
 	if (restyle > 224) {
 		int index = int(floor(aStyleIndex + 0.5));
 		vec2 coords = getTextureCoordinates(index, uStyleTextureSize);
 		vec4 col = texture2D(uStyleSampler, coords);
-		if (uRenderingMode == 0) {
-			return col;
+		
+		// gray scale colour mode
+		if (uRenderingMode == 1 ) {
+			float intensity = (col.r + col.g + col.b) / 3.0;
+			return vec4(intensity, intensity, intensity, col.a);
 		}
 
-		float intensity = (col.r + col.g + col.b) / 3.0;
-		return vec4(intensity, intensity, intensity, col.a);
+		// return normal colour
+		return col;
 	}
 
-	//return colour based on restyle
+	// return colour based on restyle
+	// restyling texture is fixed size 15x15 for up to 225 styling colours
 	vec2 coords = getTextureCoordinates(restyle, 15);
-	return texture2D(uStateStyleSampler, coords);
+	vec4 col2 = texture2D(uStateStyleSampler, coords);
+
+	// gray scale colour mode
+	if (uRenderingMode == 1) {
+		float intensity = (col2.r + col2.g + col2.b) / 3.0;
+		return vec4(intensity, intensity, intensity, col2.a);
+	}
+
+	return col2;
 }
 
 vec3 getVertexPosition(mat4 transform) {
@@ -147,7 +164,10 @@ void main(void) {
 	vDiscard = 0.0;
 
 	//HIDDEN state or xray rendering and no selection or 'x-ray visible' state
-	if (state == 254)
+	if (state == 254 || 
+		(uRenderingMode == 2 && state != 253 && state != 252) || // first of pass x-ray, only highlighted and x-ray visible objects should render
+		(uRenderingMode == 3 && (state == 253 || state == 252)) // first of pass x-ray, highlighted and x-ray visible objects should not render
+		)
 	{
 		vDiscard = 1.0;
 		vFrontColor = vec4(0.0, 0.0, 0.0, 0.0);
@@ -169,42 +189,44 @@ void main(void) {
 		vec4 idColor = getIdColor(id);
 		vFrontColor = idColor;
 		vBackColor = idColor;
-	} else if (uColorCoding >= 0) { //model colour coding
+	//model colour coding
+	} else if (uColorCoding >= 0) { 
 		float id = float(uColorCoding);
 		vec4 idColor = getIdColor(id);
 		vFrontColor = idColor;
 		vBackColor = idColor;
 	} else {
-		//ulightA[3] represents intensity of the light
+		// ulightA[3] represents intensity of the light
 		float lightAIntensity = ulightA[3];
 		vec3 lightADirection = normalize(ulightA.xyz - vertex);
 		float lightBIntensity = ulightB[3];
 		vec3 lightBDirection = normalize(ulightB.xyz - vertex);
 
-		//Light weighting
+		// Light weighting
 		float lightWeightA = max(dot(normal, lightADirection) * lightAIntensity, 0.0);
 		float lightWeightB = max(dot(normal, lightBDirection) * lightBIntensity, 0.0);
 		float backLightWeightA = max(dot(backNormal, lightADirection) * lightAIntensity, 0.0);
 		float backLightWeightB = max(dot(backNormal, lightBDirection) * lightBIntensity, 0.0);
 
-		//minimal constant value is for ambient light
+		// minimal constant value is for ambient light
 		float lightWeighting = lightWeightA + lightWeightB + 0.4;
 		float backLightWeighting = backLightWeightA + backLightWeightB + 0.4;
 
-		//get base color or set highlighted colour
+		// get base color or set highlighted colour
 		vec4 baseColor = vec4(1.0, 1.0, 1.0, 1.0);
-		if (uRenderingMode == 2) { //x-ray mode 
+		// highlighted takes precedense
+		if (state == 253) { 
+			baseColor = uHighlightColour;
+		// x-ray mode 
+		} else if (uRenderingMode == 2 || uRenderingMode == 3) { 
 			if (state == 252) { //x-ray visible
 				baseColor = getColor();
 			}
 			else {
 				baseColor = vec4(0.0, 0.0, 0.3, 0.5); //x-ray semitransparent light blue colour
 			}
-		}
-		if (state == 253) { //highlighted
-			baseColor = uHighlightColour;
-		}
-		if (uRenderingMode != 2 && state != 253) {
+		// normal colour (or overriding)
+		} else {
 			baseColor = getColor();
 		}
 

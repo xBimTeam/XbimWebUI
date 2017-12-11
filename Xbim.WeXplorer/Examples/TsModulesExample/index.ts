@@ -32,11 +32,11 @@ var types = ProductType;
 var states = State;
 
 //make these global for the page
-document['viewer'] = viewer;
-document['types'] = types;
-document['states'] = states;
-document['RenderingMode'] = RenderingMode;
-document['ViewType'] = ViewType;
+window['viewer'] = viewer;
+window['types'] = types;
+window['states'] = states;
+window['RenderingMode'] = RenderingMode;
+window['ViewType'] = ViewType;
 
 viewer.background = [0, 0, 0, 0];
 viewer.on("error", function (arg) {
@@ -71,7 +71,7 @@ viewer.on("loaded", () => {
     image.style.width = '100%';
     let initialImage = document.getElementById("initialSnapshot");
     initialImage.appendChild(image);
-    viewer.startRotation();
+    // viewer.startRotation();
 });
 
 var span = document.getElementById("fpt") as HTMLElement;

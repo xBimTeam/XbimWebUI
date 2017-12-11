@@ -1319,7 +1319,6 @@ var Viewer = (function () {
             this.highlightingColour[2] / 255.0,
             this.highlightingColour[3] / 255.0
         ]));
-        gl.uniform1i(this._renderingModeUniformPointer, this.renderingMode);
         // bind buffer if defined
         if (framebuffer) {
             gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer.framebuffer);
@@ -1328,27 +1327,34 @@ var Viewer = (function () {
             //set framebuffer to render into canvas (in case it was set for rendering to different framebuffer)
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         }
-        //check for x-ray mode
+        gl.uniform1i(this._renderingModeUniformPointer, this.renderingMode);
+        // check for x-ray mode. XRAY mode uses 2 phase rendering to
+        // sort out all transparency issues so that all selected objects are
+        // properly visible
         if (this.renderingMode == RenderingMode.XRAY) {
-            //two passes - first one for non-transparent objects, second one for all the others
-            gl.disable(gl.CULL_FACE);
+            gl.enable(gl.CULL_FACE);
+            // second pass
+            gl.uniform1i(this._renderingModeUniformPointer, RenderingMode._XRAY2);
+            // disable dept testing to see through everything properly
+            gl.disable(gl.DEPTH_TEST);
             this._handles.forEach(function (handle) {
                 if (!handle.stopped) {
                     handle.setActive(_this._pointers);
-                    handle.draw(model_handle_1.DrawMode.SOLID);
+                    handle.draw();
                 }
             });
-            //transparent objects should have only one side so that they are even more transparent.
-            gl.enable(gl.CULL_FACE);
+            gl.uniform1i(this._renderingModeUniformPointer, RenderingMode.XRAY);
+            gl.enable(gl.DEPTH_TEST);
             this._handles.forEach(function (handle) {
                 if (!handle.stopped) {
                     handle.setActive(_this._pointers);
-                    handle.draw(model_handle_1.DrawMode.TRANSPARENT);
+                    handle.draw();
                 }
             });
         }
         else {
             gl.disable(gl.CULL_FACE);
+            gl.enable(gl.DEPTH_TEST);
             //two runs, first for solids from all models, second for transparent objects from all models
             //this makes sure that transparent objects are always rendered at the end.
             this._handles.forEach(function (handle) {
@@ -1971,6 +1977,7 @@ var RenderingMode;
     RenderingMode[RenderingMode["NORMAL"] = 0] = "NORMAL";
     RenderingMode[RenderingMode["GRAYSCALE"] = 1] = "GRAYSCALE";
     RenderingMode[RenderingMode["XRAY"] = 2] = "XRAY";
+    RenderingMode[RenderingMode["_XRAY2"] = 3] = "_XRAY2";
 })(RenderingMode = exports.RenderingMode || (exports.RenderingMode = {}));
 var ViewType;
 (function (ViewType) {
