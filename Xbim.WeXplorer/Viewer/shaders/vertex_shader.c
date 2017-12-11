@@ -165,8 +165,9 @@ void main(void) {
 
 	//HIDDEN state or xray rendering and no selection or 'x-ray visible' state
 	if (state == 254 || 
+		uColorCoding == -1 && (
 		(uRenderingMode == 2 && state != 253 && state != 252) || // first of pass x-ray, only highlighted and x-ray visible objects should render
-		(uRenderingMode == 3 && (state == 253 || state == 252)) // first of pass x-ray, highlighted and x-ray visible objects should not render
+		(uRenderingMode == 3 && (state == 253 || state == 252))) // first of pass x-ray, highlighted and x-ray visible objects should not render
 		)
 	{
 		vDiscard = 1.0;

@@ -1592,17 +1592,7 @@ export class Viewer {
         if (this.renderingMode == RenderingMode.XRAY) {
             gl.enable(gl.CULL_FACE);
 
-            // second pass
-            gl.uniform1i(this._renderingModeUniformPointer, RenderingMode._XRAY2);
-            // disable dept testing to see through everything properly
-            gl.disable(gl.DEPTH_TEST);
-            this._handles.forEach((handle) => {
-                if (!handle.stopped) {
-                    handle.setActive(this._pointers);
-                    handle.draw();
-                }
-            });
-
+            // only highlighted and x-ray visible
             gl.uniform1i(this._renderingModeUniformPointer, RenderingMode.XRAY);
             gl.enable(gl.DEPTH_TEST);
             this._handles.forEach((handle) => {
@@ -1611,6 +1601,20 @@ export class Viewer {
                     handle.draw();
                 }
             });
+
+            // the rest as semitransparent overlay
+            gl.uniform1i(this._renderingModeUniformPointer, RenderingMode._XRAY2);
+            // disable writing to depth buffer. This will respect depth buffer
+            // from first pass but will render everything from this pass as
+            // semitransparent without depth testing
+            gl.depthMask(false);
+            this._handles.forEach((handle) => {
+                if (!handle.stopped) {
+                    handle.setActive(this._pointers);
+                    handle.draw();
+                }
+            });
+            gl.depthMask(true);
 
         } else {
             gl.disable(gl.CULL_FACE);

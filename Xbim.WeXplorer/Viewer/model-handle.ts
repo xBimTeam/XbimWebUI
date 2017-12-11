@@ -36,6 +36,13 @@ export class ModelHandle {
      */
     public clippable: boolean = true;
 
+    /**
+     * If drawProductId is defined, only this single product is drawn
+     */
+    public drawProductId = -1;
+
+    public region: Region;
+
     private _numberOfIndices: number;
     private _vertexTextureSize: number;
     private _matrixTextureSize: number;
@@ -52,7 +59,7 @@ export class ModelHandle {
     private _stateBuffer: WebGLBuffer;
     private _transformationBuffer: WebGLBuffer;
 
-    public region: Region;
+    private get _drawProduct() { return this.drawProductId >= 0; }
 
     constructor(
         private _gl: WebGLRenderingContext,
