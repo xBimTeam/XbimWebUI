@@ -58,6 +58,11 @@ export declare class Viewer {
      * @member {String} Viewer#renderingMode
      */
     renderingMode: RenderingMode;
+    /**
+     * Returns readonly array of plugins
+     * @member {IPlugin[]} Viewer#plugins
+     */
+    readonly plugins: IPlugin[];
     private _perspectiveCamera;
     private _orthogonalCamera;
     private _width;
@@ -426,24 +431,30 @@ export declare class Viewer {
    * Use this method to clip the model with A plane. Use {@link xViewer#unclip unclip()} method to
    * unset clipping plane.
    *
-   * @function xViewer#clipA
+   * @function xViewer#setClippingPlaneA
    * @param {Number[]} point - point in clipping plane
    * @param {Number[]} normal - normal pointing to the half space which will be hidden
    * @param {Number} [modelId] - Optional ID of the model to be clipped. All models are clipped otherwise.
-   * @fires xViewer#clipped
    */
-    clipA(point: number[], normal: number[], modelId?: number): void;
+    clip(point: number[], normal: number[]): void;
     /**
    * Use this method to clip the model with A plane. Use {@link xViewer#unclip unclip()} method to
    * unset clipping plane.
    *
-   * @function xViewer#clipA
-   * @param {Number[]} point - point in clipping plane
-   * @param {Number[]} normal - normal pointing to the half space which will be hidden
+   * @function xViewer#setClippingPlaneA
+   * @param {Number[]} plane - normal equation of the plane
    * @param {Number} [modelId] - Optional ID of the model to be clipped. All models are clipped otherwise.
-   * @fires xViewer#clipped
    */
-    clipB(point: number[], normal: number[], modelId?: number): void;
+    setClippingPlaneA(plane: number[], modelId?: number): void;
+    /**
+   * Use this method to clip the model with A plane. Use {@link xViewer#unclip unclip()} method to
+   * unset clipping plane.
+   *
+   * @function xViewer#setClippingPlaneB
+   * @param {Number[]} plane - normal equation of the plane
+   * @param {Number} [modelId] - Optional ID of the model to be clipped. All models are clipped otherwise.
+   */
+    setClippingPlaneB(plane: number[], modelId?: number): void;
     /**
     * This method will cancel any clipping plane if it is defined. Use {@link xViewer#clip clip()}
     * method to define clipping by point and normal of the plane.

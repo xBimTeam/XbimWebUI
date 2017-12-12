@@ -118,7 +118,7 @@ export class InteractiveClipping implements IPlugin {
             // discard any previous clippings
             viewer.unclip();
             // set clipping A for all handles
-            viewer.clipA([B[0], B[1], B[2]], [N[0], N[1], N[2]]);
+            viewer.clip([B[0], B[1], B[2]], [N[0], N[1], N[2]]);
 
             //clean
             svg.parentNode.removeChild(svg);

@@ -77,6 +77,12 @@ export class Viewer {
     public get renderingMode(): RenderingMode { return this._renderingMode; }
     public set renderingMode(value: RenderingMode) { this._renderingMode = value; this.changed = true; }
 
+    /**
+     * Returns readonly array of plugins
+     * @member {IPlugin[]} Viewer#plugins
+     */
+    public get plugins(): IPlugin[] { return this._plugins.slice(); }
+
     private _perspectiveCamera: { fov: number, near: number, far: number };
     private _orthogonalCamera: { left: number, right: number, top: number, bottom: number, near: number, far: number }
     private _width: number;
@@ -2113,29 +2119,44 @@ export class Viewer {
    * Use this method to clip the model with A plane. Use {@link xViewer#unclip unclip()} method to 
    * unset clipping plane.
    *
-   * @function xViewer#clipA
+   * @function xViewer#setClippingPlaneA
    * @param {Number[]} point - point in clipping plane
    * @param {Number[]} normal - normal pointing to the half space which will be hidden
    * @param {Number} [modelId] - Optional ID of the model to be clipped. All models are clipped otherwise.
-   * @fires xViewer#clipped
    */
-    public clipA(point: number[], normal: number[], modelId?: number) {
+    public clip(point: number[], normal: number[]) {
         if (point == null || normal == null) {
             throw new Error('Cutting plane not well defined');
         }
-
         //compute normal equation of the plane
         var d = 0.0 - normal[0] * point[0] - normal[1] * point[1] - normal[2] * point[2];
+
+        //set clipping plane A for all models
+        this._handles.forEach((h) => {
+            h.clippingPlaneA = [normal[0], normal[1], normal[2], d];
+            h.clippingPlaneB = null;
+        });
+    }
+
+    /**
+   * Use this method to clip the model with A plane. Use {@link xViewer#unclip unclip()} method to 
+   * unset clipping plane.
+   *
+   * @function xViewer#setClippingPlaneA
+   * @param {Number[]} plane - normal equation of the plane
+   * @param {Number} [modelId] - Optional ID of the model to be clipped. All models are clipped otherwise.
+   */
+    public setClippingPlaneA(plane: number[], modelId?: number) {
 
         if (modelId != null) {
             var handle = this.getHandle(modelId);
             if (handle) {
-                handle.clippingPlaneA = [normal[0], normal[1], normal[2], d];
+                handle.clippingPlaneA = plane;
             }
         } else {
             //set clipping plane for all models
             this._handles.forEach((h) => {
-                h.clippingPlaneA = [normal[0], normal[1], normal[2], d]
+                h.clippingPlaneA = plane;
             });
         }
     }
@@ -2144,29 +2165,21 @@ export class Viewer {
    * Use this method to clip the model with A plane. Use {@link xViewer#unclip unclip()} method to 
    * unset clipping plane.
    *
-   * @function xViewer#clipA
-   * @param {Number[]} point - point in clipping plane
-   * @param {Number[]} normal - normal pointing to the half space which will be hidden
+   * @function xViewer#setClippingPlaneB
+   * @param {Number[]} plane - normal equation of the plane
    * @param {Number} [modelId] - Optional ID of the model to be clipped. All models are clipped otherwise.
-   * @fires xViewer#clipped
    */
-    public clipB(point: number[], normal: number[], modelId?: number) {
-        if (point == null || normal == null) {
-            throw new Error('Cutting plane not well defined');
-        }
-
-        //compute normal equation of the plane
-        var d = 0.0 - normal[0] * point[0] - normal[1] * point[1] - normal[2] * point[2];
+    public setClippingPlaneB(plane: number[], modelId?: number) {
 
         if (modelId != null) {
             var handle = this.getHandle(modelId);
             if (handle) {
-                handle.clippingPlaneB= [normal[0], normal[1], normal[2], d];
+                handle.clippingPlaneB = plane;
             }
         } else {
             //set clipping plane for all models
             this._handles.forEach((h) => {
-                h.clippingPlaneB = [normal[0], normal[1], normal[2], d]
+                h.clippingPlaneB = plane;
             });
         }
     }

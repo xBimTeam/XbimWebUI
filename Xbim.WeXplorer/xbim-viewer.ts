@@ -17,3 +17,4 @@ export * from "./Viewer/matrix/quat";
 // Plugins
 export * from "./Viewer/plugins/NavigationCube/navigation-cube";
 export * from "./Viewer/plugins/NavigationHome/navigation-home";
+export * from "./Viewer/plugins/InteractiveClipping/interactive-clipping";

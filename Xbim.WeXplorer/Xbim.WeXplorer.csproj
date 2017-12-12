@@ -65,6 +65,8 @@
     <Content Include="Build\xbim-geometry-loader.min.js" />
     <Content Include="Build\xbim-viewer.min.js" />
     <Content Include="Examples\BasicJsExampleAsync\index.html" />
+    <Content Include="Examples\FileLoading\index.html" />
+    <TypeScriptCompile Include="Examples\FileLoading\index.ts" />
     <Content Include="Examples\TsSingleModule\index.css" />
     <Content Include="Examples\TsSingleModule\loader.js" />
     <Content Include="index.html" />

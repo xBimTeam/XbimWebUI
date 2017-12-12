@@ -208,6 +208,11 @@ export class NavigationCube implements IPlugin {
 
         viewer.canvas.addEventListener('mousemove',
             (event) => {
+                if (viewer.plugins.indexOf(this) < 0) {
+                    // don't do anything if this plugin is not active
+                    return;
+                }
+
                 // user doing anything should cause redraw in case there is any form of interaction
                 viewer.changed = true;
 
