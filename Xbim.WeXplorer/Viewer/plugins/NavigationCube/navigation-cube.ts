@@ -405,7 +405,7 @@ export class NavigationCube implements IPlugin {
             var camera = vec3.add(vec3.create(), origin, shift);
 
             //use look-at function to set up camera and target
-            mat4.lookAt(this.viewer.mvMatrix, camera, origin, heading);
+            this.viewer.mvMatrix = mat4.lookAt(mat4.create(), camera, origin, heading);
             return true;
         }
         return false;

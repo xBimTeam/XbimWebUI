@@ -1,7 +1,14 @@
 import { State } from './state';
 import { Framebuffer } from './framebuffer';
 export declare class Viewer {
+    gl: WebGLRenderingContext;
     canvas: HTMLCanvasElement;
+    changed: boolean;
+    /**
+     * Switch between different navigation modes for left mouse button. Allowed values: <strong> 'pan', 'zoom', 'orbit' (or 'fixed-orbit') , 'free-orbit' and 'none'</strong>. Default value is <strong>'orbit'</strong>;
+     * @member {String} Viewer#navigationMode
+     */
+    navigationMode: 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none';
     perspectiveCamera: {
         fov: number;
         near: number;
@@ -18,18 +25,53 @@ export declare class Viewer {
     width: number;
     height: number;
     distance: number;
-    camera: 'perspective' | 'orthogonal';
+    /**
+     * Type of camera to be used. Available values are <strong>'perspective'</strong> and <strong>'orthogonal'</strong> You can change this value at any time with instant effect.
+     * @member {string} Viewer#camera
+     */
+    camera: CameraType;
+    /**
+     * Array of four integers between 0 and 255 representing RGBA colour components. This defines background colour of the viewer. You can change this value at any time with instant effect.
+     * @member {Number[]} Viewer#background
+     */
     background: number[];
+    /**
+     * Array of four integers between 0 and 255 representing RGBA colour components. This defines colour for highlighted elements. You can change this value at any time with instant effect.
+     * @member {Number[]} Viewer#highlightingColour
+     */
     highlightingColour: number[];
-    navigationMode: 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none';
     origin: number[];
+    /**
+     * Array of four floats. It represents Light A's position <strong>XYZ</strong> and intensity <strong>I</strong> as [X, Y, Z, I]. Intensity should be in range 0.0 - 1.0.
+     * @member {Number[]} Viewer#lightA
+     */
     lightA: number[];
+    /**
+     * Array of four floats. It represents Light B's position <strong>XYZ</strong> and intensity <strong>I</strong> as [X, Y, Z, I]. Intensity should be in range 0.0 - 1.0.
+     * @member {Number[]} Viewer#lightB
+     */
     lightB: number[];
-    changed: boolean;
-    gl: WebGLRenderingContext;
     mvMatrix: Float32Array;
     pMatrix: Float32Array;
+    /**
+     * Switch between different rendering modes.
+     * @member {String} Viewer#renderingMode
+     */
     renderingMode: RenderingMode;
+    private _perspectiveCamera;
+    private _orthogonalCamera;
+    private _width;
+    private _height;
+    private _distance;
+    private _camera;
+    private _background;
+    private _highlightingColour;
+    private _origin;
+    private _lightA;
+    private _lightB;
+    private _mvMatrix;
+    private _pMatrix;
+    private _renderingMode;
     private _isRunning;
     private _stateStyles;
     private _stateStyleTexture;
@@ -432,6 +474,10 @@ export declare enum ViewType {
     LEFT = 4,
     RIGHT = 5,
     DEFAULT = 6,
+}
+export declare enum CameraType {
+    PERSPECTIVE = 0,
+    ORTHOGONAL = 1,
 }
 export interface IPlugin {
     init(viewer: Viewer): void;

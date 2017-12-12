@@ -27,6 +27,17 @@ var Viewer = (function () {
     function Viewer(canvas) {
         var _this = this;
         this.changed = false;
+        /**
+         * Switch between different navigation modes for left mouse button. Allowed values: <strong> 'pan', 'zoom', 'orbit' (or 'fixed-orbit') , 'free-orbit' and 'none'</strong>. Default value is <strong>'orbit'</strong>;
+         * @member {String} Viewer#navigationMode
+         */
+        this.navigationMode = 'orbit';
+        this._camera = CameraType.PERSPECTIVE;
+        this._background = [230, 230, 230, 255];
+        this._highlightingColour = [255, 173, 33, 255];
+        this._lightA = [0, 1000000, 200000, 0.8];
+        this._lightB = [0, -500000, 50000, 0.2];
+        this._renderingMode = RenderingMode.NORMAL;
         this._isRunning = false;
         this._rotationOn = false;
         if (typeof (canvas) == 'undefined') {
@@ -88,43 +99,6 @@ var Viewer = (function () {
             /** @member {Number} OrthogonalCamera#far*/
             far: 0
         };
-        /**
-        * Type of camera to be used. Available values are <strong>'perspective'</strong> and <strong>'orthogonal'</strong> You can change this value at any time with instant effect.
-        * @member {string} Viewer#camera
-        */
-        this.camera = 'perspective';
-        /**
-        * Array of four integers between 0 and 255 representing RGBA colour components. This defines background colour of the viewer. You can change this value at any time with instant effect.
-        * @member {Number[]} Viewer#background
-        */
-        this.background = [230, 230, 230, 255];
-        /**
-        * Array of four integers between 0 and 255 representing RGBA colour components. This defines colour for highlighted elements. You can change this value at any time with instant effect.
-        * @member {Number[]} Viewer#highlightingColour
-        */
-        this.highlightingColour = [255, 173, 33, 255];
-        /**
-        * Array of four floats. It represents Light A's position <strong>XYZ</strong> and intensity <strong>I</strong> as [X, Y, Z, I]. Intensity should be in range 0.0 - 1.0.
-        * @member {Number[]} Viewer#lightA
-        */
-        this.lightA = [0, 1000000, 200000, 0.8];
-        /**
-        * Array of four floats. It represents Light B's position <strong>XYZ</strong> and intensity <strong>I</strong> as [X, Y, Z, I]. Intensity should be in range 0.0 - 1.0.
-        * @member {Number[]} Viewer#lightB
-        */
-        this.lightB = [0, -500000, 50000, 0.2];
-        /**
-        * Switch between different navigation modes for left mouse button. Allowed values: <strong> 'pan', 'zoom', 'orbit' (or 'fixed-orbit') , 'free-orbit' and 'none'</strong>. Default value is <strong>'orbit'</strong>;
-        * @member {String} Viewer#navigationMode
-        */
-        this.navigationMode = 'orbit';
-        /**
-        * Switch between different rendering modes. Allowed values: <strong> 'normal', 'x-ray'</strong>. Default value is <strong>'normal'</strong>;
-        * Only products with state set to state.HIGHLIGHTED or xState.XRAYVISIBLE will be rendered highlighted or in a normal colours. All other products
-        * will be rendered semi-transparent and single sided.
-        * @member {String} Viewer#renderingMode
-        */
-        this.renderingMode = RenderingMode.NORMAL;
         //*************************** Do all the set up of WebGL **************************
         var gl = webgl_utils_1.WebGLUtils.setupWebGL(this.canvas, { preserveDrawingBuffer: true });
         //do not even initialize this object if WebGL is not supported
@@ -203,6 +177,114 @@ var Viewer = (function () {
         };
         watchCanvasSize();
     }
+    Object.defineProperty(Viewer.prototype, "perspectiveCamera", {
+        get: function () { return this._perspectiveCamera; },
+        set: function (value) { this._perspectiveCamera = value; this.changed = true; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Viewer.prototype, "orthogonalCamera", {
+        get: function () { return this._orthogonalCamera; },
+        set: function (value) { this._orthogonalCamera = value; this.changed = true; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Viewer.prototype, "width", {
+        get: function () { return this._width; },
+        set: function (value) { this._width = value; this.changed = true; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Viewer.prototype, "height", {
+        get: function () { return this._height; },
+        set: function (value) { this._height = value; this.changed = true; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Viewer.prototype, "distance", {
+        get: function () { return this._distance; },
+        set: function (value) { this._distance = value; this.changed = true; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Viewer.prototype, "camera", {
+        /**
+         * Type of camera to be used. Available values are <strong>'perspective'</strong> and <strong>'orthogonal'</strong> You can change this value at any time with instant effect.
+         * @member {string} Viewer#camera
+         */
+        get: function () { return this._camera; },
+        set: function (value) { this._camera = value; this.changed = true; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Viewer.prototype, "background", {
+        /**
+         * Array of four integers between 0 and 255 representing RGBA colour components. This defines background colour of the viewer. You can change this value at any time with instant effect.
+         * @member {Number[]} Viewer#background
+         */
+        get: function () { return this._background; },
+        set: function (value) { this._background = value; this.changed = true; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Viewer.prototype, "highlightingColour", {
+        /**
+         * Array of four integers between 0 and 255 representing RGBA colour components. This defines colour for highlighted elements. You can change this value at any time with instant effect.
+         * @member {Number[]} Viewer#highlightingColour
+         */
+        get: function () { return this._highlightingColour; },
+        set: function (value) { this._highlightingColour = value; this.changed = true; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Viewer.prototype, "origin", {
+        get: function () { return this._origin; },
+        set: function (value) { this._origin = value; this.changed = true; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Viewer.prototype, "lightA", {
+        /**
+         * Array of four floats. It represents Light A's position <strong>XYZ</strong> and intensity <strong>I</strong> as [X, Y, Z, I]. Intensity should be in range 0.0 - 1.0.
+         * @member {Number[]} Viewer#lightA
+         */
+        get: function () { return this._lightA; },
+        set: function (value) { this._lightA = value; this.changed = true; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Viewer.prototype, "lightB", {
+        /**
+         * Array of four floats. It represents Light B's position <strong>XYZ</strong> and intensity <strong>I</strong> as [X, Y, Z, I]. Intensity should be in range 0.0 - 1.0.
+         * @member {Number[]} Viewer#lightB
+         */
+        get: function () { return this._lightB; },
+        set: function (value) { this._lightB = value; this.changed = true; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Viewer.prototype, "mvMatrix", {
+        get: function () { return this._mvMatrix; },
+        set: function (value) { this._mvMatrix = value; this.changed = true; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Viewer.prototype, "pMatrix", {
+        get: function () { return this._pMatrix; },
+        set: function (value) { this._pMatrix = value; this.changed = true; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Viewer.prototype, "renderingMode", {
+        /**
+         * Switch between different rendering modes.
+         * @member {String} Viewer#renderingMode
+         */
+        get: function () { return this._renderingMode; },
+        set: function (value) { this._renderingMode = value; this.changed = true; },
+        enumerable: true,
+        configurable: true
+    });
     Object.defineProperty(Viewer.prototype, "_activeHandles", {
         get: function () { return this._handles.filter(function (h) { return !h.stopped; }); },
         enumerable: true,
@@ -541,7 +623,7 @@ var Viewer = (function () {
     Viewer.prototype.setCameraPosition = function (coordinates) {
         if (typeof (coordinates) == 'undefined')
             throw 'Parameter coordinates must be defined';
-        mat4_1.mat4.lookAt(this.mvMatrix, coordinates, this.origin, [0, 0, 1]);
+        this.mvMatrix = mat4_1.mat4.lookAt(mat4_1.mat4.create(), coordinates, this.origin, [0, 0, 1]);
     };
     /**
     * This method sets navigation origin to the centroid of specified product's bounding box or to the centre of model if no product ID is specified.
@@ -1362,10 +1444,10 @@ var Viewer = (function () {
     Viewer.prototype.updatePMatrix = function (width, height) {
         //set up cameras
         switch (this.camera) {
-            case 'perspective':
+            case CameraType.PERSPECTIVE:
                 mat4_1.mat4.perspective(this.pMatrix, this.perspectiveCamera.fov * Math.PI / 180.0, width / height, this.perspectiveCamera.near, this.perspectiveCamera.far);
                 break;
-            case 'orthogonal':
+            case CameraType.ORTHOGONAL:
                 mat4_1.mat4.ortho(this.pMatrix, this.orthogonalCamera.left, this.orthogonalCamera.right, this.orthogonalCamera.bottom, this.orthogonalCamera.top, this.orthogonalCamera.near, this.orthogonalCamera.far);
                 break;
             default:
@@ -1404,7 +1486,7 @@ var Viewer = (function () {
         var translation = vec3_1.vec3.create();
         vec3_1.vec3.scale(translation, dir, this.distance * 1.2);
         vec3_1.vec3.add(eye, translation, this.origin);
-        mat4_1.mat4.lookAt(this.mvMatrix, eye, this.origin, [0, 0, 1]);
+        this.mvMatrix = mat4_1.mat4.lookAt(mat4_1.mat4.create(), eye, this.origin, [0, 0, 1]);
         return true;
     };
     /**
@@ -1424,15 +1506,14 @@ var Viewer = (function () {
             //top and bottom are different because these are singular points for look-at function if heading is [0,0,1]
             case ViewType.TOP:
                 //only move to origin and up (negative values because we move camera against model)
-                mat4_1.mat4.translate(this.mvMatrix, mat4_1.mat4.create(), [origin[0] * -1.0, origin[1] * -1.0, (distance + origin[2]) * -1.0]);
+                this.mvMatrix = mat4_1.mat4.translate(mat4_1.mat4.create(), mat4_1.mat4.create(), [origin[0] * -1.0, origin[1] * -1.0, (distance + origin[2]) * -1.0]);
                 return;
             case ViewType.BOTTOM:
                 //only move to origin and up and rotate 180 degrees around Y axis
                 var toOrigin = mat4_1.mat4.translate(mat4_1.mat4.create(), mat4_1.mat4.create(), [origin[0] * -1.0, origin[1] * +1.0, (origin[2] + distance) * -1]);
                 var rotationY = mat4_1.mat4.rotateY(mat4_1.mat4.create(), toOrigin, Math.PI);
                 var rotationZ = mat4_1.mat4.rotateZ(mat4_1.mat4.create(), rotationY, Math.PI);
-                this
-                    .mvMatrix = rotationZ;
+                this.mvMatrix = rotationZ;
                 // mat4.translate(mat4.create(), rotationZ, [0, 0, -1.0 * distance]);
                 return;
             case ViewType.FRONT:
@@ -1455,7 +1536,7 @@ var Viewer = (function () {
                 break;
         }
         // use look-at function to set up camera and target
-        mat4_1.mat4.lookAt(this.mvMatrix, camera, origin, heading);
+        this.mvMatrix = mat4_1.mat4.lookAt(mat4_1.mat4.create(), camera, origin, heading);
     };
     Viewer.prototype.startRotation = function () {
         var _this = this;
@@ -1465,7 +1546,7 @@ var Viewer = (function () {
             if (!_this._rotationOn) {
                 return;
             }
-            mat4_1.mat4.rotateZ(_this.mvMatrix, new Float32Array(_this.mvMatrix), 0.2 * Math.PI / 180.0);
+            _this.mvMatrix = mat4_1.mat4.rotateZ(mat4_1.mat4.create(), new Float32Array(_this.mvMatrix), 0.2 * Math.PI / 180.0);
             setTimeout(rotate, interval);
         };
         setTimeout(rotate, interval);
@@ -1912,4 +1993,9 @@ var ViewType;
     ViewType[ViewType["RIGHT"] = 5] = "RIGHT";
     ViewType[ViewType["DEFAULT"] = 6] = "DEFAULT";
 })(ViewType = exports.ViewType || (exports.ViewType = {}));
+var CameraType;
+(function (CameraType) {
+    CameraType[CameraType["PERSPECTIVE"] = 0] = "PERSPECTIVE";
+    CameraType[CameraType["ORTHOGONAL"] = 1] = "ORTHOGONAL";
+})(CameraType = exports.CameraType || (exports.CameraType = {}));
 //# sourceMappingURL=viewer.js.map

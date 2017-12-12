@@ -14,25 +14,82 @@ import { mat4 } from "./matrix/mat4";
 
 export class Viewer {
 
-    public canvas: HTMLCanvasElement;
-    public perspectiveCamera: { fov: number, near: number, far: number };
-    public orthogonalCamera: { left: number, right: number, top: number, bottom: number, near: number, far: number }
-    public width: number;
-    public height: number;
-    public distance: number;
-    public camera: 'perspective' | 'orthogonal';
-    public background: number[];
-    public highlightingColour: number[];
-    public navigationMode: 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none';
-    public origin: number[];
-    public lightA: number[];
-    public lightB: number[];
-    public changed: boolean = false;
-
     public gl: WebGLRenderingContext;
-    public mvMatrix: Float32Array;
-    public pMatrix: Float32Array;
-    public renderingMode: RenderingMode;
+    public canvas: HTMLCanvasElement;
+    public changed: boolean = false;
+    /**
+     * Switch between different navigation modes for left mouse button. Allowed values: <strong> 'pan', 'zoom', 'orbit' (or 'fixed-orbit') , 'free-orbit' and 'none'</strong>. Default value is <strong>'orbit'</strong>;
+     * @member {String} Viewer#navigationMode
+     */
+    public navigationMode: 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none' = 'orbit';
+
+    public get perspectiveCamera(): { fov: number, near: number, far: number } { return this._perspectiveCamera; }
+    public set perspectiveCamera(value: { fov: number, near: number, far: number }) { this._perspectiveCamera = value; this.changed = true; }
+    public get orthogonalCamera(): { left: number, right: number, top: number, bottom: number, near: number, far: number } { return this._orthogonalCamera; }
+    public set orthogonalCamera(value: { left: number, right: number, top: number, bottom: number, near: number, far: number }) { this._orthogonalCamera = value; this.changed = true; }
+    public get width(): number { return this._width; }
+    public set width(value: number) { this._width = value; this.changed = true; }
+    public get height(): number { return this._height; }
+    public set height(value: number) { this._height = value; this.changed = true; }
+    public get distance(): number { return this._distance; }
+    public set distance(value: number) { this._distance = value; this.changed = true; }
+    /**
+     * Type of camera to be used. Available values are <strong>'perspective'</strong> and <strong>'orthogonal'</strong> You can change this value at any time with instant effect.
+     * @member {string} Viewer#camera
+     */
+    public get camera(): CameraType { return this._camera; }
+    public set camera(value: CameraType) { this._camera = value; this.changed = true; }
+    /**
+     * Array of four integers between 0 and 255 representing RGBA colour components. This defines background colour of the viewer. You can change this value at any time with instant effect.
+     * @member {Number[]} Viewer#background
+     */
+    public get background(): number[] { return this._background; }
+    public set background(value: number[]) { this._background = value; this.changed = true; }
+    /**
+     * Array of four integers between 0 and 255 representing RGBA colour components. This defines colour for highlighted elements. You can change this value at any time with instant effect.
+     * @member {Number[]} Viewer#highlightingColour
+     */
+    public get highlightingColour(): number[] { return this._highlightingColour; }
+    public set highlightingColour(value: number[]) { this._highlightingColour = value; this.changed = true; }
+    public get origin(): number[] { return this._origin; }
+    public set origin(value: number[]) { this._origin = value; this.changed = true; }
+    /**
+     * Array of four floats. It represents Light A's position <strong>XYZ</strong> and intensity <strong>I</strong> as [X, Y, Z, I]. Intensity should be in range 0.0 - 1.0.
+     * @member {Number[]} Viewer#lightA
+     */
+    public get lightA(): number[] { return this._lightA; }
+    public set lightA(value: number[]) { this._lightA = value; this.changed = true; }
+     /**
+      * Array of four floats. It represents Light B's position <strong>XYZ</strong> and intensity <strong>I</strong> as [X, Y, Z, I]. Intensity should be in range 0.0 - 1.0.
+      * @member {Number[]} Viewer#lightB
+      */
+    public get lightB(): number[] { return this._lightB; }
+    public set lightB(value: number[]) { this._lightB = value; this.changed = true; }
+    public get mvMatrix(): Float32Array { return this._mvMatrix; }
+    public set mvMatrix(value: Float32Array) { this._mvMatrix = value; this.changed = true; }
+    public get pMatrix(): Float32Array { return this._pMatrix; }
+    public set pMatrix(value: Float32Array) { this._pMatrix = value; this.changed = true; }
+    /**
+     * Switch between different rendering modes.
+     * @member {String} Viewer#renderingMode
+     */
+    public get renderingMode(): RenderingMode { return this._renderingMode; }
+    public set renderingMode(value: RenderingMode) { this._renderingMode = value; this.changed = true; }
+
+    private _perspectiveCamera: { fov: number, near: number, far: number };
+    private _orthogonalCamera: { left: number, right: number, top: number, bottom: number, near: number, far: number }
+    private _width: number;
+    private _height: number;
+    private _distance: number;
+    private _camera: CameraType = CameraType.PERSPECTIVE;
+    private _background: number[] = [230, 230, 230, 255];
+    private _highlightingColour: number[] = [255, 173, 33, 255];
+    private _origin: number[];
+    private _lightA: number[] = [0, 1000000, 200000, 0.8];
+    private _lightB: number[] = [0, -500000, 50000, 0.2];
+    private _mvMatrix: Float32Array;
+    private _pMatrix: Float32Array;
+    private _renderingMode: RenderingMode = RenderingMode.NORMAL;
 
     private _isRunning: boolean = false;
     private _stateStyles: Uint8Array;
@@ -133,46 +190,7 @@ export class Viewer {
             far: 0
         };
 
-        /**
-        * Type of camera to be used. Available values are <strong>'perspective'</strong> and <strong>'orthogonal'</strong> You can change this value at any time with instant effect.
-        * @member {string} Viewer#camera
-        */
-        this.camera = 'perspective';
-
-        /**
-        * Array of four integers between 0 and 255 representing RGBA colour components. This defines background colour of the viewer. You can change this value at any time with instant effect.
-        * @member {Number[]} Viewer#background
-        */
-        this.background = [230, 230, 230, 255];
-        /**
-        * Array of four integers between 0 and 255 representing RGBA colour components. This defines colour for highlighted elements. You can change this value at any time with instant effect.
-        * @member {Number[]} Viewer#highlightingColour
-        */
-        this.highlightingColour = [255, 173, 33, 255];
-        /**
-        * Array of four floats. It represents Light A's position <strong>XYZ</strong> and intensity <strong>I</strong> as [X, Y, Z, I]. Intensity should be in range 0.0 - 1.0.
-        * @member {Number[]} Viewer#lightA
-        */
-        this.lightA = [0, 1000000, 200000, 0.8];
-        /**
-        * Array of four floats. It represents Light B's position <strong>XYZ</strong> and intensity <strong>I</strong> as [X, Y, Z, I]. Intensity should be in range 0.0 - 1.0.
-        * @member {Number[]} Viewer#lightB
-        */
-        this.lightB = [0, -500000, 50000, 0.2];
-
-        /**
-        * Switch between different navigation modes for left mouse button. Allowed values: <strong> 'pan', 'zoom', 'orbit' (or 'fixed-orbit') , 'free-orbit' and 'none'</strong>. Default value is <strong>'orbit'</strong>;
-        * @member {String} Viewer#navigationMode
-        */
-        this.navigationMode = 'orbit';
-
-        /**
-        * Switch between different rendering modes. Allowed values: <strong> 'normal', 'x-ray'</strong>. Default value is <strong>'normal'</strong>;
-        * Only products with state set to state.HIGHLIGHTED or xState.XRAYVISIBLE will be rendered highlighted or in a normal colours. All other products
-        * will be rendered semi-transparent and single sided.
-        * @member {String} Viewer#renderingMode
-        */
-        this.renderingMode = RenderingMode.NORMAL;
+        
        
 
 
@@ -632,7 +650,7 @@ export class Viewer {
     */
     public setCameraPosition(coordinates: number[]) {
         if (typeof (coordinates) == 'undefined') throw 'Parameter coordinates must be defined';
-        mat4.lookAt(this.mvMatrix, coordinates, this.origin, [0, 0, 1]);
+        this.mvMatrix = mat4.lookAt(mat4.create(), coordinates, this.origin, [0, 0, 1]);
     }
 
     /**
@@ -1585,7 +1603,7 @@ export class Viewer {
     private updatePMatrix(width: number, height: number) {
         //set up cameras
         switch (this.camera) {
-            case 'perspective':
+            case CameraType.PERSPECTIVE:
                 mat4.perspective(this.pMatrix,
                     this.perspectiveCamera.fov * Math.PI / 180.0,
                     width / height,
@@ -1593,7 +1611,7 @@ export class Viewer {
                     this.perspectiveCamera.far);
                 break;
 
-            case 'orthogonal':
+            case CameraType.ORTHOGONAL:
                 mat4.ortho(this.pMatrix,
                     this.orthogonalCamera.left,
                     this.orthogonalCamera.right,
@@ -1648,7 +1666,7 @@ export class Viewer {
         vec3.scale(translation, dir, this.distance * 1.2);
         vec3.add(eye, translation, this.origin);
 
-        mat4.lookAt(this.mvMatrix, eye, this.origin, [0, 0, 1]);
+        this.mvMatrix = mat4.lookAt(mat4.create(), eye, this.origin, [0, 0, 1]);
         return true;
     }
 
@@ -1669,7 +1687,7 @@ export class Viewer {
             //top and bottom are different because these are singular points for look-at function if heading is [0,0,1]
             case ViewType.TOP:
                 //only move to origin and up (negative values because we move camera against model)
-                mat4.translate(this.mvMatrix,
+                this.mvMatrix = mat4.translate(mat4.create(),
                     mat4.create(),
                     [origin[0] * -1.0, origin[1] * -1.0, (distance + origin[2]) * -1.0]);
                 return;
@@ -1680,8 +1698,7 @@ export class Viewer {
                     [origin[0] * -1.0, origin[1] * +1.0, (origin[2] + distance) * -1]);
                 var rotationY = mat4.rotateY(mat4.create(), toOrigin, Math.PI);
                 var rotationZ = mat4.rotateZ(mat4.create(), rotationY, Math.PI);
-                this
-                    .mvMatrix = rotationZ;
+                this.mvMatrix = rotationZ;
                 // mat4.translate(mat4.create(), rotationZ, [0, 0, -1.0 * distance]);
                 return;
 
@@ -1705,7 +1722,7 @@ export class Viewer {
                 break;
         }
         // use look-at function to set up camera and target
-        mat4.lookAt(this.mvMatrix, camera, origin, heading);
+        this.mvMatrix = mat4.lookAt(mat4.create(), camera, origin, heading);
     }
 
     private _rotationOn: boolean = false;
@@ -1716,7 +1733,7 @@ export class Viewer {
             if (!this._rotationOn) {
                 return;
             }
-            mat4.rotateZ(this.mvMatrix, new Float32Array(this.mvMatrix), 0.2 * Math.PI / 180.0);
+            this.mvMatrix = mat4.rotateZ(mat4.create(), new Float32Array(this.mvMatrix), 0.2 * Math.PI / 180.0);
             setTimeout(rotate, interval);
         };
         setTimeout(rotate, interval);
@@ -2227,6 +2244,11 @@ export enum ViewType {
     LEFT,
     RIGHT,
     DEFAULT
+}
+
+export enum CameraType {
+    PERSPECTIVE,
+    ORTHOGONAL
 }
 
 export interface IPlugin {
