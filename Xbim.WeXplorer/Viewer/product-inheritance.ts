@@ -3,9 +3,54 @@
     public id: number;
     public abs: boolean;
     public children?: Product[];
+
+    public static getByName(name: string): Product {
+        name = name.toUpperCase();
+        let toProcess: Product[] = [ProductInheritance];
+        while (toProcess.length !== 0) {
+            const type = toProcess.shift();
+            if (type.name.toUpperCase() === name) {
+                return type;
+            }
+            if (type.children) {
+                type.children.forEach((c) => { toProcess.push(c); })
+            }
+        }
+        return null;
+    }
+
+    public static getAllSubTypes(root: number): number[] {
+        // find roots
+        const roots: Product[] = [];
+        let toProcess: Product[] = [ProductInheritance];
+        while (toProcess.length !== 0) {
+            const type = toProcess.shift();
+            if (type.id === root) {
+                roots.push(type);
+            }
+            if (type.children) {
+                type.children.forEach((c) => { toProcess.push(c); })
+            }
+        }
+
+        // collect all non-abstract sub types
+        toProcess = roots.slice();
+        const result: number[] = [];
+        while (toProcess.length !== 0) {
+            const type = toProcess.shift();
+            if (type.abs === false) {
+                result.push(type.id);
+            }
+            if (type.children) {
+                type.children.forEach((c) => { toProcess.push(c); })
+            }
+        }
+
+        return result;
+    }
 }
 
-export const ProductInheritance: Product = {
+const ProductInheritance: Product = {
     name: "IfcProduct",
     id: 20,
     abs: true,

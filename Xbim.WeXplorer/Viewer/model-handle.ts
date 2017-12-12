@@ -1,6 +1,7 @@
 ﻿import { ModelGeometry, ProductMap, Region } from "./model-geometry";
 import { State } from "./state";
-import { ModelPointers } from "./viewer";
+import { ModelPointers } from "./model-pointers";
+import { Product } from "./product-inheritance";
 
 //this class holds pointers to textures, uniforms and data buffers which
 //make up a model in GPU
@@ -440,9 +441,14 @@ export class ModelHandle {
         var maps = [];
         //it is type
         if (typeof (args) == 'number') {
+            // get all non-abstract subtypes
+            const subTypes = Product.getAllSubTypes(args);
+
             for (var n in this._model.productMaps) {
                 var map = this._model.productMaps[n];
-                if (map.type == args) maps.push(map);
+                if (subTypes.indexOf(map.type) > 0) {
+                    maps.push(map);
+                }
             }
         }
         //it is a list of IDs
