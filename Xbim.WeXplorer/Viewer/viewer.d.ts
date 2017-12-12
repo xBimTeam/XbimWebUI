@@ -423,42 +423,38 @@ export declare class Viewer {
     disableTextSelection(): void;
     enableTextSelection(): void;
     /**
-    * Use this method to clip the model. Use {@link xViewer#unclip unclip()} method to
-    * unset clipping plane.
-    *
-    * @function xViewer#clip
-    * @param {Number[]} point - point in clipping plane
-    * @param {Number[]} normal - normal pointing to the half space which will be hidden
-    * @fires xViewer#clipped
-    */
-    clip(point: number[], normal: number[]): void;
+   * Use this method to clip the model with A plane. Use {@link xViewer#unclip unclip()} method to
+   * unset clipping plane.
+   *
+   * @function xViewer#clipA
+   * @param {Number[]} point - point in clipping plane
+   * @param {Number[]} normal - normal pointing to the half space which will be hidden
+   * @param {Number} [modelId] - Optional ID of the model to be clipped. All models are clipped otherwise.
+   * @fires xViewer#clipped
+   */
+    clipA(point: number[], normal: number[], modelId?: number): void;
+    /**
+   * Use this method to clip the model with A plane. Use {@link xViewer#unclip unclip()} method to
+   * unset clipping plane.
+   *
+   * @function xViewer#clipA
+   * @param {Number[]} point - point in clipping plane
+   * @param {Number[]} normal - normal pointing to the half space which will be hidden
+   * @param {Number} [modelId] - Optional ID of the model to be clipped. All models are clipped otherwise.
+   * @fires xViewer#clipped
+   */
+    clipB(point: number[], normal: number[], modelId?: number): void;
     /**
     * This method will cancel any clipping plane if it is defined. Use {@link xViewer#clip clip()}
     * method to define clipping by point and normal of the plane.
     * @function xViewer#unclip
+    * @param {Number} [modelId] - Optional ID of the model to be unclipped. All models are unclipped otherwise.
     */
-    unclip(): void;
-    clippingPlaneA: number[];
-    clippingPlaneB: number[];
-}
-export declare class ModelPointers {
-    NormalAttrPointer: number;
-    IndexlAttrPointer: number;
-    ProductAttrPointer: number;
-    StateAttrPointer: number;
-    StyleAttrPointer: number;
-    TransformationAttrPointer: number;
-    VertexSamplerUniform: WebGLUniformLocation;
-    MatrixSamplerUniform: WebGLUniformLocation;
-    StyleSamplerUniform: WebGLUniformLocation;
-    VertexTextureSizeUniform: WebGLUniformLocation;
-    MatrixTextureSizeUniform: WebGLUniformLocation;
-    StyleTextureSizeUniform: WebGLUniformLocation;
-    ClippingAUniform: WebGLUniformLocation;
-    ClippingBUniform: WebGLUniformLocation;
-    ClippingPlaneAUniform: WebGLUniformLocation;
-    ClippingPlaneBUniform: WebGLUniformLocation;
-    constructor(gl: WebGLRenderingContext, program: WebGLProgram);
+    unclip(modelId?: number): void;
+    getClip(modelId: number): {
+        PlaneA: number[];
+        PlaneB: number[];
+    };
 }
 export declare enum RenderingMode {
     NORMAL = 0,

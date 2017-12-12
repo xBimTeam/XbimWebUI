@@ -6,6 +6,7 @@ var model_geometry_1 = require("./model-geometry");
 var model_handle_1 = require("./model-handle");
 var shaders_1 = require("./shaders/shaders");
 var framebuffer_1 = require("./framebuffer");
+var model_pointers_1 = require("./model-pointers");
 //ported libraries
 var webgl_utils_1 = require("./common/webgl-utils");
 var vec3_1 = require("./matrix/vec3");
@@ -893,7 +894,7 @@ var Viewer = (function () {
         this._renderingModeUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uRenderingMode');
         this._highlightingColourUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uHighlightColour');
         this._stateStyleSamplerUniform = gl.getUniformLocation(this._shaderProgram, 'uStateStyleSampler');
-        this._pointers = new ModelPointers(gl, this._shaderProgram);
+        this._pointers = new model_pointers_1.ModelPointers(gl, this._shaderProgram);
     };
     /**
      * Prevents default context menu to appear. Custom menu can be created instead by listening to contextmenu event
@@ -1395,9 +1396,9 @@ var Viewer = (function () {
     ;
     Viewer.prototype.drawXRAY = function (gl) {
         var _this = this;
-        gl.enable(gl.CULL_FACE);
         var mode = this.renderingMode;
         var transparentPass = function () {
+            gl.enable(gl.CULL_FACE);
             // the rest as semitransparent overlay
             gl.uniform1i(_this._renderingModeUniformPointer, 3);
             // disable writing to depth buffer. This will respect depth buffer
@@ -1413,6 +1414,7 @@ var Viewer = (function () {
             gl.depthMask(true);
         };
         var highlightedPass = function () {
+            gl.disable(gl.CULL_FACE);
             // only highlighted and x-ray visible
             gl.uniform1i(_this._renderingModeUniformPointer, RenderingMode.XRAY);
             gl.enable(gl.DEPTH_TEST);
@@ -1874,102 +1876,97 @@ var Viewer = (function () {
         document.documentElement.style['user-select'] = 'text';
     };
     /**
-    * Use this method to clip the model. Use {@link xViewer#unclip unclip()} method to
-    * unset clipping plane.
-    *
-    * @function xViewer#clip
-    * @param {Number[]} point - point in clipping plane
-    * @param {Number[]} normal - normal pointing to the half space which will be hidden
-    * @fires xViewer#clipped
-    */
-    Viewer.prototype.clip = function (point, normal) {
+   * Use this method to clip the model with A plane. Use {@link xViewer#unclip unclip()} method to
+   * unset clipping plane.
+   *
+   * @function xViewer#clipA
+   * @param {Number[]} point - point in clipping plane
+   * @param {Number[]} normal - normal pointing to the half space which will be hidden
+   * @param {Number} [modelId] - Optional ID of the model to be clipped. All models are clipped otherwise.
+   * @fires xViewer#clipped
+   */
+    Viewer.prototype.clipA = function (point, normal, modelId) {
         if (point == null || normal == null) {
             throw new Error('Cutting plane not well defined');
         }
         //compute normal equation of the plane
         var d = 0.0 - normal[0] * point[0] - normal[1] * point[1] - normal[2] * point[2];
-        //set clipping plane for all models
-        this._handles.forEach(function (h) {
-            h.clippingPlaneA = [normal[0], normal[1], normal[2], d];
-        });
+        if (modelId != null) {
+            var handle = this.getHandle(modelId);
+            if (handle) {
+                handle.clippingPlaneA = [normal[0], normal[1], normal[2], d];
+            }
+        }
+        else {
+            //set clipping plane for all models
+            this._handles.forEach(function (h) {
+                h.clippingPlaneA = [normal[0], normal[1], normal[2], d];
+            });
+        }
+    };
+    /**
+   * Use this method to clip the model with A plane. Use {@link xViewer#unclip unclip()} method to
+   * unset clipping plane.
+   *
+   * @function xViewer#clipA
+   * @param {Number[]} point - point in clipping plane
+   * @param {Number[]} normal - normal pointing to the half space which will be hidden
+   * @param {Number} [modelId] - Optional ID of the model to be clipped. All models are clipped otherwise.
+   * @fires xViewer#clipped
+   */
+    Viewer.prototype.clipB = function (point, normal, modelId) {
+        if (point == null || normal == null) {
+            throw new Error('Cutting plane not well defined');
+        }
+        //compute normal equation of the plane
+        var d = 0.0 - normal[0] * point[0] - normal[1] * point[1] - normal[2] * point[2];
+        if (modelId != null) {
+            var handle = this.getHandle(modelId);
+            if (handle) {
+                handle.clippingPlaneB = [normal[0], normal[1], normal[2], d];
+            }
+        }
+        else {
+            //set clipping plane for all models
+            this._handles.forEach(function (h) {
+                h.clippingPlaneB = [normal[0], normal[1], normal[2], d];
+            });
+        }
     };
     /**
     * This method will cancel any clipping plane if it is defined. Use {@link xViewer#clip clip()}
     * method to define clipping by point and normal of the plane.
     * @function xViewer#unclip
+    * @param {Number} [modelId] - Optional ID of the model to be unclipped. All models are unclipped otherwise.
     */
-    Viewer.prototype.unclip = function () {
-        this._handles.forEach(function (h) {
-            h.clippingPlaneA = null;
-            h.clippingPlaneB = null;
-        });
+    Viewer.prototype.unclip = function (modelId) {
+        if (modelId != null) {
+            var handle = this.getHandle(modelId);
+            if (handle) {
+                handle.clippingPlaneA = null;
+                handle.clippingPlaneB = null;
+            }
+        }
+        else {
+            this._handles.forEach(function (h) {
+                h.clippingPlaneA = null;
+                h.clippingPlaneB = null;
+            });
+        }
     };
-    Object.defineProperty(Viewer.prototype, "clippingPlaneA", {
-        get: function () {
-            var handle = this._handles.filter(function (h) { return h.clippingPlaneA != null; }).pop();
-            if (handle != null) {
-                return handle.clippingPlaneA;
-            }
-            return null;
-        },
-        set: function (plane) {
-            this._handles.forEach(function (h) {
-                h.clippingPlaneA = plane;
-            });
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(Viewer.prototype, "clippingPlaneB", {
-        get: function () {
-            var handle = this._handles.filter(function (h) { return h.clippingPlaneB != null; }).pop();
-            if (handle != null) {
-                return handle.clippingPlaneB;
-            }
-            return null;
-        },
-        set: function (plane) {
-            this._handles.forEach(function (h) {
-                h.clippingPlaneB = plane;
-            });
-        },
-        enumerable: true,
-        configurable: true
-    });
+    Viewer.prototype.getClip = function (modelId) {
+        var handle = this.getHandle(modelId);
+        if (handle) {
+            return {
+                PlaneA: handle.clippingPlaneA,
+                PlaneB: handle.clippingPlaneB
+            };
+        }
+        return null;
+    };
     return Viewer;
 }());
 exports.Viewer = Viewer;
-var ModelPointers = (function () {
-    function ModelPointers(gl, program) {
-        //get attribute pointers
-        this.NormalAttrPointer = gl.getAttribLocation(program, 'aNormal');
-        this.IndexlAttrPointer = gl.getAttribLocation(program, 'aVertexIndex');
-        this.ProductAttrPointer = gl.getAttribLocation(program, 'aProduct');
-        this.StateAttrPointer = gl.getAttribLocation(program, 'aState');
-        this.StyleAttrPointer = gl.getAttribLocation(program, 'aStyleIndex');
-        this.TransformationAttrPointer = gl.getAttribLocation(program, 'aTransformationIndex');
-        //get uniform pointers
-        this.VertexSamplerUniform = gl.getUniformLocation(program, 'uVertexSampler');
-        this.MatrixSamplerUniform = gl.getUniformLocation(program, 'uMatrixSampler');
-        this.StyleSamplerUniform = gl.getUniformLocation(program, 'uStyleSampler');
-        this.VertexTextureSizeUniform = gl.getUniformLocation(program, 'uVertexTextureSize');
-        this.MatrixTextureSizeUniform = gl.getUniformLocation(program, 'uMatrixTextureSize');
-        this.StyleTextureSizeUniform = gl.getUniformLocation(program, 'uStyleTextureSize');
-        this.ClippingPlaneAUniform = gl.getUniformLocation(program, 'uClippingPlaneA');
-        this.ClippingAUniform = gl.getUniformLocation(program, 'uClippingA');
-        this.ClippingPlaneBUniform = gl.getUniformLocation(program, 'uClippingPlaneB');
-        this.ClippingBUniform = gl.getUniformLocation(program, 'uClippingB');
-        //enable vertex attributes arrays
-        gl.enableVertexAttribArray(this.NormalAttrPointer);
-        gl.enableVertexAttribArray(this.IndexlAttrPointer);
-        gl.enableVertexAttribArray(this.ProductAttrPointer);
-        gl.enableVertexAttribArray(this.StateAttrPointer);
-        gl.enableVertexAttribArray(this.StyleAttrPointer);
-        gl.enableVertexAttribArray(this.TransformationAttrPointer);
-    }
-    return ModelPointers;
-}());
-exports.ModelPointers = ModelPointers;
 var ColourCoding;
 (function (ColourCoding) {
     ColourCoding[ColourCoding["NONE"] = -1] = "NONE";
@@ -1980,7 +1977,7 @@ var RenderingMode;
     RenderingMode[RenderingMode["NORMAL"] = 0] = "NORMAL";
     RenderingMode[RenderingMode["GRAYSCALE"] = 1] = "GRAYSCALE";
     RenderingMode[RenderingMode["XRAY"] = 2] = "XRAY";
-    // _XRAY2 = 3,
+    // _XRAY2 = 3, // used internally in the shader
     RenderingMode[RenderingMode["XRAY_ULTRA"] = 4] = "XRAY_ULTRA";
 })(RenderingMode = exports.RenderingMode || (exports.RenderingMode = {}));
 var ViewType;

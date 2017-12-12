@@ -115,7 +115,10 @@ export class InteractiveClipping implements IPlugin {
             var BC = vec3.subtract(vec3.create(), C, B);
             var N = vec3.cross(vec3.create(), BA, BC);
 
-            viewer.clip([B[0], B[1], B[2]], [N[0], N[1], N[2]]);
+            // discard any previous clippings
+            viewer.unclip();
+            // set clipping A for all handles
+            viewer.clipA([B[0], B[1], B[2]], [N[0], N[1], N[2]]);
 
             //clean
             svg.parentNode.removeChild(svg);

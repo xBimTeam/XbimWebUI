@@ -104,8 +104,8 @@ document['resetWalls'] = function () {
     viewer.setState(state_1.State.UNDEFINED, types.IFCWALL);
 };
 document['clip'] = function () {
-    viewer.clippingPlaneA = [0, 0, -1, 2000];
-    viewer.clippingPlaneB = [0, 0, 1, 100];
+    viewer.clipA([0, 0, 2000], [0, 0, -1]);
+    viewer.clipB([0, 0, -100], [0, 0, 1]);
 };
 document['unclip'] = function () {
     viewer.unclip();

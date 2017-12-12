@@ -93,6 +93,7 @@
     <TypeScriptCompile Include="Viewer\matrix\vec3.ts" />
     <TypeScriptCompile Include="Viewer\common\webgl-utils.ts" />
     <Content Include="Viewer\matrix\README.txt" />
+    <TypeScriptCompile Include="Viewer\model-pointers.ts" />
     <Content Include="Viewer\plugins\NavigationCube\cube_fshader.c" />
     <Content Include="Viewer\plugins\NavigationCube\cube_vshader.c" />
     <Content Include="Resources\doctemplate\publish.js" />
