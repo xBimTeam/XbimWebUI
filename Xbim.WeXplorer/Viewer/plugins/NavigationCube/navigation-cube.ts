@@ -207,7 +207,10 @@ export class NavigationCube implements IPlugin {
         }
 
         viewer.canvas.addEventListener('mousemove',
-            function (event) {
+            (event) => {
+                // user doing anything should cause redraw in case there is any form of interaction
+                viewer.changed = true;
+
                 var startX = event.clientX;
                 var startY = event.clientY;
 

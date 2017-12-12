@@ -111,8 +111,7 @@ document['clip'] = function () {
     viewer.clippingPlaneB = [0, 0, 1, 100];
 }  
 document['unclip'] = function () {
-    viewer.clippingPlaneA = null;
-    viewer.clippingPlaneB = null;
+    viewer.unclip();
 }
 document['takeSnapshot'] = function () {
     var img = viewer.getCurrentImageDataUrl();

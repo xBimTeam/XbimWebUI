@@ -43,6 +43,11 @@ export class ModelHandle {
 
     public region: Region;
 
+    /**
+     * Indicates if there are any changes to be drawn
+     */
+    public changed: boolean = true;
+
     private _numberOfIndices: number;
     private _vertexTextureSize: number;
     private _matrixTextureSize: number;
@@ -60,10 +65,35 @@ export class ModelHandle {
     private _transformationBuffer: WebGLBuffer;
 
     private get _drawProduct() { return this.drawProductId >= 0; }
+    private _clippingPlaneA: number[] = null;
+    private _clippingPlaneB: number[] = null;
+    private _clippingA: boolean = false;
+    private _clippingB: boolean = false;
+
+    public set clippingPlaneA(plane: number[]) {
+        this._clippingPlaneA = plane;
+        this._clippingA = plane != null;
+        this.changed = true;
+    }
+
+    public get clippingPlaneA(): number[] {
+        return this._clippingPlaneA;
+    }
+
+    public set clippingPlaneB(plane: number[]) {
+        this._clippingPlaneB = plane;
+        this._clippingB = plane != null;
+        this.changed = true;
+    }
+
+    public get clippingPlaneB(): number[] {
+        return this._clippingPlaneA;
+    }
 
     constructor(
         private _gl: WebGLRenderingContext,
         private _model: ModelGeometry) {
+
         if (typeof (_gl) == 'undefined' || typeof (_model) == 'undefined') {
             throw 'WebGL context and geometry model must be specified';
         }
@@ -168,6 +198,16 @@ export class ModelHandle {
         gl.uniform1i(pointers.VertexTextureSizeUniform, this._vertexTextureSize);
         gl.uniform1i(pointers.MatrixTextureSizeUniform, this._matrixTextureSize);
         gl.uniform1i(pointers.StyleTextureSizeUniform, this._styleTextureSize);
+
+        //clipping uniforms
+        gl.uniform1i(pointers.ClippingAUniform, this._clippingA ? 1 : 0);
+        gl.uniform1i(pointers.ClippingBUniform, this._clippingB ? 1 : 0);
+        if (this._clippingA) {
+            gl.uniform4fv(pointers.ClippingPlaneAUniform, new Float32Array(this._clippingPlaneA));
+        }
+        if (this._clippingB) {
+            gl.uniform4fv(pointers.ClippingPlaneBUniform, new Float32Array(this._clippingPlaneB));
+        }
     }
 
     //this function must be called AFTER 'setActive()' function which sets up active buffers and uniforms
@@ -175,6 +215,9 @@ export class ModelHandle {
         if (this.stopped) return;
 
         var gl = this._gl;
+
+        // reset flag because current state is drawn
+        this.changed = false;
 
         if (typeof (mode) === 'undefined') {
             //draw image frame

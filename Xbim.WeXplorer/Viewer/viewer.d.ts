@@ -25,6 +25,7 @@ export declare class Viewer {
     origin: number[];
     lightA: number[];
     lightB: number[];
+    changed: boolean;
     gl: WebGLRenderingContext;
     mvMatrix: Float32Array;
     pMatrix: Float32Array;
@@ -32,35 +33,20 @@ export declare class Viewer {
     private _isRunning;
     private _stateStyles;
     private _stateStyleTexture;
-    private _geometryLoaded;
     private _plugins;
-    private _stylingChanged;
     private _handles;
-    private _userAction;
+    private readonly _activeHandles;
     private _shaderProgram;
     private _mvMatrixUniformPointer;
     private _pMatrixUniformPointer;
     private _lightAUniformPointer;
     private _lightBUniformPointer;
     private _colorCodingUniformPointer;
-    private _clippingPlaneAUniformPointer;
-    private _clippingAUniformPointer;
-    private _clippingPlaneBUniformPointer;
-    private _clippingBUniformPointer;
     private _meterUniformPointer;
     private _renderingModeUniformPointer;
     private _highlightingColourUniformPointer;
     private _stateStyleSamplerUniform;
     private _events;
-    private _numberOfActiveModels;
-    private _lastStates;
-    private _visualStateAttributes;
-    private _clippingPlaneA;
-    private _clippingA;
-    private _clippingPlaneB;
-    private _clippingB;
-    private _lastClippingPoint;
-    private _isShiftKeyDown;
     private _fpt;
     private _pointers;
     /**
@@ -279,9 +265,9 @@ export declare class Viewer {
     * @function Viewer#draw
     * @fires Viewer#frame
     */
-    draw(force: boolean, framebuffer?: Framebuffer): void;
-    private _lastActiveHandlesCount;
-    private isChanged();
+    draw(framebuffer?: Framebuffer): void;
+    private drawXRAY(gl);
+    private updatePMatrix(width, height);
     /**
     * Use this method to get actual camera position.
     * @function Viewer#getCameraPosition
@@ -395,14 +381,6 @@ export declare class Viewer {
     disableTextSelection(): void;
     enableTextSelection(): void;
     /**
-    * This method can be used to get parameter of the current clipping plane. If no clipping plane is active
-    * this returns [[0,0,0],[0,0,0]];
-    *
-    * @function xViewer#getClip
-    * @return  {Number[][]} Point and normal defining current clipping plane
-    */
-    getClip(): number[][];
-    /**
     * Use this method to clip the model. Use {@link xViewer#unclip unclip()} method to
     * unset clipping plane.
     *
@@ -414,9 +392,8 @@ export declare class Viewer {
     clip(point: number[], normal: number[]): void;
     /**
     * This method will cancel any clipping plane if it is defined. Use {@link xViewer#clip clip()}
-    * method to define clipping by point and normal of the plane or interactively if you call it with no arguments.
+    * method to define clipping by point and normal of the plane.
     * @function xViewer#unclip
-    * @fires xViewer#unclipped
     */
     unclip(): void;
     clippingPlaneA: number[];
@@ -435,13 +412,17 @@ export declare class ModelPointers {
     VertexTextureSizeUniform: WebGLUniformLocation;
     MatrixTextureSizeUniform: WebGLUniformLocation;
     StyleTextureSizeUniform: WebGLUniformLocation;
+    ClippingAUniform: WebGLUniformLocation;
+    ClippingBUniform: WebGLUniformLocation;
+    ClippingPlaneAUniform: WebGLUniformLocation;
+    ClippingPlaneBUniform: WebGLUniformLocation;
     constructor(gl: WebGLRenderingContext, program: WebGLProgram);
 }
 export declare enum RenderingMode {
     NORMAL = 0,
     GRAYSCALE = 1,
     XRAY = 2,
-    _XRAY2 = 3,
+    XRAY_ULTRA = 4,
 }
 export declare enum ViewType {
     TOP = 0,

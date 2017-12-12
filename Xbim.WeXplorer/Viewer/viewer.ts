@@ -27,20 +27,19 @@ export class Viewer {
     public origin: number[];
     public lightA: number[];
     public lightB: number[];
+    public changed: boolean = false;
 
     public gl: WebGLRenderingContext;
     public mvMatrix: Float32Array;
     public pMatrix: Float32Array;
     public renderingMode: RenderingMode;
 
-    private _isRunning: boolean;
+    private _isRunning: boolean = false;
     private _stateStyles: Uint8Array;
     private _stateStyleTexture: WebGLTexture;
-    private _geometryLoaded: boolean;
     private _plugins: IPlugin[];
-    private _stylingChanged: boolean;
     private _handles: ModelHandle[];
-    private _userAction: boolean;
+    private get _activeHandles() { return this._handles.filter((h) => { return !h.stopped }); };
     private _shaderProgram: WebGLProgram;
 
     private _mvMatrixUniformPointer: WebGLUniformLocation;
@@ -48,25 +47,12 @@ export class Viewer {
     private _lightAUniformPointer: WebGLUniformLocation;
     private _lightBUniformPointer: WebGLUniformLocation;
     private _colorCodingUniformPointer: WebGLUniformLocation;
-    private _clippingPlaneAUniformPointer: WebGLUniformLocation;
-    private _clippingAUniformPointer: WebGLUniformLocation;
-    private _clippingPlaneBUniformPointer: WebGLUniformLocation;
-    private _clippingBUniformPointer: WebGLUniformLocation;
     private _meterUniformPointer: WebGLUniformLocation;
     private _renderingModeUniformPointer: WebGLUniformLocation;
     private _highlightingColourUniformPointer: WebGLUniformLocation;
     private _stateStyleSamplerUniform: WebGLUniformLocation;
 
     private _events: { [id: string]: Function[]; };
-    private _numberOfActiveModels: number;
-    private _lastStates: { [id: string]: string };
-    private _visualStateAttributes: string[];
-    private _clippingPlaneA: number[];
-    private _clippingA: boolean;
-    private _clippingPlaneB: number[];
-    private _clippingB: boolean;
-    private _lastClippingPoint: number[];
-    private _isShiftKeyDown: boolean = false;
 
     private _fpt: any;
     private _pointers: ModelPointers;
@@ -187,17 +173,7 @@ export class Viewer {
         * @member {String} Viewer#renderingMode
         */
         this.renderingMode = RenderingMode.NORMAL;
-        /** 
-        * Clipping plane [a, b, c, d] defined as normal equation of the plane ax + by + cz + d = 0. [0,0,0,0] is for no clipping plane.
-        * @member {Number[]} Viewer#clippingPlaneA
-        */
-        this._clippingPlaneA = [0, 0, 0, 0];
-
-        /** 
-        * Clipping plane [a, b, c, d] defined as normal equation of the plane ax + by + cz + d = 0. [0,0,0,0] is for no clipping plane.
-        * @member {Number[]} Viewer#clippingPlaneB
-        */
-        this._clippingPlaneB = [0, 0, 0, 0];
+       
 
 
         //*************************** Do all the set up of WebGL **************************
@@ -236,21 +212,6 @@ export class Viewer {
         this.width = this.canvas.width = this.canvas.offsetWidth;
         this.height = this.canvas.height = this.canvas.offsetHeight;
 
-        this._geometryLoaded = false;
-        //number of active models is used to indicate that state has changed
-        this._numberOfActiveModels = 0;
-        //this object is used to identify if anything changed between two frames (hence if it is necessary to redraw)
-        this._lastStates = {};
-        this._visualStateAttributes = [
-            'perspectiveCamera', 'orthogonalCamera', 'camera', 'background', 'lightA', 'lightB',
-            'renderingMode', '_clippingA', '_clippingB', 'mvMatrix', '_pMatrix', 'distance', 'origin', 'highlightingColour',
-            '_numberOfActiveModels', "width", "height"
-        ];
-        this._stylingChanged = true;
-
-        //this is to indicate that user has done some interaction
-        this._userAction = true;
-
         //dictionary of named events which can be registered and unregistered by using '.on('eventname', callback)'
         // and '.off('eventname', callback)'. Registered call-backs are triggered by the viewer when important events occur.
         this._events = {};
@@ -272,9 +233,6 @@ export class Viewer {
         //Array of handles which can eventually contain handles to one or more models.
         //Models are loaded using 'load()' function.
         this._handles = [];
-
-        //This is a switch which can stop animation.
-        this._isRunning = true;
 
         //********************** Run all the initialize functions *****************************
         //compile shaders for use
@@ -443,10 +401,14 @@ export class Viewer {
 
         //reset data in GPU
         let gl = this.setActive();
+
+        //update overlay styles
+        gl.activeTexture(gl.TEXTURE4);
+        gl.bindTexture(gl.TEXTURE_2D, this._stateStyleTexture);
         ModelHandle.bufferTexture(gl, this._stateStyleTexture, this._stateStyles);
 
         //set flag
-        this._stylingChanged = true;
+        this.changed = true;
     }
 
     /**
@@ -467,7 +429,7 @@ export class Viewer {
         }
 
         this.forHandleOrAll((h: ModelHandle) => { h.setState(state, target); }, modelId);
-        this._stylingChanged = true;
+        this.changed = true;
     }
 
     /**
@@ -530,7 +492,7 @@ export class Viewer {
                 h.setState(State.HIDDEN, ProductType.IFCSPACE);
         }, modelId);
 
-        this._stylingChanged = true;
+        this.changed = true;
     }
 
     public getCurrentImageHtml(width: number = this.width, height: number = this.height): HTMLImageElement {
@@ -544,7 +506,7 @@ export class Viewer {
         let frame = new Framebuffer(this.gl, width, height);
 
         //force draw into defined framebuffer
-        this.draw(true, frame);
+        this.draw(frame);
 
         let result = frame.getImageDataUrl();
         //free resources
@@ -585,7 +547,7 @@ export class Viewer {
         }
 
         handle.restoreModelState(state);
-        this._stylingChanged = true;
+        this.changed = true;
     }
 
     /**
@@ -615,7 +577,7 @@ export class Viewer {
             handle.setState(style, target);
         }, modelId);
 
-        this._stylingChanged = true;
+        this.changed = true;
     }
 
     /**
@@ -643,7 +605,7 @@ export class Viewer {
             handle.resetStyles();
         }, modelId);
 
-        this._stylingChanged = true;
+        this.changed = true;
     }
 
     /**
@@ -877,9 +839,8 @@ export class Viewer {
             viewer.show(ViewType.DEFAULT);
         }
 
-        viewer._geometryLoaded = true;
         // force redraw so when 'loaded' is called listeners can operate with current canvas.
-        viewer.draw(true);
+        viewer.changed = true;
 
         /**
          * Occurs when geometry model is loaded into the viewer. This event returns object containing ID of the model.
@@ -910,7 +871,7 @@ export class Viewer {
         //remove from the array
         var index = this._handles.indexOf(handle);
         this._handles.splice(index, 1);
-        this._numberOfActiveModels = this._handles.length;
+        this.changed = true;
 
         //unload and delete
         handle.unload();
@@ -972,10 +933,6 @@ export class Viewer {
         this._lightAUniformPointer = gl.getUniformLocation(this._shaderProgram, 'ulightA');
         this._lightBUniformPointer = gl.getUniformLocation(this._shaderProgram, 'ulightB');
         this._colorCodingUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uColorCoding');
-        this._clippingPlaneAUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uClippingPlaneA');
-        this._clippingAUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uClippingA');
-        this._clippingPlaneBUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uClippingPlaneB');
-        this._clippingBUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uClippingB');
         this._meterUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uMeter');
         this._renderingModeUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uRenderingMode');
         this._highlightingColourUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uHighlightColour');
@@ -1013,6 +970,7 @@ export class Viewer {
         var viewer = this;
 
         var mouseDown = false;
+        var isShiftKeyDown = false;
         var lastMouseX = null;
         var lastMouseY = null;
         var startX = null;
@@ -1128,7 +1086,7 @@ export class Viewer {
             lastMouseY = newY;
 
             if (button === 'left') {
-                if (viewer._isShiftKeyDown) {
+                if (isShiftKeyDown) {
                     this.navigate('pan', deltaX, deltaY);
                 } else {
                     switch (viewer.navigationMode) {
@@ -1204,24 +1162,17 @@ export class Viewer {
         window.addEventListener('mouseup', (event) => handleMouseUp(event), true);
         window.addEventListener('mousemove', (event) => handleMouseMove(event), true);
 
-        // user doing anything should cause redraw in case there is any for of interaction
-        this.canvas.addEventListener('mousemove',
-            () => {
-                viewer._userAction = true;
-            },
-            true);
-
         //listen to key events to help navigation
         document.addEventListener('keydown', (event: KeyboardEvent) => {
             if (event.key === 'Shift') {
-                this._isShiftKeyDown = true;
+                isShiftKeyDown = true;
                 return;
             }
         }, false);
 
         document.addEventListener('keyup', (event: KeyboardEvent) => {
             if (event.key === 'Shift') {
-                this._isShiftKeyDown = false;
+                isShiftKeyDown = false;
                 return;
             }
         }, false);
@@ -1477,12 +1428,9 @@ export class Viewer {
     * @function Viewer#draw
     * @fires Viewer#frame
     */
-    public draw(force: boolean, framebuffer?: Framebuffer) {
-        if (!force) {
-            if (!this._isRunning || !this._geometryLoaded || this._handles.length == 0 || !(this._stylingChanged || this.isChanged())) {
-                if (!this._userAction) return;
-            }
-            this._userAction = false;
+    public draw(framebuffer?: Framebuffer) {
+        if (this._handles.length === 0) {
+            return;
         }
 
         //call all before-draw plugins
@@ -1494,59 +1442,28 @@ export class Viewer {
         });
 
         var gl = this.setActive();
-
-        //styles are up to date when new frame is drawn
-        if (this._stylingChanged) {
-            //update overlay styles
-            gl.activeTexture(gl.TEXTURE4);
-            gl.bindTexture(gl.TEXTURE_2D, this._stateStyleTexture);
-            gl.uniform1i(this._stateStyleSamplerUniform, 4);
-            //set the flag
-            this._stylingChanged = false;
-        }
-
         gl.useProgram(this._shaderProgram);
 
         let width = framebuffer ? framebuffer.width : this.width;
         let height = framebuffer ? framebuffer.height : this.height;
 
+        // set styling texture
+        gl.activeTexture(gl.TEXTURE4);
+        gl.bindTexture(gl.TEXTURE_2D, this._stateStyleTexture);
+        gl.uniform1i(this._stateStyleSamplerUniform, 4);
 
+        // set right size of viewport
         gl.viewport(0, 0, width, height);
+        this.updatePMatrix(width, height);
 
+        // set background colour
         gl.clearColor(this.background[0] / 255,
             this.background[1] / 255,
             this.background[2] / 255,
             this.background[3] / 255);
+
+        // clear previous data in buffers
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-        //set up camera
-        switch (this.camera) {
-            case 'perspective':
-                mat4.perspective(this.pMatrix,
-                    this.perspectiveCamera.fov * Math.PI / 180.0,
-                    width / height,
-                    this.perspectiveCamera.near,
-                    this.perspectiveCamera.far);
-                break;
-
-            case 'orthogonal':
-                mat4.ortho(this.pMatrix,
-                    this.orthogonalCamera.left,
-                    this.orthogonalCamera.right,
-                    this.orthogonalCamera.bottom,
-                    this.orthogonalCamera.top,
-                    this.orthogonalCamera.near,
-                    this.orthogonalCamera.far);
-                break;
-
-            default:
-                mat4.perspective(this.pMatrix,
-                    this.perspectiveCamera.fov * Math.PI / 180.0,
-                    width / height,
-                    this.perspectiveCamera.near,
-                    this.perspectiveCamera.far);
-                break;
-        }
 
         //set uniforms (these may quickly change between calls to draw)
         gl.uniformMatrix4fv(this._pMatrixUniformPointer, false, this.pMatrix);
@@ -1554,16 +1471,6 @@ export class Viewer {
         gl.uniform4fv(this._lightAUniformPointer, new Float32Array(this.lightA));
         gl.uniform4fv(this._lightBUniformPointer, new Float32Array(this.lightB));
 
-
-        //clipping
-        gl.uniform1i(this._clippingAUniformPointer, this._clippingA ? 1 : 0);
-        gl.uniform1i(this._clippingBUniformPointer, this._clippingB ? 1 : 0);
-        if (this._clippingA) {
-            gl.uniform4fv(this._clippingPlaneAUniformPointer, new Float32Array(this._clippingPlaneA));
-        }
-        if (this._clippingB) {
-            gl.uniform4fv(this._clippingPlaneBUniformPointer, new Float32Array(this._clippingPlaneB));
-        }
         //use normal colour representation (1 would cause shader to use colour coding of IDs)
         gl.uniform1i(this._colorCodingUniformPointer, ColourCoding.NONE);
 
@@ -1589,33 +1496,8 @@ export class Viewer {
         // check for x-ray mode. XRAY mode uses 2 phase rendering to
         // sort out all transparency issues so that all selected objects are
         // properly visible
-        if (this.renderingMode == RenderingMode.XRAY) {
-            gl.enable(gl.CULL_FACE);
-
-            // only highlighted and x-ray visible
-            gl.uniform1i(this._renderingModeUniformPointer, RenderingMode.XRAY);
-            gl.enable(gl.DEPTH_TEST);
-            this._handles.forEach((handle) => {
-                if (!handle.stopped) {
-                    handle.setActive(this._pointers);
-                    handle.draw();
-                }
-            });
-
-            // the rest as semitransparent overlay
-            gl.uniform1i(this._renderingModeUniformPointer, RenderingMode._XRAY2);
-            // disable writing to depth buffer. This will respect depth buffer
-            // from first pass but will render everything from this pass as
-            // semitransparent without depth testing
-            gl.depthMask(false);
-            this._handles.forEach((handle) => {
-                if (!handle.stopped) {
-                    handle.setActive(this._pointers);
-                    handle.draw();
-                }
-            });
-            gl.depthMask(true);
-
+        if (this.renderingMode === RenderingMode.XRAY || this.renderingMode === RenderingMode.XRAY_ULTRA) {
+            this.drawXRAY(gl);
         } else {
             gl.disable(gl.CULL_FACE);
             gl.enable(gl.DEPTH_TEST);
@@ -1644,33 +1526,91 @@ export class Viewer {
             }
             plugin.onAfterDraw(width, height);
         });
-
-        /**
-         * Occurs after every frame in animation. Don't do anything heavy weighted in here as it will happen about 60 times in a second all the time.
-         *
-         * @event Viewer#frame 
-         * @type {object}
-         */
-        if (!framebuffer && !force) {
-            this.fire('frame', {});
-        }
     };
 
-    private _lastActiveHandlesCount: number = 0;
-    private isChanged() {
-        var theSame = true;
-        this._visualStateAttributes.forEach((vsa) => {
-            var state = JSON.stringify(this[vsa]);
-            var lastState = this._lastStates[vsa];
-            this._lastStates[vsa] = state;
-            theSame = theSame && (state === lastState)
-        });
+    private drawXRAY(gl: WebGLRenderingContext)
+    {
+        gl.enable(gl.CULL_FACE);
+        const mode = this.renderingMode;
 
-        var activeHandlesCount = this._handles.filter((h) => !h.stopped).length;
-        theSame = theSame && (this._lastActiveHandlesCount == activeHandlesCount);
-        this._lastActiveHandlesCount = activeHandlesCount
+        const transparentPass = () => {
+            // the rest as semitransparent overlay
+            gl.uniform1i(this._renderingModeUniformPointer, 3);
+            // disable writing to depth buffer. This will respect depth buffer
+            // from first pass but will render everything from this pass as
+            // semitransparent without depth testing
+            gl.depthMask(false);
+            this._handles.forEach((handle) => {
+                if (!handle.stopped) {
+                    handle.setActive(this._pointers);
+                    handle.draw();
+                }
+            });
+            gl.depthMask(true);
+        };
 
-        return !theSame;
+        const highlightedPass = () => {
+
+            // only highlighted and x-ray visible
+            gl.uniform1i(this._renderingModeUniformPointer, RenderingMode.XRAY);
+            gl.enable(gl.DEPTH_TEST);
+            this._handles.forEach((handle) => {
+                if (!handle.stopped) {
+                    handle.setActive(this._pointers);
+                    handle.draw();
+                }
+            });
+        };
+
+        // transparent objects are drawn on top of highlighted
+        // content but it never hides it. Transparent layer
+        // doesn't write into depth buffer but only uses highlighted
+        // elements depth buffer so it doesn't hide anything but makes
+        // colour overlay on top of highlighted elements which may make them less 
+        // visible
+        if (mode === RenderingMode.XRAY) {
+            highlightedPass();
+            transparentPass();
+        }
+
+        // this will make highlighted elements overriding
+        // all transparent objects to it will be always clearly
+        // visible. But it might not look right.
+        if (mode === RenderingMode.XRAY_ULTRA) {
+            transparentPass();
+            highlightedPass();
+        }
+    }
+
+    private updatePMatrix(width: number, height: number) {
+        //set up cameras
+        switch (this.camera) {
+            case 'perspective':
+                mat4.perspective(this.pMatrix,
+                    this.perspectiveCamera.fov * Math.PI / 180.0,
+                    width / height,
+                    this.perspectiveCamera.near,
+                    this.perspectiveCamera.far);
+                break;
+
+            case 'orthogonal':
+                mat4.ortho(this.pMatrix,
+                    this.orthogonalCamera.left,
+                    this.orthogonalCamera.right,
+                    this.orthogonalCamera.bottom,
+                    this.orthogonalCamera.top,
+                    this.orthogonalCamera.near,
+                    this.orthogonalCamera.far);
+                break;
+
+            default:
+                mat4.perspective(this.pMatrix,
+                    this.perspectiveCamera.fov * Math.PI / 180.0,
+                    width / height,
+                    this.perspectiveCamera.near,
+                    this.perspectiveCamera.far);
+                break;
+        }
     }
 
     /**
@@ -1836,35 +1776,9 @@ export class Viewer {
         x = x / factor;
         y = y / factor;
 
+        const fb = new Framebuffer(gl, width, height);
         //create framebuffer
-        var frameBuffer = gl.createFramebuffer();
-        gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
-
-        // create renderbuffer
-        var renderBuffer = gl.createRenderbuffer();
-        gl.bindRenderbuffer(gl.RENDERBUFFER, renderBuffer);
-        // allocate renderbuffer
-        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
-
-        var texture = gl.createTexture();
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-        // Set the parameters so we can render any image size.        
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-
-
-        // attach renderbuffer and texture
-        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderBuffer);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
-
-        if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE) {
-            this.error('this combination of attachments does not work');
-            return null;
-        }
+        var frameBuffer = fb.framebuffer;
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
         gl.viewport(0, 0, width, height);
@@ -1905,9 +1819,7 @@ export class Viewer {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
         //free GPU memory
-        gl.deleteTexture(texture);
-        gl.deleteRenderbuffer(renderBuffer);
-        gl.deleteFramebuffer(frameBuffer);
+        fb.delete();
 
         //set back blending
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -1948,18 +1860,23 @@ export class Viewer {
                 throw "Model doesn't exist.";
 
             handle.stopped = false;
-            this._numberOfActiveModels++;
+            this.changed = true;
             return;
         }
 
-        this._isRunning = true;
-        this._userAction = true; // force redraw in case some config has changed
+        this.changed = true;
 
-        var viewer = this;
+        if (this._isRunning) {
+            return;
+        }
+
+        // unblock the rendering loop
+        this._isRunning = true;
+
         var lastTime = new Date();
         var counter = 0;
 
-        function tick() {
+        const tick = () => {
             counter++;
             if (counter == 30) {
                 counter = 0;
@@ -1973,13 +1890,18 @@ export class Viewer {
                 * @event Viewer#fps 
                 * @type {Number}
                 */
-                viewer.fire('fps', Math.floor(fps));
+                this.fire('fps', Math.floor(fps));
             }
 
-            if (viewer._isRunning) {
-                window.requestAnimationFrame(tick)
-                viewer.draw(false)
+            if (!this._isRunning) {
+                return;
             }
+
+            if (this._handles.length !== 0 && (this.changed || this._activeHandles.filter(h => h.changed).length != 0)) {
+                this.draw();
+                this.changed = false;
+            }
+            window.requestAnimationFrame(tick)
         }
 
         tick();
@@ -2003,7 +1925,7 @@ export class Viewer {
             throw "Model doesn't exist.";
 
         model.stopped = true;
-        this._numberOfActiveModels--;
+        this.changed = true;
     }
 
     /**
@@ -2016,7 +1938,7 @@ export class Viewer {
 
         this._handles.forEach((model) => {
             model.stopped = true;
-            this._numberOfActiveModels--;
+            this.changed = true;
         });
 
         // we can stop the loop when there isn't anything to draw
@@ -2060,7 +1982,7 @@ export class Viewer {
 
         this._handles.forEach((model) => {
             model.stopped = false;
-            this._numberOfActiveModels++;
+            this.changed = true;
         });
         // make sure the viewer is running
         this._isRunning = true;
@@ -2169,37 +2091,6 @@ export class Viewer {
         document.documentElement.style['user-select'] = 'text';
     }
 
-   
-
-    /**
-    * This method can be used to get parameter of the current clipping plane. If no clipping plane is active
-    * this returns [[0,0,0],[0,0,0]];
-    *
-    * @function xViewer#getClip
-    * @return  {Number[][]} Point and normal defining current clipping plane
-    */
-    public getClip(): number[][] {
-        var cp = this._clippingPlaneA;
-        if (!this._clippingA || cp.every((e) => { return e === 0; })) {
-            return [[0, 0, 0], [0, 0, 0]];
-        }
-
-        var normal = vec3.normalize(vec3.create(), [cp[0], cp[1], cp[2]]);
-
-        //test if the last clipping point fits in the condition
-        var lp = this._lastClippingPoint;
-        var test = lp[0] * cp[0] + lp[1] * cp[1] + lp[2] * cp[2] + cp[3];
-        if (Math.abs(test) < 1e-5) {
-            return [lp, [normal[0], normal[1], normal[2]]];
-        }
-
-        //find the point on the plane
-        var x = cp[0] !== 0 ? -1.0 * cp[3] / cp[0] : 0.0;
-        var y = cp[1] !== 0 ? -1.0 * cp[3] / cp[1] : 0.0;
-        var z = cp[2] !== 0 ? -1.0 * cp[3] / cp[2] : 0.0;
-
-        return [[x, y, z], [normal[0], normal[1], normal[2]]];
-    }
 
     /**
     * Use this method to clip the model. Use {@link xViewer#unclip unclip()} method to 
@@ -2211,74 +2102,54 @@ export class Viewer {
     * @fires xViewer#clipped
     */
     public clip(point: number[], normal: number[]) {
-
-        if (typeof (point) != 'undefined' && typeof (normal) != 'undefined') {
-
-            this._lastClippingPoint = point;
-
-            //compute normal equation of the plane
-            var d = 0.0 - normal[0] * point[0] - normal[1] * point[1] - normal[2] * point[2];
-
-            //set clipping plane
-            this.clippingPlaneA = [normal[0], normal[1], normal[2], d]
-
-            /**
-            * Occurs when model is clipped. This event has empty object.
-            *
-            * @event xViewer#clipped
-            * @type {object}
-            */
-            this.fire('clipped', {});
-            return;
+        if (point == null || normal == null) {
+            throw new Error('Cutting plane not well defined');
         }
+
+        //compute normal equation of the plane
+        var d = 0.0 - normal[0] * point[0] - normal[1] * point[1] - normal[2] * point[2];
+
+        //set clipping plane for all models
+        this._handles.forEach((h) => {
+            h.clippingPlaneA = [normal[0], normal[1], normal[2], d]
+        });
     }
-
-
 
     /**
     * This method will cancel any clipping plane if it is defined. Use {@link xViewer#clip clip()} 
-    * method to define clipping by point and normal of the plane or interactively if you call it with no arguments.
+    * method to define clipping by point and normal of the plane.
     * @function xViewer#unclip
-    * @fires xViewer#unclipped
     */
     public unclip(): void {
-        this.clippingPlaneA = null;
-        this.clippingPlaneB = null;
-    }
-
-    public set clippingPlaneA(plane: number[]) {
-        this._clippingPlaneA = plane;
-        this._clippingA = plane != null;
-        if (this._clippingA) {
-            this.fire('clipped', {});
-        } else {
-            /**
-          * Occurs when clipping of the model is dismissed. This event has empty object.
-          *
-          * @event xViewer#unclipped
-          * @type {object}
-          */
-            this.fire('unclipped', {});
-        }
+        this._handles.forEach((h) => {
+            h.clippingPlaneA = null;
+            h.clippingPlaneB = null;
+        });
     }
 
     public get clippingPlaneA(): number[] {
-        return this._clippingPlaneA;
-    }
-
-    public set clippingPlaneB(plane: number[]) {
-        this._clippingPlaneB = plane;
-        this._clippingB = plane != null;
-        if (this._clippingA) {
-            this.fire('clipped', {});
-        } else {
-
-            this.fire('unclipped', {});
+        const handle = this._handles.filter(h => h.clippingPlaneA != null).pop()
+        if (handle != null) {
+            return handle.clippingPlaneA;
         }
+        return null;
     }
-
+    public set clippingPlaneA(plane: number[]) {
+        this._handles.forEach((h) => {
+            h.clippingPlaneA = plane;
+        });
+    }
     public get clippingPlaneB(): number[] {
-        return this._clippingPlaneA;
+        const handle = this._handles.filter(h => h.clippingPlaneB != null).pop()
+        if (handle != null) {
+            return handle.clippingPlaneB;
+        }
+        return null;
+    }
+    public set clippingPlaneB(plane: number[]) {
+        this._handles.forEach((h) => {
+            h.clippingPlaneB = plane;
+        });
     }
 }
 
@@ -2297,6 +2168,11 @@ export class ModelPointers {
     public MatrixTextureSizeUniform: WebGLUniformLocation;
     public StyleTextureSizeUniform: WebGLUniformLocation;
 
+    public ClippingAUniform: WebGLUniformLocation;
+    public ClippingBUniform: WebGLUniformLocation;
+    public ClippingPlaneAUniform: WebGLUniformLocation;
+    public ClippingPlaneBUniform: WebGLUniformLocation;
+
     constructor(gl: WebGLRenderingContext, program: WebGLProgram) {
 
         //get attribute pointers
@@ -2313,7 +2189,12 @@ export class ModelPointers {
         this.StyleSamplerUniform = gl.getUniformLocation(program, 'uStyleSampler');
         this.VertexTextureSizeUniform = gl.getUniformLocation(program, 'uVertexTextureSize');
         this.MatrixTextureSizeUniform = gl.getUniformLocation(program, 'uMatrixTextureSize');
-        this.StyleTextureSizeUniform = gl.getUniformLocation(program, 'uStyleTextureSize')
+        this.StyleTextureSizeUniform = gl.getUniformLocation(program, 'uStyleTextureSize');
+        this.ClippingPlaneAUniform = gl.getUniformLocation(program, 'uClippingPlaneA');
+        this.ClippingAUniform = gl.getUniformLocation(program, 'uClippingA');
+        this.ClippingPlaneBUniform = gl.getUniformLocation(program, 'uClippingPlaneB');
+        this.ClippingBUniform = gl.getUniformLocation(program, 'uClippingB');
+
 
         //enable vertex attributes arrays
         gl.enableVertexAttribArray(this.NormalAttrPointer);
@@ -2334,7 +2215,8 @@ export enum RenderingMode {
     NORMAL = 0,
     GRAYSCALE = 1,
     XRAY = 2,
-    _XRAY2 = 3
+    // _XRAY2 = 3,
+    XRAY_ULTRA = 4,
 }
 
 export enum ViewType {
