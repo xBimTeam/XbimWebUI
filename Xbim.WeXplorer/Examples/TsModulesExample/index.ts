@@ -2,6 +2,7 @@
 import { State } from "../../Viewer/state";
 import { ProductType } from "../../Viewer/product-type";
 import { NavigationCube } from "../../Viewer/plugins/NavigationCube/navigation-cube";
+import { Product } from "../../Viewer/product-inheritance";
 
 var QueryString = function () {
     // This function is anonymous, is executed immediately and 
@@ -37,6 +38,7 @@ window['types'] = types;
 window['states'] = states;
 window['RenderingMode'] = RenderingMode;
 window['ViewType'] = ViewType;
+window['product'] = Product;
 
 viewer.background = [0, 0, 0, 0];
 viewer.on("error", function (arg) {

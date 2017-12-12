@@ -4,6 +4,7 @@ var viewer_1 = require("../../Viewer/viewer");
 var state_1 = require("../../Viewer/state");
 var product_type_1 = require("../../Viewer/product-type");
 var navigation_cube_1 = require("../../Viewer/plugins/NavigationCube/navigation-cube");
+var product_inheritance_1 = require("../../Viewer/product-inheritance");
 var QueryString = function () {
     // This function is anonymous, is executed immediately and 
     // the return value is assigned to QueryString!
@@ -37,6 +38,7 @@ window['types'] = types;
 window['states'] = states;
 window['RenderingMode'] = viewer_1.RenderingMode;
 window['ViewType'] = viewer_1.ViewType;
+window['product'] = product_inheritance_1.Product;
 viewer.background = [0, 0, 0, 0];
 viewer.on("error", function (arg) {
     var container = viewer.canvas.parentNode;

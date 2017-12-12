@@ -395,6 +395,7 @@ var Viewer = (function () {
             return;
         plugin.init(this);
         this._plugins.push(plugin);
+        this.changed = true;
     };
     /**
     * Removes plugin from the viewer. Plugins can implement certain methods which get called in certain moments in time like
@@ -407,6 +408,7 @@ var Viewer = (function () {
         if (index < 0)
             return;
         this._plugins.splice(index, 1);
+        this.changed = true;
     };
     /**
     * Use this function to define up to 224 optional styles which you can use to change appearance of products and types if you pass the index specified in this function to {@link Viewer#setState setState()} function.

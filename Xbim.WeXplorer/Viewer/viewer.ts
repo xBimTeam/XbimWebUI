@@ -396,6 +396,7 @@ export class Viewer {
 
         plugin.init(this);
         this._plugins.push(plugin);
+        this.changed = true;
     }
 
     /**
@@ -408,6 +409,7 @@ export class Viewer {
         var index = this._plugins.indexOf(plugin, 0);
         if (index < 0) return;
         this._plugins.splice(index, 1);
+        this.changed = true;
     }
 
     /**
