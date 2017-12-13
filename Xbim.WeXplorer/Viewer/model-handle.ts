@@ -45,7 +45,8 @@ export class ModelHandle {
     public region: Region;
 
     /**
-     * Indicates if there are any changes to be drawn
+     * Indicates if there are any changes to be drawn.
+     * This flag is checked by the viewer to see if redraw is necessary
      */
     public changed: boolean = true;
 
@@ -473,6 +474,7 @@ export class ModelHandle {
 
         //buffer data to GPU
         this.bufferData(this._stateBuffer, this._model.states);
+        this.changed = true;
     }
 
     public resetStates(): void {
@@ -481,6 +483,7 @@ export class ModelHandle {
         }
         //buffer data to GPU
         this.bufferData(this._stateBuffer, this._model.states);
+        this.changed = true;
     }
 
     public resetStyles(): void {
@@ -489,6 +492,7 @@ export class ModelHandle {
         }
         //buffer data to GPU
         this.bufferData(this._stateBuffer, this._model.states);
+        this.changed = true;
     };
 
     public getModelState(): Array<Array<number>> {
@@ -531,6 +535,7 @@ export class ModelHandle {
 
         //buffer data to GPU
         this.bufferData(this._stateBuffer, this._model.states);
+        this.changed = true;
     }
 }
 
