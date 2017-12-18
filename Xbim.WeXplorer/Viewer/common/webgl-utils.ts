@@ -112,12 +112,12 @@ export class WebGLUtils {
             var container = canvas.parentNode as HTMLElement;
             if (container) {
                 let str: string = typeof (WebGLRenderingContext) !== "undefined" ?
-                    this.OTHER_PROBLEM :
-                    this.GET_A_WEBGL_BROWSER;
+                    WebGLUtils.OTHER_PROBLEM :
+                    WebGLUtils.GET_A_WEBGL_BROWSER;
                 if (msg) {
                     str += "<br/><br/>Status: " + msg;
                 }
-                container.innerHTML = this.makeFailHTML(str);
+                container.innerHTML = WebGLUtils.makeFailHTML(str);
             }
         };
 
@@ -128,7 +128,7 @@ export class WebGLUtils {
                 onError(event.statusMessage);
             }, false);
         }
-        var context = this.create3DContext(canvas, attribs);
+        var context = WebGLUtils.create3DContext(canvas, attribs);
         if (!context) {
             if (typeof (WebGLRenderingContext) === "undefined") {
                 onError("");

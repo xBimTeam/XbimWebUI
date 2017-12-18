@@ -63,6 +63,11 @@ export declare class Viewer {
      * @member {IPlugin[]} Viewer#plugins
      */
     readonly plugins: IPlugin[];
+    /**
+     * Returns number of units in active model (1000 is model is in mm)
+     * @member {Number} Viewer#unitsInMeter
+     */
+    readonly unitsInMeter: number;
     private _perspectiveCamera;
     private _orthogonalCamera;
     private _width;
@@ -89,7 +94,6 @@ export declare class Viewer {
     private _lightAUniformPointer;
     private _lightBUniformPointer;
     private _colorCodingUniformPointer;
-    private _meterUniformPointer;
     private _renderingModeUniformPointer;
     private _highlightingColourUniformPointer;
     private _stateStyleSamplerUniform;
@@ -288,6 +292,11 @@ export declare class Viewer {
     }): void;
     private addHandle(geometry, tag?);
     /**
+     * Sets camera parameters (near and far clipping planes) from current active models.
+     * This should be called whenever active models are very different (size, units)
+     */
+    setCameraFromCurrentModel(): void;
+    /**
      * Unloads model from the GPU. This action is not reversible.
      *
      * @param {Number} modelId - ID of the model which you can get from {@link Viewer#event:loaded loaded} event.
@@ -347,13 +356,22 @@ export declare class Viewer {
     };
     getID(x: number, y: number, modelId?: boolean): number;
     /**
-    * Use this function to start animation of the model. If you start animation before geometry is loaded it will wait for content to render it.
-    * This function is bound to browser framerate of the screen so it will stop consuming any resources if you switch to another tab.
-    *
-    * @function Viewer#start
-    * @param {Number} id [optional] - Optional ID of the model to be stopped. You can get this ID from {@link Viewer#event:loaded loaded} event.
-    */
-    start(id?: number): void;
+     * Stops all models and only shows a single product
+     * @param {Number} productId Product ID
+     * @param {Number} modelId Model ID
+     */
+    isolate(productId: number, modelId: number): void;
+    getIsolated(modelId: number): number;
+    /**
+     * Use this function to start animation of the model. If you start animation before geometry is loaded it will wait for content to render it.
+     * This function is bound to browser framerate of the screen so it will stop consuming any resources if you switch to another tab.
+     *
+     * @function Viewer#start
+     * @param {Number} modelId [optional] - Optional ID of the model to be stopped. You can get this ID from {@link Viewer#event:loaded loaded} event.
+     * @param {Number} productId [optional] - Optional ID of the product. If specified, only this product will be presented.
+     *                                        This is highly optimal because it doesn't even touch other data in the model
+     */
+    start(modelId?: number): void;
     /**
     * Use this function to stop animation of the model. User will still be able to see the latest state of the model. You can
     * switch animation of the model on again by calling {@link Viewer#start start()}.
@@ -376,6 +394,12 @@ export declare class Viewer {
      * @returns {boolean} True if model is loaded and running, false otherwise
      */
     isModelOn(id: number): boolean;
+    /**
+     * Checks if product with this ID exists in the model
+     * @param productId
+     * @param modelId
+     */
+    isProductInModel(productId: number, modelId: number): boolean;
     /**
      * Checks if the model with defined ID is currently loaded in the viewer.
      *
@@ -406,6 +430,11 @@ export declare class Viewer {
     * @param {Number} id - ID of the model to be stopped. You can get this ID from {@link Viewer#event:loaded loaded} event.
     */
     startPicking(id: number): void;
+    /**
+     * Returns true if model participates in picking, false otherwise
+     * @param {number} modelId ID of the model
+     */
+    isPickable(modelId: number): boolean;
     /**
      * Use this method to register to events of the viewer like {@link Viewer#event:pick pick}, {@link Viewer#event:mouseDown mouseDown},
      * {@link Viewer#event:loaded loaded} and others. You can define arbitrary number

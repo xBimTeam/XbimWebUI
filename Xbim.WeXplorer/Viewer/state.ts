@@ -8,5 +8,6 @@ export enum State {
     HIDDEN = 254,
     HIGHLIGHTED = 253,
     XRAYVISIBLE = 252,
+    PICKING_ONLY = 251,
     UNSTYLED = 225
 }

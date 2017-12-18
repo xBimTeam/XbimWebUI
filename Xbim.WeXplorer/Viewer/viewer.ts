@@ -1,6 +1,5 @@
 ﻿import { State } from './state';
 import { ProductType } from './product-type';
-import { ProductInheritance } from './product-inheritance';
 import { ModelGeometry, Region } from './model-geometry';
 import { ModelHandle, DrawMode } from './model-handle';
 import { Shaders } from './shaders/shaders';
@@ -83,6 +82,18 @@ export class Viewer {
      */
     public get plugins(): IPlugin[] { return this._plugins.slice(); }
 
+    /**
+     * Returns number of units in active model (1000 is model is in mm)
+     * @member {Number} Viewer#unitsInMeter
+     */
+    public get unitsInMeter(): number {
+        const info = this._activeHandles.map(h => h.meter);
+        if (info.length === 0) {
+            return null;
+        }
+        return info[0];
+    }
+
     private _perspectiveCamera: { fov: number, near: number, far: number };
     private _orthogonalCamera: { left: number, right: number, top: number, bottom: number, near: number, far: number }
     private _width: number;
@@ -111,12 +122,13 @@ export class Viewer {
     private _lightAUniformPointer: WebGLUniformLocation;
     private _lightBUniformPointer: WebGLUniformLocation;
     private _colorCodingUniformPointer: WebGLUniformLocation;
-    private _meterUniformPointer: WebGLUniformLocation;
     private _renderingModeUniformPointer: WebGLUniformLocation;
     private _highlightingColourUniformPointer: WebGLUniformLocation;
     private _stateStyleSamplerUniform: WebGLUniformLocation;
 
-    private _events: { [id: string]: Function[]; };
+    // dictionary of named events which can be registered and unregistered by using '.on('eventname', callback)'
+    // and '.off('eventname', callback)'. Registered call-backs are triggered by the viewer when important events occur.
+    private _events: { [id: string]: Function[]; } = {};
 
     private _fpt: any;
     private _pointers: ModelPointers;
@@ -236,10 +248,6 @@ export class Viewer {
         // it is better to cache this value because it is used frequently and it takes a time to get a value from HTML
         this.width = this.canvas.width = this.canvas.offsetWidth;
         this.height = this.canvas.height = this.canvas.offsetHeight;
-
-        //dictionary of named events which can be registered and unregistered by using '.on('eventname', callback)'
-        // and '.off('eventname', callback)'. Registered call-backs are triggered by the viewer when important events occur.
-        this._events = {};
 
         //array of plugins which can implement certain methods which get called at certain points like before draw, after draw and others.
         this._plugins = new Array<IPlugin>();
@@ -516,7 +524,7 @@ export class Viewer {
         this.forHandleOrAll((h: ModelHandle) => {
             h.resetStates();
             if (hideSpaces)
-                h.setState(State.HIDDEN, ProductType.IFCSPACE);
+                h.setState(State.HIDDEN, ProductType.IFCSPATIALELEMENT);
         }, modelId);
 
         this.changed = true;
@@ -704,7 +712,7 @@ export class Viewer {
         else {
             let region = this.getMergedRegion();
 
-            if (region) {
+            if (region && region.population > 0) {
                 this.origin = [region.centre[0], region.centre[1], region.centre[2]]
                 setDistance(region.bbox);
             }
@@ -715,7 +723,7 @@ export class Viewer {
     private getMergedRegion(): Region {
         let region = new Region();
         this._handles
-            .filter((h) => h != null && !h.stopped)
+            .filter((h) => h != null && !h.stopped && h.region != null)
             .forEach((h) => {
                 region = region.merge(h.region);
             });
@@ -830,44 +838,27 @@ export class Viewer {
     //this is a private function used to add loaded geometry as a new handle and to set up camera and 
     //default view if this is the first geometry loaded
     private addHandle(geometry: ModelGeometry, tag?: any): void {
-        var viewer = this;
         var gl = this.setActive();
+        var handle = new ModelHandle(gl, geometry);
 
-        var handle = new ModelHandle(viewer.gl, geometry);
         //assign handle used to identify the model
         handle.tag = tag;
-        viewer._handles.push(handle);
-
-        //get one meter size from model and set it to shader
-        var meter = handle.meter;
-        gl.uniform1f(viewer._meterUniformPointer, meter);
+        this._handles.push(handle);
 
         //only set camera parameters and the view if this is the first model
-        if (viewer._handles.length === 1) {
+        if (this._handles.length === 1) {
             //set perspective camera near and far based on 1 meter dimension and size of the model
-            var region = handle.region;
-            var maxSize = Math.max(region.bbox[3], region.bbox[4], region.bbox[5]);
-            viewer.perspectiveCamera.far = maxSize * 50;
-            viewer.perspectiveCamera.near = meter / 10.0;
-
-            //set orthogonalCamera boundaries so that it makes a sense
-            viewer.orthogonalCamera.far = viewer.perspectiveCamera.far;
-            viewer.orthogonalCamera.near = viewer.perspectiveCamera.near;
-            var ratio = 1.8;
-            viewer.orthogonalCamera.top = maxSize / ratio;
-            viewer.orthogonalCamera.bottom = maxSize / ratio * -1;
-            viewer.orthogonalCamera.left = maxSize / ratio * -1 * viewer.width / viewer.height;
-            viewer.orthogonalCamera.right = maxSize / ratio * viewer.width / viewer.height;
+            this.setCameraFromCurrentModel();
 
             //set centre and default distance based on the most populated region in the model
-            viewer.setCameraTarget();
+            this.setCameraTarget();
 
             //set default view
-            viewer.show(ViewType.DEFAULT);
+            this.show(ViewType.DEFAULT);
         }
 
         // force redraw so when 'loaded' is called listeners can operate with current canvas.
-        viewer.changed = true;
+        this.changed = true;
 
         /**
          * Occurs when geometry model is loaded into the viewer. This event returns object containing ID of the model.
@@ -879,8 +870,35 @@ export class Viewer {
          * @param {Any} tag - tag which was passed to 'Viewer.load()' function
          * 
         */
-        viewer.fire('loaded', { id: handle.id, tag: tag })
+        this.fire('loaded', { id: handle.id, tag: tag })
     };
+
+    /**
+     * Sets camera parameters (near and far clipping planes) from current active models.
+     * This should be called whenever active models are very different (size, units)
+     */
+    public setCameraFromCurrentModel()
+    {
+        if (this._activeHandles.length === 0) {
+            return;
+        }
+
+        const region = this.getMergedRegion();
+        const meter = this._activeHandles[0].meter;
+        var maxSize = Math.max(region.bbox[3], region.bbox[4], region.bbox[5]);
+        this.perspectiveCamera.far = maxSize * 50;
+        this.perspectiveCamera.near = meter / 10.0;
+
+        //set orthogonalCamera boundaries so that it makes a sense
+        this.orthogonalCamera.far =  this.perspectiveCamera.far;
+        this.orthogonalCamera.near = this.perspectiveCamera.near;
+        var ratio = 1.8;
+        this.orthogonalCamera.top = maxSize / ratio;
+        this.orthogonalCamera.bottom = maxSize / ratio * -1;
+        this.orthogonalCamera.left = maxSize / ratio * -1 * this.width / this.height;
+        this.orthogonalCamera.right = maxSize / ratio * this.width / this.height;
+
+    }
 
     /**
      * Unloads model from the GPU. This action is not reversible.
@@ -960,7 +978,6 @@ export class Viewer {
         this._lightAUniformPointer = gl.getUniformLocation(this._shaderProgram, 'ulightA');
         this._lightBUniformPointer = gl.getUniformLocation(this._shaderProgram, 'ulightB');
         this._colorCodingUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uColorCoding');
-        this._meterUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uMeter');
         this._renderingModeUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uRenderingMode');
         this._highlightingColourUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uHighlightColour');
         this._stateStyleSamplerUniform = gl.getUniformLocation(this._shaderProgram, 'uStateStyleSampler');
@@ -1873,21 +1890,52 @@ export class Viewer {
     }
 
     /**
-    * Use this function to start animation of the model. If you start animation before geometry is loaded it will wait for content to render it.
-    * This function is bound to browser framerate of the screen so it will stop consuming any resources if you switch to another tab.
-    *
-    * @function Viewer#start
-    * @param {Number} id [optional] - Optional ID of the model to be stopped. You can get this ID from {@link Viewer#event:loaded loaded} event.
-    */
-    public start(id?: number) {
-        if (typeof (id) !== 'undefined') {
-            var handle = this.getHandle(id);
+     * Stops all models and only shows a single product
+     * @param {Number} productId Product ID
+     * @param {Number} modelId Model ID
+     */
+    public isolate(productId: number, modelId: number) {
+        const handle = this.getHandle(modelId);
+        if (!handle) {
+            throw new Error(`Model with id ${modelId} doesn't exist.`);
+        }
+        if (productId != null) {
+            handle.isolatedProduct = productId;
+        } else {
+            handle.isolatedProduct = -1;
+        }
+    }
+
+    public getIsolated(modelId: number): number {
+        const handle = this.getHandle(modelId);
+        if (!handle) {
+            throw new Error(`Model with id ${modelId} doesn't exist.`);
+        }
+        return handle.isolatedProduct;
+    }
+
+    /**
+     * Use this function to start animation of the model. If you start animation before geometry is loaded it will wait for content to render it.
+     * This function is bound to browser framerate of the screen so it will stop consuming any resources if you switch to another tab.
+     *
+     * @function Viewer#start
+     * @param {Number} modelId [optional] - Optional ID of the model to be stopped. You can get this ID from {@link Viewer#event:loaded loaded} event.
+     * @param {Number} productId [optional] - Optional ID of the product. If specified, only this product will be presented.
+     *                                        This is highly optimal because it doesn't even touch other data in the model
+     */
+    public start(modelId?: number) {
+        if (modelId != null) {
+            var handle = this.getHandle(modelId);
             if (typeof (handle) === 'undefined')
                 throw "Model doesn't exist.";
 
             handle.stopped = false;
-            this.changed = true;
-            return;
+            handle.changed = true;
+            
+            // if the viewer is running already we can return from here
+            if (this._isRunning) {
+                return;
+            }
         }
 
         this.changed = true;
@@ -1896,14 +1944,16 @@ export class Viewer {
             return;
         }
 
-        // unblock the rendering loop
+        // unblock and start the rendering loop
         this._isRunning = true;
 
+        // FPS counting infrastructure
         var lastTime = new Date();
         var counter = 0;
 
         const tick = () => {
             counter++;
+            // compute and report FPS every 30 frames
             if (counter == 30) {
                 counter = 0;
                 var newTime = new Date();
@@ -1985,6 +2035,19 @@ export class Viewer {
     }
 
     /**
+     * Checks if product with this ID exists in the model
+     * @param productId
+     * @param modelId
+     */
+    public isProductInModel(productId: number, modelId: number): boolean {
+        var model = this.getHandle(modelId);
+        if (!model) {
+            return false;
+        }
+        return model.getState(productId) != null;
+    }
+
+    /**
      * Checks if the model with defined ID is currently loaded in the viewer.
      *
      * @param {number} id - Model ID
@@ -2042,6 +2105,15 @@ export class Viewer {
             throw "Model doesn't exist.";
 
         model.pickable = true;
+    }
+
+    /**
+     * Returns true if model participates in picking, false otherwise
+     * @param {number} modelId ID of the model
+     */
+    public isPickable(modelId: number) {
+        var model = this.getHandle(modelId);
+        return model.pickable;
     }
 
     /**
