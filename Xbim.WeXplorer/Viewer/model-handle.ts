@@ -496,7 +496,7 @@ export class ModelHandle {
 
             for (var n in this._model.productMaps) {
                 var map = this._model.productMaps[n];
-                if (subTypes.indexOf(map.type) > 0) {
+                if (subTypes.indexOf(map.type) > -1) {
                     maps.push(map);
                 }
             }
