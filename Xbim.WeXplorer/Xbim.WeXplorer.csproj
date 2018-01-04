@@ -239,6 +239,7 @@
     <Content Include="tests\wexbim3\LakesideRestaurant.wexbim" />
     <Content Include="tests\data\SampleHouseV3.wexbim" />
     <Content Include="tests\wexbim3\SampleHouse4.wexbim" />
+    <Content Include="tests\data\windows-doors.wexbim" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
