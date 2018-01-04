@@ -1465,7 +1465,7 @@ var Viewer = (function () {
         // visible
         if (mode === RenderingMode.XRAY) {
             highlightedPass();
-            transparentPass();
+            // transparentPass();
         }
         // this will make highlighted elements overriding
         // all transparent objects to it will be always clearly
