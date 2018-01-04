@@ -218,9 +218,9 @@ export class ModelHandle {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._transformationBuffer);
         gl.vertexAttribPointer(pointers.TransformationAttrPointer, 1, gl.FLOAT, false, 0, 0);
 
-        gl.uniform1i(pointers.VertexTextureSizeUniform, this._vertexTextureSize);
-        gl.uniform1i(pointers.MatrixTextureSizeUniform, this._matrixTextureSize);
-        gl.uniform1i(pointers.StyleTextureSizeUniform, this._styleTextureSize);
+        gl.uniform1f(pointers.VertexTextureSizeUniform, this._vertexTextureSize);
+        gl.uniform1f(pointers.MatrixTextureSizeUniform, this._matrixTextureSize);
+        gl.uniform1f(pointers.StyleTextureSizeUniform, this._styleTextureSize);
 
         gl.uniform1f(pointers.MeterUniform, this.meter);
 
