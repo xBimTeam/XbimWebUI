@@ -1691,27 +1691,26 @@ var Viewer = (function () {
     };
     /**
      * Stops all models and only shows a single product
-     * @param {Number} productId Product ID
+     * @param {Number[]} productId Product IDs
      * @param {Number} modelId Model ID
      */
-    Viewer.prototype.isolate = function (productId, modelId) {
+    Viewer.prototype.isolate = function (productIds, modelId) {
         var handle = this.getHandle(modelId);
         if (!handle) {
             throw new Error("Model with id " + modelId + " doesn't exist.");
         }
-        if (productId != null) {
-            handle.isolatedProduct = productId;
-        }
-        else {
-            handle.isolatedProduct = -1;
-        }
+        handle.isolatedProducts = productIds;
     };
+    /**
+     * Gets list of isolated product IDs
+     * @param modelId
+     */
     Viewer.prototype.getIsolated = function (modelId) {
         var handle = this.getHandle(modelId);
         if (!handle) {
             throw new Error("Model with id " + modelId + " doesn't exist.");
         }
-        return handle.isolatedProduct;
+        return handle.isolatedProducts;
     };
     /**
      * Use this function to start animation of the model. If you start animation before geometry is loaded it will wait for content to render it.

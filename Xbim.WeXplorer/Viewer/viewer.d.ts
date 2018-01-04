@@ -357,11 +357,15 @@ export declare class Viewer {
     getID(x: number, y: number, modelId?: boolean): number;
     /**
      * Stops all models and only shows a single product
-     * @param {Number} productId Product ID
+     * @param {Number[]} productId Product IDs
      * @param {Number} modelId Model ID
      */
-    isolate(productId: number, modelId: number): void;
-    getIsolated(modelId: number): number;
+    isolate(productIds: number[], modelId: number): void;
+    /**
+     * Gets list of isolated product IDs
+     * @param modelId
+     */
+    getIsolated(modelId: number): number[];
     /**
      * Use this function to start animation of the model. If you start animation before geometry is loaded it will wait for content to render it.
      * This function is bound to browser framerate of the screen so it will stop consuming any resources if you switch to another tab.

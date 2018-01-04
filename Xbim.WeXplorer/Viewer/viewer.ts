@@ -1891,27 +1891,27 @@ export class Viewer {
 
     /**
      * Stops all models and only shows a single product
-     * @param {Number} productId Product ID
+     * @param {Number[]} productId Product IDs
      * @param {Number} modelId Model ID
      */
-    public isolate(productId: number, modelId: number) {
+    public isolate(productIds: number[], modelId: number) {
         const handle = this.getHandle(modelId);
         if (!handle) {
             throw new Error(`Model with id ${modelId} doesn't exist.`);
         }
-        if (productId != null) {
-            handle.isolatedProduct = productId;
-        } else {
-            handle.isolatedProduct = -1;
-        }
+        handle.isolatedProducts = productIds;
     }
 
-    public getIsolated(modelId: number): number {
+    /**
+     * Gets list of isolated product IDs
+     * @param modelId
+     */
+    public getIsolated(modelId: number): number[] {
         const handle = this.getHandle(modelId);
         if (!handle) {
             throw new Error(`Model with id ${modelId} doesn't exist.`);
         }
-        return handle.isolatedProduct;
+        return handle.isolatedProducts;
     }
 
     /**

@@ -40,20 +40,46 @@ export class ModelHandle {
     /**
      * If drawProductId is defined, only this single product is drawn
      */
-    public get isolatedProduct(): number { return this._drawProductId; }
-    public set isolatedProduct(value: number) { this._drawProductId = value; this.changed = true; }
+    public get isolatedProducts(): number[] { return this._drawProductIds; }
+    public set isolatedProducts(value: number[]) { this._drawProductIds = value; this.changed = true; }
 
     public get region(): Region {
-        if (this.isolatedProduct < 0) {
+        if (this.isolatedProducts == null) {
             return this._region;
         } else {
-            const map = this.getProductMap(this.isolatedProduct);
-            if (!map) {
+            let maps: ProductMap[] = [];
+            this.isolatedProducts.forEach(id => {
+                const map = this.getProductMap(id);
+                if (map) {
+                    maps.push(map);
+                }
+            });
+            if (maps.length == 0) {
                 return null;
             }
-            const bb = map.bBox;
+            // aggregated bounding box
+            const bb = maps.reduce((prev: Float32Array, curr: ProductMap, idx: number, arr: ProductMap[]) => {
+                if (prev == null) {
+                    return curr.bBox;
+                }
+
+                let x = Math.min(prev[0], curr.bBox[0]);
+                let y = Math.min(prev[1], curr.bBox[1]);
+                let z = Math.min(prev[2], curr.bBox[2]);
+
+                let x2 = Math.max(prev[0] + prev[3], curr.bBox[0] + curr.bBox[3]);
+                let y2 = Math.max(prev[1] + prev[4], curr.bBox[1] + curr.bBox[4]);
+                let z2 = Math.max(prev[2] + prev[5], curr.bBox[2] + curr.bBox[5]);
+
+                let sx = x2 - x;
+                let sy = y2 - y;
+                let sz = z2 - z;
+
+                return new Float32Array([x, y, z, sx, sy, sz]);
+
+            }, null);
             const region = new Region();
-            region.population = 1;
+            region.population = maps.length;
             region.bbox = bb;
             region.centre = new Float32Array([
                 bb[0] + bb[3] / 2.0,
@@ -71,7 +97,7 @@ export class ModelHandle {
     public changed: boolean = true;
 
     private _region: Region;
-    private _drawProductId = -1;
+    private _drawProductIds: number[] = null;
     private _numberOfIndices: number;
     private _vertexTextureSize: number;
     private _matrixTextureSize: number;
@@ -240,37 +266,49 @@ export class ModelHandle {
         if (this.stopped) return;
 
         var gl = this._gl;
-        const map = this.isolatedProduct > -1 ? this.getProductMap(this.isolatedProduct) : null;
+        const maps = this.isolatedProducts && this.isolatedProducts.length > 0 ?
+            this.isolatedProducts.reduce((result: ProductMap[], id: number) => {
+                const map = this.getProductMap(id);
+                if (map) {
+                    result.push(map);
+                }
+                return result;
+            }, new Array<ProductMap>())
+            : null;
 
         // reset flag because current state is drawn
         this.changed = false;
 
         // if isolated product is requested but is not in this handle, don't draw and return
-        if (this.isolatedProduct > -1 && map == null) {
+        if (maps != null && maps.length === 0) {
             return;
         }
 
         if (mode == null) {
             //draw image frame
-            if (map == null) {
+            if (maps == null) {
                 gl.drawArrays(gl.TRIANGLES, 0, this._numberOfIndices);
             } else {
-                map.spans.forEach((span) => {
-                    gl.drawArrays(gl.TRIANGLES, span[0], span[1] - span[0]);
+                maps.forEach(map => {
+                    map.spans.forEach((span) => {
+                        gl.drawArrays(gl.TRIANGLES, span[0], span[1] - span[0]);
+                    });
                 });
             }
             return;
         }
 
         if (mode === DrawMode.SOLID && this._model.transparentIndex > 0) {
-            if (map == null) {
+            if (maps == null) {
                 gl.drawArrays(gl.TRIANGLES, 0, this._model.transparentIndex);
             } else {
-                map.spans
-                    .filter((s) => s[1] < this._model.transparentIndex)
-                    .forEach((span) => {
-                        gl.drawArrays(gl.TRIANGLES, span[0], span[1] - span[0]);
-                    });
+                maps.forEach(map => {
+                    map.spans
+                        .filter((s) => s[1] < this._model.transparentIndex)
+                        .forEach((span) => {
+                            gl.drawArrays(gl.TRIANGLES, span[0], span[1] - span[0]);
+                        });
+                });
             }
             return;
         }
@@ -283,14 +321,16 @@ export class ModelHandle {
             //multiplicative blending
             //gl.blendFunc(gl.ZERO, gl.SRC_COLOR);
 
-            if (map == null) {
+            if (maps == null) {
                 gl.drawArrays(gl.TRIANGLES, this._model.transparentIndex, this._numberOfIndices - this._model.transparentIndex);
             } else {
-                map.spans
-                    .filter((s) => s[0] >= this._model.transparentIndex)
-                    .forEach((span) => {
-                        gl.drawArrays(gl.TRIANGLES, span[0], span[1] - span[0]);
-                    });
+                maps.forEach(map => {
+                    map.spans
+                        .filter((s) => s[0] >= this._model.transparentIndex)
+                        .forEach((span) => {
+                            gl.drawArrays(gl.TRIANGLES, span[0], span[1] - span[0]);
+                        });
+                });
             }
 
             //enable writing to depth buffer and default blending again
