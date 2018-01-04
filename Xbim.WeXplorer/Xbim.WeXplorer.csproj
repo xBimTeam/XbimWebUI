@@ -236,6 +236,9 @@
     <Content Include="Resources\tutorials\5_Colourful_building.json" />
     <Content Include="Resources\tutorials\6_Building_described.md" />
     <Content Include="Resources\tutorials\6_Building_described.json" />
+    <Content Include="tests\wexbim3\LakesideRestaurant.wexbim" />
+    <Content Include="tests\data\SampleHouseV3.wexbim" />
+    <Content Include="tests\wexbim3\SampleHouse4.wexbim" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -263,9 +266,7 @@
     <TypeScriptCompile Include="Viewer\scene\node.ts" />
     <TypeScriptCompile Include="Viewer\scene\node-product.ts" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="tests\wexbim3\" />
-  </ItemGroup>
+  <ItemGroup />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
