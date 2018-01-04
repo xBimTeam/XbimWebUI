@@ -32,15 +32,15 @@ uniform int uRenderingMode;
 
 //sampler with vertices
 uniform highp sampler2D uVertexSampler;
-uniform highp float uVertexTextureSize;
+uniform int uVertexTextureSize;
 
 //sampler with transformation matrices
 uniform highp sampler2D uMatrixSampler;
-uniform highp float uMatrixTextureSize;
+uniform int uMatrixTextureSize;
 
 //sampler with default styles
 uniform highp sampler2D uStyleSampler;
-uniform highp float uStyleTextureSize;
+uniform int uStyleTextureSize;
 
 //sampler with user defined styles
 uniform highp sampler2D uStateStyleSampler;
@@ -53,11 +53,10 @@ varying vec3 vPosition;
 //state passed to fragment shader
 varying float vDiscard;
 
-const float PI = 3.1415926535897932384626433832795;
-
 vec3 getNormal(mat4 transform) {
 	float U = aNormal[0];
 	float V = aNormal[1];
+	float PI = 3.1415926535897932384626433832795;
 	float lon = U / 252.0 * 2.0 * PI;
 	float lat = V / 252.0 * PI;
 
@@ -66,7 +65,7 @@ vec3 getNormal(mat4 transform) {
 	float y = cos(lat);
 	
 	vec3 normal = vec3(x, y, z);
-	if (aTransformationIndex < -0.5) {
+	if (aTransformationIndex < 0.0) {
 		return normalize(normal);
 	}
 
@@ -89,20 +88,22 @@ vec4 getIdColor(float id) {
 	return vec4(R / 255.0, G / 255.0, B / 255.0, 1.0);
 }
 
-vec2 getTextureCoordinates(float index, float size)
+vec2 getTextureCoordinates(int index, int size)
 {
-	float x = floor(mod(index, size)); // integral modulo
-	float y = floor(index / size); // integral division
+	float x = float(index - (index / size) * size);
+	float y = float(index / size);
+	float pixelSize = 1.0 / float(size);
 	//ask for the middle of the pixel
-	return vec2((x + 0.5) / size, (y + 0.5) / size);
+	return vec2((x + 0.5) * pixelSize, (y + 0.5) * pixelSize);
 }
 
 
 vec4 getColor() {
 	// overriding colour is not defined
-	float restyle = aState[1];
-	if (restyle > 224.5) {
-		vec2 coords = getTextureCoordinates(aStyleIndex, uStyleTextureSize);
+	int restyle = int(floor(aState[1] + 0.5));
+	if (restyle > 224) {
+		int index = int(floor(aStyleIndex + 0.5));
+		vec2 coords = getTextureCoordinates(index, uStyleTextureSize);
 		vec4 col = texture2D(uStyleSampler, coords);
 		
 		// gray scale colour mode
@@ -117,7 +118,7 @@ vec4 getColor() {
 
 	// return colour based on restyle
 	// restyling texture is fixed size 15x15 for up to 225 styling colours
-	vec2 coords = getTextureCoordinates(restyle, 15.0);
+	vec2 coords = getTextureCoordinates(restyle, 15);
 	vec4 col2 = texture2D(uStateStyleSampler, coords);
 
 	// gray scale colour mode
@@ -130,10 +131,11 @@ vec4 getColor() {
 }
 
 vec3 getVertexPosition(mat4 transform) {
-	vec2 coords = getTextureCoordinates(aVertexIndex, uVertexTextureSize);
+	int index = int(floor(aVertexIndex + 0.5));
+	vec2 coords = getTextureCoordinates(index, uVertexTextureSize);
 	vec3 point = vec3(texture2D(uVertexSampler, coords));
 
-	if (aTransformationIndex < -0.5) {
+	if (aTransformationIndex < 0.0) {
 		return point;
 	}
 
@@ -141,34 +143,29 @@ vec3 getVertexPosition(mat4 transform) {
 }
 
 mat4 getTransform() {
-	if (aTransformationIndex < -0.5) {
+	if (aTransformationIndex < 0.0) {
 		return mat4(1.0);
 	}
 
-	float tIndex = aTransformationIndex * 4.0;
+	int tIndex = int(floor(aTransformationIndex + 0.5));
 
-	// get transformation texture coordinates
-	vec2 c1 = getTextureCoordinates(tIndex, uMatrixTextureSize);
-	vec2 c2 = getTextureCoordinates(tIndex + 1.0, uMatrixTextureSize);
-	vec2 c3 = getTextureCoordinates(tIndex + 2.0, uMatrixTextureSize);
-	vec2 c4 = getTextureCoordinates(tIndex + 3.0, uMatrixTextureSize);
-
-	// get transformation matrix components
-	vec4 v1 = texture2D(uMatrixSampler, c1);
-	vec4 v2 = texture2D(uMatrixSampler, c2);
-	vec4 v3 = texture2D(uMatrixSampler, c3);
-	vec4 v4 = texture2D(uMatrixSampler, c4);
-
-	// create transformation matrix
-	return mat4(v1, v2, v3, v4);
+	tIndex *= 4;
+	//get transformation matrix 4x4 and transform the point
+	return mat4(
+		texture2D(uMatrixSampler, getTextureCoordinates(tIndex, uMatrixTextureSize)),
+		texture2D(uMatrixSampler, getTextureCoordinates(tIndex + 1, uMatrixTextureSize)),
+		texture2D(uMatrixSampler, getTextureCoordinates(tIndex + 2, uMatrixTextureSize)),
+		texture2D(uMatrixSampler, getTextureCoordinates(tIndex + 3, uMatrixTextureSize))
+	);
 }
 
 void main(void) {
 	int state = int(floor(aState[0] + 0.5));
 	vDiscard = 0.0;
 
-	if ( state == 254 || // HIDDEN state
-		(uColorCoding == -1 && state == 251) || // xray rendering and no selection or 'x-ray visible' state
+	//HIDDEN state or xray rendering and no selection or 'x-ray visible' state
+	if (state == 254 || 
+		(uColorCoding == -1 && state == 251) ||
 		(uColorCoding == -1 && (
 		(uRenderingMode == 2 && state != 253 && state != 252) || // first of pass x-ray, only highlighted and x-ray visible objects should render
 		(uRenderingMode == 3 && (state == 253 || state == 252))) // first of pass x-ray, highlighted and x-ray visible objects should not render
@@ -183,26 +180,23 @@ void main(void) {
 	}
 
 	//transform data to simulate camera perspective and position
-	float tIndex = aTransformationIndex * 4.0;
-	float tSize = uMatrixTextureSize;
 	mat4 transform = getTransform();
 	vec3 vertex = getVertexPosition(transform);
 	vec3 normal = getNormal(transform);
 	vec3 backNormal = normal * -1.0;
 
-	//product ID colour coding
+	//product colour coding
 	if (uColorCoding == -2) {
 		float id = floor(aProduct + 0.5);
 		vec4 idColor = getIdColor(id);
 		vFrontColor = idColor;
 		vBackColor = idColor;
-	//model ID colour coding
+	//model colour coding
 	} else if (uColorCoding >= 0) { 
 		float id = float(uColorCoding);
 		vec4 idColor = getIdColor(id);
 		vFrontColor = idColor;
 		vBackColor = idColor;
-	// rendering
 	} else {
 		// ulightA[3] represents intensity of the light
 		float lightAIntensity = ulightA[3];
