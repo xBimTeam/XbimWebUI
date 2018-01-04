@@ -360,8 +360,8 @@ export declare class Viewer {
      * @param {Number} productId Product ID
      * @param {Number} modelId Model ID
      */
-    isolate(productIds: number[], modelId: number): void;
-    getIsolated(modelId: number): number[];
+    isolate(productId: number, modelId: number): void;
+    getIsolated(modelId: number): number;
     /**
      * Use this function to start animation of the model. If you start animation before geometry is loaded it will wait for content to render it.
      * This function is bound to browser framerate of the screen so it will stop consuming any resources if you switch to another tab.

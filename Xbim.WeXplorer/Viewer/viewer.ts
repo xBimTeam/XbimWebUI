@@ -1894,24 +1894,24 @@ export class Viewer {
      * @param {Number} productId Product ID
      * @param {Number} modelId Model ID
      */
-    public isolate(productIds: number[], modelId: number) {
+    public isolate(productId: number, modelId: number) {
         const handle = this.getHandle(modelId);
         if (!handle) {
             throw new Error(`Model with id ${modelId} doesn't exist.`);
         }
-        if (productIds != null) {
-            handle.isolatedProducts = productIds;
+        if (productId != null) {
+            handle.isolatedProduct = productId;
         } else {
-            handle.isolatedProducts = null;
+            handle.isolatedProduct = -1;
         }
     }
 
-    public getIsolated(modelId: number): number[] {
+    public getIsolated(modelId: number): number {
         const handle = this.getHandle(modelId);
         if (!handle) {
             throw new Error(`Model with id ${modelId} doesn't exist.`);
         }
-        return handle.isolatedProducts;
+        return handle.isolatedProduct;
     }
 
     /**

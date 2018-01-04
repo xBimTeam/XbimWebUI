@@ -1465,7 +1465,7 @@ var Viewer = (function () {
         // visible
         if (mode === RenderingMode.XRAY) {
             highlightedPass();
-            // transparentPass();
+            transparentPass();
         }
         // this will make highlighted elements overriding
         // all transparent objects to it will be always clearly
@@ -1694,16 +1694,16 @@ var Viewer = (function () {
      * @param {Number} productId Product ID
      * @param {Number} modelId Model ID
      */
-    Viewer.prototype.isolate = function (productIds, modelId) {
+    Viewer.prototype.isolate = function (productId, modelId) {
         var handle = this.getHandle(modelId);
         if (!handle) {
             throw new Error("Model with id " + modelId + " doesn't exist.");
         }
-        if (productIds != null) {
-            handle.isolatedProducts = productIds;
+        if (productId != null) {
+            handle.isolatedProduct = productId;
         }
         else {
-            handle.isolatedProducts = null;
+            handle.isolatedProduct = -1;
         }
     };
     Viewer.prototype.getIsolated = function (modelId) {
@@ -1711,7 +1711,7 @@ var Viewer = (function () {
         if (!handle) {
             throw new Error("Model with id " + modelId + " doesn't exist.");
         }
-        return handle.isolatedProducts;
+        return handle.isolatedProduct;
     };
     /**
      * Use this function to start animation of the model. If you start animation before geometry is loaded it will wait for content to render it.

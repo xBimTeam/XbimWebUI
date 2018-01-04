@@ -40,46 +40,20 @@ export class ModelHandle {
     /**
      * If drawProductId is defined, only this single product is drawn
      */
-    public get isolatedProducts(): number[] { return this._drawProductIds; }
-    public set isolatedProducts(value: number[]) { this._drawProductIds = value; this.changed = true; }
+    public get isolatedProduct(): number { return this._drawProductId; }
+    public set isolatedProduct(value: number) { this._drawProductId = value; this.changed = true; }
 
     public get region(): Region {
-        if (!this.isolatedProducts || this.isolatedProducts.length === 0) {
+        if (this.isolatedProduct < 0) {
             return this._region;
         } else {
-            let maps: ProductMap[] = [];
-            this.isolatedProducts.forEach(id => {
-                const map = this.getProductMap(id);
-                if (map) {
-                    maps.push(map);
-                }
-            });
-            if (maps.length == 0) {
+            const map = this.getProductMap(this.isolatedProduct);
+            if (!map) {
                 return null;
             }
-            // aggregated bounding box
-            const bb = maps.reduce((prev: Float32Array, curr: ProductMap, idx: number, arr: ProductMap[]) => {
-                if (prev == null) {
-                    return curr.bBox;
-                }
-
-                let x = Math.min(prev[0], curr.bBox[0]);
-                let y = Math.min(prev[1], curr.bBox[1]);
-                let z = Math.min(prev[2], curr.bBox[2]);
-
-                let x2 = Math.max(prev[0] + prev[3], curr.bBox[0] + curr.bBox[3]);
-                let y2 = Math.max(prev[1] + prev[4], curr.bBox[1] + curr.bBox[4]);
-                let z2 = Math.max(prev[2] + prev[5], curr.bBox[2] + curr.bBox[5]);
-
-                let sx = x2 - x;
-                let sy = y2 - y;
-                let sz = z2 - z;
-
-                return new Float32Array([x, y, z, sx, sy, sz]);
-
-            }, null);
+            const bb = map.bBox;
             const region = new Region();
-            region.population = maps.length;
+            region.population = 1;
             region.bbox = bb;
             region.centre = new Float32Array([
                 bb[0] + bb[3] / 2.0,
@@ -97,7 +71,7 @@ export class ModelHandle {
     public changed: boolean = true;
 
     private _region: Region;
-    private _drawProductIds: number[] = null;
+    private _drawProductId = -1;
     private _numberOfIndices: number;
     private _vertexTextureSize: number;
     private _matrixTextureSize: number;
@@ -244,9 +218,9 @@ export class ModelHandle {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._transformationBuffer);
         gl.vertexAttribPointer(pointers.TransformationAttrPointer, 1, gl.FLOAT, false, 0, 0);
 
-        gl.uniform1f(pointers.VertexTextureSizeUniform, this._vertexTextureSize);
-        gl.uniform1f(pointers.MatrixTextureSizeUniform, this._matrixTextureSize);
-        gl.uniform1f(pointers.StyleTextureSizeUniform, this._styleTextureSize);
+        gl.uniform1i(pointers.VertexTextureSizeUniform, this._vertexTextureSize);
+        gl.uniform1i(pointers.MatrixTextureSizeUniform, this._matrixTextureSize);
+        gl.uniform1i(pointers.StyleTextureSizeUniform, this._styleTextureSize);
 
         gl.uniform1f(pointers.MeterUniform, this.meter);
 
@@ -266,50 +240,37 @@ export class ModelHandle {
         if (this.stopped) return;
 
         var gl = this._gl;
-
-        const maps = this.isolatedProducts && this.isolatedProducts.length > 0 ?
-            this.isolatedProducts.reduce((result: ProductMap[], id: number) => {
-            const map = this.getProductMap(id);
-            if (map) {
-                result.push(map);
-            }
-            return result;
-        }, new Array<ProductMap>())
-            : null;
+        const map = this.isolatedProduct > -1 ? this.getProductMap(this.isolatedProduct) : null;
 
         // reset flag because current state is drawn
         this.changed = false;
 
         // if isolated product is requested but is not in this handle, don't draw and return
-        if (maps != null && maps.length === 0) {
+        if (this.isolatedProduct > -1 && map == null) {
             return;
         }
 
         if (mode == null) {
             //draw image frame
-            if (maps == null) {
+            if (map == null) {
                 gl.drawArrays(gl.TRIANGLES, 0, this._numberOfIndices);
             } else {
-                maps.forEach(map => {
-                    map.spans.forEach((span) => {
-                        gl.drawArrays(gl.TRIANGLES, span[0], span[1] - span[0]);
-                    });
+                map.spans.forEach((span) => {
+                    gl.drawArrays(gl.TRIANGLES, span[0], span[1] - span[0]);
                 });
             }
             return;
         }
 
         if (mode === DrawMode.SOLID && this._model.transparentIndex > 0) {
-            if (maps == null) {
+            if (map == null) {
                 gl.drawArrays(gl.TRIANGLES, 0, this._model.transparentIndex);
             } else {
-                maps.forEach(map => {
-                    map.spans
-                        .filter((s) => s[1] < this._model.transparentIndex)
-                        .forEach((span) => {
-                            gl.drawArrays(gl.TRIANGLES, span[0], span[1] - span[0]);
-                        });
-                });
+                map.spans
+                    .filter((s) => s[1] < this._model.transparentIndex)
+                    .forEach((span) => {
+                        gl.drawArrays(gl.TRIANGLES, span[0], span[1] - span[0]);
+                    });
             }
             return;
         }
@@ -322,16 +283,14 @@ export class ModelHandle {
             //multiplicative blending
             //gl.blendFunc(gl.ZERO, gl.SRC_COLOR);
 
-            if (maps == null) {
+            if (map == null) {
                 gl.drawArrays(gl.TRIANGLES, this._model.transparentIndex, this._numberOfIndices - this._model.transparentIndex);
             } else {
-                maps.forEach(map => {
-                    map.spans
-                        .filter((s) => s[0] >= this._model.transparentIndex)
-                        .forEach((span) => {
-                            gl.drawArrays(gl.TRIANGLES, span[0], span[1] - span[0]);
-                        });
-                });
+                map.spans
+                    .filter((s) => s[0] >= this._model.transparentIndex)
+                    .forEach((span) => {
+                        gl.drawArrays(gl.TRIANGLES, span[0], span[1] - span[0]);
+                    });
             }
 
             //enable writing to depth buffer and default blending again
@@ -409,8 +368,8 @@ export class ModelHandle {
         //data is already loaded to GPU by now
         model.normals = null;
         model.indices = null;
-        // model.products = null;
-        // model.transformations = null;
+        model.products = null;
+        model.transformations = null;
         model.styleIndices = null;
 
         model.vertices = null;
@@ -450,19 +409,21 @@ export class ModelHandle {
         const maxSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
 
         if (fp) {
-            size = Math.ceil(Math.sqrt(Math.ceil(data.length / numberOfComponents)));
+            //recompute to smaller size, but make it +1 to make sure it is all right
+            size = Math.ceil(Math.sqrt(Math.ceil(data.length / numberOfComponents))) + 1;
         } else {
             var dim = Math.sqrt(data.byteLength / 4);
             size = Math.ceil(dim);
         }
 
+
         if (size == 0) return 0;
         if (size > maxSize) throw 'Too much data! It cannot fit into the texture.';
 
         gl.bindTexture(gl.TEXTURE_2D, pointer);
-        gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE); //this should preserve values of colours
-        // gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false); //this is our convention [false == default]
-        // gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false); //this should preserve values of alpha [false == default]
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0); //this is our convention
+        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 0); //this should preserve values of alpha
+        //gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, 0); //this should preserve values of colours
 
         if (fp) {
             //create new data buffer and fill it in with data
