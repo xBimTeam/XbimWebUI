@@ -94,7 +94,7 @@ vec2 getTextureCoordinates(float index, float size)
 	float x = floor(mod(index + 0.5, size)); // integral modulo
 	float y = floor((index + 0.5)/ size); // integral division
 								   //ask for the middle of the pixel
-	return vec2((x + 0.0) / size, (y + 0.0) / size);
+	return vec2((x + 0.5) / size, (y + 0.5) / size);
 }
 
 
