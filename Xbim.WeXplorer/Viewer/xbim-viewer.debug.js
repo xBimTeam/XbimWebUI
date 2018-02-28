@@ -921,7 +921,7 @@ xViewer.prototype._initMouseEvents = function () {
         }
 
         //deltaX and deltaY have very different values in different web browsers so fixed value is used for constant functionality.
-        navigate('zoom', sign(event.deltaX) * -1.0, sign(event.deltaY) * -1.0);
+        navigate('zoom', 0, sign(event.deltaY) * -1.0);
     }
 
     function navigate(type, deltaX, deltaY) {
