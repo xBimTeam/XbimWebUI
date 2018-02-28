@@ -1,70 +1,31 @@
-XbimWebUI
-=========
+This is forked repository from [https://github.com/xBimTeam/XbimWebUI](https://github.com/xBimTeam/XbimWebUI). Feel free to use it for your needs.
 
-Web components for xBIM Toolkit. [Documentation on GitHub Pages.](http://xbimteam.github.io/XbimWebUI/)
+The biggest differences compared to the original library are:
 
-Build Status (master branch): [ ![Build Status](http://xbimbuilds.cloudapp.net/app/rest/builds/buildType:(id:Xbim_XbimWebUi_XbimWebUi),branch:(name:master)/statusIcon "Build Status") ](http://xbimbuilds.cloudapp.net/project.html?projectId=Xbim_XbimWebUi&tab=projectOverview "Build Status")
+- it uses ES6 features
+- method that could be used for adding an extra model to a scene to provided position, with provided scale and color:
 
-Build Status (develop branch): [ ![Build Status](http://xbimbuilds.cloudapp.net/app/rest/builds/buildType:(id:Xbim_XbimWebUi_XbimWebUi),branch:(name:develop)/statusIcon "Build Status") ](http://xbimbuilds.cloudapp.net/project.html?projectId=Xbim_XbimWebUi&tab=projectOverview "Build Status")
+```ecmascript 6
+viewer.append('sign.wexbim', undefined, {
+  x: 200,
+  y: 150,
+  z: 20,
+  scale: 1.5,
+  color: [255, 0, 0], // red, green, blue
+  onClick: () => {
+    alert('the sign was clicked');
+  }
+});
+```
 
-# XBIM - the eXtensible Building Information Modelling (BIM) Toolkit
+- after model is loaded, geometry object contains information about an model area, so you can know what is real width, height and depth of the model. Here is an example code to compute the center point of the model:
 
-## What is it?
-
-The xBIM Tookit (eXtensible Building Information Modelling) is an open-source, software development BIM toolkit that 
-supports the BuildingSmart Data Model (aka the [Industry Foundation Classes IFC](http://en.wikipedia.org/wiki/Industry_Foundation_Classes)).
-
-xBIM allows developers to read, create and view [Building Information (BIM)](http://en.wikipedia.org/wiki/Building_information_modeling) Models in the IFC format. 
-There is full support for geometric, topological operations and visualisation. In addition xBIM supports 
-bi-directional translation between IFC and COBie formats
-
-## Getting Started
-
-You will need Visual Studio 2010 SP1 or newer to compile the Solution. To compile the SceneJSWebViewer sample
-project you will require ASP.NET MVC 3.0 to be installed. All solutions target .NET 4.0. The 4.0 Client profile
-may be supported for some projects.
-
-
-Xbim is a software library, and is currently deployed with a number of sample applications to demonstrate its capabilities
-
-* XbimXplorer - a Windows WPF sample application that can open and render 3D IFC models (and native XBIM models ) as well as displaying semantic data.
-* Xbim.SceneJSWebViewer - a MVC web application that can open and render 3D IFC models (previously converted to XBIM) using a WebGL compatible browser. 
-* XbimConvert - a sample console application to generate native XBIM model and geometry files from an IFC file.
-* Xbim.COBie.Client - A sample windows application demonstrating how a COBie spreadsheet can be generated from an IFC model.
-* CodeExamples - a sample console application demonstrating how to undertake a number of BIM processes using XBIM
-
-Please note: all the samples in this solution are examples of how to use the Xbim library, and not intended to be used in a 
-production environment without further development.
-
-## Licence
-
-The XBIM library is made available under the CDDL Open Source licence.  See the licences folder for a full text.
-
-All licences should support the commercial usage of the XBIM system within a 'Larger Work', as long as you honour 
-the licence agreements.
-
-## Third Party Licences
-
-The core XBIM library makes use of the following 3rd party software packages, under their associated licences:
-
-* 'OpenCASCADE' Geometry Engine : http://www.opencascade.org/ - OPEN CASCADE Public License 
-* 'Gardens Point Parser Generator' http://gppg.codeplex.com/ - New BSD Licence
-* Elements of '3D Tools' WPF library http://3dtools.codeplex.com/ - MS Permissive Licence
-* Log4net : http://logging.apache.org/log4net/ - Apache 2.0 Licence
-* NPOI : http://npoi.codeplex.com - Apache 2.0 Licence
-* NewtonSoft JSON : http://json.codeplex.com/ - MIT Licence
-
-Additionally the Samples also make use of the following libraries
-
-* SceneJS: https://github.com/xeolabs/scenejs - joint MIT and GPL Licence
-* SignalR : https://github.com/SignalR/SignalR - Apache 2.0 Licence
-
-All licences are included in full under the Licences\3rd Party solution folder. 
-
-## Support & Help
-
-Please use [GitHub issues](https://github.com/xBimTeam/XbimWebUI/issues) to ask any questions.
-
-## Getting Involved
-
-If you'd like to get involved and contribute to this project, please contact the Project Coordinator, [Steve Lockley](https://github.com/SteveLockley).
+```ecmascript 6
+viewer.on('loaded', data => {
+  viewer.start();
+  
+  const centerX = (data.geometry.area.x[0] + data.geometry.area.x[1]) / 2;
+  const centerY = (data.geometry.area.y[0] + data.geometry.area.y[1]) / 2;
+  const centerZ = (data.geometry.area.z[0] + data.geometry.area.z[1]) / 2;
+});
+```
