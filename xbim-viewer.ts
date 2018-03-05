@@ -1,20 +1,20 @@
 ﻿// Core viewer objects
-export * from './Viewer/binary-reader';
-export * from './Viewer/model-geometry';
-export * from './Viewer/model-handle';
-export * from './Viewer/product-inheritance';
-export * from './Viewer/product-type';
-export * from './Viewer/state';
-export * from './Viewer/triangulated-shape';
-export * from './Viewer/viewer';
+export * from './src/binary-reader';
+export * from './src/model-geometry';
+export * from './src/model-handle';
+export * from './src/product-inheritance';
+export * from './src/product-type';
+export * from './src/state';
+export * from './src/triangulated-shape';
+export * from './src/viewer';
 
 // Matrix math objects
-export * from "./Viewer/matrix/vec3";
-export * from "./Viewer/matrix/mat3";
-export * from "./Viewer/matrix/mat4";
-export * from "./Viewer/matrix/quat";
+export * from "./src/matrix/vec3";
+export * from "./src/matrix/mat3";
+export * from "./src/matrix/mat4";
+export * from "./src/matrix/quat";
 
 // Plugins
-export * from "./Viewer/plugins/NavigationCube/navigation-cube";
-export * from "./Viewer/plugins/NavigationHome/navigation-home";
-export * from "./Viewer/plugins/InteractiveClipping/interactive-clipping";
+export * from "./src/plugins/NavigationCube/navigation-cube";
+export * from "./src/plugins/NavigationHome/navigation-home";
+export * from "./src/plugins/InteractiveClipping/interactive-clipping";

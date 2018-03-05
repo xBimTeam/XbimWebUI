@@ -15,7 +15,7 @@
   "exclude": [
     "node_modules",
     "wwwroot",
-    "./Viewer/workers/**/*",
-    "Build"
+    "./src/workers/**/*",
+    "build"
   ]
 }

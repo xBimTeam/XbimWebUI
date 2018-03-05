@@ -1,15 +1,20 @@
 {
   "name": "xbim-webui",
+  "description": "Web user interface for BIM models processed by xBIM Toolkit",
+  "license": "CDDL-1.0",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
   "version": "0.1.41",
   "devDependencies": {
     "@types/node": "7.0.18",
     "dts-bundle": "^0.7.2",
-    "es6-shim": "0.35.3",
     "jsdoc": "3.3.0",
-    "ts-loader": "2.0.3",
-    "typescript": "2.3.2",
-    "webpack": "^2.4.1",
-    "worker-loader": "^0.8.0"
+    "ts-loader": "^4.0.1",
+    "typescript": "^2.7.2",
+    "webpack": "^3",
+    "webpack-watch-server": "^1.2.1"
   },
   "files": [
     "Browser/*",
@@ -24,6 +29,7 @@
   "scripts": {
     "jsdoc": "jsdoc -c jsdoc.config.json",
     "tsc": "tsc",
-    "webpack:dev": "SET NODE_ENV=development&& webpack"
+    "webpack:dev": "SET NODE_ENV=development&& webpack",
+    "dev": "webpack-watch-server"
   }
 }
