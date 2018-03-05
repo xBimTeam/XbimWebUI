@@ -7,15 +7,14 @@ var isDevelop = process.env.NODE_ENV === 'development';
 
 var entries = {};
 entries['xbim-viewer'] = './xbim-viewer.ts';
-entries['xbim-geometry-loader'] = './Viewer/workers/geometry-loader.ts';
+// entries['xbim-geometry-loader'] = './src/workers/geometry-loader.ts';
 
 var plugins = [];
-if (!isDevelop)
-    plugins.push(new webpack.optimize.UglifyJsPlugin());
+
 
 var tsLoader = 'ts-loader?' + JSON.stringify({
     compilerOptions: {
-        declaration: false
+        declaration: true
     }
 });
 
@@ -25,6 +24,7 @@ module.exports = {
         host: "localhost",
         port: 9000
     },
+    mode: "development",
     entry: entries,
     output: {
         path: path.join(__dirname, "build"),

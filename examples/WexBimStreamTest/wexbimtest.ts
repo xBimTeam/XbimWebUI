@@ -1,5 +1,5 @@
-﻿import { BinaryReader } from "../../Viewer/binary-reader";
-import { WexBimStream } from "../../Viewer/stream/wexbim-stream";
+﻿import { BinaryReader } from "../../src/binary-reader";
+import { WexBimStream } from "../../src/stream/wexbim-stream";
 
 var reader = new BinaryReader();
 var source = "/tests/data/envelop.wexbim";

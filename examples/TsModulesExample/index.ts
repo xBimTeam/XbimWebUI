@@ -1,8 +1,8 @@
-﻿import { Viewer, RenderingMode, ViewType } from "../../Viewer/viewer";
-import { State } from "../../Viewer/state";
-import { ProductType } from "../../Viewer/product-type";
-import { NavigationCube } from "../../Viewer/plugins/NavigationCube/navigation-cube";
-import { Product } from "../../Viewer/product-inheritance";
+﻿import { Viewer, RenderingMode, ViewType } from "../../src/viewer";
+import { State } from "../../src/state";
+import { ProductType } from "../../src/product-type";
+import { NavigationCube } from "../../src/plugins/NavigationCube/navigation-cube";
+import { Product } from "../../src/product-inheritance";
 
 var QueryString = function () {
     // This function is anonymous, is executed immediately and 
