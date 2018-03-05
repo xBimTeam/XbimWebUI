@@ -7,6 +7,7 @@ module.exports = merge(common, {
     devServer: {
         contentBase: ".",
         host: "localhost",
+        publicPath: "/build/",
         port: 9000
     },
 });

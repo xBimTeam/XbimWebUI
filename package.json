@@ -20,7 +20,7 @@
     "webpack-merge": "^4.1.2"
   },
   "files": [
-    "build/*"
+    "dist/*"
   ],
   "scripts": {
     "jsdoc": "jsdoc -c jsdoc.config.json",
