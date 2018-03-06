@@ -98,13 +98,13 @@ vec2 getTextureCoordinates(float index, float size)
 }
 
 
-vec4 getColor() {
+vec4 getColor() { 
 	// overriding colour is not defined
 	float restyle = aState[1];
 	if (restyle > 224.5) {
 		vec2 coords = getTextureCoordinates(aStyleIndex, uStyleTextureSize);
 		vec4 col = texture2D(uStyleSampler, coords);
-
+ 
 		// gray scale colour mode
 		if (uRenderingMode == 1) {
 			float intensity = (col.r + col.g + col.b) / 3.0;

@@ -1,5 +1,6 @@
 ﻿import { IPlugin, Viewer, ViewType } from "../../viewer";
-import { CubeShaders } from "./navigation-cube-shaders";
+import { cube_fshader } from "./cube_fshader";
+import { cube_vshader } from "./cube_vshader";
 import { CubeTextures } from "./navigation-cube-textures";
 import { mat4 } from "../../matrix/mat4";
 import { mat3 } from "../../matrix/mat3";
@@ -550,11 +551,11 @@ export class NavigationCube implements IPlugin {
 
         //fragment shader
         var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-        compile(fragmentShader, CubeShaders.cube_fshader);
+        compile(fragmentShader, cube_fshader);
 
         //vertex shader (the more complicated one)
         var vertexShader = gl.createShader(gl.VERTEX_SHADER);
-        compile(vertexShader, CubeShaders.cube_vshader);
+        compile(vertexShader, cube_vshader);
 
         //link program
         this._shader = gl.createProgram();

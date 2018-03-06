@@ -2,7 +2,8 @@
 import { ProductType } from './product-type';
 import { ModelGeometry, Region } from './model-geometry';
 import { ModelHandle, DrawMode } from './model-handle';
-import { Shaders } from './shaders/shaders';
+import { fragment_shader } from './shaders/fragment_shader';
+import { vertex_shader } from './shaders/vertex_shader';
 import { Framebuffer } from './framebuffer';
 import { ModelPointers } from './model-pointers';
 
@@ -941,11 +942,11 @@ export class Viewer {
 
         //fragment shader
         var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-        compile(fragmentShader, Shaders.fragment_shader);
+        compile(fragmentShader, fragment_shader);
 
         //vertex shader (the more complicated one)
         var vertexShader = gl.createShader(gl.VERTEX_SHADER);
-        compile(vertexShader, Shaders.vertex_shader);
+        compile(vertexShader, vertex_shader);
 
         //link program
         this._shaderProgram = gl.createProgram();

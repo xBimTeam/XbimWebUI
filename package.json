@@ -12,6 +12,7 @@
     "clean-webpack-plugin": "^0.1.18",
     "dts-bundle": "^0.7.2",
     "jsdoc": "3.3.0",
+    "raw-loader": "^0.5.1",
     "ts-loader": "^4.0.1",
     "typescript": "^2.7.2",
     "webpack": "^4.1.0",
