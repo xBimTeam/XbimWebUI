@@ -1,6 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
+let dir = process.argv[2];
+
 let clean = function (dir) {
     let work = [dir];
     while (work.length > 0) {
@@ -37,5 +39,10 @@ let clean = function (dir) {
         }
     }
 }
+
+if (dir){
+    clean(dir);
+}
+
 
 module.exports = clean;

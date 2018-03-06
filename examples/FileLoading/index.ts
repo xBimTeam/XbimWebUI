@@ -1,6 +1,6 @@
-﻿const input = document.getElementById('file') as HTMLInputElement;
-input.addEventListener('change', (evt) => {
-    const file = input.files[0] as File;
+﻿const inputElement = document.getElementById('file') as HTMLInputElement;
+inputElement.addEventListener('change', (evt) => {
+    const file = inputElement.files[0] as File;
     var slice = file.slice(0, 100);
     var reader = new FileReader();
     reader.onload = (e) => {
