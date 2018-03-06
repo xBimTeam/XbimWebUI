@@ -33,6 +33,7 @@ module.exports = {
         ]
     },
     resolve: {
+        modules: [path.resolve(__dirname, "src")],
         extensions: ['.ts', '.js', '.c']
     }
 };

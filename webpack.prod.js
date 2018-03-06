@@ -6,5 +6,6 @@ module.exports = merge(common, {
     mode: "production",
     plugins: [
         new UglifyJSPlugin()
-    ]
+    ],
+    
 });

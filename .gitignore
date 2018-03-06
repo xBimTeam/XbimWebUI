@@ -61,8 +61,9 @@ typings/
 .next
 
 # generated JS
-src/*.js.map
-src/*.d.ts
+src/**/*.js.map
+src/**/*.d.ts
+src/**/*.js
 
 # built assets
 dist

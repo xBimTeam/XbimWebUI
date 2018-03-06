@@ -1,9 +1,9 @@
 var webpack = require('webpack');
 var DevServer = require('webpack-dev-server');
 var config = require('./webpack.dev');
+var clean = require('./utilities/clean');
 
-var compiler = webpack(config, (err, stat) => {});
-compiler.watch({}, () => {});
+clean('.');
 
-// var ds = new DevServer(webpack, config);
-// ds.listen();
+// var compiler = webpack(config, (err, stat) => {});
+// compiler.watch({}, () => {});

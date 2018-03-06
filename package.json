@@ -24,7 +24,7 @@
     "dist/*"
   ],
   "scripts": {
-    "jsdoc": "jsdoc -c jsdoc.config.json",
+    "docs": "tsc&&jsdoc -c jsdoc.config.json",
     "start": "webpack-dev-server --open --config webpack.dev.js",
     "build": "webpack --config webpack.prod.js"
   }

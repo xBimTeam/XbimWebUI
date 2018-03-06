@@ -1,6 +1,6 @@
 {
    "opts":{
-      "destination":"..\\docs",
+      "destination":"docs",
       "tutorials":"resources/tutorials",
       "template":"resources/doctemplate"
    },
