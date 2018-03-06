@@ -8,7 +8,7 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
-            "program": "${workspaceFolder}\\webpack.debug.js",
+            "program": "${workspaceFolder}\\debug.js",
             "outFiles": [
                 "${workspaceFolder}/**/*.js"
             ]

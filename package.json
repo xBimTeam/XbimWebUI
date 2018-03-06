@@ -26,6 +26,7 @@
   "scripts": {
     "docs": "tsc&&jsdoc -c jsdoc.config.json&&node utilities/clean.js .",
     "start": "webpack-dev-server --open --config webpack.dev.js",
-    "build": "webpack --config webpack.prod.js"
+    "build": "webpack --config webpack.prod.js",
+    "build-worker": "webpack --config webpack.worker.js"
   }
 }

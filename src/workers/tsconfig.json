@@ -9,11 +9,11 @@
 */
 {
   "compilerOptions": {
-    "declaration": true,
+    "declaration": false,
     "moduleResolution": "node",
     "target": "es5",
     "module": "commonjs",
-    "sourceMap": true,
+    "sourceMap": false,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "skipDefaultLibCheck": true,
