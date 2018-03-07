@@ -10,19 +10,15 @@ StringifyWorkerPlugin.prototype.apply = function (compiler) {
             if (!a.endsWith('.js')) {
                 return;
             }
-            var data = compilation.assets[a]._value;
-            data = data
-                .replace(/"/g, "\\\"")
-                .replace(/\r\n/g, " ")
-                .replace(/\n/g, " ")
-                .replace(/\t/g, " ")
-                .replace(/ +/g, " ");
+            var data = fs.readFileSync(path.join(outDir, a), 'utf8');
+            data = data.replace(/"/g, "\\\"");
 
             var name = path.basename(a, '.js');
             var content = `export const ${name} = "${data}"`;
             var result = path.join(outDir, name + '.ts');
-            fs.writeFileSync(result, content);
+            fs.writeFileSync(result, content, {encoding: 'utf8'});
         });
+        callback();
     })
 };
 

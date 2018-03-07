@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-function ShaderCompiler() {};
+function ShaderCompiler() { };
 
 ShaderCompiler.prototype.compile = function processShader(file) {
     if (!file.endsWith('.c')) {
@@ -21,7 +21,7 @@ ShaderCompiler.prototype.compile = function processShader(file) {
     fs.writeFileSync(result, content);
 }
 
-ShaderCompiler.prototype.getShadersSync = function(dir) {
+ShaderCompiler.prototype.getShadersSync = function (dir) {
     let work = [dir];
     let result = [];
     while (work.length > 0) {
@@ -29,7 +29,8 @@ ShaderCompiler.prototype.getShadersSync = function(dir) {
         if (fs.statSync(item).isDirectory()) {
             let files = fs.readdirSync(item);
             files.forEach(f => {
-                if (f.startsWith('.')){
+                // skip hidden directories and Node.js modules
+                if (f.startsWith('.') || f === 'node_modules') {
                     return;
                 }
                 let fullPath = path.join(item, f);

@@ -10,7 +10,8 @@ let clean = function (dir) {
         if (fs.existsSync(item) && fs.statSync(item).isDirectory()) {
             let files = fs.readdirSync(item);
             files.forEach(f => {
-                if (f.startsWith('.')) {
+                // skip hidden directories and Node.js modules
+                if (f.startsWith('.') || f === 'node_modules') {
                     return;
                 }
                 let fullPath = path.join(item, f);
@@ -25,22 +26,22 @@ let clean = function (dir) {
             let dts = path.join(directory, name + '.d.ts');
             let map = path.join(directory, name + '.js.map');
 
-            if (fs.existsSync(js)){
+            if (fs.existsSync(js)) {
                 fs.unlinkSync(js)
             }
 
-            if (fs.existsSync(dts)){
+            if (fs.existsSync(dts)) {
                 fs.unlinkSync(dts)
             }
 
-            if (fs.existsSync(map)){
+            if (fs.existsSync(map)) {
                 fs.unlinkSync(map)
             }
         }
     }
 }
 
-if (dir){
+if (dir) {
     clean(dir);
 }
 
