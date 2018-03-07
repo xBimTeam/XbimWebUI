@@ -6,6 +6,7 @@ import { fragment_shader } from './shaders/fragment_shader';
 import { vertex_shader } from './shaders/vertex_shader';
 import { Framebuffer } from './framebuffer';
 import { ModelPointers } from './model-pointers';
+import { worker as LoaderWorker } from './workers/worker'
 
 //ported libraries
 import { WebGLUtils } from './common/webgl-utils';
@@ -775,24 +776,24 @@ export class Viewer {
     * You can load more than one model if they occupy the same space, use the same scale and have unique product IDs. Duplicated IDs won't affect 
     * visualization itself but would cause unexpected user interaction (picking, zooming, ...).
     * @function Viewer#load
-    * @param {String} loaderUrl - Url of the 'xbim-geometry-loader.js' script which will be called as a worker
     * @param {String | Blob | File} model - Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data.
     * @param {Any} tag [optional] - Tag to be used to identify the model in {@link Viewer#event:loaded loaded} event.
     * @param {Object} headers [optional] - Headers to be used for request. This can be used for authorized access for example.
     * @fires Viewer#loaded
     */
-    public loadAsync(loaderUrl: string, model: string | Blob | File, tag?: any, headers?: { [name: string]: string }): void {
+    public loadAsync(model: string | Blob | File, tag?: any, headers?: { [name: string]: string }): void {
         if (typeof (model) == 'undefined') throw 'You have to specify model to load.';
         if (typeof (model) != 'string' && !(model instanceof Blob))
             throw 'Model has to be specified either as a URL to wexBIM file or Blob object representing the wexBIM file.';
-        var self = this;
+        const self = this;
 
         //fall back to synchronous loading if worker is not available
         if (typeof (Worker) === 'undefined') {
             this.load(model, tag, headers);
         }
 
-        var worker = new Worker(loaderUrl);
+        const blob = new Blob([LoaderWorker], {type: 'application/javascript'})
+        const worker = new Worker(URL.createObjectURL(blob));
         worker.onmessage = function (msg) {
 
             //console.log('Message received from worker');
