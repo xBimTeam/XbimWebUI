@@ -16,5 +16,5 @@ export * from "./src/matrix/quat";
 
 // Plugins
 export * from "./src/plugins/NavigationCube/navigation-cube";
-export * from "./src/plugins/NavigationHome/navigation-home";
-export * from "./src/plugins/InteractiveClipping/interactive-clipping";
+// export * from "./src/plugins/NavigationHome/navigation-home";
+// export * from "./src/plugins/InteractiveClipping/interactive-clipping";
