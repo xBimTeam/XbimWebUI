@@ -1,4 +1,4 @@
-﻿attribute highp vec3 aVertex;
+attribute highp vec3 aVertex;
 attribute highp vec2 aTexCoord;
 attribute highp float aId;
 

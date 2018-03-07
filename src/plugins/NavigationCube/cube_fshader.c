@@ -1,4 +1,4 @@
-﻿precision mediump float;
+precision mediump float;
 
 uniform float uAlpha;
 uniform sampler2D uTexture;
