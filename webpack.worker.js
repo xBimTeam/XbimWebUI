@@ -1,5 +1,4 @@
 const path = require('path');
-const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 const StringifyWorkerPlugin = require('./utilities/stringify-worker-plugin');
 
 var tsLoader = 'ts-loader?' + JSON.stringify({
@@ -15,12 +14,12 @@ module.exports = {
         worker: './src/workers/geometry-loader.ts'
     },
     plugins: [
-        new UglifyJSPlugin(),
         new StringifyWorkerPlugin()
     ],
     output: {
         filename: '[name].js',
-        libraryTarget: 'umd',
+        libraryTarget: 'global',
+        globalObject: "this",
         path: path.resolve(__dirname, 'src/workers')
     },
     module: {
