@@ -1,8 +1,8 @@
-﻿import { Viewer, RenderingMode, ViewType } from "../../src/viewer";
-import { State } from "../../src/state";
-import { ProductType } from "../../src/product-type";
-import { NavigationCube } from "../../src/plugins/NavigationCube/navigation-cube";
-import { Product } from "../../src/product-inheritance";
+﻿import { Viewer, RenderingMode, ViewType } from "../../dist/xbim-viewer";
+import { State } from "../../dist/xbim-viewer";
+import { ProductType } from "../../dist/xbim-viewer";
+import { NavigationCube } from "../../dist/xbim-viewer";
+import { Product } from "../../dist/xbim-viewer";
 
 var QueryString = function () {
     // This function is anonymous, is executed immediately and 
@@ -81,7 +81,7 @@ if (span) {
     span.innerHTML = "0";
 }
 //viewer.load(model, "base");
-viewer.loadAsync("/Build/xbim-geometry-loader.js", model, "base");
+viewer.loadAsync(model, "base");
 viewer.start();
 
 viewer.defineStyle(0, [255, 0, 0, 255]);  //red

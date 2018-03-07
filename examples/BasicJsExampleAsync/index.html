@@ -6,7 +6,7 @@
 		<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
 
 
-        <script src="/Build/xbim-viewer.js"></script>
+        <script src="/dist/xbim-viewer.js"></script>
 
         <style>
             html, body {
@@ -30,7 +30,7 @@
         <canvas id="viewer"></canvas>
         <script type="text/javascript">
             var viewer = new Viewer("viewer");
-            viewer.loadAsync("/Build/xbim-geometry-loader.js", "/tests/data/SampleHouse.wexbim");
+            viewer.loadAsync("/tests/data/SampleHouse.wexbim");
             viewer.start();
         </script>
 	</body>
