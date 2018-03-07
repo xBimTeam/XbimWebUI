@@ -11,7 +11,15 @@ StringifyWorkerPlugin.prototype.apply = function (compiler) {
                 return;
             }
             var data = fs.readFileSync(path.join(outDir, a), 'utf8');
-            data = data.replace(/"/g, "\\\"");
+            data = data
+                .replace(/\\"/g, "\\\\\\\"")
+                .replace(/\\r/g, "\\\\r")
+                .replace(/\\n/g, "\\\\n")
+                .replace(/([^\\])(")/g, "$1\\\"")
+                .replace(/([^\\])(")/g, "$1\\\"") // intentionaly duplicated for "" case
+                .replace(/\r\n/g, '\\r\\n')
+                .replace(/\n/g, '\\n')
+                ;
 
             var name = path.basename(a, '.js');
             var content = `export const ${name} = "${data}"`;
