@@ -31,6 +31,6 @@ module.exports = {
         ]
     },
     resolve: {
-        extensions: ['.ts', '.js', '.c']
+        extensions: ['.ts', '.js']
     }
 };

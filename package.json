@@ -10,6 +10,7 @@
   "devDependencies": {
     "@types/node": "7.0.18",
     "clean-webpack-plugin": "^0.1.18",
+    "concurrently": "^3.5.1",
     "dts-bundle": "^0.7.2",
     "jsdoc": "3.3.0",
     "raw-loader": "^0.5.1",
@@ -26,9 +27,7 @@
   "scripts": {
     "docs": "tsc&&jsdoc -c jsdoc.config.json&&node utilities/clean.js .",
     "clean": "node utilities/clean.js .",
-    "start": "webpack-dev-server --open --config webpack.dev.js",
-    "build": "webpack --config webpack.worker.js&&webpack --config webpack.prod.js",
-    "build-worker": "webpack --config webpack.worker.js",
-    "examples": "tsc -p examples"
+    "start": "concurrently \"webpack-dev-server --open --config webpack.dev.js\" \"webpack --watch --config webpack.worker.js \"",
+    "build": "webpack --config webpack.worker.js&&webpack --config webpack.prod.js"
   }
 }
