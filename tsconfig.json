@@ -16,6 +16,7 @@
     "node_modules",
     "wwwroot",
     "./src/workers/**/*",
-    "build"
+    "dist",
+    "examples"
   ]
 }
