@@ -1,10 +1,4 @@
-﻿import { Viewer, RenderingMode, ViewType } from "../../dist/xbim-viewer";
-import { State } from "../../dist/xbim-viewer";
-import { ProductType } from "../../dist/xbim-viewer";
-import { NavigationCube } from "../../dist/xbim-viewer";
-import { Product } from "../../dist/xbim-viewer";
-
-var QueryString = function () {
+﻿var QueryString = function () {
     // This function is anonymous, is executed immediately and 
     // the return value is assigned to QueryString!
     var queryString = {};
@@ -42,7 +36,7 @@ window['product'] = Product;
 
 viewer.background = [0, 0, 0, 0];
 viewer.on("error", function (arg) {
-    var container = viewer.canvas.parentNode as HTMLElement;
+    var container = viewer.canvas.parentNode;
     if (container) {
         //preppend error report
         container.innerHTML = "<pre style='color:red;'>" + arg.message + "</pre>" + container.innerHTML;
@@ -76,7 +70,7 @@ viewer.on("loaded", () => {
     // viewer.startRotation();
 });
 
-var span = document.getElementById("fpt") as HTMLElement;
+var span = document.getElementById("fpt");
 if (span) {
     span.innerHTML = "0";
 }
@@ -117,7 +111,7 @@ document['unclip'] = function () {
 }
 document['takeSnapshot'] = function () {
     var img = viewer.getCurrentImageDataUrl();
-    var place = document.getElementById("snapshot") as HTMLDivElement;
+    var place = document.getElementById("snapshot");
     place.innerHTML = "<img style='width:100%;' src=" + img + ">";
 }  
 
@@ -127,7 +121,7 @@ viewer.on("pick", function (args) {
     var radios = document.getElementsByName("radioHiding");
     for (var i in radios) {
         if (radios.hasOwnProperty(i)) {
-            var radio = radios[i] as HTMLInputElement;
+            var radio = radios[i];
             if (radio.checked) {
                 var val = radio.value;
                 if (val === "noHiding") return;

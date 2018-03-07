@@ -1,200 +1,216 @@
 <!DOCTYPE html>
 <html>
-	
-	<head>
-		<title>xViewer</title>
-		<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-        
-        <script type="text/javascript">
-            !function (e, t) { "object" == typeof exports && "undefined" != typeof module ? module.exports = t() : "function" == typeof define && define.amd ? define(t) : e.Promise = t() }(this, function () { "use strict"; function e() { } function t(e, t) { for (; 3 === e._state;)e = e._value; 0 !== e._state ? (e._handled = !0, f._immediateFn(function () { var i = 1 === e._state ? t.onFulfilled : t.onRejected; if (null !== i) { var r; try { r = i(e._value) } catch (e) { return void o(t.promise, e) } n(t.promise, r) } else (1 === e._state ? n : o)(t.promise, e._value) })) : e._deferreds.push(t) } function n(e, t) { try { if (t === e) throw new TypeError("A promise cannot be resolved with itself."); if (t && ("object" == typeof t || "function" == typeof t)) { var n = t.then; if (t instanceof f) return e._state = 3, e._value = t, void i(e); if ("function" == typeof n) return void r(function (e, t) { return function () { e.apply(t, arguments) } }(n, t), e) } e._state = 1, e._value = t, i(e) } catch (t) { o(e, t) } } function o(e, t) { e._state = 2, e._value = t, i(e) } function i(e) { 2 === e._state && 0 === e._deferreds.length && f._immediateFn(function () { e._handled || f._unhandledRejectionFn(e._value) }); for (var n = 0, o = e._deferreds.length; o > n; n++)t(e, e._deferreds[n]); e._deferreds = null } function r(e, t) { var i = !1; try { e(function (e) { i || (i = !0, n(t, e)) }, function (e) { i || (i = !0, o(t, e)) }) } catch (e) { if (i) return; i = !0, o(t, e) } } function f(e) { if (!(this instanceof f)) throw new TypeError("Promises must be constructed via new"); if ("function" != typeof e) throw new TypeError("not a function"); this._state = 0, this._handled = !1, this._value = void 0, this._deferreds = [], r(e, this) } var u = setTimeout, c = f.prototype; return c.catch = function (e) { return this.then(null, e) }, c.then = function (n, o) { var i = new this.constructor(e); return t(this, new function (e, t, n) { this.onFulfilled = "function" == typeof e ? e : null, this.onRejected = "function" == typeof t ? t : null, this.promise = n }(n, o, i)), i }, f.all = function (e) { return new f(function (t, n) { function o(e, f) { try { if (f && ("object" == typeof f || "function" == typeof f)) { var u = f.then; if ("function" == typeof u) return void u.call(f, function (t) { o(e, t) }, n) } i[e] = f, 0 == --r && t(i) } catch (e) { n(e) } } if (!e || void 0 === e.length) throw new TypeError("Promise.all accepts an array"); var i = Array.prototype.slice.call(e); if (0 === i.length) return t([]); for (var r = i.length, f = 0; i.length > f; f++)o(f, i[f]) }) }, f.resolve = function (e) { return e && "object" == typeof e && e.constructor === f ? e : new f(function (t) { t(e) }) }, f.reject = function (e) { return new f(function (t, n) { n(e) }) }, f.race = function (e) { return new f(function (t, n) { for (var o = 0, i = e.length; i > o; o++)e[o].then(t, n) }) }, f._immediateFn = "function" == typeof setImmediate && function (e) { setImmediate(e) } || function (e) { u(e, 0) }, f._unhandledRejectionFn = function (e) { void 0 !== console && console && console.warn("Possible Unhandled Promise Rejection:", e) }, f });
-        </script>
 
-        <style>
-            html, body {
-                height: 100%;
-                padding: 0;
-                margin: 0;
-            }
+<head>
+	<title>xViewer</title>
+	<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+	<script type="text/javascript" src="../../dist/xbim-viewer.js"></script>
+	<style>
+		html,
+		body {
+			height: 100%;
+			padding: 0;
+			margin: 0;
+		}
 
-            canvas {
-                width: 100%;
-                height: 100%;
-                display: block;
-                border: none;
-                position: absolute;
-                top: 0;
-                left: 0;
-                z-index: 0;
-            }
+		canvas {
+			width: 100%;
+			height: 100%;
+			display: block;
+			border: none;
+			position: absolute;
+			top: 0;
+			left: 0;
+			z-index: 0;
+		}
 
-            .left-panel, .right-panel{
-                position: absolute;
-                top: 20px;
-                z-index: 1;
-                padding: 1em;
-            }
+		.left-panel,
+		.right-panel {
+			position: absolute;
+			top: 20px;
+			z-index: 1;
+			padding: 1em;
+		}
 
-            .left-panel{
-                left: 20px;
-                max-width: 300px;
-                background-color: lightblue;
-            }
+		.left-panel {
+			left: 20px;
+			max-width: 300px;
+			background-color: lightblue;
+		}
 
-            .right-panel{
-                right: 20px;
-            }
-        </style>
+		.right-panel {
+			right: 20px;
+		}
+	</style>
 
-	</head>
-	
-	
-	<body>
-        <canvas id="xBIM-viewer"></canvas>
-		
-		<div class="left-panel">
-			<div>
-				Selected ID: <span id = "coords" ></span>
-			</div>
-			<div>
-				Framerate (FPS): <span id="fps"></span> 
-			</div>
-			<div>
-				Support for floating point texture: <span id="fpt"></span> 
-			</div>
-			
-            <a href="tests/tests.html" target="_blank">Tests</a>
-            <br />
-			<a href="Docs/index.html" target="_blank">Documentation</a>
-		    <div style="margin-top: 50px;">
-		        Models:
-		        <ul>
-		            <li><a href="?model=OneWall"> One Wall </a></li>
-		            <li><a href="?model=OneWallTwoWindows"> One Wall Two Windows </a></li>
-		            <li><a href="?model=TwoProxy"> Two proxy objects </a></li>
-		            <li><a href="?model=TwoWallsTwoColour"> Two Walls Two Colour </a></li>
-		            <li><a href="?model=FourWalls"> Four Walls </a></li>
-		            <li><a href="?model=FourWallsDoorWindows"> Four Walls Door Windows </a></li>
-		            <li><a href="?model=FourWallsDoorWindowsRoof"> Four Walls Door Windows Roof </a></li>
-                    <li><a href="?model=LakesideRestaurant"> Lakeside Restaurant </a></li>
-                    <li><a href="?model=network"> NWL network </a></li>
-                    <li><a href="?model=SampleHouseV3"> Sample House (wexBIM V3)</a></li>
-                    <li><a href="?model=windows-doors"> Dormitory windows and doors (wexBIM V3)</a></li>
-		            <li><a href="?model=windows-doors_duplex"> Duplex windows and doors (wexBIM V3)</a></li>
-		        </ul>
-		    </div>
-            <div>
-                <button onclick="takeSnapshot()">
-                    Take snapshot
-                </button>
-                <br />
-                <div id="snapshot"></div>
-                <div id="initialSnapshot">
+</head>
 
-                </div>
-            </div>
-		    <div id="errLog" style="color: red">
-		        
-		    </div>
+
+<body>
+	<canvas id="xBIM-viewer"></canvas>
+
+	<div class="left-panel">
+		<div>
+			Selected ID:
+			<span id="coords"></span>
 		</div>
-		<div class="right-panel">
-			<div>
-                <button onclick="viewer.navigationMode = 'orbit'">Orbit</button>
-				<button onclick="viewer.navigationMode = 'free-orbit'">Free orbit</button>
-				<button onclick="viewer.navigationMode = 'pan'">Pan</button>
-				<button onclick="viewer.navigationMode = 'zoom'">Zoom</button>
-			</div>
-			<div>
-                <button onclick="viewer.show(ViewType.DEFAULT)">Default</button>
-				<button onclick="viewer.show(ViewType.FRONT)">Front</button>
-				<button onclick="viewer.show(ViewType.BACK)">Back</button>
-				<button onclick="viewer.show(ViewType.TOP)">Top</button>
-				<button onclick="viewer.show(ViewType.BOTTOM)">Bottom</button>
-				<button onclick="viewer.show(ViewType.LEFT)">Left</button>
-				<button onclick="viewer.show(ViewType.RIGHT)">Right</button>
-			</div>
-		
-			<div>
-				<button onclick="clip();"> Clip model
-				</button>
-				<button onclick="unclip();"> Reset clipping
-				</button>
-			</div>
-			<div>
-				<button onclick="viewer.camera = 'perspective';"> Perspective
-				</button>
-				<button onclick="viewer.camera = 'orthogonal';"> Orthographic
-				</button>
-			</div>
-			<div>
-				<button onclick="makeWallsRed()"> Make all walls red
-				</button>
-				<button onclick="hideWalls()"> Hide all walls
-				</button>
-				<button onclick="resetWalls()"> Reset walls
-				</button>
-                <button onclick="selectAllWalls()">
-                    Select
-                </button>
-			</div>
-			<div>
-				<button onclick="viewer.setState(states.HIDDEN, types.IFCSPACE)"> Hide spaces
-				</button>
-				<button onclick="viewer.setState(states.UNDEFINED, types.IFCSPACE)"> Show spaces
-				</button>
-			</div>
-			<div>
-				<form>
-					<label> 
-						<input type="radio" name="radioHiding" value="hideOne"/> Hide on click
-					</label>
-					<label> 
-						<input type="radio" name="radioHiding" value="hideType"/> Hide by type
-					</label>
-					<label> 
-						<input type="radio" name="radioHiding" value="noHide"/> No hiding
-					</label>
-				</form>
-				<button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.setState(states.UNDEFINED, types[i])}}"> Show all
-				</button>
-				<button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.setStyle(1, types[i])}}"> Make all glass
-				</button>
-				<button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.setStyle(2, types[i])}}"> Make all white
-				</button>
-                <button onclick="for (var i in types) { if (types[i] !== types.IFCSPACE) { viewer.setStyle(states.UNSTYLED, types[i]) } }">
-                    Make all default
-                </button>
-			</div>
-            <div>
-                Rendering mode:
-                <br />
-                <label>
-                    <input type="radio" name="radioRenderingMode" value="normal" checked="checked" onchange="viewer.renderingMode = RenderingMode.NORMAL;"/> Normal
-                </label>
-                <label>
-                    <input type="radio" name="radioRenderingMode" value="xray" onchange="viewer.renderingMode = RenderingMode.XRAY;" /> X-Ray
-                </label>
-                <label>
-                    <input type="radio" name="radioRenderingMode" value="xray" onchange="viewer.renderingMode = RenderingMode.XRAY_ULTRA;" /> Ultra X-Ray
-                </label>
-                <label>
-                    <input type="radio" name="radioRenderingMode" value="gray" onchange="viewer.renderingMode = RenderingMode.GRAYSCALE;" /> Grayscale
-                </label>
-            </div>
+		<div>
+			Framerate (FPS):
+			<span id="fps"></span>
 		</div>
-        <script type="text/javascript" src="index.js">
-            /* SystemJS.config({
-                packages: {
-                    // meaning [baseURL]/local/package when no other rules are present
-                    // path is normalized using map and paths configuration
-                    '/': {
-                        main: 'index.js',
-                        format: 'cjs',
-                        defaultExtension: 'js'
-                    }
-                }
-            });
-            SystemJS.import('index.js'); */
-        </script>
-	</body>
+		<div>
+			Support for floating point texture:
+			<span id="fpt"></span>
+		</div>
+
+		<a href="tests/tests.html" target="_blank">Tests</a>
+		<br />
+		<a href="Docs/index.html" target="_blank">Documentation</a>
+		<div style="margin-top: 50px;">
+			Models:
+			<ul>
+				<li>
+					<a href="?model=OneWall"> One Wall </a>
+				</li>
+				<li>
+					<a href="?model=OneWallTwoWindows"> One Wall Two Windows </a>
+				</li>
+				<li>
+					<a href="?model=TwoProxy"> Two proxy objects </a>
+				</li>
+				<li>
+					<a href="?model=TwoWallsTwoColour"> Two Walls Two Colour </a>
+				</li>
+				<li>
+					<a href="?model=FourWalls"> Four Walls </a>
+				</li>
+				<li>
+					<a href="?model=FourWallsDoorWindows"> Four Walls Door Windows </a>
+				</li>
+				<li>
+					<a href="?model=FourWallsDoorWindowsRoof"> Four Walls Door Windows Roof </a>
+				</li>
+				<li>
+					<a href="?model=LakesideRestaurant"> Lakeside Restaurant </a>
+				</li>
+				<li>
+					<a href="?model=network"> NWL network </a>
+				</li>
+				<li>
+					<a href="?model=SampleHouseV3"> Sample House (wexBIM V3)</a>
+				</li>
+				<li>
+					<a href="?model=windows-doors"> Dormitory windows and doors (wexBIM V3)</a>
+				</li>
+				<li>
+					<a href="?model=windows-doors_duplex"> Duplex windows and doors (wexBIM V3)</a>
+				</li>
+			</ul>
+		</div>
+		<div>
+			<button onclick="takeSnapshot()">
+				Take snapshot
+			</button>
+			<br />
+			<div id="snapshot"></div>
+			<div id="initialSnapshot">
+
+			</div>
+		</div>
+		<div id="errLog" style="color: red">
+
+		</div>
+	</div>
+	<div class="right-panel">
+		<div>
+			<button onclick="viewer.navigationMode = 'orbit'">Orbit</button>
+			<button onclick="viewer.navigationMode = 'free-orbit'">Free orbit</button>
+			<button onclick="viewer.navigationMode = 'pan'">Pan</button>
+			<button onclick="viewer.navigationMode = 'zoom'">Zoom</button>
+		</div>
+		<div>
+			<button onclick="viewer.show(ViewType.DEFAULT)">Default</button>
+			<button onclick="viewer.show(ViewType.FRONT)">Front</button>
+			<button onclick="viewer.show(ViewType.BACK)">Back</button>
+			<button onclick="viewer.show(ViewType.TOP)">Top</button>
+			<button onclick="viewer.show(ViewType.BOTTOM)">Bottom</button>
+			<button onclick="viewer.show(ViewType.LEFT)">Left</button>
+			<button onclick="viewer.show(ViewType.RIGHT)">Right</button>
+		</div>
+
+		<div>
+			<button onclick="clip();"> Clip model
+			</button>
+			<button onclick="unclip();"> Reset clipping
+			</button>
+		</div>
+		<div>
+			<button onclick="viewer.camera = 'perspective';"> Perspective
+			</button>
+			<button onclick="viewer.camera = 'orthogonal';"> Orthographic
+			</button>
+		</div>
+		<div>
+			<button onclick="makeWallsRed()"> Make all walls red
+			</button>
+			<button onclick="hideWalls()"> Hide all walls
+			</button>
+			<button onclick="resetWalls()"> Reset walls
+			</button>
+			<button onclick="selectAllWalls()">
+				Select
+			</button>
+		</div>
+		<div>
+			<button onclick="viewer.setState(states.HIDDEN, types.IFCSPACE)"> Hide spaces
+			</button>
+			<button onclick="viewer.setState(states.UNDEFINED, types.IFCSPACE)"> Show spaces
+			</button>
+		</div>
+		<div>
+			<form>
+				<label>
+					<input type="radio" name="radioHiding" value="hideOne" /> Hide on click
+				</label>
+				<label>
+					<input type="radio" name="radioHiding" value="hideType" /> Hide by type
+				</label>
+				<label>
+					<input type="radio" name="radioHiding" value="noHide" /> No hiding
+				</label>
+			</form>
+			<button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.setState(states.UNDEFINED, types[i])}}">
+			Show all
+			</button>
+			<button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.setStyle(1, types[i])}}"> Make all glass
+			</button>
+			<button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.setStyle(2, types[i])}}"> Make all white
+			</button>
+			<button onclick="for (var i in types) { if (types[i] !== types.IFCSPACE) { viewer.setStyle(states.UNSTYLED, types[i]) } }">
+				Make all default
+			</button>
+		</div>
+		<div>
+			Rendering mode:
+			<br />
+			<label>
+				<input type="radio" name="radioRenderingMode" value="normal" checked="checked" onchange="viewer.renderingMode = RenderingMode.NORMAL;"
+				/> Normal
+			</label>
+			<label>
+				<input type="radio" name="radioRenderingMode" value="xray" onchange="viewer.renderingMode = RenderingMode.XRAY;" /> X-Ray
+			</label>
+			<label>
+				<input type="radio" name="radioRenderingMode" value="xray" onchange="viewer.renderingMode = RenderingMode.XRAY_ULTRA;" /> Ultra X-Ray
+			</label>
+			<label>
+				<input type="radio" name="radioRenderingMode" value="gray" onchange="viewer.renderingMode = RenderingMode.GRAYSCALE;" /> Grayscale
+			</label>
+		</div>
+	</div>
+
+	<script type="text/javascript" src="index.js"></script>
 	
+</body>
+
 </html>
