@@ -1,12 +1,13 @@
 ﻿import { ModelGeometry } from "../model-geometry";
+import { Message, MessageType } from '../message';
 
 //only run following script if this is created as a Worker
-if (self && self instanceof DedicatedWorkerGlobalScope ) {
+if (self && self instanceof DedicatedWorkerGlobalScope) {
     var worker = self as DedicatedWorkerGlobalScope;
     worker.onmessage = function (e: MessageEvent) {
-        var model = e.data.model;
-        var headers = e.data.headers;
-        var geometry = new ModelGeometry();
+        let model = e.data.model;
+        let headers = e.data.headers;
+        let geometry = new ModelGeometry();
 
         geometry.onerror = function (msg) {
             throw msg;
@@ -14,19 +15,19 @@ if (self && self instanceof DedicatedWorkerGlobalScope ) {
 
         geometry.onloaded = function () {
             try {
-                var msg = {};
-                var transferable = [];
-                for (var i in geometry) {
+                let result = {};
+                let transferable = [];
+                for (let i in geometry) {
                     if (!geometry.hasOwnProperty(i))
                         continue
 
-                    var prop = geometry[i];
+                    let prop = geometry[i];
                     //ignore functions and private members when creating transferable message object
                     if (typeof prop === "function" || i.startsWith("_"))
                         continue;
 
                     //building message object containing values but no functions or anything
-                    msg[i] = prop
+                    result[i] = prop
 
                     //create array of transferable objects for all typed arrays. Browsers which support Transferable interface will speed this up massively
                     if (ArrayBuffer.isView(prop))
@@ -34,13 +35,27 @@ if (self && self instanceof DedicatedWorkerGlobalScope ) {
                 }
 
                 //post the object and pass through all transferable objects
-                worker.postMessage(msg, transferable);
+                const message: Message = {
+                    type: MessageType.COMPLETED,
+                    message: "Completed",
+                    percent: 100,
+                    result: result
+                }
+                worker.postMessage(message, transferable);
                 worker.close();
             } catch (e) {
+                const message: Message = {
+                    type: MessageType.FAILED,
+                    message: e,
+                    percent: 0,
+                }
+                worker.postMessage(message);
                 worker.close();
                 throw e;
             }
         };
-        geometry.load(model, headers);
+        geometry.load(model, headers, (message) => {
+            worker.postMessage(message);
+        });
     };
 }

@@ -13,6 +13,7 @@ import { WebGLUtils } from './common/webgl-utils';
 import { vec3 } from "./matrix/vec3";
 import { mat3 } from "./matrix/mat3";
 import { mat4 } from "./matrix/mat4";
+import { Message, MessageType } from './message';
 
 export class Viewer {
 
@@ -61,10 +62,10 @@ export class Viewer {
      */
     public get lightA(): number[] { return this._lightA; }
     public set lightA(value: number[]) { this._lightA = value; this.changed = true; }
-     /**
-      * Array of four floats. It represents Light B's position <strong>XYZ</strong> and intensity <strong>I</strong> as [X, Y, Z, I]. Intensity should be in range 0.0 - 1.0.
-      * @member {Number[]} Viewer#lightB
-      */
+    /**
+     * Array of four floats. It represents Light B's position <strong>XYZ</strong> and intensity <strong>I</strong> as [X, Y, Z, I]. Intensity should be in range 0.0 - 1.0.
+     * @member {Number[]} Viewer#lightB
+     */
     public get lightB(): number[] { return this._lightB; }
     public set lightB(value: number[]) { this._lightB = value; this.changed = true; }
     public get mvMatrix(): Float32Array { return this._mvMatrix; }
@@ -211,8 +212,8 @@ export class Viewer {
             far: 0
         };
 
-        
-       
+
+
 
 
         //*************************** Do all the set up of WebGL **************************
@@ -738,7 +739,7 @@ export class Viewer {
         }
 
         let handle = this._handles
-            .filter((h) =>  h != null && !h.stopped )
+            .filter((h) => h != null && !h.stopped)
             .sort((a, b) => {
                 let volA = volume(a.region.bbox);
                 let volB = volume(b.region.bbox);
@@ -781,26 +782,37 @@ export class Viewer {
     * @param {Object} headers [optional] - Headers to be used for request. This can be used for authorized access for example.
     * @fires Viewer#loaded
     */
-    public loadAsync(model: string | Blob | File, tag?: any, headers?: { [name: string]: string }): void {
+    public loadAsync(model: string | Blob | File, tag?: any, headers?: { [name: string]: string }, progress?: (message: Message) => void): void {
         if (typeof (model) == 'undefined') throw 'You have to specify model to load.';
         if (typeof (model) != 'string' && !(model instanceof Blob))
             throw 'Model has to be specified either as a URL to wexBIM file or Blob object representing the wexBIM file.';
         const self = this;
+        progress = progress ? progress : m => { };
 
         //fall back to synchronous loading if worker is not available
         if (typeof (Worker) === 'undefined') {
-            this.load(model, tag, headers);
+            this.load(model, tag, headers, progress);
         }
 
-        const blob = new Blob([LoaderWorker], {type: 'application/javascript'})
+        const blob = new Blob([LoaderWorker], { type: 'application/javascript' })
         const worker = new Worker(URL.createObjectURL(blob));
-        worker.onmessage = function (msg) {
+        worker.onmessage = (evt) => {
+            const msg = evt.data as Message;
 
-            //console.log('Message received from worker');
-            var geometry = msg.data as ModelGeometry;
-            self.addHandle(geometry, tag);
+            if (msg.type === MessageType.COMPLETED) {
+                var geometry = msg.result as ModelGeometry;
+                self.addHandle(geometry, tag);
+
+                // remove result from message before we pass it out
+                msg.result = null;
+                progress(msg);
+            }
+            else {
+                // pass the message from worker out
+                progress(msg);
+            }
         }
-        worker.onerror = function (e) {
+        worker.onerror = (e) => {
             self.error(e.message);
         };
 
@@ -819,9 +831,10 @@ export class Viewer {
     * @param {String | Blob | File} model - Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data.
     * @param {Any} tag [optional] - Tag to be used to identify the model in {@link Viewer#event:loaded loaded} event.
     * @param {Object} headers [optional] - Headers to be used for request. This can be used for authorized access for example.
+    * @param {Function} progress [optional] - Progress reporting delegate
     * @fires Viewer#loaded
     */
-    public load(model: string | Blob | File, tag?: any, headers?: { [name: string]: string }) {
+    public load(model: string | Blob | File, tag?: any, headers?: { [name: string]: string }, progress?: (message: Message) => void) {
         if (typeof (model) == 'undefined') throw 'You have to specify model to load.';
         if (typeof (model) != 'string' && !(model instanceof Blob))
             throw 'Model has to be specified either as a URL to wexBIM file or Blob object representing the wexBIM file.';
@@ -834,7 +847,7 @@ export class Viewer {
         geometry.onerror = function (msg) {
             viewer.error(msg);
         }
-        geometry.load(model, headers);
+        geometry.load(model, headers, progress);
     }
 
     //this is a private function used to add loaded geometry as a new handle and to set up camera and 
@@ -879,8 +892,7 @@ export class Viewer {
      * Sets camera parameters (near and far clipping planes) from current active models.
      * This should be called whenever active models are very different (size, units)
      */
-    public setCameraFromCurrentModel()
-    {
+    public setCameraFromCurrentModel() {
         if (this._activeHandles.length === 0) {
             return;
         }
@@ -892,7 +904,7 @@ export class Viewer {
         this.perspectiveCamera.near = meter / 10.0;
 
         //set orthogonalCamera boundaries so that it makes a sense
-        this.orthogonalCamera.far =  this.perspectiveCamera.far;
+        this.orthogonalCamera.far = this.perspectiveCamera.far;
         this.orthogonalCamera.near = this.perspectiveCamera.near;
         var ratio = 1.8;
         this.orthogonalCamera.top = maxSize / ratio;
@@ -1574,8 +1586,7 @@ export class Viewer {
         });
     };
 
-    private drawXRAY(gl: WebGLRenderingContext)
-    {
+    private drawXRAY(gl: WebGLRenderingContext) {
         const mode = this.renderingMode;
 
         const transparentPass = () => {
@@ -1933,7 +1944,7 @@ export class Viewer {
 
             handle.stopped = false;
             handle.changed = true;
-            
+
             // if the viewer is running already we can return from here
             if (this._isRunning) {
                 return;
@@ -2031,7 +2042,7 @@ export class Viewer {
      */
     public isModelOn(id: number): boolean {
         var model = this.getHandle(id);
-        if ( !model )
+        if (!model)
             return false;
         return !model.stopped;
     }
@@ -2281,7 +2292,7 @@ export class Viewer {
         }
     }
 
-    public getClip(modelId: number): {PlaneA: number[], PlaneB: number[]} {
+    public getClip(modelId: number): { PlaneA: number[], PlaneB: number[] } {
         var handle = this.getHandle(modelId);
         if (handle) {
             return {

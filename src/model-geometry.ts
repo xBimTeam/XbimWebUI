@@ -2,8 +2,12 @@
 import { TriangulatedShape } from "./triangulated-shape";
 import { State } from "./state";
 import { ProductType } from "./product-type";
+import { Message, MessageType } from "./message";
 
 export class ModelGeometry {
+
+    private progress: (message: Message) => void;
+
     //all this data is to be fed into GPU as attributes
     normals: Uint8Array;
     indices: Float32Array;
@@ -158,7 +162,18 @@ export class ModelGeometry {
 
         //binary reader should be at the end by now
         if (!br.isEOF()) {
+            this.progress({
+                type: MessageType.FAILED,
+                message: "Processing data",
+                percent: 0
+            });
             throw new Error('Binary reader is not at the end of the file.');
+        } else {
+            this.progress({
+                type: MessageType.PROGRESS,
+                message: "Processing data",
+                percent: 100
+            });
         }
 
         //set value of transparent index divider for two phase rendering (simplified ordering)
@@ -277,20 +292,23 @@ export class ModelGeometry {
     }
 
     //Source has to be either URL of wexBIM file or Blob representing wexBIM file
-    public load(source, headers: { [name: string]: string }) {
+    public load(source, headers: { [name: string]: string }, progress: (message: Message) => void) {
+        this.progress = progress ? progress : (m) => {};
         //binary reading
         let br = new BinaryReader();
         let self = this;
-        br.onloaded = function () {
+        br.onloaded =  () => {
             self.parse(br);
             if (self.onloaded) {
                 self.onloaded(this);
             }
         };
-        br.onerror = function (msg) {
-            if (self.onerror) self.onerror(msg);
+        br.onerror =  (msg) => {
+            if (self.onerror) {
+                self.onerror(msg);
+            }
         };
-        br.load(source, headers);
+        br.load(source, headers, progress);
     }
 
     public onloaded: (geometry: ModelGeometry) => void;

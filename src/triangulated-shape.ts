@@ -75,7 +75,7 @@ export class TriangulatedShape {
                 self.onloaded(this);
             }
         };
-        br.load(source, null);
+        br.load(source, null, null);
     }
 
 

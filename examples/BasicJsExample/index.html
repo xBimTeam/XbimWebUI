@@ -19,6 +19,12 @@
                 display: block;
                 border: none;
             }
+
+            #progress{
+                position: absolute;
+                left: 0;
+                top: 0;
+            }
         </style>
 
 	</head>
@@ -26,9 +32,15 @@
 	
 	<body>
         <canvas id="viewer"></canvas>
+        <div id="progress">
+
+        </div>
         <script type="text/javascript">
             var viewer = new Viewer("viewer");
-            viewer.load("/tests/data/SampleHouse.wexbim");
+            var progress = document.getElementById("progress")
+            viewer.loadAsync("/tests/data/LakesideRestaurant.wexbim", null, null, (msg) => {
+                progress.innerHTML = `${msg.message}, done:${msg.percent}%`;
+            });
             viewer.start();
         </script>
 	</body>

@@ -1,4 +1,7 @@
-﻿/**
+﻿import { freemem } from "os";
+import { Message, MessageType } from "./message";
+
+/**
  * Convenient class for binary reading. Arrays are read as new views on slices of the original data buffer,
  * individual values are read using little endian data view. 
  */
@@ -6,6 +9,8 @@ export class BinaryReader {
     private _buffer: ArrayBuffer = null;
     private _view: DataView = null;
     private _position: number = 0;
+    private _progress: (message: Message) => void = m => { };
+    private _lastProgress = 0;
 
     /**
      * callback which will be called after asynchronous loading of data is finished
@@ -32,7 +37,7 @@ export class BinaryReader {
         //get slice of the data
         var data = this._buffer.slice(this._position, this._position + length);
         //load is synchronous with ArrayBuffer argument
-        reader.load(data, null);
+        reader.load(data, null, null);
 
         //move position after the data island
         this._position += length;
@@ -46,10 +51,13 @@ export class BinaryReader {
      * Othe sources are loaded asynchronously and you need to use 'onloaded' delegate to use the reader only after it is initialized woth the data.
      * @param source URL string of the file or BLOB or File or ArrayBuffer object
      * @param headers http headers to be used to fetch data
+     * @param progress Callback which can be repeatedly called to report processing progress
      */
-    public load(source: string | Blob | File | ArrayBuffer, headers: { [name: string]: string }): void {
+    public load(source: string | Blob | File | ArrayBuffer, headers: { [name: string]: string }, progress: (message: Message) => void): void {
         this._position = 0;
         var self = this;
+        progress = progress ? progress : (m) => { };
+        this._progress = progress;
 
         if (typeof (source) == 'undefined' || source == null) throw 'Source must be defined';
         if (typeof (source) == 'string') {
@@ -62,10 +70,10 @@ export class BinaryReader {
             }
             const xhr = new XMLHttpRequest();
             xhr.open("GET", source, true);
-            xhr.onreadystatechange = function () {
+            xhr.onreadystatechange = () => {
                 if (xhr.readyState == 4 && xhr.status == 200) {
                     var fReader = new FileReader();
-                    fReader.onloadend = function () {
+                    fReader.onloadend = () => {
                         if (fReader.result) {
                             //set data buffer for next processing
                             self._buffer = fReader.result;
@@ -76,6 +84,13 @@ export class BinaryReader {
                             }
                         }
                     };
+                    fReader.onprogress = (evt: ProgressEvent) => {
+                        progress({
+                            message: 'Downloading geometry',
+                            percent: Math.floor(evt.loaded / evt.total * 100.0),
+                            type: MessageType.PROGRESS
+                        })
+                    };
                     fReader.readAsArrayBuffer(xhr.response);
                 }
                 //throw exception as a warning
@@ -85,11 +100,18 @@ export class BinaryReader {
                         '. This might be due to CORS policy of your browser if you run this as a local file.';
                     if (self.onerror)
                         self.onerror(msg);
+                    progress(
+                        {
+                            message: 'Downloading geometry',
+                            percent: 0,
+                            type: MessageType.FAILED
+                        }
+                    );
                     throw msg;
                 }
             };
             xhr.responseType = 'blob';
-            if (typeof headers !== 'undefined') {
+            if (headers != null) {
                 Object.keys(headers).forEach(header => {
                     const value = headers[header];
                     xhr.setRequestHeader(header, value);
@@ -108,6 +130,13 @@ export class BinaryReader {
                         self.onloaded(self);
                     }
                 }
+            };
+            fReader.onprogress = (evt: ProgressEvent) => {
+                progress({
+                    message: 'Loading binary data',
+                    percent: Math.floor(evt.loaded / evt.total * 100.0),
+                    type: MessageType.PROGRESS
+                })
             };
             fReader.readAsArrayBuffer(source);
         } else if (source instanceof ArrayBuffer) {
@@ -138,7 +167,8 @@ export class BinaryReader {
         var length = unitSize * count;
         var offset = this._position;
         this._position += length;
-        var result;
+
+        this.reportProgress();
 
         return count === 1
             ? new ctor(this._buffer.slice(offset, offset + length))[0]
@@ -148,7 +178,23 @@ export class BinaryReader {
     private move(size: number): number {
         var offset = this._position;
         this._position += size;
+        this.reportProgress();
         return offset;
+    }
+
+    private reportProgress() {
+        if (this._progress == null) {
+            return;
+        }
+        // report every 0.5MB
+        if ((this._position - this._lastProgress) > 5e5) {
+            this._lastProgress = this._position;
+            this._progress({
+                type: MessageType.PROGRESS,
+                message: "Processing data",
+                percent: Math.floor(100.0 * this._position / this._buffer.byteLength)
+            });
+        }
     }
 
     public readByte(): number {
