@@ -354,6 +354,11 @@ export class ModelHandle {
     //    }
     //}
 
+
+    public getProductId(renderId: number): number{
+        return this._model.productIdLookup[renderId];
+    }
+
     public getProductMap(id: number): ProductMap {
         var map = this._model.productMaps[id];
         if (typeof (map) !== 'undefined') return map;

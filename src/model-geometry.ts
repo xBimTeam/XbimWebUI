@@ -40,6 +40,7 @@ export class ModelGeometry {
     private _iMatrix = 0;
 
     public productMaps: { [id: number]: ProductMap } = {};
+    public productIdLookup = [];
     public regions: Region[];
     public transparentIndex: number;
 
@@ -111,11 +112,13 @@ export class ModelGeometry {
 
             let map: ProductMap = {
                 productID: productLabel,
+                renderId: i + 1,
                 type: prodType,
                 bBox: bBox,
                 spans: []
             };
             this.productMaps[productLabel] = map;
+            this.productIdLookup[i+1] = productLabel;
         }
 
         //version 3 puts geometry in regions properly so it is possible to use this information for rendering
@@ -217,6 +220,7 @@ export class ModelGeometry {
                 //throw "Product hasn't been defined before.";
                 map = {
                     productID: 0,
+                    renderId: 0,
                     type: ProductType.IFCOPENINGELEMENT,
                     bBox: new Float32Array(6),
                     spans: []
@@ -234,7 +238,7 @@ export class ModelGeometry {
             //fix indices to right absolute position. It is relative to the shape.
             for (let i = 0; i < geometry.indices.length; i++) {
                 this.indices[iIndex] = geometry.indices[i] + this._iVertex / 3;
-                this.products[iIndex] = shape.pLabel;
+                this.products[iIndex] = map.renderId;
                 this.styleIndices[iIndex] = shape.style;
                 this.transformations[iIndex] = shape.transform; //shape.pLabel == 33698 || shape.pLabel == 33815 ? -1 : shape.transform;
                 this.states[2 * iIndex] = state; //set state
@@ -319,6 +323,7 @@ export class ModelGeometry {
 
 export class ProductMap {
     productID: number;
+    renderId: number;
     type: ProductType;
     bBox: Float32Array;
     spans: Array<Int32Array>;

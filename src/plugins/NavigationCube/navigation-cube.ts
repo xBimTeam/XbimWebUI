@@ -1,10 +1,12 @@
-﻿import { IPlugin, Viewer, ViewType } from "../../viewer";
+﻿import { Viewer, ViewType } from "../../viewer";
+import { IPlugin } from "../plugin";
 import { cube_fshader } from "./cube_fshader";
 import { cube_vshader } from "./cube_vshader";
 import { CubeTextures } from "./navigation-cube-textures";
 import { mat4 } from "../../matrix/mat4";
 import { mat3 } from "../../matrix/mat3";
 import { vec3 } from "../../matrix/vec3";
+import { ProductIdentity } from "../../product-identity";
 
 
 export class NavigationCube implements IPlugin {
@@ -33,37 +35,38 @@ export class NavigationCube implements IPlugin {
     }
 
     private _image: ImageBitmap | ImageData | HTMLVideoElement | HTMLImageElement | HTMLCanvasElement;
-    private TOP = 1600000;
-    private BOTTOM = 1600001;
-    private LEFT = 1600002;
-    private RIGHT = 1600003;
-    private FRONT = 1600004;
-    private BACK = 1600005;
+    private TOP = 1;
+    private BOTTOM = 2;
+    private LEFT = 3;
+    private RIGHT = 4;
+    private FRONT = 5;
+    private BACK = 6;
 
-    private TOP_LEFT_FRONT = 1600006;
-    private TOP_RIGHT_FRONT = 1600007;
-    private TOP_LEFT_BACK = 1600008;
-    private TOP_RIGHT_BACK = 1600009;
-    private BOTTOM_LEFT_FRONT = 1600010;
-    private BOTTOM_RIGHT_FRONT = 1600011;
-    private BOTTOM_LEFT_BACK = 1600012;
-    private BOTTOM_RIGHT_BACK = 1600013;
+    private TOP_LEFT_FRONT = 7;
+    private TOP_RIGHT_FRONT = 8;
+    private TOP_LEFT_BACK = 9;
+    private TOP_RIGHT_BACK = 10;
+    private BOTTOM_LEFT_FRONT = 11;
+    private BOTTOM_RIGHT_FRONT = 12;
+    private BOTTOM_LEFT_BACK = 13;
+    private BOTTOM_RIGHT_BACK = 14;
 
-    private TOP_LEFT = 1600014;
-    private TOP_RIGHT = 1600015;
-    private TOP_FRONT = 1600016;
-    private TOP_BACK = 1600017;
-    private BOTTOM_LEFT = 1600018;
-    private BOTTOM_RIGHT = 1600019;
-    private BOTTOM_FRONT = 1600020;
-    private BOTTOM_BACK = 1600021;
+    private TOP_LEFT = 15;
+    private TOP_RIGHT = 16;
+    private TOP_FRONT = 17;
+    private TOP_BACK = 18;
+    private BOTTOM_LEFT = 19;
+    private BOTTOM_RIGHT = 20;
+    private BOTTOM_FRONT = 21;
+    private BOTTOM_BACK = 22;
 
-    private FRONT_RIGHT = 1600022;
-    private FRONT_LEFT = 1600023;
-    private BACK_RIGHT = 1600024;
-    private BACK_LEFT = 1600025;
+    private FRONT_RIGHT = 23;
+    private FRONT_LEFT = 24;
+    private BACK_RIGHT = 25;
+    private BACK_LEFT = 26;
 
     private _initialized: boolean = false;
+    private _modelId = 1000001;
 
     //region where the cube is drawn. This helps to avoid unnecessary requests for ID
     private _region: number[];
@@ -244,9 +247,9 @@ export class NavigationCube implements IPlugin {
                 //this is for picking
                 var id = viewer.getID(x, y);
 
-                if (id >= self.TOP && id <= self.BACK_LEFT) {
+                if (id.id >= self.TOP && id.id <= self.BACK_LEFT) {
                     self._alpha = self.activeAlpha;
-                    self._selection = id;
+                    self._selection = id.id;
                 } else {
                     self._alpha = self.passiveAlpha;
                     self._selection = 0;
@@ -269,7 +272,7 @@ export class NavigationCube implements IPlugin {
                 //this is for picking
                 var id = viewer.getID(viewX, viewY);
 
-                if (id >= self.TOP && id <= self.BACK_LEFT) {
+                if (id.id >= self.TOP && id.id <= self.BACK_LEFT) {
                     //change viewer navigation mode to be 'orbit'
                     self._drag = true;
                     self._originalNavigation = viewer.navigationMode;
@@ -287,140 +290,143 @@ export class NavigationCube implements IPlugin {
             },
             true);
 
-        this._initialized = true;
+        this._initialized = true; 
 
     }
 
     onBeforeDraw(width: number, height: number) { }
 
-    onBeforePick(id) {
-        if (id >= this.TOP && id <= this.BACK_LEFT) {
-
-            var dir = vec3.create();
-            var distance = this.viewer.distance;
-            var diagonalRatio = 1.3;
-
-            switch (id) {
-                case this.TOP:
-                    this.viewer.show(ViewType.TOP);
-                    return true;
-                case this.BOTTOM:
-                    this.viewer.show(ViewType.BOTTOM);
-                    return true;
-                case this.LEFT:
-                    this.viewer.show(ViewType.LEFT);
-                    return true;
-                case this.RIGHT:
-                    this.viewer.show(ViewType.RIGHT);
-                    return true;
-                case this.FRONT:
-                    this.viewer.show(ViewType.FRONT);
-                    return true;
-                case this.BACK:
-                    this.viewer.show(ViewType.BACK);
-                    return true;
-                case this.TOP_LEFT_FRONT:
-                    dir = vec3.fromValues(-1, -1, 1);
-                    distance *= diagonalRatio;
-                    break;
-                case this.TOP_RIGHT_FRONT:
-                    dir = vec3.fromValues(1, -1, 1);
-                    distance *= diagonalRatio;
-                    break;
-                case this.TOP_LEFT_BACK:
-                    dir = vec3.fromValues(-1, 1, 1);
-                    distance *= diagonalRatio;
-                    break;
-                case this.TOP_RIGHT_BACK:
-                    dir = vec3.fromValues(1, 1, 1);
-                    distance *= diagonalRatio;
-                    break;
-                case this.BOTTOM_LEFT_FRONT:
-                    dir = vec3.fromValues(-1, -1, -1);
-                    distance *= diagonalRatio;
-                    break;
-                case this.BOTTOM_RIGHT_FRONT:
-                    dir = vec3.fromValues(1, -1, -1);
-                    distance *= diagonalRatio;
-                    break;
-                case this.BOTTOM_LEFT_BACK:
-                    dir = vec3.fromValues(-1, 1, -1);
-                    distance *= diagonalRatio;
-                    break;
-                case this.BOTTOM_RIGHT_BACK:
-                    dir = vec3.fromValues(1, 1, -1);
-                    distance *= diagonalRatio;
-                    break;
-                case this.TOP_LEFT:
-                    dir = vec3.fromValues(-1, 0, 1);
-                    distance *= diagonalRatio;
-                    break;
-                case this.TOP_RIGHT:
-                    dir = vec3.fromValues(1, 0, 1);
-                    distance *= diagonalRatio;
-                    break;
-                case this.TOP_FRONT:
-                    dir = vec3.fromValues(0, -1, 1);
-                    distance *= diagonalRatio;
-                    break;
-                case this.TOP_BACK:
-                    dir = vec3.fromValues(0, 1, 1);
-                    distance *= diagonalRatio;
-                    break;
-                case this.BOTTOM_LEFT:
-                    dir = vec3.fromValues(-1, 0, -1);
-                    distance *= diagonalRatio;
-                    break;
-                case this.BOTTOM_RIGHT:
-                    dir = vec3.fromValues(1, 0, -1);
-                    break;
-                case this.BOTTOM_FRONT:
-                    dir = vec3.fromValues(0, -1, -1);
-                    distance *= diagonalRatio;
-                    break;
-                case this.BOTTOM_BACK:
-                    dir = vec3.fromValues(0, 1, -1);
-                    distance *= diagonalRatio;
-                    break;
-                case this.FRONT_RIGHT:
-                    dir = vec3.fromValues(1, -1, 0);
-                    distance *= diagonalRatio;
-                    break;
-                case this.FRONT_LEFT:
-                    dir = vec3.fromValues(-1, -1, 0);
-                    distance *= diagonalRatio;
-                    break;
-                case this.BACK_RIGHT:
-                    dir = vec3.fromValues(1, 1, 0);
-                    distance *= diagonalRatio;
-                    break;
-                case this.BACK_LEFT:
-                    dir = vec3.fromValues(-1, 1, 0);
-                    distance *= diagonalRatio;
-                    break;
-                default:
-                    break;
-            }
-
-            var o = this.viewer.origin;
-            var heading = vec3.fromValues(0, 0, 1);
-            var origin = vec3.fromValues(o[0], o[1], o[2]);
-
-            dir = vec3.normalize(vec3.create(), dir);
-            var shift = vec3.scale(vec3.create(), dir, distance);
-            var camera = vec3.add(vec3.create(), origin, shift);
-
-            //use look-at function to set up camera and target
-            this.viewer.mvMatrix = mat4.lookAt(mat4.create(), camera, origin, heading);
-            return true;
+    onBeforePick(identity: ProductIdentity) {
+        if (identity.model !== this._modelId || identity.id == null) {
+            return false;
         }
-        return false;
+
+        const id = identity.id;
+
+        var dir = vec3.create();
+        var distance = this.viewer.distance;
+        var diagonalRatio = 1.3;
+
+        switch (id) {
+            case this.TOP:
+                this.viewer.show(ViewType.TOP);
+                return true;
+            case this.BOTTOM:
+                this.viewer.show(ViewType.BOTTOM);
+                return true;
+            case this.LEFT:
+                this.viewer.show(ViewType.LEFT);
+                return true;
+            case this.RIGHT:
+                this.viewer.show(ViewType.RIGHT);
+                return true;
+            case this.FRONT:
+                this.viewer.show(ViewType.FRONT);
+                return true;
+            case this.BACK:
+                this.viewer.show(ViewType.BACK);
+                return true;
+            case this.TOP_LEFT_FRONT:
+                dir = vec3.fromValues(-1, -1, 1);
+                distance *= diagonalRatio;
+                break;
+            case this.TOP_RIGHT_FRONT:
+                dir = vec3.fromValues(1, -1, 1);
+                distance *= diagonalRatio;
+                break;
+            case this.TOP_LEFT_BACK:
+                dir = vec3.fromValues(-1, 1, 1);
+                distance *= diagonalRatio;
+                break;
+            case this.TOP_RIGHT_BACK:
+                dir = vec3.fromValues(1, 1, 1);
+                distance *= diagonalRatio;
+                break;
+            case this.BOTTOM_LEFT_FRONT:
+                dir = vec3.fromValues(-1, -1, -1);
+                distance *= diagonalRatio;
+                break;
+            case this.BOTTOM_RIGHT_FRONT:
+                dir = vec3.fromValues(1, -1, -1);
+                distance *= diagonalRatio;
+                break;
+            case this.BOTTOM_LEFT_BACK:
+                dir = vec3.fromValues(-1, 1, -1);
+                distance *= diagonalRatio;
+                break;
+            case this.BOTTOM_RIGHT_BACK:
+                dir = vec3.fromValues(1, 1, -1);
+                distance *= diagonalRatio;
+                break;
+            case this.TOP_LEFT:
+                dir = vec3.fromValues(-1, 0, 1);
+                distance *= diagonalRatio;
+                break;
+            case this.TOP_RIGHT:
+                dir = vec3.fromValues(1, 0, 1);
+                distance *= diagonalRatio;
+                break;
+            case this.TOP_FRONT:
+                dir = vec3.fromValues(0, -1, 1);
+                distance *= diagonalRatio;
+                break;
+            case this.TOP_BACK:
+                dir = vec3.fromValues(0, 1, 1);
+                distance *= diagonalRatio;
+                break;
+            case this.BOTTOM_LEFT:
+                dir = vec3.fromValues(-1, 0, -1);
+                distance *= diagonalRatio;
+                break;
+            case this.BOTTOM_RIGHT:
+                dir = vec3.fromValues(1, 0, -1);
+                break;
+            case this.BOTTOM_FRONT:
+                dir = vec3.fromValues(0, -1, -1);
+                distance *= diagonalRatio;
+                break;
+            case this.BOTTOM_BACK:
+                dir = vec3.fromValues(0, 1, -1);
+                distance *= diagonalRatio;
+                break;
+            case this.FRONT_RIGHT:
+                dir = vec3.fromValues(1, -1, 0);
+                distance *= diagonalRatio;
+                break;
+            case this.FRONT_LEFT:
+                dir = vec3.fromValues(-1, -1, 0);
+                distance *= diagonalRatio;
+                break;
+            case this.BACK_RIGHT:
+                dir = vec3.fromValues(1, 1, 0);
+                distance *= diagonalRatio;
+                break;
+            case this.BACK_LEFT:
+                dir = vec3.fromValues(-1, 1, 0);
+                distance *= diagonalRatio;
+                break;
+            default:
+                return false;
+        }
+
+        var o = this.viewer.origin;
+        var heading = vec3.fromValues(0, 0, 1);
+        var origin = vec3.fromValues(o[0], o[1], o[2]);
+
+        dir = vec3.normalize(vec3.create(), dir);
+        var shift = vec3.scale(vec3.create(), dir, distance);
+        var camera = vec3.add(vec3.create(), origin, shift);
+
+        //use look-at function to set up camera and target
+        this.viewer.mvMatrix = mat4.lookAt(mat4.create(), camera, origin, heading);
+        return true;
+
     }
 
     onAfterDraw(width: number, height: number) {
         var gl = this.setActive();
         //set uniform for colour coding to false
-        gl.uniform1i(this._colourCodingUniformPointer, 0);
+        gl.uniform1f(this._colourCodingUniformPointer, 0);
         this.draw(width, height);
     }
 
@@ -429,7 +435,14 @@ export class NavigationCube implements IPlugin {
     onAfterDrawId() {
         var gl = this.setActive();
         //set uniform for colour coding to false
-        gl.uniform1i(this._colourCodingUniformPointer, 1);
+        gl.uniform1f(this._colourCodingUniformPointer, 1);
+        this.draw(this.viewer.width, this.viewer.height);
+    }
+
+    onAfterDrawModelId() {
+        var gl = this.setActive();
+        //set uniform for colour coding to false
+        gl.uniform1f(this._colourCodingUniformPointer, this._modelId);
         this.draw(this.viewer.width, this.viewer.height);
     }
 
@@ -544,7 +557,8 @@ export class NavigationCube implements IPlugin {
             gl.shaderSource(shader, code);
             gl.compileShader(shader);
             if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-                viewer.error(gl.getShaderInfoLog(shader));
+                let msg = gl.getShaderInfoLog(shader);
+                viewer.error(msg);
                 return null;
             }
         }
@@ -1283,221 +1297,221 @@ export class NavigationCube implements IPlugin {
     ]);
 
     private ids = new Float32Array([
-            this.FRONT, // Front face
-            this.FRONT,
-            this.FRONT,
-            this.FRONT,
-            this.BACK, // Back face
-            this.BACK,
-            this.BACK,
-            this.BACK,
-            this.TOP, // Top face
-            this.TOP,
-            this.TOP,
-            this.TOP,
-            this.BOTTOM, // Bottom face
-            this.BOTTOM,
-            this.BOTTOM,
-            this.BOTTOM,
-            this.RIGHT, // Right face
-            this.RIGHT,
-            this.RIGHT,
-            this.RIGHT,
-            this.LEFT, // Left face
-            this.LEFT,
-            this.LEFT,
-            this.LEFT,
-            this.TOP_LEFT_FRONT,
-            this.TOP_LEFT_FRONT,
-            this.TOP_LEFT_FRONT,
-            this.TOP_LEFT_FRONT,
-            this.TOP_LEFT_FRONT,
-            this.TOP_LEFT_FRONT,
-            this.TOP_LEFT_FRONT,
-            this.TOP_LEFT_FRONT,
-            this.TOP_LEFT_FRONT,
-            this.TOP_LEFT_FRONT,
-            this.TOP_LEFT_FRONT,
-            this.TOP_LEFT_FRONT,
-            this.TOP_RIGHT_FRONT,
-            this.TOP_RIGHT_FRONT,
-            this.TOP_RIGHT_FRONT,
-            this.TOP_RIGHT_FRONT,
-            this.TOP_RIGHT_FRONT,
-            this.TOP_RIGHT_FRONT,
-            this.TOP_RIGHT_FRONT,
-            this.TOP_RIGHT_FRONT,
-            this.TOP_RIGHT_FRONT,
-            this.TOP_RIGHT_FRONT,
-            this.TOP_RIGHT_FRONT,
-            this.TOP_RIGHT_FRONT,
-            this.TOP_LEFT_BACK,
-            this.TOP_LEFT_BACK,
-            this.TOP_LEFT_BACK,
-            this.TOP_LEFT_BACK,
-            this.TOP_LEFT_BACK,
-            this.TOP_LEFT_BACK,
-            this.TOP_LEFT_BACK,
-            this.TOP_LEFT_BACK,
-            this.TOP_LEFT_BACK,
-            this.TOP_LEFT_BACK,
-            this.TOP_LEFT_BACK,
-            this.TOP_LEFT_BACK,
-            this.TOP_RIGHT_BACK,
-            this.TOP_RIGHT_BACK,
-            this.TOP_RIGHT_BACK,
-            this.TOP_RIGHT_BACK,
-            this.TOP_RIGHT_BACK,
-            this.TOP_RIGHT_BACK,
-            this.TOP_RIGHT_BACK,
-            this.TOP_RIGHT_BACK,
-            this.TOP_RIGHT_BACK,
-            this.TOP_RIGHT_BACK,
-            this.TOP_RIGHT_BACK,
-            this.TOP_RIGHT_BACK,
-            this.BOTTOM_LEFT_FRONT,
-            this.BOTTOM_LEFT_FRONT,
-            this.BOTTOM_LEFT_FRONT,
-            this.BOTTOM_LEFT_FRONT,
-            this.BOTTOM_LEFT_FRONT,
-            this.BOTTOM_LEFT_FRONT,
-            this.BOTTOM_LEFT_FRONT,
-            this.BOTTOM_LEFT_FRONT,
-            this.BOTTOM_LEFT_FRONT,
-            this.BOTTOM_LEFT_FRONT,
-            this.BOTTOM_LEFT_FRONT,
-            this.BOTTOM_LEFT_FRONT,
-            this.BOTTOM_RIGHT_FRONT,
-            this.BOTTOM_RIGHT_FRONT,
-            this.BOTTOM_RIGHT_FRONT,
-            this.BOTTOM_RIGHT_FRONT,
-            this.BOTTOM_RIGHT_FRONT,
-            this.BOTTOM_RIGHT_FRONT,
-            this.BOTTOM_RIGHT_FRONT,
-            this.BOTTOM_RIGHT_FRONT,
-            this.BOTTOM_RIGHT_FRONT,
-            this.BOTTOM_RIGHT_FRONT,
-            this.BOTTOM_RIGHT_FRONT,
-            this.BOTTOM_RIGHT_FRONT,
-            this.BOTTOM_LEFT_BACK,
-            this.BOTTOM_LEFT_BACK,
-            this.BOTTOM_LEFT_BACK,
-            this.BOTTOM_LEFT_BACK,
-            this.BOTTOM_LEFT_BACK,
-            this.BOTTOM_LEFT_BACK,
-            this.BOTTOM_LEFT_BACK,
-            this.BOTTOM_LEFT_BACK,
-            this.BOTTOM_LEFT_BACK,
-            this.BOTTOM_LEFT_BACK,
-            this.BOTTOM_LEFT_BACK,
-            this.BOTTOM_LEFT_BACK,
-            this.BOTTOM_RIGHT_BACK,
-            this.BOTTOM_RIGHT_BACK,
-            this.BOTTOM_RIGHT_BACK,
-            this.BOTTOM_RIGHT_BACK,
-            this.BOTTOM_RIGHT_BACK,
-            this.BOTTOM_RIGHT_BACK,
-            this.BOTTOM_RIGHT_BACK,
-            this.BOTTOM_RIGHT_BACK,
-            this.BOTTOM_RIGHT_BACK,
-            this.BOTTOM_RIGHT_BACK,
-            this.BOTTOM_RIGHT_BACK,
-            this.BOTTOM_RIGHT_BACK,
-            this.TOP_RIGHT,
-            this.TOP_RIGHT,
-            this.TOP_RIGHT,
-            this.TOP_RIGHT,
-            this.TOP_RIGHT,
-            this.TOP_RIGHT,
-            this.TOP_RIGHT,
-            this.TOP_RIGHT,
-            this.TOP_LEFT,
-            this.TOP_LEFT,
-            this.TOP_LEFT,
-            this.TOP_LEFT,
-            this.TOP_LEFT,
-            this.TOP_LEFT,
-            this.TOP_LEFT,
-            this.TOP_LEFT,
-            this.TOP_FRONT,
-            this.TOP_FRONT,
-            this.TOP_FRONT,
-            this.TOP_FRONT,
-            this.TOP_FRONT,
-            this.TOP_FRONT,
-            this.TOP_FRONT,
-            this.TOP_FRONT,
-            this.TOP_BACK,
-            this.TOP_BACK,
-            this.TOP_BACK,
-            this.TOP_BACK,
-            this.TOP_BACK,
-            this.TOP_BACK,
-            this.TOP_BACK,
-            this.TOP_BACK,
-            this.BOTTOM_RIGHT,
-            this.BOTTOM_RIGHT,
-            this.BOTTOM_RIGHT,
-            this.BOTTOM_RIGHT,
-            this.BOTTOM_RIGHT,
-            this.BOTTOM_RIGHT,
-            this.BOTTOM_RIGHT,
-            this.BOTTOM_RIGHT,
-            this.BOTTOM_LEFT,
-            this.BOTTOM_LEFT,
-            this.BOTTOM_LEFT,
-            this.BOTTOM_LEFT,
-            this.BOTTOM_LEFT,
-            this.BOTTOM_LEFT,
-            this.BOTTOM_LEFT,
-            this.BOTTOM_LEFT,
-            this.BOTTOM_FRONT,
-            this.BOTTOM_FRONT,
-            this.BOTTOM_FRONT,
-            this.BOTTOM_FRONT,
-            this.BOTTOM_FRONT,
-            this.BOTTOM_FRONT,
-            this.BOTTOM_FRONT,
-            this.BOTTOM_FRONT,
-            this.BOTTOM_BACK,
-            this.BOTTOM_BACK,
-            this.BOTTOM_BACK,
-            this.BOTTOM_BACK,
-            this.BOTTOM_BACK,
-            this.BOTTOM_BACK,
-            this.BOTTOM_BACK,
-            this.BOTTOM_BACK,
-            this.FRONT_RIGHT,
-            this.FRONT_RIGHT,
-            this.FRONT_RIGHT,
-            this.FRONT_RIGHT,
-            this.FRONT_RIGHT,
-            this.FRONT_RIGHT,
-            this.FRONT_RIGHT,
-            this.FRONT_RIGHT,
-            this.FRONT_LEFT,
-            this.FRONT_LEFT,
-            this.FRONT_LEFT,
-            this.FRONT_LEFT,
-            this.FRONT_LEFT,
-            this.FRONT_LEFT,
-            this.FRONT_LEFT,
-            this.FRONT_LEFT,
-            this.BACK_RIGHT,
-            this.BACK_RIGHT,
-            this.BACK_RIGHT,
-            this.BACK_RIGHT,
-            this.BACK_RIGHT,
-            this.BACK_RIGHT,
-            this.BACK_RIGHT,
-            this.BACK_RIGHT,
-            this.BACK_LEFT,
-            this.BACK_LEFT,
-            this.BACK_LEFT,
-            this.BACK_LEFT,
-            this.BACK_LEFT,
-            this.BACK_LEFT,
-            this.BACK_LEFT,
-            this.BACK_LEFT,
-        ]);
+        this.FRONT, // Front face
+        this.FRONT,
+        this.FRONT,
+        this.FRONT,
+        this.BACK, // Back face
+        this.BACK,
+        this.BACK,
+        this.BACK,
+        this.TOP, // Top face
+        this.TOP,
+        this.TOP,
+        this.TOP,
+        this.BOTTOM, // Bottom face
+        this.BOTTOM,
+        this.BOTTOM,
+        this.BOTTOM,
+        this.RIGHT, // Right face
+        this.RIGHT,
+        this.RIGHT,
+        this.RIGHT,
+        this.LEFT, // Left face
+        this.LEFT,
+        this.LEFT,
+        this.LEFT,
+        this.TOP_LEFT_FRONT,
+        this.TOP_LEFT_FRONT,
+        this.TOP_LEFT_FRONT,
+        this.TOP_LEFT_FRONT,
+        this.TOP_LEFT_FRONT,
+        this.TOP_LEFT_FRONT,
+        this.TOP_LEFT_FRONT,
+        this.TOP_LEFT_FRONT,
+        this.TOP_LEFT_FRONT,
+        this.TOP_LEFT_FRONT,
+        this.TOP_LEFT_FRONT,
+        this.TOP_LEFT_FRONT,
+        this.TOP_RIGHT_FRONT,
+        this.TOP_RIGHT_FRONT,
+        this.TOP_RIGHT_FRONT,
+        this.TOP_RIGHT_FRONT,
+        this.TOP_RIGHT_FRONT,
+        this.TOP_RIGHT_FRONT,
+        this.TOP_RIGHT_FRONT,
+        this.TOP_RIGHT_FRONT,
+        this.TOP_RIGHT_FRONT,
+        this.TOP_RIGHT_FRONT,
+        this.TOP_RIGHT_FRONT,
+        this.TOP_RIGHT_FRONT,
+        this.TOP_LEFT_BACK,
+        this.TOP_LEFT_BACK,
+        this.TOP_LEFT_BACK,
+        this.TOP_LEFT_BACK,
+        this.TOP_LEFT_BACK,
+        this.TOP_LEFT_BACK,
+        this.TOP_LEFT_BACK,
+        this.TOP_LEFT_BACK,
+        this.TOP_LEFT_BACK,
+        this.TOP_LEFT_BACK,
+        this.TOP_LEFT_BACK,
+        this.TOP_LEFT_BACK,
+        this.TOP_RIGHT_BACK,
+        this.TOP_RIGHT_BACK,
+        this.TOP_RIGHT_BACK,
+        this.TOP_RIGHT_BACK,
+        this.TOP_RIGHT_BACK,
+        this.TOP_RIGHT_BACK,
+        this.TOP_RIGHT_BACK,
+        this.TOP_RIGHT_BACK,
+        this.TOP_RIGHT_BACK,
+        this.TOP_RIGHT_BACK,
+        this.TOP_RIGHT_BACK,
+        this.TOP_RIGHT_BACK,
+        this.BOTTOM_LEFT_FRONT,
+        this.BOTTOM_LEFT_FRONT,
+        this.BOTTOM_LEFT_FRONT,
+        this.BOTTOM_LEFT_FRONT,
+        this.BOTTOM_LEFT_FRONT,
+        this.BOTTOM_LEFT_FRONT,
+        this.BOTTOM_LEFT_FRONT,
+        this.BOTTOM_LEFT_FRONT,
+        this.BOTTOM_LEFT_FRONT,
+        this.BOTTOM_LEFT_FRONT,
+        this.BOTTOM_LEFT_FRONT,
+        this.BOTTOM_LEFT_FRONT,
+        this.BOTTOM_RIGHT_FRONT,
+        this.BOTTOM_RIGHT_FRONT,
+        this.BOTTOM_RIGHT_FRONT,
+        this.BOTTOM_RIGHT_FRONT,
+        this.BOTTOM_RIGHT_FRONT,
+        this.BOTTOM_RIGHT_FRONT,
+        this.BOTTOM_RIGHT_FRONT,
+        this.BOTTOM_RIGHT_FRONT,
+        this.BOTTOM_RIGHT_FRONT,
+        this.BOTTOM_RIGHT_FRONT,
+        this.BOTTOM_RIGHT_FRONT,
+        this.BOTTOM_RIGHT_FRONT,
+        this.BOTTOM_LEFT_BACK,
+        this.BOTTOM_LEFT_BACK,
+        this.BOTTOM_LEFT_BACK,
+        this.BOTTOM_LEFT_BACK,
+        this.BOTTOM_LEFT_BACK,
+        this.BOTTOM_LEFT_BACK,
+        this.BOTTOM_LEFT_BACK,
+        this.BOTTOM_LEFT_BACK,
+        this.BOTTOM_LEFT_BACK,
+        this.BOTTOM_LEFT_BACK,
+        this.BOTTOM_LEFT_BACK,
+        this.BOTTOM_LEFT_BACK,
+        this.BOTTOM_RIGHT_BACK,
+        this.BOTTOM_RIGHT_BACK,
+        this.BOTTOM_RIGHT_BACK,
+        this.BOTTOM_RIGHT_BACK,
+        this.BOTTOM_RIGHT_BACK,
+        this.BOTTOM_RIGHT_BACK,
+        this.BOTTOM_RIGHT_BACK,
+        this.BOTTOM_RIGHT_BACK,
+        this.BOTTOM_RIGHT_BACK,
+        this.BOTTOM_RIGHT_BACK,
+        this.BOTTOM_RIGHT_BACK,
+        this.BOTTOM_RIGHT_BACK,
+        this.TOP_RIGHT,
+        this.TOP_RIGHT,
+        this.TOP_RIGHT,
+        this.TOP_RIGHT,
+        this.TOP_RIGHT,
+        this.TOP_RIGHT,
+        this.TOP_RIGHT,
+        this.TOP_RIGHT,
+        this.TOP_LEFT,
+        this.TOP_LEFT,
+        this.TOP_LEFT,
+        this.TOP_LEFT,
+        this.TOP_LEFT,
+        this.TOP_LEFT,
+        this.TOP_LEFT,
+        this.TOP_LEFT,
+        this.TOP_FRONT,
+        this.TOP_FRONT,
+        this.TOP_FRONT,
+        this.TOP_FRONT,
+        this.TOP_FRONT,
+        this.TOP_FRONT,
+        this.TOP_FRONT,
+        this.TOP_FRONT,
+        this.TOP_BACK,
+        this.TOP_BACK,
+        this.TOP_BACK,
+        this.TOP_BACK,
+        this.TOP_BACK,
+        this.TOP_BACK,
+        this.TOP_BACK,
+        this.TOP_BACK,
+        this.BOTTOM_RIGHT,
+        this.BOTTOM_RIGHT,
+        this.BOTTOM_RIGHT,
+        this.BOTTOM_RIGHT,
+        this.BOTTOM_RIGHT,
+        this.BOTTOM_RIGHT,
+        this.BOTTOM_RIGHT,
+        this.BOTTOM_RIGHT,
+        this.BOTTOM_LEFT,
+        this.BOTTOM_LEFT,
+        this.BOTTOM_LEFT,
+        this.BOTTOM_LEFT,
+        this.BOTTOM_LEFT,
+        this.BOTTOM_LEFT,
+        this.BOTTOM_LEFT,
+        this.BOTTOM_LEFT,
+        this.BOTTOM_FRONT,
+        this.BOTTOM_FRONT,
+        this.BOTTOM_FRONT,
+        this.BOTTOM_FRONT,
+        this.BOTTOM_FRONT,
+        this.BOTTOM_FRONT,
+        this.BOTTOM_FRONT,
+        this.BOTTOM_FRONT,
+        this.BOTTOM_BACK,
+        this.BOTTOM_BACK,
+        this.BOTTOM_BACK,
+        this.BOTTOM_BACK,
+        this.BOTTOM_BACK,
+        this.BOTTOM_BACK,
+        this.BOTTOM_BACK,
+        this.BOTTOM_BACK,
+        this.FRONT_RIGHT,
+        this.FRONT_RIGHT,
+        this.FRONT_RIGHT,
+        this.FRONT_RIGHT,
+        this.FRONT_RIGHT,
+        this.FRONT_RIGHT,
+        this.FRONT_RIGHT,
+        this.FRONT_RIGHT,
+        this.FRONT_LEFT,
+        this.FRONT_LEFT,
+        this.FRONT_LEFT,
+        this.FRONT_LEFT,
+        this.FRONT_LEFT,
+        this.FRONT_LEFT,
+        this.FRONT_LEFT,
+        this.FRONT_LEFT,
+        this.BACK_RIGHT,
+        this.BACK_RIGHT,
+        this.BACK_RIGHT,
+        this.BACK_RIGHT,
+        this.BACK_RIGHT,
+        this.BACK_RIGHT,
+        this.BACK_RIGHT,
+        this.BACK_RIGHT,
+        this.BACK_LEFT,
+        this.BACK_LEFT,
+        this.BACK_LEFT,
+        this.BACK_LEFT,
+        this.BACK_LEFT,
+        this.BACK_LEFT,
+        this.BACK_LEFT,
+        this.BACK_LEFT,
+    ]);
 }

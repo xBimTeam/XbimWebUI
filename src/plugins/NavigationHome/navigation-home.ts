@@ -1,7 +1,9 @@
-﻿import { IPlugin, Viewer } from "../../viewer";
+﻿import { Viewer } from "../../viewer";
 import { HomeTextures } from "./navigation-home-textures";
 
 import { vec3 } from "../../matrix/vec3";
+import { IPlugin } from "../plugin";
+import { ProductIdentity } from "../../product-identity";
 
 export class NavigationHome implements IPlugin {
 
@@ -167,7 +169,7 @@ export class NavigationHome implements IPlugin {
 
     public onBeforeDraw() { }
 
-    public onBeforePick(id: number) { return false; }
+    public onBeforePick(id: ProductIdentity) { return false; }
 
     public onAfterDraw() { this._adjust(); }
 
@@ -175,7 +177,9 @@ export class NavigationHome implements IPlugin {
 
     public onAfterDrawId() { }
 
-    public onBeforeGetId(id: number) { return false; }
+    public onBeforeGetId(id: ProductIdentity) { return false; }
+
+    public onAfterDrawModelId(): void { }
 
     public draw() { }
 }

@@ -2,7 +2,7 @@ precision mediump float;
 
 uniform float uAlpha;
 uniform sampler2D uTexture;
-uniform bool uColorCoding;
+uniform  mediump float uColorCoding;
 uniform float uHighlighting;
 
 varying vec2 vTexCoord;
@@ -10,7 +10,7 @@ varying vec4 vIdColor;
 
 
 void main(void) {
-	if (uColorCoding)
+	if (uColorCoding > 0.0)
 	{
 		gl_FragColor = vIdColor;
 	}

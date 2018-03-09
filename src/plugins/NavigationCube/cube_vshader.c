@@ -8,7 +8,7 @@ uniform mat4 uPMatrix;
 
 
 //this might be used for a color coding for pick operation
-uniform bool uColorCoding;
+uniform mediump float uColorCoding; 
 uniform float uSelection;
 
 //this will pass colour information to fragment shader
@@ -28,9 +28,15 @@ void main(void) {
 	gl_Position = uPMatrix * point;
 	vTexCoord = aTexCoord;
 
-	if (uColorCoding)
+	if (uColorCoding == 1.0)
 	{
 		vIdColor = getIdColor(aId);
+		return;
+	}
+
+	if (uColorCoding > 1.0)
+	{
+		vIdColor = getIdColor(float(uColorCoding));
 		return;
 	}
 	

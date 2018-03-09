@@ -1,8 +1,12 @@
-﻿import { IPlugin, Viewer } from '../../viewer';
-import { mat4 } from '../../matrix/mat4';
+﻿import { mat4 } from '../../matrix/mat4';
 import { vec3 } from '../../matrix/vec3';
+import { IPlugin } from '../plugin';
+import { Viewer } from '../../viewer';
+import { ProductIdentity } from '../../product-identity';
 
 export class InteractiveClipping implements IPlugin {
+
+    public onAfterDrawModelId(): void { }
 
     private _viewer: Viewer;
 
@@ -216,10 +220,10 @@ export class InteractiveClipping implements IPlugin {
     }
     public onAfterDrawId(): void {
     }
-    public onBeforeGetId(id: number): boolean {
+    public onBeforeGetId(id: ProductIdentity): boolean {
         return false;
     }
-    public onBeforePick(id: number): boolean {
+    public onBeforePick(id: ProductIdentity): boolean {
         return false;
     }
 

@@ -14,6 +14,8 @@ import { vec3 } from "./matrix/vec3";
 import { mat3 } from "./matrix/mat3";
 import { mat4 } from "./matrix/mat4";
 import { Message, MessageType } from './message';
+import { ProductIdentity } from './product-identity';
+import { IPlugin } from './plugins/plugin';
 
 export class Viewer {
 
@@ -1051,8 +1053,9 @@ export class Viewer {
             var viewY = viewer.height - (startY - r.top);
 
             //this is for picking
-            id = viewer.getID(viewX, viewY);
-            modelId = viewer.getID(viewX, viewY, true);
+            const identity = this.getID(viewX, viewY);
+            id = identity.id;
+            modelId = identity.model;
 
             /**
             * Occurs when mousedown event happens on underlying canvas.
@@ -1101,11 +1104,12 @@ export class Viewer {
             if (deltaX < 3 && deltaY < 3 && button === 'left') {
 
                 var handled = false;
+                const identity: ProductIdentity = {id: id, model: modelId};
                 viewer._plugins.forEach((plugin) => {
                     if (!plugin.onBeforePick) {
                         return;
                     }
-                    handled = handled || plugin.onBeforePick(id);
+                    handled = handled || plugin.onBeforePick(identity);
                 });
 
                 /**
@@ -1331,8 +1335,7 @@ export class Viewer {
         var maximumLengthBetweenDoubleTaps = 200;
         var lastTap = new Date();
 
-        var id = -1;
-        var modelId = -1;
+        let identity: ProductIdentity = {id: null, model: null};
 
         //set initial conditions so that different gestures can be identified
         var handleTouchStart = (event: TouchEvent) => {
@@ -1350,13 +1353,12 @@ export class Viewer {
             var viewY = this.height - (lastTouchY - r.top);
 
             //this is for picking
-            id = this.getID(viewX, viewY);
-            modelId = this.getID(viewX, viewY, true);
+            identity = this.getID(viewX, viewY);
 
             var now = new Date();
             var isDoubleTap = (now.getTime() - lastTap.getTime()) < maximumLengthBetweenDoubleTaps;
             if (isDoubleTap) {
-                this.fire('dblclick', { id: id, model: modelId, event: event });
+                this.fire('dblclick', { id: identity.model, model: identity.model, event: event });
             };
             lastTap = now;
 
@@ -1369,7 +1371,7 @@ export class Viewer {
             * @param {Number} model - model ID
             * @param {MouseEvent} event - original HTML event
             */
-            this.fire('mouseDown', { id: id, model: modelId, event: event });
+            this.fire('mouseDown', { id: identity.id, model: identity.model, event: event });
 
             this.disableTextSelection();
         };
@@ -1394,11 +1396,11 @@ export class Viewer {
                     if (!plugin.onBeforePick) {
                         return;
                     }
-                    handled = handled || plugin.onBeforePick(id);
+                    handled = handled || plugin.onBeforePick(identity);
                 },
                     this);
 
-                if (!handled) this.fire('pick', { id: id, model: modelId, event: event });
+                if (!handled) this.fire('pick', { id: identity.id, model: identity.model, event: event });
             }
 
             this.enableTextSelection();
@@ -1794,7 +1796,7 @@ export class Viewer {
         this.fire('error', { message: msg });
     }
 
-    public getIdsFromEvent(event: MouseEvent | Touch): { id: number, model: number } {
+    public getIdsFromEvent(event: MouseEvent | Touch): ProductIdentity {
         let x = event.clientX;
         let y = event.clientY;
 
@@ -1804,15 +1806,44 @@ export class Viewer {
         let viewY = this.height - (y - r.top);
 
         //get product id and model id
-        return { id: this.getID(viewX, viewY, false), model: this.getID(viewX, viewY, true) };
+        return this.getID(viewX, viewY);
+    }
+
+    public getID(x: number, y: number): ProductIdentity {
+        const renderId = this.getIdPart(x, y, false);
+        if (renderId == null) {
+            return { id: null, model: null };
+        }
+        const modelId = this.getIdPart(x, y, true);
+        const handle = this.getHandle(modelId);
+
+        // most possibly plugin object
+        if (!handle) {
+            var identity = { id: renderId, model: modelId };
+            var handled = false;
+            this._plugins.forEach((plugin) => {
+                if (!plugin.onBeforeGetId) {
+                    return;
+                }
+                handled = handled || plugin.onBeforeGetId(identity);
+            });
+
+            if (!handled)
+                return identity;
+            else
+                return {id: null, model: null};
+        }
+
+        const productId = handle.getProductId(renderId);
+        return { id: productId, model: modelId };
     }
 
     //this renders the colour coded model into the memory buffer
     //not to the canvas and use it to identify ID of the object from that
-    public getID(x: number, y: number, modelId: boolean = false): number {
+    private getIdPart(x: number, y: number, modelId: boolean = false): number {
 
         //skip all the GPU work if there is only one model loaded and model ID is requested
-        if (modelId && this._handles.length === 1) {
+        if (modelId && this._handles.length === 1 && this._plugins.length === 0) {
             return this._handles[0].id;
         }
 
@@ -1860,10 +1891,17 @@ export class Viewer {
 
         //call all after-drawId plugins
         this._plugins.forEach((plugin) => {
-            if (!plugin.onAfterDrawId) {
-                return;
+            if (modelId) {
+                if (!plugin.onAfterDrawModelId) {
+                    return;
+                }
+                plugin.onAfterDrawModelId();
+            } else {
+                if (!plugin.onAfterDrawId) {
+                    return;
+                }
+                plugin.onAfterDrawId();
             }
-            plugin.onAfterDrawId();
         });
 
         //get colour in of the pixel
@@ -1885,21 +1923,10 @@ export class Viewer {
         var hasValue = result[3] != 0; //0 transparency is only for no-values
         if (hasValue) {
             var id = result[0] + result[1] * 256 + result[2] * 256 * 256;
-            var handled = false;
-            this._plugins.forEach((plugin) => {
-                if (!plugin.onBeforeGetId) {
-                    return;
-                }
-                handled = handled || plugin.onBeforeGetId(id);
-            });
-
-            if (!handled)
-                return id;
-            else
-                return null;
-        } else {
-            return null;
+            return id;
         }
+
+        return null;
     }
 
     /**
@@ -2330,25 +2357,4 @@ export enum ViewType {
 export enum CameraType {
     PERSPECTIVE = 0,
     ORTHOGONAL = 1
-}
-
-export interface IPlugin {
-
-    init(viewer: Viewer): void;
-
-    onBeforeDraw(width: number, height: number): void;
-    onAfterDraw(width: number, height: number): void;
-
-    onBeforeDrawId(): void;
-    onAfterDrawId(): void;
-
-    /**
-     * When this function returns true, viewer doesn't use the ID for anything else taking this ID as reserved by the plugin
-     */
-    onBeforeGetId(id: number): boolean;
-
-    /**
-     * When this function returns true, viewer doesn't use the ID for anything else taking this ID as reserved by the plugin
-     */
-    onBeforePick(id: number): boolean;
 }
