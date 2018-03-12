@@ -11,8 +11,8 @@ ShaderCompiler.prototype.compile = function processShader(file) {
     content = content
         .replace(/\/\/.*/g, "")
         .replace(/"/g, "\\\"")
-        .replace(/\r\n/g, " ")
-        .replace(/\n/g, " ")
+        .replace(/\r\n/g, "\\r\\n")
+        .replace(/\n/g, "\\n")
         .replace(/\t/g, " ")
         .replace(/ +/g, " ");
     var name = path.basename(file, '.c');

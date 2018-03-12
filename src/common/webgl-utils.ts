@@ -140,13 +140,13 @@ export class WebGLUtils {
      *     from. If one is not passed in one will be created.
      * @return {!WebGLContext} The created context.
      */
-    public static create3DContext(canvas: HTMLCanvasElement, done: (context: WebGLRenderingContext, version: number) => void,
+    public static create3DContext(canvas: HTMLCanvasElement, done: (context: WebGLRenderingContext | WebGL2RenderingContext, version: number) => void,
         opt_attribs: {}): void {
 
-        let context: WebGLRenderingContext = null;
+        let context: WebGLRenderingContext | WebGL2RenderingContext = null;
         try {
             // get WebGL2 if available
-            context = canvas.getContext('webgl2', opt_attribs) as WebGLRenderingContext;
+            context = canvas.getContext('webgl2', opt_attribs) as WebGL2RenderingContext;
             if (context != null) {
                 done(context, 2);
                 return;

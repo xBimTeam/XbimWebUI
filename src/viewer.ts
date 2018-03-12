@@ -2,11 +2,16 @@
 import { ProductType } from './product-type';
 import { ModelGeometry, Region } from './model-geometry';
 import { ModelHandle, DrawMode } from './model-handle';
-import { fragment_shader } from './shaders/fragment_shader';
-import { vertex_shader } from './shaders/vertex_shader';
 import { Framebuffer } from './framebuffer';
 import { ModelPointers } from './model-pointers';
-import { worker as LoaderWorker } from './workers/worker'
+import { worker as LoaderWorker } from './workers/worker';
+
+// shaders GLSL 100 ES
+import { fragment_shader } from './shaders/fragment_shader';
+import { vertex_shader } from './shaders/vertex_shader';
+// shaders GLSL 300 ES
+import { fragment_shader_300 } from './shaders/fragment_shader_300';
+import { vertex_shader_300 } from './shaders/vertex_shader_300';
 
 //ported libraries
 import { WebGLUtils } from './common/webgl-utils';
@@ -318,7 +323,7 @@ export class Viewer {
         // watch resizing on every frame
         let elementHeight = this.height;
         let elementWidth = this.width;
-        const watchCanvasSize = () => {
+        const watchCanvasSize = () =>  {
             if (this.canvas.offsetHeight !== elementHeight || this.canvas.offsetWidth !== elementWidth) {
                 elementHeight = this.height = this.canvas.height = this.canvas.offsetHeight;
                 elementWidth = this.width = this.canvas.width = this.canvas.offsetWidth;
@@ -984,11 +989,20 @@ export class Viewer {
 
         //fragment shader
         var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-        compile(fragmentShader, fragment_shader);
+        if (this.glVersion === 1) {
+            compile(fragmentShader, fragment_shader);
+        } else {
+            compile(fragmentShader, fragment_shader_300);
+        }
+
 
         //vertex shader (the more complicated one)
         var vertexShader = gl.createShader(gl.VERTEX_SHADER);
-        compile(vertexShader, vertex_shader);
+        if (this.glVersion === 1) {
+            compile(vertexShader, vertex_shader);
+        } else {
+            compile(vertexShader, vertex_shader_300);
+        }
 
         //link program
         this._shaderProgram = gl.createProgram();
