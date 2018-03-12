@@ -9,6 +9,7 @@
   "version": "0.1.41",
   "devDependencies": {
     "@types/node": "7.0.18",
+    "@types/webgl2": "0.0.3",
     "clean-webpack-plugin": "^0.1.18",
     "concurrently": "^3.5.1",
     "dts-bundle": "^0.7.2",

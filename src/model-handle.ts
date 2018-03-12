@@ -119,6 +119,16 @@ export class ModelHandle {
     private _clippingA: boolean = false;
     private _clippingB: boolean = false;
 
+    private _glVersion: number = 1;
+
+    private get gl1(): WebGLRenderingContext {
+        return this._glVersion === 1 ? this._gl : null;
+    }
+
+    private get gl2(): WebGL2RenderingContext {
+        return this._glVersion === 2 ? this._gl as WebGL2RenderingContext : null;
+    }
+
     public set clippingPlaneA(plane: number[]) {
         this._clippingPlaneA = plane;
         this._clippingA = plane != null;
@@ -140,11 +150,15 @@ export class ModelHandle {
     }
 
     constructor(
-        private _gl: WebGLRenderingContext,
+        private _gl: WebGLRenderingContext | WebGL2RenderingContext,
         private _model: ModelGeometry) {
 
         if (typeof (_gl) == 'undefined' || typeof (_model) == 'undefined') {
             throw 'WebGL context and geometry model must be specified';
+        }
+
+        if (_gl instanceof WebGL2RenderingContext) {
+            this._glVersion = 2;
         }
 
         /**
@@ -355,7 +369,7 @@ export class ModelHandle {
     //}
 
 
-    public getProductId(renderId: number): number{
+    public getProductId(renderId: number): number {
         return this._model.productIdLookup[renderId];
     }
 
@@ -424,10 +438,15 @@ export class ModelHandle {
     private bufferData(pointer, data) {
         var gl = this._gl;
         gl.bindBuffer(gl.ARRAY_BUFFER, pointer);
-        gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+        if (this._glVersion === 1) {
+            this.gl1.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+        }
+        if (this._glVersion === 2) {
+            this.gl2.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+        }
     }
 
-    public static bufferTexture(gl: WebGLRenderingContext, pointer: WebGLTexture, data: any, numberOfComponents?: number): number {
+    public static bufferTexture(gl: WebGLRenderingContext | WebGL2RenderingContext, pointer: WebGLTexture, data: any, numberOfComponents?: number): number {
 
         if (data.length == 0) {
             let dummySize = 2;
@@ -472,26 +491,50 @@ export class ModelHandle {
 
         if (fp) {
             //create new data buffer and fill it in with data
-            var image: Float32Array = null;
+            let image: Float32Array = null;
             if (size * size * numberOfComponents != data.length) {
                 image = new Float32Array(size * size * numberOfComponents);
                 image.set(data);
             } else {
                 image = data;
             }
-            var type = null;
-            switch (numberOfComponents) {
-                case 1:
-                    type = gl.ALPHA;
-                    break;
-                case 3:
-                    type = gl.RGB;
-                    break;
-                case 4:
-                    type = gl.RGBA;
-                    break;
+
+            if (gl instanceof WebGLRenderingContext) {
+                let type = null;
+                switch (numberOfComponents) {
+                    case 1:
+                        type = gl.ALPHA;
+                        break;
+                    case 3:
+                        type = gl.RGB;
+                        break;
+                    case 4:
+                        type = gl.RGBA;
+                        break;
+                }
+                gl.texImage2D(gl.TEXTURE_2D, 0, type, size, size, 0, type, gl.FLOAT, image);
             }
-            gl.texImage2D(gl.TEXTURE_2D, 0, type, size, size, 0, type, gl.FLOAT, image);
+            if (gl instanceof WebGL2RenderingContext) {
+                const gl2 = gl as WebGL2RenderingContext;
+                let internalFormat = null;
+                let format = null;
+                switch (numberOfComponents) {
+                    case 1:
+                        format = gl2.RED;
+                        internalFormat = gl2.R16F;
+                        break;
+                    case 3:
+                        format = gl2.RGB;
+                        internalFormat = gl2.RGB16F;
+                        break;
+                    case 4:
+                        format = gl.RGBA;
+                        internalFormat = gl2.RGBA16F;
+                        break;
+                }
+                gl2.texImage2D(gl2.TEXTURE_2D, 0, internalFormat, size, size, 0, format, gl.FLOAT, image);
+            }
+
         } else {
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, size, size, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(data.buffer));
         }

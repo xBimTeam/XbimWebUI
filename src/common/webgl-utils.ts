@@ -84,16 +84,16 @@ export class WebGLUtils {
      * @type {string}
      */
     private static GET_A_WEBGL_BROWSER: string = '' +
-    'This page requires a browser that supports WebGL.<br/>' +
-    '<a href="http://get.webgl.org">Click here to upgrade your browser.</a>';
+        'This page requires a browser that supports WebGL.<br/>' +
+        '<a href="http://get.webgl.org">Click here to upgrade your browser.</a>';
 
     /**
      * Mesasge for need better hardware
      * @type {string}
      */
     private static OTHER_PROBLEM: string = '' +
-    "It doesn't appear your computer can support WebGL.<br/>" +
-    '<a href="http://get.webgl.org/troubleshooting/">Click here for more information.</a>';
+        "It doesn't appear your computer can support WebGL.<br/>" +
+        '<a href="http://get.webgl.org/troubleshooting/">Click here for more information.</a>';
 
     /**
      * Creates a webgl context. If creation fails it will
@@ -107,7 +107,9 @@ export class WebGLUtils {
      *     if there is an error during creation.
      * @return {WebGLRenderingContext} The created context.
      */
-    public static setupWebGL(canvas: HTMLCanvasElement, attribs?: WebGLContextAttributes, onError?: (msg: string) => void): WebGLRenderingContext {
+    public static setupWebGL(canvas: HTMLCanvasElement, done: (context: WebGLRenderingContext, version: number) => void,
+        attribs?: WebGLContextAttributes, onError?: (msg: string) => void): void {
+
         function handleCreationError(msg) {
             var container = canvas.parentNode as HTMLElement;
             if (container) {
@@ -128,13 +130,8 @@ export class WebGLUtils {
                 onError(event.statusMessage);
             }, false);
         }
-        var context = WebGLUtils.create3DContext(canvas, attribs);
-        if (!context) {
-            if (typeof (WebGLRenderingContext) === "undefined") {
-                onError("");
-            }
-        }
-        return context;
+        
+        WebGLUtils.create3DContext(canvas, done, attribs);
     };
 
     /**
@@ -143,9 +140,21 @@ export class WebGLUtils {
      *     from. If one is not passed in one will be created.
      * @return {!WebGLContext} The created context.
      */
-    public static create3DContext(canvas: HTMLCanvasElement, opt_attribs?: {}): WebGLRenderingContext {
-        var names = ["webgl", "experimental-webgl", "webkit-3d", "moz-webgl"];
+    public static create3DContext(canvas: HTMLCanvasElement, done: (context: WebGLRenderingContext, version: number) => void,
+        opt_attribs: {}): void {
+
         let context: WebGLRenderingContext = null;
+        try {
+            // get WebGL2 if available
+            context = canvas.getContext('webgl2', opt_attribs) as WebGLRenderingContext;
+            if (context != null) {
+                done(context, 2);
+                return;
+            }
+        }
+        catch { }
+
+        var names = ["webgl", "experimental-webgl", "webkit-3d", "moz-webgl"];
         for (var ii = 0; ii < names.length; ++ii) {
             try {
                 context = canvas.getContext(names[ii], opt_attribs) as WebGLRenderingContext;
@@ -154,10 +163,10 @@ export class WebGLUtils {
                 break;
             }
         }
-        return context;
+        done(context, 1);
     }
 
-    
+
 }
 
 /**

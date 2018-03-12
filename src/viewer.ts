@@ -20,6 +20,7 @@ import { IPlugin } from './plugins/plugin';
 export class Viewer {
 
     public gl: WebGLRenderingContext;
+    public glVersion: number;
     public canvas: HTMLCanvasElement;
     public changed: boolean = false;
     /**
@@ -135,7 +136,6 @@ export class Viewer {
     // and '.off('eventname', callback)'. Registered call-backs are triggered by the viewer when important events occur.
     private _events: { [id: string]: Function[]; } = {};
 
-    private _fpt: any;
     private _pointers: ModelPointers;
 
     /**
@@ -150,7 +150,7 @@ export class Viewer {
     *
     * @param {string | HTMLCanvasElement} canvas - string ID of the canvas or HTML canvas element.
     */
-    constructor(canvas: string | HTMLCanvasElement) {
+    constructor(canvas: string | HTMLCanvasElement, errorHandler?: ({ message: string }) => void) {
         if (typeof (canvas) == 'undefined') {
             throw 'Canvas has to be defined';
         }
@@ -163,6 +163,10 @@ export class Viewer {
         }
         if (this.canvas == null) {
             throw 'You have to specify canvas either as an ID of HTML element or the element itself';
+        }
+
+        if (errorHandler != null){
+            this.on('error', errorHandler);
         }
 
         /**
@@ -215,25 +219,38 @@ export class Viewer {
         };
 
 
-
-
-
         //*************************** Do all the set up of WebGL **************************
-        var gl = WebGLUtils.setupWebGL(this.canvas, { preserveDrawingBuffer: true });
+        WebGLUtils.setupWebGL(this.canvas, (ctx, version) => {
+            this.gl = ctx;
+            this.glVersion = version;
+        }, { preserveDrawingBuffer: true }, err => {
+            this.error(err);
+        });
 
         //do not even initialize this object if WebGL is not supported
-        if (!gl) {
+        if (!this.gl) {
+            this.error("Unable to set up WebGL");
             return;
         }
 
-        this.gl = gl;
+        let gl = this.gl;
+        let fptSupport = false;
 
         //detect floating point texture support
-        this._fpt = (
-            gl.getExtension('OES_texture_float') ||
-            gl.getExtension('MOZ_OES_texture_float') ||
-            gl.getExtension('WEBKIT_OES_texture_float')
-        );
+        if (this.glVersion < 2){
+            fptSupport = (
+                gl.getExtension('OES_texture_float') ||
+                gl.getExtension('MOZ_OES_texture_float') ||
+                gl.getExtension('WEBKIT_OES_texture_float')
+            );
+        } else {
+            fptSupport = true;
+        }
+
+        if (!fptSupport){
+            this.error("Floating point texture support required.");
+            return;
+        }
 
 
         //set up DEPTH_TEST and BLEND so that transparent objects look right
@@ -359,18 +376,28 @@ export class Viewer {
         var canvas = document.createElement('canvas');
         if (!canvas) result.errors.push("Browser doesn't have support for HTMLCanvasElement. This is critical.");
         else {
-            var gl = WebGLUtils.setupWebGL(canvas);
-            if (gl == null) result.errors.push("Browser doesn't support WebGL. This is critical.");
+            let gl:WebGLRenderingContext = null;
+            let glVersion = 0;
+            WebGLUtils.setupWebGL(canvas, (ctx, v) => {
+                gl = ctx;
+                glVersion = v;
+            }, null, (err) => {
+                result.errors.push(err);
+            });
+            if (gl == null) {
+                result.errors.push("Browser doesn't support WebGL. This is critical.");
+        }
             else {
-                //check floating point extension availability
-                var fpt = (
+                //check floating point extension availability for WebGL 1.0
+                var fpt = glVersion < 2 ? (
                     gl.getExtension('OES_texture_float') ||
                     gl.getExtension('MOZ_OES_texture_float') ||
                     gl.getExtension('WEBKIT_OES_texture_float')
-                );
-                if (!fpt)
-                    result.warnings
-                        .push('Floating point texture extension is not supported. Performance of the viewer will be very bad. But it should work.');
+                ): true;
+                
+                if (!fpt) {
+                    result.errors.push('Floating point texture extension is not supported.');
+                }
 
                 //check number of supported vertex shader textures. Minimum is 5 but standard requires 0.
                 var vertTextUnits = gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS);
@@ -1104,7 +1131,7 @@ export class Viewer {
             if (deltaX < 3 && deltaY < 3 && button === 'left') {
 
                 var handled = false;
-                const identity: ProductIdentity = {id: id, model: modelId};
+                const identity: ProductIdentity = { id: id, model: modelId };
                 viewer._plugins.forEach((plugin) => {
                     if (!plugin.onBeforePick) {
                         return;
@@ -1335,7 +1362,7 @@ export class Viewer {
         var maximumLengthBetweenDoubleTaps = 200;
         var lastTap = new Date();
 
-        let identity: ProductIdentity = {id: null, model: null};
+        let identity: ProductIdentity = { id: null, model: null };
 
         //set initial conditions so that different gestures can be identified
         var handleTouchStart = (event: TouchEvent) => {
@@ -1831,7 +1858,7 @@ export class Viewer {
             if (!handled)
                 return identity;
             else
-                return {id: null, model: null};
+                return { id: null, model: null };
         }
 
         const productId = handle.getProductId(renderId);
