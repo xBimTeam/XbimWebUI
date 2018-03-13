@@ -837,6 +837,13 @@ export class Viewer {
             self.error(e.message);
         };
 
+        // make sure it is an absolute path
+        // make it absolute path for the case when used in an inline Webworker
+        if ( typeof(model) === 'string' && model.indexOf('http') !== 0) {
+            const a = document.createElement('a');
+            a.href = model;
+            model = a.href;
+        }
         worker.postMessage({ model: model, headers: headers });
         //console.log('Message posted to worker');
         return;

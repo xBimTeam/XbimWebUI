@@ -61,13 +61,6 @@ export class BinaryReader {
 
         if (typeof (source) == 'undefined' || source == null) throw 'Source must be defined';
         if (typeof (source) == 'string') {
-            // make it absolute path for the case when used in an inline Webworker
-            if (source.indexOf('http') !== 0) {
-                if (source[0] !== '/') {
-                    source = '/' + source;
-                }
-                source = location.origin + source;
-            }
             const xhr = new XMLHttpRequest();
             xhr.open("GET", source, true);
             xhr.onreadystatechange = () => {
