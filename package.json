@@ -12,9 +12,7 @@
     "@types/webgl2": "0.0.3",
     "clean-webpack-plugin": "^0.1.18",
     "concurrently": "^3.5.1",
-    "dts-bundle": "^0.7.2",
     "jsdoc": "3.5.5",
-    "raw-loader": "^0.5.1",
     "ts-loader": "^4.0.1",
     "typescript": "^2.7.2",
     "webpack": "^4.1.0",
@@ -23,7 +21,8 @@
     "webpack-merge": "^4.1.2"
   },
   "files": [
-    "dist/*"
+    "dist/*",
+    "docs/*"
   ],
   "scripts": {
     "docs": "tsc&&jsdoc -c jsdoc.config.json&&node utilities/clean.js .",
