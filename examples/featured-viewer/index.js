@@ -62,18 +62,22 @@ viewer.on("fps", function (fps) {
     }
 });
 
-viewer.on("loaded", () => {
-    let image = viewer.getCurrentImageHtml(200, 100);
-    image.style.width = '100%';
-    let initialImage = document.getElementById("initialSnapshot");
-    initialImage.appendChild(image);
+// viewer.on("loaded", () => {
+    // let image = viewer.getCurrentImageHtml(2000, 1000);
+    // image.style.width = '100%';
+    // let initialImage = document.getElementById("initialSnapshot");
+    // initialImage.appendChild(image);
     // viewer.startRotation();
-});
+// });
 
 var span = document.getElementById("fpt");
 if (span) {
     span.innerHTML = "0";
 }
+
+var versionSpan = document.getElementById("webglVersion");
+versionSpan.innerHTML = viewer.glVersion;
+
 //viewer.load(model, "base");
 viewer.loadAsync(model, "base");
 viewer.start();
@@ -139,4 +143,5 @@ viewer.on("pick", function (args) {
 });
 
 var cube = new NavigationCube();
+cube.ratio = 0.05;
 viewer.addPlugin(cube);
