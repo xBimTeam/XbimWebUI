@@ -50,7 +50,7 @@ void main(void) {
 
 	}
 	
-	// it is colour coding. Don't to shading and lighting or anything else
+	// it is colour coding. Don't do shading and lighting or anything else
 	if (length(vNormal) == 0.0) {
 		vFragColor = vColor;
 		return;
