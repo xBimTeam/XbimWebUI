@@ -1570,7 +1570,10 @@ export class Viewer {
         //set uniforms (these may quickly change between calls to draw)
         gl.uniformMatrix4fv(this._pMatrixUniformPointer, false, this.pMatrix);
         gl.uniformMatrix4fv(this._mvMatrixUniformPointer, false, this.mvMatrix);
-        gl.uniform3fv(this._lightUniformPointer, new Float32Array(this.lightA));
+
+        // set light source as a head light
+        var camera = this.getCameraPosition();
+        gl.uniform3fv(this._lightUniformPointer, camera);
 
         //use normal colour representation (1 would cause shader to use colour coding of IDs)
         gl.uniform1i(this._colorCodingUniformPointer, ColourCoding.NONE);
