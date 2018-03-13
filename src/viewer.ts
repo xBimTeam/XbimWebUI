@@ -70,12 +70,7 @@ export class Viewer {
      */
     public get lightA(): number[] { return this._lightA; }
     public set lightA(value: number[]) { this._lightA = value; this.changed = true; }
-    /**
-     * Array of four floats. It represents Light B's position <strong>XYZ</strong> and intensity <strong>I</strong> as [X, Y, Z, I]. Intensity should be in range 0.0 - 1.0.
-     * @member {Number[]} Viewer#lightB
-     */
-    public get lightB(): number[] { return this._lightB; }
-    public set lightB(value: number[]) { this._lightB = value; this.changed = true; }
+    
     public get mvMatrix(): Float32Array { return this._mvMatrix; }
     public set mvMatrix(value: Float32Array) { this._mvMatrix = value; this.changed = true; }
     public get pMatrix(): Float32Array { return this._pMatrix; }
@@ -114,8 +109,7 @@ export class Viewer {
     private _background: number[] = [230, 230, 230, 255];
     private _highlightingColour: number[] = [255, 173, 33, 255];
     private _origin: number[];
-    private _lightA: number[] = [0, 1000000, 200000, 0.8];
-    private _lightB: number[] = [0, -500000, 50000, 0.2];
+    private _lightA: number[] = [0, 1000000, 200000];
     private _mvMatrix: Float32Array;
     private _pMatrix: Float32Array;
     private _renderingMode: RenderingMode = RenderingMode.NORMAL;
@@ -130,8 +124,7 @@ export class Viewer {
 
     private _mvMatrixUniformPointer: WebGLUniformLocation;
     private _pMatrixUniformPointer: WebGLUniformLocation;
-    private _lightAUniformPointer: WebGLUniformLocation;
-    private _lightBUniformPointer: WebGLUniformLocation;
+    private _lightUniformPointer: WebGLUniformLocation;
     private _colorCodingUniformPointer: WebGLUniformLocation;
     private _renderingModeUniformPointer: WebGLUniformLocation;
     private _highlightingColourUniformPointer: WebGLUniformLocation;
@@ -972,36 +965,44 @@ export class Viewer {
 
     //this function should be only called once during initialization
     //or when shader set-up changes
-    public _initShaders() {
+    public _initShaders(): boolean {
 
         var gl = this.gl;
         var viewer = this;
-        var compile = function (shader, code) {
+        var compile = function (shader, code): boolean {
             gl.shaderSource(shader, code);
             gl.compileShader(shader);
             if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
                 const err = gl.getShaderInfoLog(shader);
                 viewer.error(err);
                 console.error(err);
-                return null;
+                return false;
             }
+            return true;
         }
 
         //fragment shader
-        var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+        const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+        let fsCompiled = false;
         if (this.glVersion === 1) {
-            compile(fragmentShader, fragment_shader);
+            fsCompiled = compile(fragmentShader, fragment_shader);
         } else {
-            compile(fragmentShader, fragment_shader_300);
+            fsCompiled = compile(fragmentShader, fragment_shader_300);
+        }
+        if(!fsCompiled){
+            return false;
         }
 
-
         //vertex shader (the more complicated one)
-        var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+        const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+        let vsCompiled = false;
         if (this.glVersion === 1) {
-            compile(vertexShader, vertex_shader);
+            vsCompiled = compile(vertexShader, vertex_shader);
         } else {
-            compile(vertexShader, vertex_shader_300);
+            vsCompiled = compile(vertexShader, vertex_shader_300);
+        }
+        if(!vsCompiled){
+            return false;
         }
 
         //link program
@@ -1010,11 +1011,12 @@ export class Viewer {
         gl.attachShader(this._shaderProgram, fragmentShader);
         gl.linkProgram(this._shaderProgram);
 
-        if (!gl.getProgramParameter(this._shaderProgram, gl.LINK_STATUS)) {
+        if (gl.getProgramParameter(this._shaderProgram, gl.LINK_STATUS)) {
+            gl.useProgram(this._shaderProgram);
+        } else {
             this.error('Could not initialise shaders ');
+            console.error('Could not initialise shaders ');
         }
-
-        gl.useProgram(this._shaderProgram);
     }
 
     private setActive(): WebGLRenderingContext {
@@ -1032,8 +1034,7 @@ export class Viewer {
         //create pointers to uniform variables for transformations
         this._pMatrixUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uPMatrix');
         this._mvMatrixUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uMVMatrix');
-        this._lightAUniformPointer = gl.getUniformLocation(this._shaderProgram, 'ulightA');
-        this._lightBUniformPointer = gl.getUniformLocation(this._shaderProgram, 'ulightB');
+        this._lightUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uLight');
         this._colorCodingUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uColorCoding');
         this._renderingModeUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uRenderingMode');
         this._highlightingColourUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uHighlightColour');
@@ -1569,8 +1570,7 @@ export class Viewer {
         //set uniforms (these may quickly change between calls to draw)
         gl.uniformMatrix4fv(this._pMatrixUniformPointer, false, this.pMatrix);
         gl.uniformMatrix4fv(this._mvMatrixUniformPointer, false, this.mvMatrix);
-        gl.uniform4fv(this._lightAUniformPointer, new Float32Array(this.lightA));
-        gl.uniform4fv(this._lightBUniformPointer, new Float32Array(this.lightB));
+        gl.uniform3fv(this._lightUniformPointer, new Float32Array(this.lightA));
 
         //use normal colour representation (1 would cause shader to use colour coding of IDs)
         gl.uniform1i(this._colorCodingUniformPointer, ColourCoding.NONE);
