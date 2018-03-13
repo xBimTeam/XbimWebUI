@@ -3,7 +3,7 @@
 <head>
     <title>Eventful building</title>
     <link href="styles/jsdoc-default.css" rel="stylesheet" />
-    <script src="scripts/xbim.bundle.js"></script>
+    <script src="../dist/xbim-viewer.js"></script>
 </head>
 <body>
     <div id="main">
@@ -19,9 +19,9 @@
 
 
             <script type="text/javascript">
-                var check = xViewer.check();
+                var check = Viewer.check();
                 if (check.noErrors) {
-                    var viewer = new xViewer('viewer');
+                    var viewer = new Viewer('viewer');
                     viewer.on('loaded', function () {
                         //Hide any loaders you have used to keep your user excited 
                         //while their precious models are being processed and loaded

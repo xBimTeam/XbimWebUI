@@ -4,7 +4,7 @@
     <title>Building seen from everywhere</title>
     <link href="styles/jsdoc-default.css" rel="stylesheet" />
     <link href="styles/xviewer-styles.css" rel="stylesheet" />
-    <script src="scripts/xbim.bundle.js"></script>
+    <script src="../dist/xbim-viewer.js"></script>
 </head>
 <body>
     <div id="main">
@@ -142,7 +142,7 @@
                 var viewer = null;
                 var pickedId = null;
                 if (check.noErrors) {
-                    viewer = new xViewer('viewer');
+                    viewer = new Viewer('viewer');
                     viewer.on('pick', function (args) {
                         var id = args.id;
                         viewer.setCameraTarget(id);

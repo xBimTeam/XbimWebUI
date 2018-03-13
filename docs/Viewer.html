@@ -406,146 +406,6 @@ in the context of specified canvas. Any other argument will throw exception.</p>
         
             
 <dt>
-    <h4 class="name" id="lightA"><span class="type-signature"></span>lightA<span class="type-signature"> :Array.&lt;Number></span></h4>
-
-    
-</dt>
-<dd>
-    
-    <div class="description">
-        <p>Array of four floats. It represents Light A's position <strong>XYZ</strong> and intensity <strong>I</strong> as [X, Y, Z, I]. Intensity should be in range 0.0 - 1.0.</p>
-    </div>
-    
-
-    
-        <h5>Type:</h5>
-        <ul>
-            <li>
-                
-<span class="param-type">Array.&lt;Number></span>
-
-
-            </li>
-        </ul>
-    
-
-    
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-    
-
-    
-</dd>
-
-        
-            
-<dt>
-    <h4 class="name" id="lightB"><span class="type-signature"></span>lightB<span class="type-signature"> :Array.&lt;Number></span></h4>
-
-    
-</dt>
-<dd>
-    
-    <div class="description">
-        <p>Array of four floats. It represents Light B's position <strong>XYZ</strong> and intensity <strong>I</strong> as [X, Y, Z, I]. Intensity should be in range 0.0 - 1.0.</p>
-    </div>
-    
-
-    
-        <h5>Type:</h5>
-        <ul>
-            <li>
-                
-<span class="param-type">Array.&lt;Number></span>
-
-
-            </li>
-        </ul>
-    
-
-    
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-    
-
-    
-</dd>
-
-        
-            
-<dt>
     <h4 class="name" id="navigationMode"><span class="type-signature"></span>navigationMode<span class="type-signature"> :String</span></h4>
 
     
@@ -2064,7 +1924,7 @@ your custom colour which you have defined in <a href="Viewer.html#defineStyle">d
     
         
 
-        <h4 class="name" id="load"><span class="type-signature"></span>load<span class="signature">(model, tag, headers)</span><span class="type-signature"></span></h4>
+        <h4 class="name" id="load"><span class="type-signature"></span>load<span class="signature">(model, tag, headers, progress)</span><span class="type-signature"></span></h4>
 
         
     
@@ -2185,6 +2045,29 @@ visualization itself but would cause unexpected user interaction (picking, zoomi
         </tr>
 
     
+
+        <tr>
+            
+                <td class="name"><code>progress</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>[optional] - Progress reporting delegate</p></td>
+        </tr>
+
+    
     </tbody>
 </table>
     
@@ -2254,7 +2137,7 @@ visualization itself but would cause unexpected user interaction (picking, zoomi
     
         
 
-        <h4 class="name" id="load"><span class="type-signature"></span>load<span class="signature">(loaderUrl, model, tag, headers)</span><span class="type-signature"></span></h4>
+        <h4 class="name" id="load"><span class="type-signature"></span>load<span class="signature">(model, tag, headers)</span><span class="type-signature"></span></h4>
 
         
     
@@ -2298,29 +2181,6 @@ visualization itself but would cause unexpected user interaction (picking, zoomi
     </thead>
 
     <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>loaderUrl</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">String</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>Url of the 'xbim-geometry-loader.js' script which will be called as a worker</p></td>
-        </tr>
-
     
 
         <tr>
@@ -5973,7 +5833,7 @@ This ID can later be used to unload or temporarily stop the model.</p>
 
             
 
-            <td class="description last"><p>product ID of the element or -1 if there wasn't any product under mouse</p></td>
+            <td class="description last"><p>product ID of the element or null if there wasn't any product under mouse</p></td>
         </tr>
 
     
@@ -5996,7 +5856,7 @@ This ID can later be used to unload or temporarily stop the model.</p>
 
             
 
-            <td class="description last"><p>model ID of the element or -1 if there wasn't any product under mouse</p></td>
+            <td class="description last"><p>model ID</p></td>
         </tr>
 
     
@@ -6158,7 +6018,7 @@ This ID can later be used to unload or temporarily stop the model.</p>
 
             
 
-            <td class="description last"><p>product ID of the element or null if there wasn't any product under mouse</p></td>
+            <td class="description last"><p>product ID of the element or -1 if there wasn't any product under mouse</p></td>
         </tr>
 
     
@@ -6181,7 +6041,7 @@ This ID can later be used to unload or temporarily stop the model.</p>
 
             
 
-            <td class="description last"><p>model ID</p></td>
+            <td class="description last"><p>model ID of the element or -1 if there wasn't any product under mouse</p></td>
         </tr>
 
     
@@ -6469,7 +6329,7 @@ This ID can later be used to unload or temporarily stop the model.</p>
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0</a> on Tue Mar 06 2018 19:06:49 GMT+0100 (Central Europe Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Tue Mar 13 2018 16:15:23 GMT+0100 (Central Europe Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

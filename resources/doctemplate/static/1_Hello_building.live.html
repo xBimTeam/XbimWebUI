@@ -3,16 +3,16 @@
 <head>
     <title>Hello building!</title>
     <link href="styles/jsdoc-default.css" rel="stylesheet" />
-    <script src="scripts/xbim.bundle.js"></script>
+    <script src="../dist/xbim-viewer.js"></script>
 </head>
 <body>
     <div id="main">
         <section>
             <canvas id="viewer" width="500" height="300"></canvas>
             <script type="text/javascript">
-                var check = xViewer.check();
+                var check = Viewer.check();
                 if (check.noErrors) {
-                    var viewer = new xViewer('viewer');
+                    var viewer = new Viewer('viewer');
                     viewer.load('data/SampleHouse.wexbim');
                     viewer.start();
                 }
