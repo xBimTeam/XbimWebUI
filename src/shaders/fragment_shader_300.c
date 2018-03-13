@@ -62,10 +62,10 @@ void main(void) {
 	// Phong shading (http://multivis.net/lecture/phong.html)
 	float Ka = 1.0;           // Ambient reflection coefficient [0.0,1.0]
 	float Kd = 1.0;           // Diffuse reflection coefficient [0.0,1.0]
-	float Ks = 0.3;           // Specular reflection coefficient [0.0,1.0]
-	float shininessVal = 4.0; // Shininess [1.0,128.0], default 4
+	float Ks = 0.3;           // Specular reflection coefficient [0.0,1.0], default 1.0
+	float shininessVal = 2.0; // Shininess [1.0,128.0], default 4
 
-	vec3 ambientColor = vColor.rgb * 0.1;
+	vec3 ambientColor = vColor.rgb * 0.2; // default (0.0, 0.0, 0.0)
 	vec3 diffuseColor = vColor.rgb;
 	vec3 specularColor = vec3(1.0, 1.0, 1.0);
 
