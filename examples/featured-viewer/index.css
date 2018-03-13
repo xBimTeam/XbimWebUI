@@ -25,6 +25,7 @@ canvas {
     padding: 2em;
     background-color: white;
     box-shadow: 0 0 10px darkgray;
+    border-radius: 10px;
 }
 
 .left-panel {
