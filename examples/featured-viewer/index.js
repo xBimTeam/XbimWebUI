@@ -82,6 +82,10 @@ versionSpan.innerHTML = viewer.glVersion;
 viewer.loadAsync(model, "base");
 viewer.start();
 
+var cube = new NavigationCube();
+cube.ratio = 0.05;
+viewer.addPlugin(cube);
+
 viewer.defineStyle(0, [255, 0, 0, 255]);  //red
 viewer.defineStyle(1, [0, 0, 255, 100]);  //semitransparent blue
 viewer.defineStyle(2, [255, 255, 255, 255]); //white
@@ -114,9 +118,11 @@ document['unclip'] = function () {
     viewer.unclip();
 }
 document['takeSnapshot'] = function () {
+    viewer.removePlugin(cube);
     var img = viewer.getCurrentImageDataUrl();
     var place = document.getElementById("snapshot");
     place.innerHTML = "<img style='width:100%;' src=" + img + ">";
+    viewer.addPlugin(cube);
 }  
 
 viewer.on("pick", function (args) {
@@ -142,6 +148,4 @@ viewer.on("pick", function (args) {
     //viewer.zoomTo(id);
 });
 
-var cube = new NavigationCube();
-cube.ratio = 0.05;
-viewer.addPlugin(cube);
+
