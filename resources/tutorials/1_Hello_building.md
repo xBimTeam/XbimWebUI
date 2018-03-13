@@ -10,12 +10,12 @@ No let's dig into the code:
     <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <title>Hello building!</title>
-        <script src="js/xbim.bundle.js"></script>
+        <script src="dist/xbim-viewer.js"></script>
     </head>
     <body>
         <canvas id="viewer" width="500" height="300"></canvas>
         <script type="text/javascript">
-            var viewer = new xViewer('viewer');
+            var viewer = new Viewer('viewer');
             viewer.load('data/SampleHouse.wexbim');
             viewer.start();
         </script>
@@ -36,16 +36,10 @@ As you may have guessed from the name it is debug version. If you download this 
 files for different types of deployment. Bundles are self-contained and are released as minified and debug version.
 The library itself is written with [TypeScript](http://www.typescriptlang.org), which is then compiled down to JavaScript
 and bundled as a single file to be used in a web browser.
-Either reference
 
-        <script src="js/xbim.bundle.js"></script>
+        <script src="dist/xbim-viewer.js"></script>
 
-for debug bundled version (this will also add you intellisense support in VS if your IDE of choice) or
-
-        <script src="js/xbim.bundle.min.js"></script>
-
-for minified version (this will probably be your choice for release).
-If you're using a module loader (and don't yet use TypeScript), you can reference *xbim.bundle.js* or *xbim.bundle.min.js* for an UMD bundled module.
+Library is compiled as a UMD package.
 
 Right, this is about enough for the first tutorial. So if you feel fresh you can jump right into the next one where you will learn 
 how to check that the browser is actually able to render the model in {@tutorial 2_Safe_Hello_building}. It'll look the same as this example so you can have a look on [live
