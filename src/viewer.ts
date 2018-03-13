@@ -32,7 +32,7 @@ export class Viewer {
      * Switch between different navigation modes for left mouse button. Allowed values: <strong> 'pan', 'zoom', 'orbit' (or 'fixed-orbit') , 'free-orbit' and 'none'</strong>. Default value is <strong>'orbit'</strong>;
      * @member {String} Viewer#navigationMode
      */
-    public navigationMode: 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none' = 'orbit';
+    public navigationMode: 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none' | 'look-around' = 'orbit';
 
     public get perspectiveCamera(): { fov: number, near: number, far: number } { return this._perspectiveCamera; }
     public set perspectiveCamera(value: { fov: number, near: number, far: number }) { this._perspectiveCamera = value; this.changed = true; }
@@ -64,8 +64,8 @@ export class Viewer {
     public set highlightingColour(value: number[]) { this._highlightingColour = value; this.changed = true; }
     public get origin(): number[] { return this._origin; }
     public set origin(value: number[]) { this._origin = value; this.changed = true; }
-  
-    
+
+
     public get mvMatrix(): Float32Array { return this._mvMatrix; }
     public set mvMatrix(value: Float32Array) { this._mvMatrix = value; this.changed = true; }
     public get pMatrix(): Float32Array { return this._pMatrix; }
@@ -157,7 +157,7 @@ export class Viewer {
             throw 'You have to specify canvas either as an ID of HTML element or the element itself';
         }
 
-        if (errorHandler != null){
+        if (errorHandler != null) {
             this.on('error', errorHandler);
         }
 
@@ -229,7 +229,7 @@ export class Viewer {
         let fptSupport = false;
 
         //detect floating point texture support
-        if (this.glVersion < 2){
+        if (this.glVersion < 2) {
             fptSupport = (
                 gl.getExtension('OES_texture_float') ||
                 gl.getExtension('MOZ_OES_texture_float') ||
@@ -239,7 +239,7 @@ export class Viewer {
             fptSupport = true;
         }
 
-        if (!fptSupport){
+        if (!fptSupport) {
             this.error("Floating point texture support required.");
             return;
         }
@@ -310,7 +310,7 @@ export class Viewer {
         // watch resizing on every frame
         let elementHeight = this.height;
         let elementWidth = this.width;
-        const watchCanvasSize = () =>  {
+        const watchCanvasSize = () => {
             if (this.canvas.offsetHeight !== elementHeight || this.canvas.offsetWidth !== elementWidth) {
                 elementHeight = this.height = this.canvas.height = this.canvas.offsetHeight;
                 elementWidth = this.width = this.canvas.width = this.canvas.offsetWidth;
@@ -368,7 +368,7 @@ export class Viewer {
         var canvas = document.createElement('canvas');
         if (!canvas) result.errors.push("Browser doesn't have support for HTMLCanvasElement. This is critical.");
         else {
-            let gl:WebGLRenderingContext = null;
+            let gl: WebGLRenderingContext = null;
             let glVersion = 0;
             WebGLUtils.setupWebGL(canvas, (ctx, v) => {
                 gl = ctx;
@@ -378,15 +378,15 @@ export class Viewer {
             });
             if (gl == null) {
                 result.errors.push("Browser doesn't support WebGL. This is critical.");
-        }
+            }
             else {
                 //check floating point extension availability for WebGL 1.0
                 var fpt = glVersion < 2 ? (
                     gl.getExtension('OES_texture_float') ||
                     gl.getExtension('MOZ_OES_texture_float') ||
                     gl.getExtension('WEBKIT_OES_texture_float')
-                ): true;
-                
+                ) : true;
+
                 if (!fpt) {
                     result.errors.push('Floating point texture extension is not supported.');
                 }
@@ -983,7 +983,7 @@ export class Viewer {
         } else {
             fsCompiled = compile(fragmentShader, fragment_shader_300);
         }
-        if(!fsCompiled){
+        if (!fsCompiled) {
             return false;
         }
 
@@ -995,7 +995,7 @@ export class Viewer {
         } else {
             vsCompiled = compile(vertexShader, vertex_shader_300);
         }
-        if(!vsCompiled){
+        if (!vsCompiled) {
             return false;
         }
 
@@ -1203,6 +1203,10 @@ export class Viewer {
 
                         case 'zoom':
                             this.navigate('zoom', deltaX, deltaY);
+                            break;
+
+                        case 'look-around':
+                            this.navigate('look-around', deltaX, deltaY);
                             break;
 
                         default:
@@ -1459,8 +1463,14 @@ export class Viewer {
     private navigate(type, deltaX, deltaY) {
         if (!this._handles || !this._handles[0]) return;
         //translation in WCS is position from [0, 0, 0]
-        var origin = this.origin;
+        var origin = new Float32Array(this.origin);
         var camera = this.getCameraPosition();
+
+        if (type === 'look-around') {
+            origin = camera;
+            deltaX = -deltaX;
+            deltaY = -deltaY;
+        }
 
         //get origin coordinates in view space
         var mvOrigin = vec3.transformMat4(vec3.create(), origin, this.mvMatrix);
@@ -1484,6 +1494,7 @@ export class Viewer {
                 break;
 
             case 'fixed-orbit':
+            case 'look-around':
             case 'orbit':
                 mat4.rotate(transform, transform, degToRad(deltaY / 4), [1, 0, 0]);
 
