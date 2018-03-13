@@ -64,12 +64,7 @@ export class Viewer {
     public set highlightingColour(value: number[]) { this._highlightingColour = value; this.changed = true; }
     public get origin(): number[] { return this._origin; }
     public set origin(value: number[]) { this._origin = value; this.changed = true; }
-    /**
-     * Array of four floats. It represents Light A's position <strong>XYZ</strong> and intensity <strong>I</strong> as [X, Y, Z, I]. Intensity should be in range 0.0 - 1.0.
-     * @member {Number[]} Viewer#lightA
-     */
-    public get lightA(): number[] { return this._lightA; }
-    public set lightA(value: number[]) { this._lightA = value; this.changed = true; }
+  
     
     public get mvMatrix(): Float32Array { return this._mvMatrix; }
     public set mvMatrix(value: Float32Array) { this._mvMatrix = value; this.changed = true; }
@@ -109,7 +104,6 @@ export class Viewer {
     private _background: number[] = [230, 230, 230, 255];
     private _highlightingColour: number[] = [255, 173, 33, 255];
     private _origin: number[];
-    private _lightA: number[] = [0, 1000000, 200000];
     private _mvMatrix: Float32Array;
     private _pMatrix: Float32Array;
     private _renderingMode: RenderingMode = RenderingMode.NORMAL;
