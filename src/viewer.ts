@@ -62,12 +62,25 @@ export class Viewer {
      */
     public get highlightingColour(): number[] { return this._highlightingColour; }
     public set highlightingColour(value: number[]) { this._highlightingColour = value; this.changed = true; }
+
+    /**
+     * Coordinates in the WCS of the origin used for orbiting and panning [x, y, z]
+     * @member {Number[]} Viewer#origin
+     */
     public get origin(): number[] { return this._origin; }
     public set origin(value: number[]) { this._origin = value; this.changed = true; }
 
-
+    /**
+     * World matrix
+     * @member {Number[]} Viewer#mvMatrix
+     */
     public get mvMatrix(): Float32Array { return this._mvMatrix; }
     public set mvMatrix(value: Float32Array) { this._mvMatrix = value; this.changed = true; }
+
+    /**
+     * Camera matrix (perspective or orthogonal)
+     * @member {Number[]} Viewer#pMatrix
+     */
     public get pMatrix(): Float32Array { return this._pMatrix; }
     public set pMatrix(value: Float32Array) { this._pMatrix = value; this.changed = true; }
     /**
@@ -99,22 +112,25 @@ export class Viewer {
     private _orthogonalCamera: { left: number, right: number, top: number, bottom: number, near: number, far: number }
     private _width: number;
     private _height: number;
-    private _distance: number;
+    //Default distance for default views (top, bottom, left, right, front, back)
+    private _distance: number = 0;
     private _camera: CameraType = CameraType.PERSPECTIVE;
     private _background: number[] = [230, 230, 230, 255];
     private _highlightingColour: number[] = [255, 173, 33, 255];
-    private _origin: number[];
-    private _mvMatrix: Float32Array;
-    private _pMatrix: Float32Array;
+    private _origin: number[] = [0, 0, 0];
+    private _mvMatrix: Float32Array = mat4.create();
+    private _pMatrix: Float32Array = mat4.create();
     private _renderingMode: RenderingMode = RenderingMode.NORMAL;
 
     private _isRunning: boolean = false;
     private _stateStyles: Uint8Array;
     private _stateStyleTexture: WebGLTexture;
-    private _plugins: IPlugin[];
-    private _handles: ModelHandle[];
+    private _plugins: IPlugin[] = [];
+    //Array of handles which can eventually contain handles to one or more models.
+    private _handles: ModelHandle[] = [];
     private get _activeHandles() { return this._handles.filter((h) => { return !h.stopped }); };
-    private _shaderProgram: WebGLProgram;
+    //shader program used for rendering
+    private _shaderProgram: WebGLProgram = null;
 
     private _mvMatrixUniformPointer: WebGLUniformLocation;
     private _pMatrixUniformPointer: WebGLUniformLocation;
@@ -262,24 +278,6 @@ export class Viewer {
         // it is better to cache this value because it is used frequently and it takes a time to get a value from HTML
         this.width = this.canvas.width = this.canvas.offsetWidth;
         this.height = this.canvas.height = this.canvas.offsetHeight;
-
-        //array of plugins which can implement certain methods which get called at certain points like before draw, after draw and others.
-        this._plugins = new Array<IPlugin>();
-
-        //transformation matrices
-        this.mvMatrix = mat4.create(); //world matrix
-        this.pMatrix = mat4.create(); //camera matrix (this can be either perspective or orthogonal camera)
-
-        //Navigation settings - coordinates in the WCS of the origin used for orbiting and panning
-        this.origin = [0, 0, 0]
-        //Default distance for default views (top, bottom, left, right, front, back)
-        this.distance = 0;
-        //shader program used for rendering
-        this._shaderProgram = null;
-
-        //Array of handles which can eventually contain handles to one or more models.
-        //Models are loaded using 'load()' function.
-        this._handles = [];
 
         //********************** Run all the initialize functions *****************************
         //compile shaders for use
@@ -706,7 +704,7 @@ export class Viewer {
     public setCameraTarget(prodId?: number, modelId?: number): boolean {
         var viewer = this;
         //helper function for setting of the distance based on camera field of view and size of the product's bounding box
-        var setDistance = function (bBox: number[] | Float32Array) {
+        var setDistance = (bBox: number[] | Float32Array) => {
             let size = Math.sqrt(bBox[3] * bBox[3] + bBox[4] * bBox[4] + bBox[5] * bBox[5]);
             //set ratio to 1 if the viewer has no size (for example if canvas is not added to DOM yet)
             let ratio = (viewer.width > 0 && viewer.height > 0) && viewer.width < viewer.height ?
@@ -755,7 +753,7 @@ export class Viewer {
     }
 
     private getBiggestRegion(): Region {
-        let volume = function (box: Float32Array) {
+        let volume = (box: Float32Array) => {
             return box[3] * box[4] * box[5];
         }
 
@@ -808,7 +806,13 @@ export class Viewer {
         if (typeof (model) != 'string' && !(model instanceof Blob))
             throw 'Model has to be specified either as a URL to wexBIM file or Blob object representing the wexBIM file.';
         const self = this;
-        progress = progress ? progress : m => { };
+        const progressProxy = progress ? (m: Message) => { 
+            if (m.type === MessageType.COMPLETED) {
+                // change all completer to progress so there is only one completed event in the end.
+                m.type = MessageType.PROGRESS;
+            }
+            progress(m);
+         } : (m:Message) => { };
 
         //fall back to synchronous loading if worker is not available
         if (typeof (Worker) === 'undefined') {
@@ -822,15 +826,25 @@ export class Viewer {
 
             if (msg.type === MessageType.COMPLETED) {
                 var geometry = msg.result as ModelGeometry;
-                self.addHandle(geometry, tag);
 
                 // remove result from message before we pass it out
                 msg.result = null;
-                progress(msg);
+                progressProxy(msg);
+
+                // add handle and report progress of GPU feeding
+                self.addHandle(geometry, tag, progressProxy);
+                // report completed
+                if (progress){
+                    progress({
+                        message: 'Model loaded',
+                        type: MessageType.COMPLETED,
+                        percent: 100
+                    });
+                }
             }
             else {
                 // pass the message from worker out
-                progress(msg);
+                progressProxy(msg);
             }
         }
         worker.onerror = (e) => {
@@ -839,13 +853,12 @@ export class Viewer {
 
         // make sure it is an absolute path
         // make it absolute path for the case when used in an inline Webworker
-        if ( typeof(model) === 'string' && model.indexOf('http') !== 0) {
+        if (typeof (model) === 'string' && model.indexOf('http') !== 0) {
             const a = document.createElement('a');
             a.href = model;
             model = a.href;
         }
         worker.postMessage({ model: model, headers: headers });
-        //console.log('Message posted to worker');
         return;
     }
 
@@ -869,10 +882,10 @@ export class Viewer {
         var viewer = this;
 
         var geometry = new ModelGeometry();
-        geometry.onloaded = function () {
-            viewer.addHandle(geometry, tag);
+        geometry.onloaded = () => {
+            viewer.addHandle(geometry, tag, progress);
         };
-        geometry.onerror = function (msg) {
+        geometry.onerror = (msg) => {
             viewer.error(msg);
         }
         geometry.load(model, headers, progress);
@@ -880,9 +893,9 @@ export class Viewer {
 
     //this is a private function used to add loaded geometry as a new handle and to set up camera and 
     //default view if this is the first geometry loaded
-    private addHandle(geometry: ModelGeometry, tag?: any): void {
+    private addHandle(geometry: ModelGeometry, tag: any, progress: (message: Message) => void): void {
         var gl = this.setActive();
-        var handle = new ModelHandle(gl, geometry);
+        var handle = new ModelHandle(gl, geometry, progress);
 
         //assign handle used to identify the model
         handle.tag = tag;
@@ -967,15 +980,13 @@ export class Viewer {
     //this function should be only called once during initialization
     //or when shader set-up changes
     public _initShaders(): boolean {
-
-        var gl = this.gl;
-        var viewer = this;
-        var compile = function (shader, code): boolean {
+        const gl = this.gl;
+        const compile = (shader: WebGLShader, code: string): boolean => {
             gl.shaderSource(shader, code);
             gl.compileShader(shader);
             if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
                 const err = gl.getShaderInfoLog(shader);
-                viewer.error(err);
+                this.error(err);
                 console.error(err);
                 return false;
             }
@@ -1490,7 +1501,7 @@ export class Viewer {
         var transform = mat4.translate(mat4.create(), mat4.create(), mvOrigin)
 
         //function for conversion from degrees to radians
-        function degToRad(deg) {
+        const degToRad = (deg) => {
             return deg * Math.PI / 180.0;
         }
 
@@ -2255,7 +2266,7 @@ export class Viewer {
             return;
         }
         //call the callbacks
-        handlers.slice().forEach(function (handler) {
+        handlers.slice().forEach((handler) => {
             try {
                 handler(args);
             }

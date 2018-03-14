@@ -2,6 +2,7 @@
 import { State } from "./state";
 import { ModelPointers } from "./model-pointers";
 import { Product } from "./product-inheritance";
+import { Message, MessageType } from "./message";
 
 //this class holds pointers to textures, uniforms and data buffers which
 //make up a model in GPU
@@ -151,7 +152,7 @@ export class ModelHandle {
 
     constructor(
         private _gl: WebGLRenderingContext | WebGL2RenderingContext,
-        private _model: ModelGeometry) {
+        private _model: ModelGeometry, progress: (msg: Message) => void) {
 
         if (typeof (_gl) == 'undefined' || typeof (_model) == 'undefined') {
             throw 'WebGL context and geometry model must be specified';
@@ -161,6 +162,7 @@ export class ModelHandle {
             this._glVersion = 2;
         }
 
+        progress = progress ? progress : msg => {};
         /**
          * unique ID which can be used to identify this handle 
          */
@@ -170,7 +172,7 @@ export class ModelHandle {
         this.meter = _model.meter;
         this.InitGlBuffersAndTextures(_gl);
         this.InitRegions(_model.regions);
-        this.InitGPU(_gl, _model);
+        this.InitGPU(_gl, _model, progress);
     }
 
     private InitRegions(regions: Region[]): void {
@@ -405,22 +407,37 @@ export class ModelHandle {
         gl.deleteBuffer(this._transformationBuffer);
     }
 
-    private InitGPU(gl: WebGLRenderingContext, model: ModelGeometry) {
-
+    private InitGPU(gl: WebGLRenderingContext, model: ModelGeometry, progress: (msg: Message) => void) {
+        const report = (percent: number): void => {
+            const msg: Message = {
+                message: 'Loading data into GPU',
+                percent: percent,
+                type: MessageType.PROGRESS
+            };
+            progress(msg);
+        };
         this._numberOfIndices = model.indices.length;
 
         //fill all buffers
         this.bufferData(this._normalBuffer, model.normals);
+        report(10);
         this.bufferData(this._indexBuffer, model.indices);
+        report(30);
         this.bufferData(this._productBuffer, model.products);
+        report(40);
         this.bufferData(this._stateBuffer, model.states);
+        report(50);
         this.bufferData(this._transformationBuffer, model.transformations);
+        report(60);
         this.bufferData(this._styleBuffer, model.styleIndices);
 
         //fill in all textures
         this._vertexTextureSize = ModelHandle.bufferTexture(gl, this._vertexTexture, model.vertices, 3);
+        report(80);
         this._matrixTextureSize = ModelHandle.bufferTexture(gl, this._matrixTexture, model.matrices, 4);
+        report(90);
         this._styleTextureSize = ModelHandle.bufferTexture(gl, this._styleTexture, model.styles);
+        report(100);
 
 
         //Forget everything except for states and styles (this should save some RAM).
@@ -433,6 +450,13 @@ export class ModelHandle {
 
         model.vertices = null;
         model.matrices = null;
+
+        const msg: Message = {
+            message: 'Loading data into GPU',
+            percent: 100,
+            type: MessageType.COMPLETED
+        };
+        progress(msg);
     }
 
     private bufferData(pointer, data) {

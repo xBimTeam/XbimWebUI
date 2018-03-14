@@ -5,7 +5,7 @@
 	<title>xViewer</title>
 	<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
 	<script type="text/javascript" src="../../dist/xbim-viewer.js"></script>
-	<link rel="stylesheet" href="index.css" >
+	<link rel="stylesheet" href="index.css">
 
 </head>
 
@@ -14,6 +14,9 @@
 	<canvas id="xBIM-viewer"></canvas>
 
 	<div class="left-panel">
+		<div id="progress">
+
+		</div>
 		<div>
 			Selected:
 			<span id="coords"></span>
@@ -23,7 +26,8 @@
 			<span id="fps"></span>
 		</div>
 		<div>
-			WebGL version: <span id="webglVersion"></span>
+			WebGL version:
+			<span id="webglVersion"></span>
 		</div>
 
 		<div>
@@ -135,7 +139,7 @@
 				</label>
 			</form>
 			<button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.setState(states.UNDEFINED, types[i])}}">
-			Show all
+				Show all
 			</button>
 			<button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.setStyle(1, types[i])}}"> Make all glass
 			</button>
@@ -165,7 +169,7 @@
 	</div>
 
 	<script type="text/javascript" src="index.js"></script>
-	
+
 </body>
 
 </html>

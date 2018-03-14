@@ -23,6 +23,7 @@
 
 
 var viewer = new Viewer("xBIM-viewer");
+viewer.perspectiveCamera.fov = 53;
 var types = ProductType;
 var states = State;
 
@@ -78,8 +79,12 @@ if (span) {
 var versionSpan = document.getElementById("webglVersion");
 versionSpan.innerHTML = viewer.glVersion;
 
+var progress = document.getElementById("progress")
+
 //viewer.load(model, "base");
-viewer.loadAsync(model, "base");
+viewer.loadAsync(model, "base", null, (msg) => {
+    progress.innerHTML = `${msg.message} [${msg.percent}%]`;
+});
 viewer.start();
 
 var cube = new NavigationCube();

@@ -6,6 +6,7 @@ export * from './src/product-inheritance';
 export * from './src/product-type';
 export * from './src/state';
 export * from './src/triangulated-shape';
+export * from './src/message';
 export * from './src/viewer';
 
 // Matrix math objects
