@@ -126,7 +126,7 @@ function sign(x){x=+x
 if(x===0||isNaN(x))
 return x
 return x>0?1:-1}
-navigate('zoom',sign(event.deltaX)*-1.0,sign(event.deltaY)*-1.0);}
+navigate('zoom',0,sign(event.deltaY)*-1.0);}
 function navigate(type,deltaX,deltaY){if(!viewer._handles||!viewer._handles[0])return;var origin=viewer._origin;var camera=viewer.getCameraPosition();var mvOrigin=vec3.transformMat4(vec3.create(),origin,viewer._mvMatrix)
 var distanceVec=vec3.subtract(vec3.create(),origin,camera);var distance=Math.max(vec3.length(distanceVec),viewer._handles[0]._model.meter);var transform=mat4.translate(mat4.create(),mat4.create(),mvOrigin)
 function degToRad(deg){return deg*Math.PI/180.0;}
