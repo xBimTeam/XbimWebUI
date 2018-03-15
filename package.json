@@ -28,6 +28,7 @@
     "docs": "tsc&&jsdoc -c jsdoc.config.json&&node utilities/clean.js .",
     "clean": "node utilities/clean.js .",
     "start": "concurrently \"webpack-dev-server --open --config webpack.dev.js\" \"webpack --watch --config webpack.worker.js \"",
-    "build": "webpack --config webpack.worker.js&&webpack --config webpack.prod.js"
+    "build": "webpack --config webpack.worker.js&&webpack --config webpack.prod.js",
+    "build:dev": "webpack --config webpack.worker.js&&webpack --config webpack.dev.js"
   }
 }

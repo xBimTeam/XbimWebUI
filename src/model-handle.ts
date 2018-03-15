@@ -147,7 +147,7 @@ export class ModelHandle {
     }
 
     public get clippingPlaneB(): number[] {
-        return this._clippingPlaneA;
+        return this._clippingPlaneB;
     }
 
     constructor(
