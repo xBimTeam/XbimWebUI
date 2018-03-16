@@ -21,6 +21,7 @@ import { mat4 } from "./matrix/mat4";
 import { Message, MessageType } from './message';
 import { ProductIdentity } from './product-identity';
 import { IPlugin } from './plugins/plugin';
+import { ViewerEventMap } from './viewer-event-map';
 
 export class Viewer {
 
@@ -142,7 +143,7 @@ export class Viewer {
 
     // dictionary of named events which can be registered and unregistered by using '.on('eventname', callback)'
     // and '.off('eventname', callback)'. Registered call-backs are triggered by the viewer when important events occur.
-    private _events: { [id: string]: Function[]; } = {};
+    private _events: { [id: string]: Array<(args: { message: string } | { event: Event, id: number, model: number } | { model: number, tag: any } | number) => void>; } = {};
 
     private _pointers: ModelPointers;
 
@@ -289,9 +290,12 @@ export class Viewer {
         //initialize touch events to capute user interaction on touch devices
         this._initTouchNavigationEvents();
         this._initTouchTapEvents();
+
+        // listen to all mouse and touch events of the canvas and enrich the information
+        // with product ID and model ID
         //disable default context menu as it doesn't make much sense for the viewer
         //it can be replaced by custom menu when listening to 'contextMenu' of the viewer
-        this._initContextMenuEvent();
+        this._initCanvasEventForwarding();
 
         //This array keeps data for overlay styles.
         this._stateStyles = new Uint8Array(15 * 15 * 4);
@@ -806,13 +810,13 @@ export class Viewer {
         if (typeof (model) != 'string' && !(model instanceof Blob))
             throw 'Model has to be specified either as a URL to wexBIM file or Blob object representing the wexBIM file.';
         const self = this;
-        const progressProxy = progress ? (m: Message) => { 
+        const progressProxy = progress ? (m: Message) => {
             if (m.type === MessageType.COMPLETED) {
                 // change all completer to progress so there is only one completed event in the end.
                 m.type = MessageType.PROGRESS;
             }
             progress(m);
-         } : (m:Message) => { };
+        } : (m: Message) => { };
 
         //fall back to synchronous loading if worker is not available
         if (typeof (Worker) === 'undefined') {
@@ -834,7 +838,7 @@ export class Viewer {
                 // add handle and report progress of GPU feeding
                 self.addHandle(geometry, tag, progressProxy);
                 // report completed
-                if (progress){
+                if (progress) {
                     progress({
                         message: 'Model loaded',
                         type: MessageType.COMPLETED,
@@ -926,7 +930,7 @@ export class Viewer {
          * @param {Any} tag - tag which was passed to 'Viewer.load()' function
          * 
         */
-        this.fire('loaded', { id: handle.id, tag: tag })
+        this.fire('loaded', { model: handle.id, tag: tag })
     };
 
     /**
@@ -1057,27 +1061,48 @@ export class Viewer {
 
     }
 
-    /**
-     * Prevents default context menu to appear. Custom menu can be created instead by listening to contextmenu event
-     * of the viewer. Nothing is displayed othervise.
-     */
-    private _initContextMenuEvent() {
-        this.canvas.addEventListener("contextmenu", (event: MouseEvent) => {
-            let ids = this.getIdsFromEvent(event);
-            /**
-            * Occurs when mousedown event happens on underlying canvas.
-            *
-            * @event Viewer#contextMenu
-            * @type {object}
-            * @param {Number} id - product ID of the element or null if there wasn't any product under mouse
-            * @param {Number} model - Model ID
-            * @param {MouseEvent} event - original event as captured by the viewer
-            */
-            this.fire("contextMenu", { event: event, id: ids.id, model: ids.model })
+    private _initCanvasEventForwarding() {
+        for (let prop in this.canvas) {
+            // skip all properties not starting with 'on'
+            if (prop.indexOf('on') !== 0) {
+                continue;
+            }
 
-            event.preventDefault();
-            return false;
-        }, true);
+            // remove 'on' at the beginning
+            var eventName = prop.slice(2);
+            // bind to canvas events
+            this.canvas.addEventListener(eventName, event => {
+                // only forward mouse and touch events where we can enrich the event
+                // with product and model ID from the model
+                if (!(event instanceof MouseEvent) && !(event instanceof TouchEvent)) {
+                    return;
+                }
+
+                // prevent context menu default action
+                if (event.type === 'contextmenu') {
+                    event.preventDefault();
+                }
+
+                var handlers = this._events[event.type];
+                if (!handlers || handlers.length === 0) {
+                    return event.type !== 'contextmenu';
+                }
+
+                let ids = this.getIdsFromEvent(event as MouseEvent);
+
+                //call the callbacks
+                handlers.slice().forEach((handler) => {
+                    try {
+                        handler({ event: event, id: ids.id, model: ids.model });
+                    }
+                    catch (e) {
+                        console.error(e);
+                    }
+                });
+
+                return event.type !== 'contextmenu';
+            });
+        }
     }
 
     private _initMouseEvents() {
@@ -1110,18 +1135,6 @@ export class Viewer {
             const identity = this.getID(viewX, viewY);
             id = identity.id;
             modelId = identity.model;
-
-            /**
-            * Occurs when mousedown event happens on underlying canvas.
-            *
-            * @event Viewer#mouseDown
-            * @type {object}
-            * @param {Number} id - product ID of the element or -1 if there wasn't any product under mouse
-            * @param {Number} model - model ID of the element or -1 if there wasn't any product under mouse
-            * @param {MouseEvent} event - original HTML event
-            */
-            viewer.fire('mouseDown', { id: id, model: modelId, event: event });
-
 
             //keep information about the mouse button
             switch (event.button) {
@@ -1260,25 +1273,9 @@ export class Viewer {
             this.navigate('zoom', sign(event.deltaX) * -1.0, sign(event.deltaY) * -1.0);
         }
 
-        let handleDoubleClick = (event: MouseEvent) => {
-            let ids = viewer.getIdsFromEvent(event);
-
-            /**
-             * Occurs when mousedown event happens on underlying canvas.
-             *
-             * @event Viewer#dblclick
-             * @type {object}
-             * @param {Number} id - product ID of the element or -1 if there wasn't any product under mouse
-             * @param {Number} model - model ID of the element or -1 if there wasn't any product under mouse
-             * @param {MouseEvent} event - Original HTML event
-             */
-            viewer.fire('dblclick', { id: ids.id, model: ids.model, event: event });
-        }
-
         //attach callbacks
         this.canvas.addEventListener('mousedown', (event) => handleMouseDown(event), true);
         this.canvas.addEventListener('wheel', (event) => handleMouseScroll(event), true);
-        this.canvas.addEventListener('dblclick', (event) => handleDoubleClick(event), true);
         window.addEventListener('mouseup', (event) => handleMouseUp(event), true);
         window.addEventListener('mousemove', (event) => handleMouseMove(event), true);
 
@@ -1429,7 +1426,7 @@ export class Viewer {
             * @param {Number} model - model ID
             * @param {MouseEvent} event - original HTML event
             */
-            this.fire('mouseDown', { id: identity.id, model: identity.model, event: event });
+            this.fire('mousedown', { id: identity.id, model: identity.model, event: event });
 
             this.disableTextSelection();
         };
@@ -2230,14 +2227,14 @@ export class Viewer {
      *
      * @function Viewer#on
      * @param {String} eventName - Name of the event you would like to listen to.
-     * @param {Object} callback - Callback handler of the event which will consume arguments and perform any custom action.
+     * @param {Object} handler - Callback handler of the event which will consume arguments and perform any custom action.
     */
-    public on(eventName: string, callback: Function) {
+    public on<K extends keyof ViewerEventMap>(eventName: K, handler: (args: ViewerEventMap[K]) => void) {
         var events = this._events;
         if (!events[eventName]) {
-            events[eventName] = new Array<Function>();
+            events[eventName] = [];
         }
-        events[eventName].push(callback);
+        events[eventName].push(handler);
     }
 
     /**
@@ -2260,7 +2257,7 @@ export class Viewer {
     }
 
     //executes all handlers bound to event name
-    private fire(eventName: string, args) {
+    private fire<K extends keyof ViewerEventMap>(eventName: K, args: ViewerEventMap[K]) {
         var handlers = this._events[eventName];
         if (!handlers) {
             return;

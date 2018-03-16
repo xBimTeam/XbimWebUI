@@ -42,6 +42,10 @@
                 progress.innerHTML = `${msg.message}, done:${msg.percent}%`;
             });
             viewer.start();
+
+            viewer.on('pointerdown', args => {
+                console.log(args);
+            })
         </script>
 	</body>
 	
