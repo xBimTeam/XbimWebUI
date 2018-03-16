@@ -1,7 +1,7 @@
 ﻿import { ModelGeometry } from "../model-geometry";
 import { Message, MessageType } from '../message';
 
-//only run following script if this is created as a Worker
+//only run following script if this is created as a Dedicated Worker
 if (self && self instanceof DedicatedWorkerGlobalScope) {
     var worker = self as DedicatedWorkerGlobalScope;
     worker.onmessage = function (e: MessageEvent) {
@@ -10,7 +10,14 @@ if (self && self instanceof DedicatedWorkerGlobalScope) {
         let geometry = new ModelGeometry();
 
         geometry.onerror = function (msg) {
-            throw msg;
+            const message: Message = {
+                type: MessageType.FAILED,
+                message: msg,
+                percent: 0,
+            }
+            worker.postMessage(message);
+            console.error(msg);
+            worker.close();
         }
 
         geometry.onloaded = function () {
@@ -50,8 +57,8 @@ if (self && self instanceof DedicatedWorkerGlobalScope) {
                     percent: 0,
                 }
                 worker.postMessage(message);
+                console.error(e);
                 worker.close();
-                throw e;
             }
         };
         geometry.load(model, headers, (message) => {

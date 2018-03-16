@@ -91,15 +91,15 @@ export class BinaryReader {
                     var msg = 'Failed to fetch binary data from server. Server code: ' +
                         xhr.status +
                         '. This might be due to CORS policy of your browser if you run this as a local file.';
+                        progress(
+                            {
+                                message: 'Downloading geometry',
+                                percent: 0,
+                                type: MessageType.FAILED
+                            }
+                        );
                     if (self.onerror)
                         self.onerror(msg);
-                    progress(
-                        {
-                            message: 'Downloading geometry',
-                            percent: 0,
-                            type: MessageType.FAILED
-                        }
-                    );
                     throw msg;
                 }
             };
