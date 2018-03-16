@@ -979,7 +979,16 @@ export class Viewer {
 
         //unload and delete
         handle.unload();
-        this.fire('unloaded', {tag: handle.tag, model: handle.id} )
+
+        /**
+         * Occurs when model is unloaded.
+         *
+         * @event Viewer#unloaded
+         * @type {object}
+         * @param {any} tag - Tag passed to the viewer when model was loaded
+         * @param {Number} model - Model ID
+         */
+        this.fire('unloaded', { tag: handle.tag, model: handle.id })
     }
 
     //this function should be only called once during initialization
