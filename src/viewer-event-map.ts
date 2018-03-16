@@ -36,6 +36,7 @@ export interface ViewerEventMap {
 
     "fps": number;
     "loaded": ViewerLoadedEvent;
+    "unloaded": ViewerLoadedEvent;
     "error": { message: string };
 }
 

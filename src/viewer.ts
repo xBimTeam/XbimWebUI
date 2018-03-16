@@ -979,6 +979,7 @@ export class Viewer {
 
         //unload and delete
         handle.unload();
+        this.fire('unloaded', {tag: handle.tag, model: handle.id} )
     }
 
     //this function should be only called once during initialization
