@@ -53,7 +53,7 @@ viewer.on("pick", function (arg) {
         span.innerHTML = `Product id: ${arg.id}, model: ${arg.model}`;
     }
 });
-viewer.on("mouseDown", function (arg) {
+viewer.on("mousedown", function (arg) {
     viewer.setCameraTarget(arg.id);
 });
 viewer.on("fps", function (fps) {
@@ -89,6 +89,7 @@ viewer.start();
 
 var cube = new NavigationCube();
 cube.ratio = 0.05;
+cube.passiveAlpha = cube.activeAlpha = 0.85;
 viewer.addPlugin(cube);
 
 viewer.defineStyle(0, [255, 0, 0, 255]);  //red
