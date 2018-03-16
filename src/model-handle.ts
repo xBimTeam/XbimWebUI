@@ -9,7 +9,7 @@ import { Message, MessageType } from "./message";
 export class ModelHandle {
 
     /**
-     * ID used to manipulate this handle/model
+     * Session unique ID used to manipulate this handle/model
      */
     public id: number;
 
@@ -121,6 +121,7 @@ export class ModelHandle {
     private _clippingB: boolean = false;
 
     private _glVersion: number = 1;
+    private _empty = false;
 
     private get gl1(): WebGLRenderingContext {
         return this._glVersion === 1 ? this._gl : null;
@@ -162,29 +163,37 @@ export class ModelHandle {
             this._glVersion = 2;
         }
 
-        progress = progress ? progress : msg => {};
-        /**
-         * unique ID which can be used to identify this handle 
-         */
+        progress = progress ? progress : msg => { };
         this.id = ModelHandle._instancesNum++;
 
-
         this.meter = _model.meter;
+
+        // handle the case when there is actually nothing in the model
+        if (_model.indices.length === 0) {
+            this._empty = true;
+            return;
+        }
+
         this.InitGlBuffersAndTextures(_gl);
         this.InitRegions(_model.regions);
         this.InitGPU(_gl, _model, progress);
     }
 
     private InitRegions(regions: Region[]): void {
+        if (this._empty) {
+            return;
+        }
         this._region = regions[0];
-        //set the most populated region
+
+        // set the most populated region
         regions.forEach((region) => {
             if (region.population > this.region.population) {
                 this._region = region;
             }
         });
-        //set default region if no region is defined. This shouldn't ever happen if model contains any geometry.
-        if (typeof (this.region) == 'undefined') {
+
+        // set default region if no region is defined. This shouldn't ever happen if model contains any geometry.
+        if (this.region == null) {
             this._region = new Region();
             this._region.population = 1;
             this._region.centre = new Float32Array([0.0, 0.0, 0.0]);
@@ -193,7 +202,11 @@ export class ModelHandle {
     }
 
     private InitGlBuffersAndTextures(gl: WebGLRenderingContext): void {
-        //data structure 
+        if (this._empty) {
+            return;
+        }
+
+        // data structure 
         this._vertexTexture = gl.createTexture();
         this._matrixTexture = gl.createTexture();
         this._styleTexture = gl.createTexture();
@@ -219,7 +232,9 @@ export class ModelHandle {
     //it needs an argument 'pointers' which contains pointers to
     //shader attributes and uniforms which are to be set.
     public setActive(pointers: ModelPointers): void {
-        if (this.stopped) return;
+        if (this.stopped || this._empty) {
+            return;
+        }
 
         var gl = this._gl;
         //set predefined textures
@@ -279,7 +294,9 @@ export class ModelHandle {
 
     //this function must be called AFTER 'setActive()' function which sets up active buffers and uniforms
     public draw(mode?: DrawMode): void {
-        if (this.stopped) return;
+        if (this.stopped || this._empty) {
+            return;
+        }
 
         var gl = this._gl;
         const maps = this.isolatedProducts && this.isolatedProducts.length > 0 ?
@@ -372,10 +389,14 @@ export class ModelHandle {
 
 
     public getProductId(renderId: number): number {
+        if (this._empty) return null;
+        
         return this._model.productIdLookup[renderId];
     }
 
     public getProductMap(id: number): ProductMap {
+        if (this._empty) return null;
+
         var map = this._model.productMaps[id];
         if (typeof (map) !== 'undefined') return map;
         return null;
@@ -383,6 +404,8 @@ export class ModelHandle {
 
     public getProductMaps(ids: number[]): ProductMap[] {
         let result = new Array<ProductMap>();
+        if (this._empty) return result;
+        
         ids.forEach(id => {
             var map = this._model.productMaps[id];
             if (typeof (map) !== 'undefined')
@@ -393,6 +416,8 @@ export class ModelHandle {
     }
 
     public unload() {
+        if (this._empty) return null;
+
         var gl = this._gl;
 
         gl.deleteTexture(this._vertexTexture);
@@ -408,6 +433,8 @@ export class ModelHandle {
     }
 
     private InitGPU(gl: WebGLRenderingContext, model: ModelGeometry, progress: (msg: Message) => void) {
+        if (this._empty) return null;
+
         const report = (percent: number): void => {
             const msg: Message = {
                 message: 'Loading data into GPU',
@@ -573,6 +600,8 @@ export class ModelHandle {
     }
 
     public getState(id: number): State {
+        if (this._empty) return null;
+
         if (typeof (id) === 'undefined') throw 'id must be defined';
         var map = this.getProductMap(id);
         if (map === null) return null;
@@ -584,6 +613,8 @@ export class ModelHandle {
     }
 
     public getStyle(id: number): number {
+        if (this._empty) return null;
+
         if (typeof (id) === 'undefined') throw 'id must be defined';
         var map = this.getProductMap(id);
         if (map === null) return null;
@@ -595,6 +626,8 @@ export class ModelHandle {
     }
 
     public setState(state: State, args: number | number[]): void {
+        if (this._empty) return null;
+
         if (typeof (state) != 'number' && state < 0 && state > 255
         ) throw 'You have to specify state as an ID of state or index in style pallete.';
         if (typeof (args) == 'undefined')
@@ -639,6 +672,8 @@ export class ModelHandle {
     }
 
     public resetStates(): void {
+        if (this._empty) return null;
+
         for (var i = 0; i < this._model.states.length; i += 2) {
             this._model.states[i] = State.UNDEFINED;
         }
@@ -648,6 +683,8 @@ export class ModelHandle {
     }
 
     public resetStyles(): void {
+        if (this._empty) return null;
+
         for (var i = 0; i < this._model.states.length; i += 2) {
             this._model.states[i + 1] = State.UNSTYLED;
         }
@@ -658,6 +695,8 @@ export class ModelHandle {
 
     public getModelState(): Array<Array<number>> {
         var result = [];
+        if (this._empty) return result;
+
         var products = this._model.productMaps;
         for (var i in products) {
             if (!products.hasOwnProperty(i)) {
@@ -676,6 +715,8 @@ export class ModelHandle {
     }
 
     public restoreModelState(state: Array<Array<number>>): void {
+        if (this._empty) return null;
+
         state.forEach((s) => {
             var id = s[0];
             var style = s[1] >> 8;

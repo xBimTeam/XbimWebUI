@@ -762,7 +762,7 @@ export class Viewer {
         }
 
         let handle = this._handles
-            .filter((h) => h != null && !h.stopped)
+            .filter((h) => h != null && !h.stopped && h.region != null)
             .sort((a, b) => {
                 let volA = volume(a.region.bbox);
                 let volB = volume(b.region.bbox);
