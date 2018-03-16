@@ -49,9 +49,9 @@ void main(void) {
 		}
 
 	}
-	
+
 	// it is colour coding. Don't do shading and lighting or anything else
-	if (length(vNormal) == 0.0) {
+	if (length(vNormal) < 0.1) {
 		vFragColor = vColor;
 		return;
 	}

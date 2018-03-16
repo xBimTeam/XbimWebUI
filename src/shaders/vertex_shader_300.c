@@ -139,6 +139,7 @@ vec3 getVertexPosition(mat4 transform) {
 }
 
 mat4 getTransform() {
+		return mat4(1.0);
 	if (aTransformationIndex < -0.5) {
 		return mat4(1.0);
 	}
