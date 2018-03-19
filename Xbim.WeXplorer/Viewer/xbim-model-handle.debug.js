@@ -162,7 +162,7 @@ xModelHandle.prototype.draw = function (mode) {
         var transparentIndexCount = this.count - this._model.transparentIndex;
 
         if (transparentIndexCount > 0) {
-            gl.drawArrays(gl.TRIANGLES, this._model.transparentIndex, this.count - this._model.transparentIndex);
+            gl.drawArrays(gl.TRIANGLES, this._model.transparentIndex, transparentIndexCount);
         }
     }
     
