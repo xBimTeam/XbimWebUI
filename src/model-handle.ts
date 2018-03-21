@@ -581,7 +581,7 @@ export class ModelHandle {
                         internalFormat = gl2.RGB32F;
                         break;
                     case 4:
-                        format = gl.RGBA;
+                        format = gl2.RGBA;
                         internalFormat = gl2.RGBA32F;
                         break;
                 }

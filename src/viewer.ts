@@ -178,6 +178,11 @@ export class Viewer {
             this.on('error', errorHandler);
         }
 
+        // make sure WebGL2RenderingContext is defined even if not implemented
+        if(!window['WebGL2RenderingContext']) {
+            window['WebGL2RenderingContext'] = function() { };
+        }
+
         /**
         * This is a structure that holds settings of perspective camera.
         * @member {PerspectiveCamera} Viewer#perspectiveCamera
