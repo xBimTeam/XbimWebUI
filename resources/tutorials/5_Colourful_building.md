@@ -22,8 +22,11 @@ product type in the following code:
         function Recolour() {
             if (!viewer) return;
             var index = 0;
-            for (var i in xProductType) {
-                var type = xProductType[i];
+            for (var i in ProductType) {
+                var type = ProductType[i];
+                if (!/^[0-9]+$/.test(type)) {
+                    continue;
+                }
                 var colour = [Math.random() * 255, Math.random() * 255, Math.random() * 255, 255];
                 viewer.defineStyle(index, colour);
                 viewer.setStyle(index, type);
@@ -33,7 +36,7 @@ product type in the following code:
     </script>
 
 This is it. You can extend this example as you wish. Just define 0 - 224 colour styles and set them as an overlay style to product
-or to type of products. If you want to reset styles to their default use {@link xViewer#resetStyles resetStyles()} function.
+or to type of products. If you want to reset styles to their default use {@link Viewer#resetStyles resetStyles()} function.
 
 There is one more visual feature of the viewer and that is highlighting. You can think about it as a selection but it is not that
 clever. It leaves all the eventual selection logic up to you. This is just a visual representation. It is hence ruther *state* than *style*.
@@ -51,10 +54,10 @@ You can use it exactly the same way as you did in the last tutorial '{@tutorial 
                 var option = cmb.value;
                 switch (option) {
                     case 'select':
-                        viewer.setState(xState.HIGHLIGHTED, [args.id]);
+                        viewer.setState(State.HIGHLIGHTED, [args.id]);
                         break;
 					case 'hide':
-                        viewer.setState(xState.HIDDEN, [args.id]);
+                        viewer.setState(State.HIDDEN, [args.id]);
                         break;
                     default:
                         break;

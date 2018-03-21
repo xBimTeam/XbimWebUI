@@ -33,13 +33,13 @@ Simple example...
 	<html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
 	    <title>Hello building!</title>
-	    <script src="js/xbim.browser.bundle.js"></script>
+	    <script src="js/xbim-viewer.js"></script>
 	</head>
 	<body>
 	    <div id="content">
 	        <canvas id="viewer" width="500" height="300"></canvas>
 	        <script type="text/javascript">
-	            var viewer = new xViewer('viewer');
+	            var viewer = new Viewer('viewer');
 	            viewer.load('data/SampleHouse.wexbim');
 	            viewer.start();
 	        </script>

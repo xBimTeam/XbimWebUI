@@ -4,6 +4,7 @@
     <title>Building seen from everywhere</title>
     <link href="styles/jsdoc-default.css" rel="stylesheet" />
     <link href="styles/xviewer-styles.css" rel="stylesheet" />
+    <script src="../dist/commons.js"></script>
     <script src="../dist/xbim-viewer.js"></script>
 </head>
 <body>
@@ -18,6 +19,9 @@
                         var index = 0;
                         for (var i in ProductType) {
                             var type = ProductType[i];
+                            if (!/^[0-9]+$/.test(type)) {
+                                continue;
+                            }
                             var colour = [Math.random() * 255, Math.random() * 255, Math.random() * 255, 255];
                             viewer.defineStyle(index, colour);
                             viewer.setStyle(index, type);
@@ -41,10 +45,10 @@
                             var option = cmb.value;
                             switch (option) {
                                 case 'select':
-                                    viewer.setState(xState.HIGHLIGHTED, [args.id]);
+                                    viewer.setState(State.HIGHLIGHTED, [args.id]);
                                     break;
                                 case 'hide':
-                                    viewer.setState(xState.HIDDEN, [args.id]);
+                                    viewer.setState(State.HIDDEN, [args.id]);
                                     break;
                                 default:
                                     break;
