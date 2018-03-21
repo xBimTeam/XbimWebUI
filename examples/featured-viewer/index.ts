@@ -1,4 +1,6 @@
-﻿var QueryString = function () {
+﻿import {Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube} from '../../xbim-viewer';
+
+var QueryString = function () {
     // This function is anonymous, is executed immediately and 
     // the return value is assigned to QueryString!
     var queryString = {};
@@ -37,7 +39,7 @@ window['product'] = Product;
 
 viewer.background = [0, 0, 0, 0];
 viewer.on("error", function (arg) {
-    var container = viewer.canvas.parentNode;
+    var container = viewer.canvas.parentNode as HTMLElement;
     if (container) {
         //preppend error report
         container.innerHTML = "<pre style='color:red;'>" + arg.message + "</pre>" + container.innerHTML;
@@ -58,9 +60,9 @@ viewer.on("mousedown", function (arg) {
     viewer.setCameraTarget(arg.id);
 });
 viewer.on("fps", function (fps) {
-    var span = document.getElementById("fps");
+    var span = document.getElementById("fps") as HTMLSpanElement;
     if (span) {
-        span.innerHTML = fps;
+        span.innerText = fps.toString();
     }
 });
 
@@ -77,8 +79,8 @@ if (span) {
     span.innerHTML = "0";
 }
 
-var versionSpan = document.getElementById("webglVersion");
-versionSpan.innerHTML = viewer.glVersion;
+var versionSpan = document.getElementById("webglVersion") as HTMLSpanElement;
+versionSpan.innerHTML = viewer.glVersion.toString();
 
 var progress = document.getElementById("progress")
 
@@ -138,7 +140,7 @@ viewer.on("pick", function (args) {
     var radios = document.getElementsByName("radioHiding");
     for (var i in radios) {
         if (radios.hasOwnProperty(i)) {
-            var radio = radios[i];
+            var radio = radios[i] as HTMLInputElement;
             if (radio.checked) {
                 var val = radio.value;
                 if (val === "noHiding") return;
@@ -157,7 +159,7 @@ viewer.on("pick", function (args) {
 
 // restore init script if any is saved
 var script = localStorage.getItem('initScript-' + modelId);
-var scriptArea = document.getElementById('initScript');
+var scriptArea = document.getElementById('initScript') as HTMLTextAreaElement;
 if (script) {
     scriptArea.value = script;
     viewer.on('loaded', () => {

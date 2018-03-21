@@ -4,7 +4,6 @@
 	<head>
 		<title>xViewer</title>
 		<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-        <script src="/dist/xbim-viewer.js"></script>
 
         <style>
             html, body {
@@ -35,18 +34,7 @@
         <div id="progress">
 
         </div>
-        <script type="text/javascript">
-            var viewer = new Viewer("viewer");
-            var progress = document.getElementById("progress")
-            viewer.loadAsync("/tests/data/LakesideRestaurant.wexbim", null, null, (msg) => {
-                progress.innerHTML = `${msg.message}, done:${msg.percent}%`;
-            });
-            viewer.start();
-
-            viewer.on('pointerdown', args => {
-                console.log(args);
-            })
-        </script>
+       
 	</body>
 	
 </html>
