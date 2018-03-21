@@ -47,7 +47,7 @@ void main(void) {
 	}
 	
 	// it is colour coding. Don't to shading and lighting or anything else
-	if (length(vNormal) == 0.0) {
+	if (length(vNormal) < 0.1) {
 		gl_FragColor = vColor;
 		return;
 	}
