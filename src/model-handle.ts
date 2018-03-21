@@ -390,7 +390,7 @@ export class ModelHandle {
 
     public getProductId(renderId: number): number {
         if (this._empty) return null;
-        
+
         return this._model.productIdLookup[renderId];
     }
 
@@ -405,7 +405,7 @@ export class ModelHandle {
     public getProductMaps(ids: number[]): ProductMap[] {
         let result = new Array<ProductMap>();
         if (this._empty) return result;
-        
+
         ids.forEach(id => {
             var map = this._model.productMaps[id];
             if (typeof (map) !== 'undefined')
@@ -487,13 +487,15 @@ export class ModelHandle {
     }
 
     private bufferData(pointer, data) {
-        var gl = this._gl;
-        gl.bindBuffer(gl.ARRAY_BUFFER, pointer);
         if (this._glVersion === 1) {
-            this.gl1.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+            let gl = this.gl1;
+            gl.bindBuffer(gl.ARRAY_BUFFER, pointer);
+            gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
         }
         if (this._glVersion === 2) {
-            this.gl2.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+            let gl = this.gl2;
+            gl.bindBuffer(gl.ARRAY_BUFFER, pointer);
+            gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
         }
     }
 
@@ -572,15 +574,15 @@ export class ModelHandle {
                 switch (numberOfComponents) {
                     case 1:
                         format = gl2.RED;
-                        internalFormat = gl2.R16F;
+                        internalFormat = gl2.R32F;
                         break;
                     case 3:
                         format = gl2.RGB;
-                        internalFormat = gl2.RGB16F;
+                        internalFormat = gl2.RGB32F;
                         break;
                     case 4:
                         format = gl.RGBA;
-                        internalFormat = gl2.RGBA16F;
+                        internalFormat = gl2.RGBA32F;
                         break;
                 }
                 gl2.texImage2D(gl2.TEXTURE_2D, 0, internalFormat, size, size, 0, format, gl.FLOAT, image);

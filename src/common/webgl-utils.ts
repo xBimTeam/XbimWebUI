@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright 2010, Google Inc.
  * All rights reserved.
  *
@@ -130,7 +130,7 @@ export class WebGLUtils {
                 onError(event.statusMessage);
             }, false);
         }
-        
+
         WebGLUtils.create3DContext(canvas, done, attribs);
     };
 
