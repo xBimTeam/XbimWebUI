@@ -406,6 +406,76 @@ in the context of specified canvas. Any other argument will throw exception.</p>
         
             
 <dt>
+    <h4 class="name" id="mvMatrix"><span class="type-signature"></span>mvMatrix<span class="type-signature"> :Array.&lt;Number></span></h4>
+
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p>World matrix</p>
+    </div>
+    
+
+    
+        <h5>Type:</h5>
+        <ul>
+            <li>
+                
+<span class="param-type">Array.&lt;Number></span>
+
+
+            </li>
+        </ul>
+    
+
+    
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+</dd>
+
+        
+            
+<dt>
     <h4 class="name" id="navigationMode"><span class="type-signature"></span>navigationMode<span class="type-signature"> :String</span></h4>
 
     
@@ -423,6 +493,76 @@ in the context of specified canvas. Any other argument will throw exception.</p>
             <li>
                 
 <span class="param-type">String</span>
+
+
+            </li>
+        </ul>
+    
+
+    
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="origin"><span class="type-signature"></span>origin<span class="type-signature"> :Array.&lt;Number></span></h4>
+
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p>Coordinates in the WCS of the origin used for orbiting and panning [x, y, z]</p>
+    </div>
+    
+
+    
+        <h5>Type:</h5>
+        <ul>
+            <li>
+                
+<span class="param-type">Array.&lt;Number></span>
 
 
             </li>
@@ -634,6 +774,76 @@ defined when geometry model is loaded with <a href="Viewer.html#load">load()</a>
             <li>
                 
 <span class="param-type">Array.&lt;IPlugin></span>
+
+
+            </li>
+        </ul>
+    
+
+    
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="pMatrix"><span class="type-signature"></span>pMatrix<span class="type-signature"> :Array.&lt;Number></span></h4>
+
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p>Camera matrix (perspective or orthogonal)</p>
+    </div>
+    
+
+    
+        <h5>Type:</h5>
+        <ul>
+            <li>
+                
+<span class="param-type">Array.&lt;Number></span>
 
 
             </li>
@@ -2478,7 +2688,7 @@ visualization itself but would cause unexpected user interaction (picking, zoomi
     
         
 
-        <h4 class="name" id="on"><span class="type-signature"></span>on<span class="signature">(eventName, callback)</span><span class="type-signature"></span></h4>
+        <h4 class="name" id="on"><span class="type-signature"></span>on<span class="signature">(eventName, handler)</span><span class="type-signature"></span></h4>
 
         
     
@@ -2548,7 +2758,7 @@ of event handlers for any event. You can remove handler by calling <a href="View
 
         <tr>
             
-                <td class="name"><code>callback</code></td>
+                <td class="name"><code>handler</code></td>
             
 
             <td class="type">
@@ -4999,376 +5209,6 @@ All models are pickable by default when loaded.</p>
     
         
 
-        <h4 class="name" id="event:contextMenu">contextMenu</h4>
-
-        
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        <p>Occurs when mousedown event happens on underlying canvas.</p>
-    </div>
-    
-
-    
-
-    
-        <h5>Type:</h5>
-        <ul>
-            <li>
-                
-<span class="param-type">object</span>
-
-
-            </li>
-        </ul>
-    
-
-    
-
-    
-        <h5>Parameters:</h5>
-        
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>id</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>product ID of the element or null if there wasn't any product under mouse</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>model</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>Model ID</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>event</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">MouseEvent</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>original event as captured by the viewer</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-    
-
-    
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dd>
-
-        
-            
-<dt>
-    
-        
-
-        <h4 class="name" id="event:dblclick">dblclick</h4>
-
-        
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        <p>Occurs when mousedown event happens on underlying canvas.</p>
-    </div>
-    
-
-    
-
-    
-        <h5>Type:</h5>
-        <ul>
-            <li>
-                
-<span class="param-type">object</span>
-
-
-            </li>
-        </ul>
-    
-
-    
-
-    
-        <h5>Parameters:</h5>
-        
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>id</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>product ID of the element or -1 if there wasn't any product under mouse</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>model</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>model ID of the element or -1 if there wasn't any product under mouse</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>event</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">MouseEvent</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>Original HTML event</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-    
-
-    
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dd>
-
-        
-            
-<dt>
-    
-        
-
         <h4 class="name" id="event:error">error</h4>
 
         
@@ -5947,191 +5787,6 @@ This ID can later be used to unload or temporarily stop the model.</p>
     
         
 
-        <h4 class="name" id="event:mouseDown">mouseDown</h4>
-
-        
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        <p>Occurs when mousedown event happens on underlying canvas.</p>
-    </div>
-    
-
-    
-
-    
-        <h5>Type:</h5>
-        <ul>
-            <li>
-                
-<span class="param-type">object</span>
-
-
-            </li>
-        </ul>
-    
-
-    
-
-    
-        <h5>Parameters:</h5>
-        
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>id</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>product ID of the element or -1 if there wasn't any product under mouse</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>model</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>model ID of the element or -1 if there wasn't any product under mouse</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>event</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">MouseEvent</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>original HTML event</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-    
-
-    
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dd>
-
-        
-            
-<dt>
-    
-        
-
         <h4 class="name" id="event:pick">pick</h4>
 
         
@@ -6311,6 +5966,168 @@ This ID can later be used to unload or temporarily stop the model.</p>
     
 </dd>
 
+        
+            
+<dt>
+    
+        
+
+        <h4 class="name" id="event:unloaded">unloaded</h4>
+
+        
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>Occurs when model is unloaded.</p>
+    </div>
+    
+
+    
+
+    
+        <h5>Type:</h5>
+        <ul>
+            <li>
+                
+<span class="param-type">object</span>
+
+
+            </li>
+        </ul>
+    
+
+    
+
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>tag</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">any</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Tag passed to the viewer when model was loaded</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>model</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Model ID</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+    
+
+    
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
         </dl>
     
 </article>
@@ -6323,13 +6140,13 @@ This ID can later be used to unload or temporarily stop the model.</p>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="NavigationCube.html">NavigationCube</a></li><li><a href="NavigationHome.html">NavigationHome</a></li><li><a href="OrthogonalCamera.html">OrthogonalCamera</a></li><li><a href="PerspectiveCamera.html">PerspectiveCamera</a></li><li><a href="Prerequisites.html">Prerequisites</a></li><li><a href="Viewer.html">Viewer</a></li></ul><h3>Events</h3><ul><li><a href="Viewer.html#event:contextMenu">contextMenu</a></li><li><a href="Viewer.html#event:dblclick">dblclick</a></li><li><a href="Viewer.html#event:error">error</a></li><li><a href="Viewer.html#event:fps">fps</a></li><li><a href="Viewer.html#event:loaded">loaded</a></li><li><a href="Viewer.html#event:mouseDown">mouseDown</a></li><li><a href="Viewer.html#event:mouseDown">mouseDown</a></li><li><a href="Viewer.html#event:pick">pick</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-1_Hello_building.html">Hello building!</a></li><li><a href="tutorial-2_Safe_Hello_building.html">Safe 'Hello building!'</a></li><li><a href="tutorial-3_Eventful_building.html">Eventful building</a></li><li><a href="tutorial-4_Building_seen_from_everywhere.html">Building seen from everywhere ...</a></li><li><a href="tutorial-5_Colourful_building.html">Colourful building</a></li><li><a href="tutorial-6_Building_described.html">Building described</a></li></ul><h3>Global</h3><ul><li><a href="global.html#ProductType">ProductType</a></li><li><a href="global.html#State">State</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="NavigationCube.html">NavigationCube</a></li><li><a href="NavigationHome.html">NavigationHome</a></li><li><a href="OrthogonalCamera.html">OrthogonalCamera</a></li><li><a href="PerspectiveCamera.html">PerspectiveCamera</a></li><li><a href="Prerequisites.html">Prerequisites</a></li><li><a href="Viewer.html">Viewer</a></li></ul><h3>Events</h3><ul><li><a href="Viewer.html#event:error">error</a></li><li><a href="Viewer.html#event:fps">fps</a></li><li><a href="Viewer.html#event:loaded">loaded</a></li><li><a href="Viewer.html#event:mouseDown">mouseDown</a></li><li><a href="Viewer.html#event:pick">pick</a></li><li><a href="Viewer.html#event:unloaded">unloaded</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-1_Hello_building.html">Hello building!</a></li><li><a href="tutorial-2_Safe_Hello_building.html">Safe 'Hello building!'</a></li><li><a href="tutorial-3_Eventful_building.html">Eventful building</a></li><li><a href="tutorial-4_Building_seen_from_everywhere.html">Building seen from everywhere ...</a></li><li><a href="tutorial-5_Colourful_building.html">Colourful building</a></li><li><a href="tutorial-6_Building_described.html">Building described</a></li></ul><h3>Global</h3><ul><li><a href="global.html#ProductType">ProductType</a></li><li><a href="global.html#State">State</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Tue Mar 13 2018 16:15:23 GMT+0100 (Central Europe Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Mar 21 2018 14:52:24 GMT+0100 (Central Europe Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>
