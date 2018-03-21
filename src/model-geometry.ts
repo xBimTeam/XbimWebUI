@@ -118,7 +118,7 @@ export class ModelGeometry {
                 spans: []
             };
             this.productMaps[productLabel] = map;
-            this.productIdLookup[i+1] = productLabel;
+            this.productIdLookup[i + 1] = productLabel;
         }
 
         //version 3 puts geometry in regions properly so it is possible to use this information for rendering
@@ -297,17 +297,17 @@ export class ModelGeometry {
 
     //Source has to be either URL of wexBIM file or Blob representing wexBIM file
     public load(source, headers: { [name: string]: string }, progress: (message: Message) => void) {
-        this.progress = progress ? progress : (m) => {};
+        this.progress = progress ? progress : (m) => { };
         //binary reading
         let br = new BinaryReader();
         let self = this;
-        br.onloaded =  () => {
+        br.onloaded = () => {
             self.parse(br);
             if (self.onloaded) {
                 self.onloaded(this);
             }
         };
-        br.onerror =  (msg) => {
+        br.onerror = (msg) => {
             if (self.onerror) {
                 self.onerror(msg);
             }
@@ -337,8 +337,12 @@ export class Region {
     constructor(region?: Region) {
         if (region) {
             this.population = region.population;
-            this.centre = new Float32Array(region.centre);
-            this.bbox = new Float32Array(region.bbox);
+            if (region.centre) {
+                this.centre = new Float32Array(region.centre);
+            }
+            if (region.bbox) {
+                this.bbox = new Float32Array(region.bbox);
+            }
         }
     }
 
@@ -349,8 +353,12 @@ export class Region {
         let clone = new Region();
 
         clone.population = this.population;
-        clone.centre = new Float32Array(this.centre);
-        clone.bbox = new Float32Array(this.bbox);
+        if (this.centre) {
+            clone.centre = new Float32Array(this.centre);
+        }
+        if (this.bbox) {
+            clone.bbox = new Float32Array(this.bbox);
+        }
 
         return clone;
     }
@@ -367,24 +375,33 @@ export class Region {
         let out = new Region();
         out.population = this.population + region.population;
 
-        let x = Math.min(this.bbox[0], region.bbox[0]);
-        let y = Math.min(this.bbox[1], region.bbox[1]);
-        let z = Math.min(this.bbox[2], region.bbox[2]);
+        if (this.bbox && region.bbox) {
+            let x = Math.min(this.bbox[0], region.bbox[0]);
+            let y = Math.min(this.bbox[1], region.bbox[1]);
+            let z = Math.min(this.bbox[2], region.bbox[2]);
 
-        let x2 = Math.max(this.bbox[0] + this.bbox[3], region.bbox[0] + region.bbox[3]);
-        let y2 = Math.max(this.bbox[1] + this.bbox[4], region.bbox[1] + region.bbox[4]);
-        let z2 = Math.max(this.bbox[2] + this.bbox[5], region.bbox[2] + region.bbox[5]);
+            let x2 = Math.max(this.bbox[0] + this.bbox[3], region.bbox[0] + region.bbox[3]);
+            let y2 = Math.max(this.bbox[1] + this.bbox[4], region.bbox[1] + region.bbox[4]);
+            let z2 = Math.max(this.bbox[2] + this.bbox[5], region.bbox[2] + region.bbox[5]);
 
-        let sx = x2 - x;
-        let sy = y2 - y;
-        let sz = z2 - z;
+            let sx = x2 - x;
+            let sy = y2 - y;
+            let sz = z2 - z;
 
-        let cx = (x + x2) / 2.0;
-        let cy = (y + y2) / 2.0;
-        let cz = (z + z2) / 2.0;
+            let cx = (x + x2) / 2.0;
+            let cy = (y + y2) / 2.0;
+            let cz = (z + z2) / 2.0;
 
-        out.bbox = new Float32Array([x, y, z, sx, sy, sz]);
-        out.centre = new Float32Array([cx, cy, cz]);
+            out.bbox = new Float32Array([x, y, z, sx, sy, sz]);
+            out.centre = new Float32Array([cx, cy, cz]);
+        } else if (this.bbox) {
+            out.bbox = new Float32Array(this.bbox);
+            out.centre = new Float32Array(this.centre);
+        } else {
+            out.bbox = new Float32Array(region.bbox);
+            out.centre = new Float32Array(region.centre);
+        }
+
         return out;
     }
 }

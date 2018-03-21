@@ -161,7 +161,7 @@ export class Viewer {
     */
     constructor(canvas: string | HTMLCanvasElement, errorHandler?: ({ message: string }) => void) {
         if (typeof (canvas) == 'undefined') {
-            throw 'Canvas has to be defined';
+            throw new Error('Canvas has to be defined');
         }
 
         if (typeof (canvas['nodeName']) != 'undefined' && canvas['nodeName'] === 'CANVAS') {
@@ -171,7 +171,7 @@ export class Viewer {
             this.canvas = <HTMLCanvasElement>document.getElementById(<string>canvas);
         }
         if (this.canvas == null) {
-            throw 'You have to specify canvas either as an ID of HTML element or the element itself';
+            throw new Error('You have to specify canvas either as an ID of HTML element or the element itself');
         }
 
         if (errorHandler != null) {
@@ -179,8 +179,8 @@ export class Viewer {
         }
 
         // make sure WebGL2RenderingContext is defined even if not implemented
-        if(!window['WebGL2RenderingContext']) {
-            window['WebGL2RenderingContext'] = function() { };
+        if (!window['WebGL2RenderingContext']) {
+            window['WebGL2RenderingContext'] = function () { };
         }
 
         /**
@@ -458,8 +458,12 @@ export class Viewer {
     * @param {Number[]} colour - Array of four numbers in range 0 - 255 representing RGBA colour. If there are less or more numbers exception is thrown.
     */
     public defineStyle(index: number, colour: number[]) {
-        if (typeof (index) == 'undefined' || (index < 0 && index > 224)) throw 'Style index has to be defined as a number 0-224';
-        if (typeof (colour) == 'undefined' || !colour.length || colour.length != 4) throw 'Colour must be defined as an array of 4 bytes';
+        if (typeof (index) == 'undefined' || (index < 0 && index > 224)) {
+            throw new Error('Style index has to be defined as a number 0-224')
+        }
+        if (typeof (colour) == 'undefined' || !colour.length || colour.length != 4) {
+            throw new Error('Colour must be defined as an array of 4 bytes');
+        }
 
         //set style to style texture via model handle
         var colData = new Uint8Array(colour);
@@ -594,8 +598,8 @@ export class Viewer {
      */
     public getModelState(id: number): Array<Array<number>> {
         var handle = this.getHandle(id);
-        if (typeof (handle) === 'undefined') {
-            throw "Model doesn't exist";
+        if (handle == null) {
+            throw new Error('Model doesn\'t exist');
         }
 
         return handle.getModelState();
@@ -608,8 +612,8 @@ export class Viewer {
      */
     public restoreModelState(id: number, state: Array<Array<number>>) {
         var handle = this.getHandle(id);
-        if (typeof (handle) === 'undefined') {
-            throw "Model doesn't exist";
+        if (handle == null) {
+            throw new Error("Model doesn't exist");
         }
 
         handle.restoreModelState(state);
@@ -628,7 +632,9 @@ export class Viewer {
     */
     public setStyle(style: number, target: number | number[], modelId?: number) {
         if (typeof (style) == 'undefined' || !(style >= 0 && style <= 225)
-        ) throw 'Style has to be defined as 0 - 225 where 225 is for default style.';
+        ) {
+            throw new Error('Style has to be defined as 0 - 225 where 225 is for default style.');
+        }
         var c = [
             this._stateStyles[style * 4],
             this._stateStyles[style * 4 + 1],
@@ -697,7 +703,9 @@ export class Viewer {
     * @param {Number[]} coordinates - 3D coordinates of the camera in WCS
     */
     public setCameraPosition(coordinates: number[]) {
-        if (typeof (coordinates) == 'undefined') throw 'Parameter coordinates must be defined';
+        if (typeof (coordinates) == 'undefined') {
+            throw new Error('Parameter coordinates must be defined');
+        }
         this.mvMatrix = mat4.lookAt(mat4.create(), coordinates, this.origin, [0, 0, 1]);
     }
 
@@ -811,9 +819,12 @@ export class Viewer {
     * @fires Viewer#loaded
     */
     public loadAsync(model: string | Blob | File, tag?: any, headers?: { [name: string]: string }, progress?: (message: Message) => void): void {
-        if (typeof (model) == 'undefined') throw 'You have to specify model to load.';
-        if (typeof (model) != 'string' && !(model instanceof Blob))
-            throw 'Model has to be specified either as a URL to wexBIM file or Blob object representing the wexBIM file.';
+        if (typeof (model) == 'undefined') {
+            throw new Error('You have to specify model to load.');
+        }
+        if (typeof (model) != 'string' && !(model instanceof Blob)) {
+            throw new Error('Model has to be specified either as a URL to wexBIM file or Blob object representing the wexBIM file.');
+        }
         const self = this;
         const progressProxy = progress ? (m: Message) => {
             if (m.type === MessageType.COMPLETED) {
@@ -885,9 +896,12 @@ export class Viewer {
     * @fires Viewer#loaded
     */
     public load(model: string | Blob | File, tag?: any, headers?: { [name: string]: string }, progress?: (message: Message) => void) {
-        if (typeof (model) == 'undefined') throw 'You have to specify model to load.';
-        if (typeof (model) != 'string' && !(model instanceof Blob))
-            throw 'Model has to be specified either as a URL to wexBIM file or Blob object representing the wexBIM file.';
+        if (model == null) {
+            throw new Error('You have to specify model to load.');
+        }
+        if (typeof (model) != 'string' && !(model instanceof Blob)) {
+            throw new Error('Model has to be specified either as a URL to wexBIM file or Blob object representing the wexBIM file.');
+        }
         var viewer = this;
 
         var geometry = new ModelGeometry();
@@ -913,7 +927,7 @@ export class Viewer {
         //only set camera parameters and the view if this is the first model
         if (this._handles.length === 1) {
             //set perspective camera near and far based on 1 meter dimension and size of the model
-            this.setCameraFromCurrentModel();
+            this.setCameraFromCurrentModels();
 
             //set centre and default distance based on the most populated region in the model
             this.setCameraTarget();
@@ -942,12 +956,16 @@ export class Viewer {
      * Sets camera parameters (near and far clipping planes) from current active models.
      * This should be called whenever active models are very different (size, units)
      */
-    public setCameraFromCurrentModel() {
+    public setCameraFromCurrentModels() {
         if (this._activeHandles.length === 0) {
             return;
         }
 
         const region = this.getMergedRegion();
+        if (!region || !region.bbox || region.bbox.length === 0) {
+            return;
+        }
+
         const meter = this._activeHandles[0].meter;
         var maxSize = Math.max(region.bbox[3], region.bbox[4], region.bbox[5]);
         this.perspectiveCamera.far = maxSize * 50;
@@ -971,8 +989,9 @@ export class Viewer {
      */
     public unload(modelId: number) {
         var handle = this.getHandle(modelId);
-        if (typeof (handle) === 'undefined')
-            throw 'Model with id: ' + modelId + " doesn't exist or was unloaded already."
+        if (handle == null) {
+            throw new Error('Model with id: ' + modelId + " doesn't exist or was unloaded already.");
+        }
 
         //stop for start so it doesn't interfere with the rendering loop
         handle.stopped = true;
@@ -2045,8 +2064,9 @@ export class Viewer {
     public start(modelId?: number) {
         if (modelId != null) {
             var handle = this.getHandle(modelId);
-            if (typeof (handle) === 'undefined')
-                throw "Model doesn't exist.";
+            if (typeof (handle) === 'undefined') {
+                throw new Error("Model doesn't exist.");
+            }
 
             handle.stopped = false;
             handle.changed = true;
@@ -2110,14 +2130,15 @@ export class Viewer {
     * @param {Number} id [optional] - Optional ID of the model to be stopped. You can get this ID from {@link Viewer#event:loaded loaded} event.
     */
     public stop(id?: number) {
-        if (typeof (id) === 'undefined') {
+        if (id == null) {
             this._isRunning = false;
             return;
         }
 
         var model = this.getHandle(id);
-        if (typeof (model) === 'undefined')
-            throw "Model doesn't exist.";
+        if (model == null) {
+            throw new Error("Model doesn't exist.");
+        }
 
         model.stopped = true;
         this.changed = true;
@@ -2205,8 +2226,9 @@ export class Viewer {
     */
     public stopPicking(id: number) {
         var model = this.getHandle(id);
-        if (typeof (model) === 'undefined')
-            throw "Model doesn't exist.";
+        if (model == null) {
+            throw new Error("Model doesn't exist.");
+        }
 
         model.pickable = false;
     }
