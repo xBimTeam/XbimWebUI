@@ -180,8 +180,6 @@ void main(void) {
 	}
 
 	//transform data to simulate camera perspective and position
-	float tIndex = aTransformationIndex * 4.0;
-	float tSize = uMatrixTextureSize;
 	mat4 transform = getTransform();
 	vPosition = getVertexPosition(transform);
 	vNormal = getNormal(transform);
