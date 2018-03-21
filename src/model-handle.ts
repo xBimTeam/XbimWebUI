@@ -585,7 +585,7 @@ export class ModelHandle {
                         internalFormat = gl2.RGBA32F;
                         break;
                 }
-                gl2.texImage2D(gl2.TEXTURE_2D, 0, internalFormat, size, size, 0, format, gl.FLOAT, image);
+                gl2.texImage2D(gl2.TEXTURE_2D, 0, internalFormat, size, size, 0, format, gl2.FLOAT, image);
             }
 
         } else {
