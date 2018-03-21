@@ -19,7 +19,7 @@
         }
     }
     return queryString;
-} ();
+}();
 
 
 var viewer = new Viewer("xBIM-viewer");
@@ -43,9 +43,10 @@ viewer.on("error", function (arg) {
         container.innerHTML = "<pre style='color:red;'>" + arg.message + "</pre>" + container.innerHTML;
     }
 });
+var modelId = QueryString["model"];
 var model = "";
-if (typeof (QueryString["model"]) == "undefined") model = "/tests/data/SampleHouse.wexbim";
-else model = "/tests/data/" + QueryString["model"] + ".wexbim";
+if (typeof (modelId) == "undefined") model = "/tests/data/SampleHouse.wexbim";
+else model = "/tests/data/" + modelId + ".wexbim";
 viewer.show(ViewType.BACK);
 viewer.on("pick", function (arg) {
     var span = document.getElementById("coords");
@@ -64,11 +65,11 @@ viewer.on("fps", function (fps) {
 });
 
 // viewer.on("loaded", () => {
-    // let image = viewer.getCurrentImageHtml(2000, 1000);
-    // image.style.width = '100%';
-    // let initialImage = document.getElementById("initialSnapshot");
-    // initialImage.appendChild(image);
-    // viewer.startRotation();
+// let image = viewer.getCurrentImageHtml(2000, 1000);
+// image.style.width = '100%';
+// let initialImage = document.getElementById("initialSnapshot");
+// initialImage.appendChild(image);
+// viewer.startRotation();
 // });
 
 var span = document.getElementById("fpt");
@@ -119,7 +120,7 @@ document['resetWalls'] = function () {
 document['clip'] = function () {
     viewer.setClippingPlaneA([0, 0, -1, 2000]);
     viewer.setClippingPlaneB([0, 0, 1, 100]);
-}  
+}
 document['unclip'] = function () {
     viewer.unclip();
 }
@@ -129,7 +130,7 @@ document['takeSnapshot'] = function () {
     var place = document.getElementById("snapshot");
     place.innerHTML = "<img style='width:100%;' src=" + img + ">";
     viewer.addPlugin(cube);
-}  
+}
 
 viewer.on("pick", function (args) {
     viewer.stopRotation();
@@ -152,6 +153,21 @@ viewer.on("pick", function (args) {
     }
 
     //viewer.zoomTo(id);
+});
+
+// restore init script if any is saved
+var script = localStorage.getItem('initScript-' + modelId);
+var scriptArea = document.getElementById('initScript');
+if (script) {
+    scriptArea.value = script;
+    viewer.on('loaded', () => {
+        eval(script);
+    })
+}
+
+// persist script before loads
+window.addEventListener("beforeunload", function (event) {
+    localStorage.setItem('initScript-' + modelId, scriptArea.value);
 });
 
 
