@@ -134,6 +134,10 @@ export class ModelGeometry {
 
                     //read geometry
                     let geomLength = br.readInt32();
+                    if (geomLength === 0) {
+                        // this should not happen but we had seen this before
+                        continue;
+                    }
 
                     //read geometry data (make sure we don't overflow - use isolated subreader)
                     let gbr = br.getSubReader(geomLength);
