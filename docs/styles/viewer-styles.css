@@ -1,7 +1,7 @@
 ﻿input{
     width: 5em;
 }
-#xviewer-controls{
+#viewer-controls{
     float:right;
 }
 
@@ -10,13 +10,13 @@
     font-weight: bold;
 }
 
-.xviewer-control{
+.viewer-control{
     margin-top:10px;
     padding-bottom: 10px;
     border-bottom: 1px solid grey;
 }
 
-.xviewer-control:last-child {
+.viewer-control:last-child {
     border-bottom: none;
 }
 

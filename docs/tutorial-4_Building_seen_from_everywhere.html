@@ -28,7 +28,7 @@
 </header>
 
 <article>
-    <h2>Live example <a href="4_Building_seen_from_everywhere.live.html">here</a></h2><p>In this tutorial we will explore xViewer's navigation, clipping and hiding. This should be enough to enable user
+    <h2>Live example <a href="4_Building_seen_from_everywhere.live.html">here</a></h2><p>In this tutorial we will explore Viewer's navigation, clipping and hiding. This should be enough to enable user
 to inspect the building inside out with all the zooming, panning, orbiting and hiding of possible obstacles. 
 You can see full live example <a href="4_Building_seen_from_everywhere.live.html">here</a>. </p>
 <p>I'll use ugly obtrusive code with javascript functions defined in <em>onclick</em> attributes of HTML elements. This is not the right practise
@@ -36,13 +36,13 @@ but I've done it this way for the sake of clarity and simplicity. You are ancour
 <a href="http://www.w3.org/wiki/The_principles_of_unobtrusive_JavaScript">these guidlines</a> to write sustainable
 and clear web applications.</p>
 <h3>Camera position and target</h3><p>It is easy to set a camera target based on product ID. Probably the most common way to do that is to
-set a target based on user action idicated by either pick or mouse down events.
+set a target based on user action idicated by either <a href="Viewer.html#event:pick">pick</a> or mouse down events.
 This would be a good example:</p>
 <pre class="prettyprint source"><code>viewer.on('pick', function (args) {
     var id = args.id;
     viewer.setCameraTarget(id);
     pickedId = id;
-});</code></pre><p>It is also easy to set a camera position with the setCameraPosition() method.
+});</code></pre><p>It is also easy to set a camera position with the <a href="Viewer.html#setCameraPosition">setCameraPosition()</a> method.
 Following example uses HTML input to set the values but you will surely use some smart logic for intuitive and
 fluent user experiance.</p>
 <pre class="prettyprint source"><code>&lt;input type=&quot;text&quot; id=&quot;camX&quot; value=&quot;-15000&quot; />
@@ -59,7 +59,7 @@ fluent user experiance.</p>
         }
     }
 &lt;/script></code></pre><p>It is always important to be able to show default axis aligned views to the model or it's parts. This is built-in
-functionality of xViewer. It always operates on the origin and distance set by setCameraTarget() method.
+functionality of the Viewer. It always operates on the origin and distance set by <a href="Viewer.html#setCameraTarget">setCameraTarget()</a> method.
 In the example camera target is set every time user picks an element as listed above. </p>
 <pre class="prettyprint source"><code>&lt;button onclick=&quot;if (viewer) viewer.show('front');&quot;>Front&lt;/button>
 &lt;button onclick=&quot;if (viewer) viewer.show('back');&quot;>Back&lt;/button>
@@ -86,7 +86,7 @@ in the very next release.</p>
 get complicated quite easily but if you can cut the building and see inside it makes user's life much easier. This is also built in
 the viewer by default. You can either set the clipping plane yourself with clip() method if you 
 pass point on the plane and normal of the plane to the method or you can let user to define clipping plane interactively
-if you call the method with no arguments. Use <a href="xViewer.html#unclip">unclip()</a> method than to discard clipping entirely.</p>
+if you call the method with no arguments. Use <a href="Viewer.html#unclip">unclip()</a> method than to discard clipping entirely.</p>
 <pre class="prettyprint source"><code>&lt;button onclick=&quot;if (viewer) viewer.clip();&quot;>Interactive clipping&lt;/button>
 &lt;button onclick=&quot;if (viewer) viewer.unclip();&quot;>Unclip&lt;/button> 
 
@@ -114,7 +114,7 @@ if you call the method with no arguments. Use <a href="xViewer.html#unclip">uncl
     }
 &lt;/script></code></pre><h3>Hiding</h3><p>Right, so we can clip the model and see it's internals. That's impressive isn't it? But sometimes you also need
 to hide only one element or one type of elements, let's say all walls. This is possible by setting state of the 
-product with setState() method. Use resetStates() method
+product with <a href="Viewer.html#setState">setState()</a> method. Use <a href="Viewer.html#resetStates">resetStates()</a> method
 to reset all states to default. This method has an optional parameter which you can use to also show spaces. These
 are hidden by default unless you show them manualy.</p>
 <pre class="prettyprint source"><code>&lt;select id=&quot;cmbHide&quot;>
@@ -150,7 +150,7 @@ are hidden by default unless you show them manualy.</p>
 of the engine and it is very useful if you need to visually highlight or isolate some objects in your model.
 It is particularly useful in combination with x-ray rendering mode where everything is rendered in semitransparent
 light blue except for the products which has a state <em>xState.HIGHLIGHTED</em> or <em>xState.XRAYVISIBLE</em>. To switch
-between normal and x-ray rendering mode just set renderingMode property of <a href="xViewer.html">xViewer</a>.</p>
+between normal and x-ray rendering mode just set <a href="Viewer.html#renderingMode">renderingMode</a> property of the <a href="Viewer.html">Viewer</a>.</p>
 <pre class="prettyprint source"><code>&lt;div>
     Rendering mode
     &lt;label>
@@ -180,7 +180,7 @@ of the model which you can use to visualize results of the analyses as well as j
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Mar 21 2018 15:44:11 GMT+0100 (Central Europe Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Tue Apr 03 2018 12:06:49 GMT+0200 (Central Europe Summer Time)
 </footer>
 
 <script> prettyPrint(); </script>

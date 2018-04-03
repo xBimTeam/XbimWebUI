@@ -73,8 +73,8 @@ export class NavigationHome implements IPlugin {
     */
     public viewDirection: number[] = [1, 1, -1];
 
-    public init(xviewer: Viewer) {
-        this._viewer = xviewer;
+    public init(viewer: Viewer) {
+        this._viewer = viewer;
         var self = this;
 
         if (typeof (this._image) === "undefined") {
