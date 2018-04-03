@@ -2331,10 +2331,10 @@ export class Viewer {
     }
 
     /**
-   * Use this method to clip the model with A plane. Use {@link xViewer#unclip unclip()} method to 
+   * Use this method to clip the model with A plane. Use {@link Viewer#unclip unclip()} method to 
    * unset clipping plane.
    *
-   * @function xViewer#setClippingPlaneA
+   * @function Viewer#setClippingPlaneA
    * @param {Number[]} point - point in clipping plane
    * @param {Number[]} normal - normal pointing to the half space which will be hidden
    * @param {Number} [modelId] - Optional ID of the model to be clipped. All models are clipped otherwise.
@@ -2354,10 +2354,10 @@ export class Viewer {
     }
 
     /**
-   * Use this method to clip the model with A plane. Use {@link xViewer#unclip unclip()} method to 
+   * Use this method to clip the model with A plane. Use {@link Viewer#unclip unclip()} method to 
    * unset clipping plane.
    *
-   * @function xViewer#setClippingPlaneA
+   * @function Viewer#setClippingPlaneA
    * @param {Number[]} plane - normal equation of the plane
    * @param {Number} [modelId] - Optional ID of the model to be clipped. All models are clipped otherwise.
    */
@@ -2377,10 +2377,10 @@ export class Viewer {
     }
 
     /**
-   * Use this method to clip the model with A plane. Use {@link xViewer#unclip unclip()} method to 
+   * Use this method to clip the model with A plane. Use {@link Viewer#unclip unclip()} method to 
    * unset clipping plane.
    *
-   * @function xViewer#setClippingPlaneB
+   * @function Viewer#setClippingPlaneB
    * @param {Number[]} plane - normal equation of the plane
    * @param {Number} [modelId] - Optional ID of the model to be clipped. All models are clipped otherwise.
    */
@@ -2400,9 +2400,9 @@ export class Viewer {
     }
 
     /**
-    * This method will cancel any clipping plane if it is defined. Use {@link xViewer#clip clip()} 
+    * This method will cancel any clipping plane if it is defined. Use {@link Viewer#clip clip()} 
     * method to define clipping by point and normal of the plane.
-    * @function xViewer#unclip
+    * @function Viewer#unclip
     * @param {Number} [modelId] - Optional ID of the model to be unclipped. All models are unclipped otherwise.
     */
     public unclip(modelId?: number): void {

@@ -3,14 +3,14 @@
 <head>
     <title>Building seen from everywhere</title>
     <link href="styles/jsdoc-default.css" rel="stylesheet" />
-    <link href="styles/xviewer-styles.css" rel="stylesheet" />
+    <link href="styles/viewer-styles.css" rel="stylesheet" />
     <script src="../dist/commons.js"></script>
     <script src="../dist/xbim-viewer.js"></script>
 </head>
 <body>
     <div id="main">
-            <div id="xviewer-controls">
-                <div class="xviewer-control">
+            <div id="viewer-controls">
+                <div class="viewer-control">
                     Camera coordinates
                     <input type="text" id="camX" value="-15000" />
                     <input type="text" id="camY" value="-15000" />
@@ -27,7 +27,7 @@
                         }
                     </script>
                 </div>
-                <div class="xviewer-control">
+                <div class="viewer-control">
                     Set left mouse button to 
                     <button onclick="if (viewer) viewer.navigationMode = 'orbit';">Orbit</button>
                     <button onclick="if (viewer) viewer.navigationMode = 'free-orbit';">Free orbit</button>
@@ -36,7 +36,7 @@
                     <br />
                     <button onclick="if (viewer) viewer.navigationMode = 'none';">Disable default navigation completely</button>
                 </div>
-                <div class="xviewer-control" title="Click to empty space of model to show default view of full extent.">
+                <div class="viewer-control" title="Click to empty space of model to show default view of full extent.">
                     Default views on picked element:
                     <button onclick="if (viewer) viewer.show('front');">Front</button>
                     <button onclick="if (viewer) viewer.show('back');">Back</button>
@@ -45,12 +45,12 @@
                     <button onclick="if (viewer) viewer.show('left');">Left</button>
                     <button onclick="if (viewer) viewer.show('right');">Right</button>
                 </div>
-                <div class="xviewer-control">
+                <div class="viewer-control">
                     Zoom to:
                     <button onclick="if (viewer) viewer.zoomTo(pickedId)">Picked element</button>
                     <button onclick="if (viewer) viewer.zoomTo()">Full extent</button>
                 </div>
-                <div class="xviewer-control">
+                <div class="viewer-control">
                     <p>
                         Interactive clipping:
                         <br />
@@ -88,7 +88,7 @@
                         </script>
                     </p>
                 </div>
-                <div class="xviewer-control">
+                <div class="viewer-control">
                     Click action: 
                     <select id="cmbHide">
                         <option value="noAction">No action</option>
@@ -120,7 +120,7 @@
                         };
                     </script>
                 </div>
-                <div class="xviewer-control">
+                <div class="viewer-control">
                     Rendering mode
                     <label>
                         <input type="radio" name="rRenderingMode" checked="checked" onchange="if (viewer) viewer.renderingMode = 'normal';"/> Normal
@@ -139,7 +139,7 @@
 
             <script type="text/javascript">
               
-                var check = xViewer.check();
+                var check = Viewer.check();
                 var viewer = null;
                 var pickedId = null;
                 if (check.noErrors) {

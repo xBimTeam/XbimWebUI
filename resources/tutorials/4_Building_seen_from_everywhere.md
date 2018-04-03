@@ -1,7 +1,7 @@
 Live example [here](4_Building_seen_from_everywhere.live.html)
 ------------
 
-In this tutorial we will explore xViewer's navigation, clipping and hiding. This should be enough to enable user
+In this tutorial we will explore Viewer's navigation, clipping and hiding. This should be enough to enable user
 to inspect the building inside out with all the zooming, panning, orbiting and hiding of possible obstacles. 
 You can see full live example [here](4_Building_seen_from_everywhere.live.html). 
 
@@ -13,7 +13,7 @@ and clear web applications.
 ### Camera position and target
 
 It is easy to set a camera target based on product ID. Probably the most common way to do that is to
-set a target based on user action idicated by either {@link xViewer#event:pick pick} or {@link xViewer#event:mouseDown mouse down} events.
+set a target based on user action idicated by either {@link Viewer#event:pick pick} or {@link Viewer#event:mousedown mouse down} events.
 This would be a good example:
 
 	viewer.on('pick', function (args) {
@@ -22,7 +22,7 @@ This would be a good example:
         pickedId = id;
     });
 
-It is also easy to set a camera position with the {@link xViewer#setCameraPosition setCameraPosition()} method.
+It is also easy to set a camera position with the {@link Viewer#setCameraPosition setCameraPosition()} method.
 Following example uses HTML input to set the values but you will surely use some smart logic for intuitive and
 fluent user experiance.
 
@@ -42,7 +42,7 @@ fluent user experiance.
 	</script>
 
 It is always important to be able to show default axis aligned views to the model or it's parts. This is built-in
-functionality of xViewer. It always operates on the origin and distance set by {@link xViewer#setCameraTarget setCameraTarget()} method.
+functionality of the Viewer. It always operates on the origin and distance set by {@link Viewer#setCameraTarget setCameraTarget()} method.
 In the example camera target is set every time user picks an element as listed above. 
 
     <button onclick="if (viewer) viewer.show('front');">Front</button>
@@ -77,9 +77,9 @@ in the very next release.
 
 It happens quite often that user wants to see something deep inside the building. Navigation inside of the building might
 get complicated quite easily but if you can cut the building and see inside it makes user's life much easier. This is also built in
-the viewer by default. You can either set the clipping plane yourself with {@link xViewer#clip clip()} method if you 
+the viewer by default. You can either set the clipping plane yourself with {@link Viewer#clip clip()} method if you 
 pass point on the plane and normal of the plane to the method or you can let user to define clipping plane interactively
-if you call the method with no arguments. Use {@link xViewer#unclip unclip()} method than to discard clipping entirely.
+if you call the method with no arguments. Use {@link Viewer#unclip unclip()} method than to discard clipping entirely.
 
 	<button onclick="if (viewer) viewer.clip();">Interactive clipping</button>
     <button onclick="if (viewer) viewer.unclip();">Unclip</button> 
@@ -112,7 +112,7 @@ if you call the method with no arguments. Use {@link xViewer#unclip unclip()} me
 
 Right, so we can clip the model and see it's internals. That's impressive isn't it? But sometimes you also need
 to hide only one element or one type of elements, let's say all walls. This is possible by setting state of the 
-product with {@link xViewer#setState setState()} method. Use {@link xViewer#resetStates resetStates()} method
+product with {@link Viewer#setState setState()} method. Use {@link Viewer#resetStates resetStates()} method
 to reset all states to default. This method has an optional parameter which you can use to also show spaces. These
 are hidden by default unless you show them manualy.
 
@@ -152,7 +152,7 @@ You have probably noticed there is one more option and that is *Highlight*. High
 of the engine and it is very useful if you need to visually highlight or isolate some objects in your model.
 It is particularly useful in combination with x-ray rendering mode where everything is rendered in semitransparent
 light blue except for the products which has a state *xState.HIGHLIGHTED* or *xState.XRAYVISIBLE*. To switch
-between normal and x-ray rendering mode just set {@link xViewer#renderingMode renderingMode} property of {@link xViewer xViewer}.
+between normal and x-ray rendering mode just set {@link Viewer#renderingMode renderingMode} property of the {@link Viewer Viewer}.
 	
 	<div>
 		Rendering mode

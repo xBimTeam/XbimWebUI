@@ -7,7 +7,7 @@ at this point please! It will run on several years old PCs with Chrome or Mozill
 is about IE which doesn't support WebGL until IE11. To make your life easier viewer has a static function to check it's requirements.
 
 	<script type="text/javascript">
-        var check = xViewer.check();
+        var check = Viewer.check();
         if (check.noErrors)
         {
 			...
@@ -29,10 +29,10 @@ and non-standard-compliant browser not supported. So, if we update our example f
         <div id="content">
             <canvas id="viewer" width="500" height="300"></canvas>
             <script type="text/javascript">
-                var check = xViewer.check();
+                var check = Viewer.check();
                 if (check.noErrors)
                 {
-                    var viewer = new xViewer('viewer');
+                    var viewer = new Viewer('viewer');
                     viewer.load('data/SampleHouse.wexbim');
                     viewer.start();
                 }
@@ -44,7 +44,7 @@ and non-standard-compliant browser not supported. So, if we update our example f
 Right, we might want to add some reporting to user now which could look like this:
 
 	<script type="text/javascript">
-        var check = xViewer.check();
+        var check = Viewer.check();
         if (check.noErrors)
         {
 			//start animation, listen to events and do all the funny stuff

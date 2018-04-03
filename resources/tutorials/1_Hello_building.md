@@ -22,9 +22,9 @@ No let's dig into the code:
     </body>
     </html>
 
-Well, this was pretty easy wasn't it? We just referenced the *xbim.browser.bundle.js* library, create {@link xViewer xViewer} object
+Well, this was pretty easy wasn't it? We just referenced the *xbim.browser.bundle.js* library, create {@link Viewer Viewer} object
 passing id of `<canvas>` element and start animation. This is it! Just make sure you are running from web server, not just 
-as a local file because xViewer uses AJAX to fetch the wexBIM data and some browsers impose CORS restrictions even on local
+as a local file because Viewer uses AJAX to fetch the wexBIM data and some browsers impose CORS restrictions even on local
 HTML files. Also make sure you don't use IE less than 11 because you need to have support for WebGL. You will learn how to 
 check prerequisites at the end of this tutorial. If it still doesn't work check your webserver is serving wexBIM file as a
 static content. If you don't want to install webserver only because of this I recommend [Mongoose](https://code.google.com/p/mongoose/). 

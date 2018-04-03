@@ -33,11 +33,11 @@ export class InteractiveClipping implements IPlugin {
     /**
     * Use this method to start interactive clipping of the model. This is based on SVG overlay
     * so SVG support is necessary for it. But as WebGL is more advanced technology than SVG it is sound assumption that it is present in the browser.
-    * Use {@link xViewer.check xViewer.check()} to make sure it is supported at the very beginning of using of xViewer. Use {@link xViewer#unclip unclip()} method to 
+    * Use {@link Viewer.check Viewer.check()} to make sure it is supported at the very beginning of using of Viewer. Use {@link Viewer#unclip unclip()} method to 
     * unset clipping plane.
     *
-    * @function xViewer#clip
-    * @fires xViewer#clipped
+    * @function Viewer#clip
+    * @fires Viewer#clipped
     */
     public clip() {
         var ns = 'http://www.w3.org/2000/svg';

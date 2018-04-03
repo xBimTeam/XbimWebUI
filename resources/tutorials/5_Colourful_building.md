@@ -12,7 +12,7 @@ but I've done it this way for the sake of clarity and simplicity. You are ancour
 [these guidlines](http://www.w3.org/wiki/The_principles_of_unobtrusive_JavaScript) to write sustainable
 and clear web applications.
 
-First of all it is necessary to define your styles. There is simple function {@link xViewer#defineStyle defineStyle()} to do that.
+First of all it is necessary to define your styles. There is simple function {@link Viewer#defineStyle defineStyle()} to do that.
 You can define up to 224 styles. Because I don't have any results to show let's make it random. We'll define new colour for every
 product type in the following code:
 

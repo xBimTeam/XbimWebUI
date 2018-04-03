@@ -4,12 +4,11 @@
 WeXplorer is the visualization part of xBIM toolkit that deals with visualization of IFC data on web using preprocessed wexBIM file. 
 It uses cutting edge web technologies like WebGL so it is not supposed to work in old browsers but should work very well with Chrome or 
 Mozzilla since 2011, IE11 and others with support for this technology. Use xBIM Essentials and xBIM Geometry to create optimized and 
-compressed wexBIM files for visualization. WeXplorer also contains [xBrowser](xBrowser.html) for visualization of COBieLite data from JSON.
+compressed wexBIM files for visualization.
 
 
-The main classes which exposes all necessary API calls are [xViewer](xViewer.html) for 3D visualization and [xBrowser](xBrowser.html) for
-visualization of semantic data from COBie. These are the only two class you need to load and render IFC models in wexBIM format and to browse
-related semantic data. If you have a WebGL enabled browser and you are looking at this documentation fron web, you should be able to see an
+The main class which exposes all the necessary API calls is [Viewer](Viewer.html) for 3D visualization. This is the only two class you need to load and render IFC models in wexBIM format. 
+If you have a WebGL enabled browser and you are looking at this documentation from web, you should be able to see an
 example of 3D browser at the very bottom of this page.
 
 This viewer is part of xBIM toolkit which can be used to create wexBIM files from IFC, ifcZIP and ifcXML. WexBIM files are highly optimized for

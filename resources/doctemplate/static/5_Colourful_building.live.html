@@ -3,14 +3,14 @@
 <head>
     <title>Building seen from everywhere</title>
     <link href="styles/jsdoc-default.css" rel="stylesheet" />
-    <link href="styles/xviewer-styles.css" rel="stylesheet" />
+    <link href="styles/viewer-styles.css" rel="stylesheet" />
     <script src="../dist/commons.js"></script>
     <script src="../dist/xbim-viewer.js"></script>
 </head>
 <body>
     <div id="main">
         <div>
-            <div class="xviewer-control">
+            <div class="viewer-control">
                 <button onclick="Recolour()">Recolour by type</button>
                 <button onclick="if (viewer) viewer.resetStyles();">Reset styles</button>
                 <script type="text/javascript">
@@ -30,7 +30,7 @@
                     };
                 </script>
             </div>
-            <div class="xviewer-control">
+            <div class="viewer-control">
                 Click action:
                 <select id="cmbSelection">
                     <option value="noAction">No action</option>
