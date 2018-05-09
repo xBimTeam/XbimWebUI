@@ -80,3 +80,5 @@ function start(id) {
 window['unload'] = unload;
 window['stopModel'] = stop;
 window['start'] = start;
+
+window['viewer'] = viewer;
