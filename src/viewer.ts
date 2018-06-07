@@ -509,7 +509,7 @@ export class Viewer {
      * @param modelId ID of the model
      */
     private forHandleOrAll<T>(callback: (h: ModelHandle) => T, modelId?: number): T {
-        if (typeof (modelId) !== 'undefined') {
+        if (modelId != null) {
             let handle = this.getHandle(modelId);
             if (!handle) {
                 throw new Error(`Model with id '${modelId}' doesn't exist.`);
@@ -520,7 +520,7 @@ export class Viewer {
             this._handles.forEach((handle) => {
                 if (handle) {
                     let value = callback(handle);
-                    if (typeof (value) !== 'undefined') {
+                    if (value != null) {
                         result = value;
                     }
                 }

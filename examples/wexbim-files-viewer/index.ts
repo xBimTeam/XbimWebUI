@@ -82,3 +82,5 @@ window['stopModel'] = stop;
 window['start'] = start;
 
 window['viewer'] = viewer;
+window['states'] = State;
+window['productType'] = ProductType;
