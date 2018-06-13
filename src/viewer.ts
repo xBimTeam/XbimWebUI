@@ -293,6 +293,8 @@ export class Viewer {
         this._initAttributesAndUniforms();
         //initialize mouse events to capture user interaction
         this._initMouseEvents();
+        //initialize keyboard events to capture user interaction
+        this._initKeyboardEvents();
         //initialize touch events to capute user interaction on touch devices
         this._initTouchNavigationEvents();
         this._initTouchTapEvents();
@@ -1279,6 +1281,10 @@ export class Viewer {
                         case 'look-around':
                             this.navigate('look-around', deltaX, deltaY);
                             break;
+                        
+                        case 'walk':
+                            this.navigate('look-at', deltaX, deltaY);
+                            break;
 
                         default:
                             break;
@@ -1321,7 +1327,7 @@ export class Viewer {
 
         //listen to key events to help navigation
         document.addEventListener('keydown', (event: KeyboardEvent) => {
-            if (event.key === 'Shift') {
+            if (event.key === 'Shift' && this.navigationMode !== 'walk') {
                 isShiftKeyDown = true;
                 return;
             }
@@ -1333,6 +1339,63 @@ export class Viewer {
                 return;
             }
         }, false);
+    }
+
+    private _initKeyboardEvents() {
+        var viewer = this;
+
+        
+        var isShiftKeyDown = false;
+       
+        var id = -1;
+        var modelId = -1;
+
+        //listen to key events to support WASD and cursor nav
+        document.addEventListener('keydown', (event: KeyboardEvent) => {
+            
+            if (viewer.navigationMode === "walk") {
+                //console.log(event);
+                let multiplier = (event.shiftKey === true) ? 3 : 1;
+
+                switch (event.code) {
+                    case 'KeyW':
+                        viewer.navigate('walk', 2 * multiplier, 0);
+                        break;
+                    
+                    case 'KeyS':
+                        viewer.navigate('walk', -2 * multiplier, 0);
+                        break;
+                    
+                    case 'KeyA':
+                        viewer.navigate('pan', 1 * multiplier, 0);
+                        break;
+                    
+                    case 'KeyD':
+                        viewer.navigate('pan', -1 * multiplier, 0);
+                        break;
+                    
+                    case 'ArrowUp':
+                        viewer.navigate('pan', 0, 1 * multiplier);
+                        break;
+                    
+                    case 'ArrowDown':
+                        viewer.navigate('pan', 0, -1 * multiplier);
+                        break;
+                    
+                    case 'KeyQ':
+                    case 'ArrowLeft':
+                        viewer.navigate('look-around', 2, 0);
+                        break;
+                    
+                    case 'KeyE':
+                    case 'ArrowRight':
+                        viewer.navigate('look-around', -2, 0);
+                        break;
+                    
+                }
+            }    
+        }, false);
+
     }
 
     private _initTouchNavigationEvents() {
@@ -1527,6 +1590,11 @@ export class Viewer {
             deltaY = -deltaY;
         }
 
+        // look-at and look-around are inverted
+        if (type === 'look-at') {
+            origin = camera;
+        }
+
         //get origin coordinates in view space
         var mvOrigin = vec3.transformMat4(vec3.create(), origin, this.mvMatrix);
 
@@ -1534,13 +1602,18 @@ export class Viewer {
         var distanceVec = vec3.subtract(vec3.create(), origin, camera);
         var distance = Math.max(vec3.vectorLength(distanceVec), this.meter);
 
+        // Walking is at constant pace
+        if (type === 'walk') {
+            distance = this.meter;
+        }
+
         //move to the navigation origin in view space
-        var transform = mat4.translate(mat4.create(), mat4.create(), mvOrigin)
+        var transform = mat4.translate(mat4.create(), mat4.create(), mvOrigin);
 
         //function for conversion from degrees to radians
         const degToRad = (deg) => {
             return deg * Math.PI / 180.0;
-        }
+        };
 
         switch (type) {
             case 'free-orbit':
@@ -1550,6 +1623,7 @@ export class Viewer {
 
             case 'fixed-orbit':
             case 'look-around':
+            case 'look-at':    
             case 'orbit':
                 mat4.rotate(transform, transform, degToRad(deltaY / 4), [1, 0, 0]);
 
@@ -1567,10 +1641,13 @@ export class Viewer {
                 mat4.translate(transform, transform, [0, (-1.0 * deltaY) * distance / 150, 0]);
                 break;
 
+            case 'walk':
             case 'zoom':
                 mat4.translate(transform, transform, [0, 0, deltaX * distance / 20]);
                 mat4.translate(transform, transform, [0, 0, deltaY * distance / 20]);
                 break;
+            
+            
 
             default:
                 break;

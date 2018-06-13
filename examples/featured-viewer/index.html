@@ -2,59 +2,59 @@
 <html>
 
 <head>
-	<title>The Viewer</title>
-	<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-	<style>
-		html,
-		body {
-			height: 100%;
-			padding: 0;
-			margin: 0;
-			background: linear-gradient(to top, #E8E8E8, white);
-		}
-
-		canvas {
-			width: 100%;
-			height: 100%;
-			display: block;
-			border: none;
-			position: absolute;
-			top: 0;
-			left: 0;
-			z-index: 0;
-		}
-
-		.left-panel,
-		.right-panel {
-			position: absolute;
-			top: 40px;
-			z-index: 1;
-			padding: 2em;
-			background-color: white;
-			box-shadow: 0 0 10px darkgray;
-			border-radius: 10px;
-		}
-
-		.left-panel {
-			left: 20px;
-			max-width: 300px;
-		}
-
-		.right-panel {
-			right: 20px;
-		}
-
-		.left-panel>div,
-		.right-panel>div {
-			margin-bottom: 0.8em;
-		}
-
-		#initScript {
-			display: block;
-			width: 100%;
-			height: 80px;
-		}
-	</style>>
+    <title>The Viewer</title>
+    <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+    <style>
+        html,
+        body {
+            height: 100%;
+            padding: 0;
+            margin: 0;
+            background: linear-gradient(to top, #E8E8E8, white);
+        }
+        
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            border: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
+        
+        .left-panel,
+        .right-panel {
+            position: absolute;
+            top: 40px;
+            z-index: 1;
+            padding: 2em;
+            background-color: white;
+            box-shadow: 0 0 10px darkgray;
+            border-radius: 10px;
+        }
+        
+        .left-panel {
+            left: 20px;
+            max-width: 300px;
+        }
+        
+        .right-panel {
+            right: 20px;
+        }
+        
+        .left-panel>div,
+        .right-panel>div {
+            margin-bottom: 0.8em;
+        }
+        
+        #initScript {
+            display: block;
+            width: 100%;
+            height: 80px;
+        }
+    </style>
 </head>
 
 
@@ -123,109 +123,110 @@
 			<button onclick="takeSnapshot()">
 				Take snapshot
 			</button>
-			<br />
-			<div id="snapshot"></div>
-			<div id="initialSnapshot">
+            <br />
+            <div id="snapshot"></div>
+            <div id="initialSnapshot">
 
-			</div>
-		</div>
-		<div id="errLog" style="color: red">
+            </div>
+        </div>
+        <div id="errLog" style="color: red">
 
-		</div>
-	</div>
-	<div class="right-panel">
-		<div>
-			<button onclick="viewer.navigationMode = 'orbit'">Orbit</button>
-			<button onclick="viewer.navigationMode = 'free-orbit'">Free orbit</button>
-			<button onclick="viewer.navigationMode = 'pan'">Pan</button>
-			<button onclick="viewer.navigationMode = 'zoom'">Zoom</button>
-			<button onclick="viewer.navigationMode = 'look-around'">Look around</button>
-		</div>
-		<div>
-			<button onclick="viewer.show(ViewType.DEFAULT)">Default</button>
-			<button onclick="viewer.show(ViewType.FRONT)">Front</button>
-			<button onclick="viewer.show(ViewType.BACK)">Back</button>
-			<button onclick="viewer.show(ViewType.TOP)">Top</button>
-			<button onclick="viewer.show(ViewType.BOTTOM)">Bottom</button>
-			<button onclick="viewer.show(ViewType.LEFT)">Left</button>
-			<button onclick="viewer.show(ViewType.RIGHT)">Right</button>
-		</div>
+        </div>
+    </div>
+    <div class="right-panel">
+        <div>
+            <button onclick="viewer.navigationMode = 'orbit'">Orbit</button>
+            <button onclick="viewer.navigationMode = 'free-orbit'">Free orbit</button>
+            <button onclick="viewer.navigationMode = 'pan'">Pan</button>
+            <button onclick="viewer.navigationMode = 'zoom'">Zoom</button>
+            <button onclick="viewer.navigationMode = 'look-around'">Look around</button>
+            <button onclick="viewer.navigationMode = 'walk'">Walk</button>
+        </div>
+        <div>
+            <button onclick="viewer.show(ViewType.DEFAULT)">Default</button>
+            <button onclick="viewer.show(ViewType.FRONT)">Front</button>
+            <button onclick="viewer.show(ViewType.BACK)">Back</button>
+            <button onclick="viewer.show(ViewType.TOP)">Top</button>
+            <button onclick="viewer.show(ViewType.BOTTOM)">Bottom</button>
+            <button onclick="viewer.show(ViewType.LEFT)">Left</button>
+            <button onclick="viewer.show(ViewType.RIGHT)">Right</button>
+        </div>
 
-		<div>
-			<button onclick="clip();"> Clip model
+        <div>
+            <button onclick="clip();"> Clip model
 			</button>
-			<button onclick="unclip();"> Reset clipping
+            <button onclick="unclip();"> Reset clipping
 			</button>
-		</div>
-		<div>
-			<button onclick="viewer.camera = 'perspective';"> Perspective
+        </div>
+        <div>
+            <button onclick="viewer.camera = 'perspective';"> Perspective
 			</button>
-			<button onclick="viewer.camera = 'orthogonal';"> Orthographic
+            <button onclick="viewer.camera = 'orthogonal';"> Orthographic
 			</button>
-		</div>
-		<div>
-			<button onclick="makeWallsRed()"> Make all walls red
+        </div>
+        <div>
+            <button onclick="makeWallsRed()"> Make all walls red
 			</button>
-			<button onclick="hideWalls()"> Hide all walls
+            <button onclick="hideWalls()"> Hide all walls
 			</button>
-			<button onclick="resetWalls()"> Reset walls
+            <button onclick="resetWalls()"> Reset walls
 			</button>
-			<button onclick="selectAllWalls()">
+            <button onclick="selectAllWalls()">
 				Select
 			</button>
-		</div>
-		<div>
-			<button onclick="viewer.setState(states.HIDDEN, types.IFCSPACE)"> Hide spaces
+        </div>
+        <div>
+            <button onclick="viewer.setState(states.HIDDEN, types.IFCSPACE)"> Hide spaces
 			</button>
-			<button onclick="viewer.setState(states.UNDEFINED, types.IFCSPACE)"> Show spaces
+            <button onclick="viewer.setState(states.UNDEFINED, types.IFCSPACE)"> Show spaces
 			</button>
-		</div>
-		<div>
-			<form>
-				<label>
+        </div>
+        <div>
+            <form>
+                <label>
 					<input type="radio" name="radioHiding" value="hideOne" /> Hide on click
 				</label>
-				<label>
+                <label>
 					<input type="radio" name="radioHiding" value="hideType" /> Hide by type
 				</label>
-				<label>
+                <label>
 					<input type="radio" name="radioHiding" value="noHide" /> No hiding
 				</label>
-			</form>
-			<button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.setState(states.UNDEFINED, types[i])}}">
+            </form>
+            <button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.setState(states.UNDEFINED, types[i])}}">
 				Show all
 			</button>
-			<button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.setStyle(1, types[i])}}"> Make all glass
+            <button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.setStyle(1, types[i])}}"> Make all glass
 			</button>
-			<button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.setStyle(2, types[i])}}"> Make all white
+            <button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.setStyle(2, types[i])}}"> Make all white
 			</button>
-			<button onclick="for (var i in types) { if (types[i] !== types.IFCSPACE) { viewer.setStyle(states.UNSTYLED, types[i]) } }">
+            <button onclick="for (var i in types) { if (types[i] !== types.IFCSPACE) { viewer.setStyle(states.UNSTYLED, types[i]) } }">
 				Make all default
 			</button>
-		</div>
-		<div>
-			Rendering mode:
-			<br />
-			<label>
+        </div>
+        <div>
+            Rendering mode:
+            <br />
+            <label>
 				<input type="radio" name="radioRenderingMode" value="normal" checked="checked" onchange="viewer.renderingMode = RenderingMode.NORMAL;"
 				/> Normal
 			</label>
-			<label>
+            <label>
 				<input type="radio" name="radioRenderingMode" value="xray" onchange="viewer.renderingMode = RenderingMode.XRAY;" /> X-Ray
 			</label>
-			<label>
+            <label>
 				<input type="radio" name="radioRenderingMode" value="xray" onchange="viewer.renderingMode = RenderingMode.XRAY_ULTRA;" /> Ultra X-Ray
 			</label>
-			<label>
+            <label>
 				<input type="radio" name="radioRenderingMode" value="gray" onchange="viewer.renderingMode = RenderingMode.GRAYSCALE;" /> Grayscale
 			</label>
-		</div>
-		<div>
-			Init script:
-			<textarea id="initScript"></textarea>
-			<button onclick="eval(initScript.value)">Run</button>
-		</div>
-	</div>
+        </div>
+        <div>
+            Init script:
+            <textarea id="initScript"></textarea>
+            <button onclick="eval(initScript.value)">Run</button>
+        </div>
+    </div>
 </body>
 
 </html>
