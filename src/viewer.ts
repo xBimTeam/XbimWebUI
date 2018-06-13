@@ -1873,7 +1873,7 @@ export class Viewer {
                 break;
             case ViewType.DEFAULT:
                 let a = Math.sqrt(distance * distance / 3);
-                camera = [origin[0] - a, origin[1] - a, origin[2] + a]
+                camera = [origin[0] - a, origin[1] - a, origin[2] + (a * 0.33)];
                 break;
             default:
                 break;
