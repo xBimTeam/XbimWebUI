@@ -1159,6 +1159,7 @@ export class Viewer {
         var button = 'L';
         var id = -1;
         var modelId = -1;
+        var isPointerLocked = false;
 
         //set initial conditions so that different gestures can be identified
         var handleMouseDown = (event: MouseEvent) => {
@@ -1238,6 +1239,17 @@ export class Viewer {
             viewer.enableTextSelection();
         };
 
+
+        var handleLookAround = (event: MouseEvent) => {
+            
+            if (viewer.navigationMode !== 'walk') {
+                return;
+            }
+
+            this.navigate('look-at', event.movementX, event.movementY);
+
+        };
+
         var handleMouseMove = (event: MouseEvent) => {
             if (!mouseDown) {
                 return;
@@ -1282,10 +1294,6 @@ export class Viewer {
                             this.navigate('look-around', deltaX, deltaY);
                             break;
                         
-                        case 'walk':
-                            this.navigate('look-at', deltaX, deltaY);
-                            break;
-
                         default:
                             break;
                     }
@@ -1317,7 +1325,29 @@ export class Viewer {
 
             //deltaX and deltaY have very different values in different web browsers so fixed value is used for constant functionality.
             this.navigate('zoom', sign(event.deltaX) * -1.0, sign(event.deltaY) * -1.0);
-        }
+        };
+
+        // handle mouse movements when using PointerLock mode.
+        var handlePointerLockChange = (event: Event) => {
+            if (document.pointerLockElement === this.canvas) {
+                if (!isPointerLocked) {
+                    isPointerLocked = true;
+                    this.canvas.addEventListener('mousemove', handleLookAround, false);
+                }
+            } else {
+                isPointerLocked = false;
+                this.canvas.removeEventListener("mousemove", handleLookAround, false);
+            }
+        };
+
+        // handle pointer lock for walk mode to grab the mouse movement data
+        this.canvas.onclick = () => {
+            if (viewer.navigationMode === 'walk') {
+                this.canvas.requestPointerLock();
+            }
+          };
+        
+        document.addEventListener('pointerlockchange', handlePointerLockChange, false);
 
         //attach callbacks
         this.canvas.addEventListener('mousedown', (event) => handleMouseDown(event), true);
@@ -1374,10 +1404,12 @@ export class Viewer {
                         viewer.navigate('pan', -1 * multiplier, 0);
                         break;
                     
+                    case 'KeyR':
                     case 'ArrowUp':
                         viewer.navigate('pan', 0, 1 * multiplier);
                         break;
                     
+                    case 'KeyF':
                     case 'ArrowDown':
                         viewer.navigate('pan', 0, -1 * multiplier);
                         break;
