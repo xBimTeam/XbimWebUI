@@ -384,14 +384,19 @@ xViewer.prototype.setState = function (state, target) {
 * @param {Number} id - Id of the product. You would typically get the id from {@link xViewer#event:pick pick event} or similar event.
 */
 xViewer.prototype.getState = function (id) {
+    var BreakException = {};
     var state = null;
-    this._handles.forEach(function (handle) {
-        state = handle.getState(id);
-        if (state !== null) {
-            return;
-        }
-    }, this);
-    return state;
+    try{
+	this._handles.forEach(function (handle) {
+		state = handle.getState(id);
+		if (state !== null) {
+			throw BreakException;
+		}
+	}, this);
+    } catch (e) {
+	if (e !== BreakException) throw e;
+    }
+    return state
 };
 
 /**
@@ -480,13 +485,18 @@ xViewer.prototype.setStyle = function (style, target) {
 * @param {Number} id - Id of the product. You would typically get the id from {@link xViewer#event:pick pick event} or similar event.
 */
 xViewer.prototype.getStyle = function (id) {
-    this._handles.forEach(function (handle) {
-        var style = handle.getStyle(id);
-        if (style !== null) {
-            return style;
-        }
-    }, this);
-    return null;
+    var BreakException = {};
+    try {
+	this._handles.forEach(function (handle) {
+		var style = handle.getStyle(id);
+		if (style !== null) {
+			throw BreakException;
+		}
+	}, this);
+    } catch (e) {
+	if (e !== BreakException) throw e;
+    }
+    return style;
 };
 
 /**
