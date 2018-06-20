@@ -1,3 +1,4 @@
+"use strict";
 /* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -17,10 +18,9 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. */
-"use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var common_1 = require("./common");
-var mat4 = (function () {
+var mat4 = /** @class */ (function () {
     function mat4() {
     }
     /**
@@ -509,7 +509,7 @@ var mat4 = (function () {
         out[9] = a01 * b20 + a11 * b21 + a21 * b22;
         out[10] = a02 * b20 + a12 * b21 + a22 * b22;
         out[11] = a03 * b20 + a13 * b21 + a23 * b22;
-        if (a !== out) {
+        if (a !== out) { // If the source and destination differ, copy the unchanged last row
             out[12] = a[12];
             out[13] = a[13];
             out[14] = a[14];
@@ -528,7 +528,7 @@ var mat4 = (function () {
      */
     mat4.rotateX = function (out, a, rad) {
         var s = Math.sin(rad), c = Math.cos(rad), a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7], a20 = a[8], a21 = a[9], a22 = a[10], a23 = a[11];
-        if (a !== out) {
+        if (a !== out) { // If the source and destination differ, copy the unchanged rows
             out[0] = a[0];
             out[1] = a[1];
             out[2] = a[2];
@@ -560,7 +560,7 @@ var mat4 = (function () {
      */
     mat4.rotateY = function (out, a, rad) {
         var s = Math.sin(rad), c = Math.cos(rad), a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3], a20 = a[8], a21 = a[9], a22 = a[10], a23 = a[11];
-        if (a !== out) {
+        if (a !== out) { // If the source and destination differ, copy the unchanged rows
             out[4] = a[4];
             out[5] = a[5];
             out[6] = a[6];
@@ -592,7 +592,7 @@ var mat4 = (function () {
      */
     mat4.rotateZ = function (out, a, rad) {
         var s = Math.sin(rad), c = Math.cos(rad), a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3], a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7];
-        if (a !== out) {
+        if (a !== out) { // If the source and destination differ, copy the unchanged last row
             out[8] = a[8];
             out[9] = a[9];
             out[10] = a[10];
@@ -1416,17 +1416,17 @@ var mat4 = (function () {
             Math.abs(a15 - b15) <= common_1.glMatrix.EPSILON * Math.max(1.0, Math.abs(a15), Math.abs(b15)));
     };
     ;
+    /**
+     * Alias for {@link mat4.multiply}
+     * @function
+     */
+    mat4.mul = mat4.multiply;
+    /**
+     * Alias for {@link mat4.subtract}
+     * @function
+     */
+    mat4.sub = mat4.subtract;
     return mat4;
 }());
-/**
- * Alias for {@link mat4.multiply}
- * @function
- */
-mat4.mul = mat4.multiply;
-/**
- * Alias for {@link mat4.subtract}
- * @function
- */
-mat4.sub = mat4.subtract;
 exports.mat4 = mat4;
 //# sourceMappingURL=mat4.js.map

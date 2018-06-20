@@ -4,7 +4,7 @@ var model_geometry_1 = require("./model-geometry");
 var state_1 = require("./state");
 //this class holds pointers to textures, uniforms and data buffers which
 //make up a model in GPU
-var ModelHandle = (function () {
+var ModelHandle = /** @class */ (function () {
     function ModelHandle(gl, model) {
         var _this = this;
         //participates in picking operation only if true
@@ -303,6 +303,7 @@ var ModelHandle = (function () {
                     maps.push(map);
             }
         }
+        //it is a list of IDs
         else {
             for (var l = 0; l < args.length; l++) {
                 var id = args[l];
@@ -376,11 +377,11 @@ var ModelHandle = (function () {
         //buffer data to GPU
         this.bufferData(this._stateBuffer, this.model.states);
     };
+    /**
+     * Static counter to keep unique ID of the model handles
+     */
+    ModelHandle._instancesNum = 1;
     return ModelHandle;
 }());
-/**
- * Static counter to keep unique ID of the model handles
- */
-ModelHandle._instancesNum = 1;
 exports.ModelHandle = ModelHandle;
 //# sourceMappingURL=model-handle.js.map

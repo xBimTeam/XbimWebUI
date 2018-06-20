@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var Dictionary = (function () {
+var Dictionary = /** @class */ (function () {
     function Dictionary(keyMaker) {
         this._internal = {};
         this._count = 0;

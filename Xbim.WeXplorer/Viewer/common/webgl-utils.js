@@ -1,3 +1,4 @@
+"use strict";
 /*
  * Copyright 2010, Google Inc.
  * All rights reserved.
@@ -28,7 +29,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-"use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 /*
  * File converted to TypeScript by Martin Černý (martin.cerny@northumbria.ec.uk)
@@ -60,7 +60,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * of your display but will stop rendering if your app is not
  * visible.
  */
-var WebGLUtils = (function () {
+var WebGLUtils = /** @class */ (function () {
     function WebGLUtils() {
     }
     /**
@@ -139,22 +139,22 @@ var WebGLUtils = (function () {
         }
         return context;
     };
+    /**
+     * Mesasge for getting a webgl browser
+     * @type {string}
+     */
+    WebGLUtils.GET_A_WEBGL_BROWSER = '' +
+        'This page requires a browser that supports WebGL.<br/>' +
+        '<a href="http://get.webgl.org">Click here to upgrade your browser.</a>';
+    /**
+     * Mesasge for need better hardware
+     * @type {string}
+     */
+    WebGLUtils.OTHER_PROBLEM = '' +
+        "It doesn't appear your computer can support WebGL.<br/>" +
+        '<a href="http://get.webgl.org/troubleshooting/">Click here for more information.</a>';
     return WebGLUtils;
 }());
-/**
- * Mesasge for getting a webgl browser
- * @type {string}
- */
-WebGLUtils.GET_A_WEBGL_BROWSER = '' +
-    'This page requires a browser that supports WebGL.<br/>' +
-    '<a href="http://get.webgl.org">Click here to upgrade your browser.</a>';
-/**
- * Mesasge for need better hardware
- * @type {string}
- */
-WebGLUtils.OTHER_PROBLEM = '' +
-    "It doesn't appear your computer can support WebGL.<br/>" +
-    '<a href="http://get.webgl.org/troubleshooting/">Click here for more information.</a>';
 exports.WebGLUtils = WebGLUtils;
 /**
  * Provides requestAnimationFrame in a cross browser way.

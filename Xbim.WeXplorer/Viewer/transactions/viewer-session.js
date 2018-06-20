@@ -15,7 +15,7 @@ var session_1 = require("./session");
  * This class is a convenience wrapper around the viewer which provides
  * undo/redo operations for all viewer functions
  */
-var ViewerSession = (function (_super) {
+var ViewerSession = /** @class */ (function (_super) {
     __extends(ViewerSession, _super);
     function ViewerSession(viewer) {
         var _this = _super.call(this) || this;
@@ -163,7 +163,7 @@ var ViewerSession = (function (_super) {
     return ViewerSession;
 }(session_1.Session));
 exports.ViewerSession = ViewerSession;
-var Snapshot = (function () {
+var Snapshot = /** @class */ (function () {
     function Snapshot(viewer) {
         var _this = this;
         this.viewer = viewer;

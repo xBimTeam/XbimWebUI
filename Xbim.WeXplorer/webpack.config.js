@@ -8,8 +8,7 @@ var isDevelop = process.env.NODE_ENV === 'development';
 
 var entries = {};
 entries['xbim-viewer'] = './Viewer/viewer.ts';
-entries['xbim-browser'] = './Viewer/browser/browser.ts';
-entries['xbim-geometry-loader'] = './Viewer/workers/geometry-loader.ts';
+// entries['xbim-geometry-loader'] = './Viewer/workers/geometry-loader.ts';
 
 var plugins = [];
 plugins.push(new webpack.BannerPlugin({banner: banner,  raw: true }));

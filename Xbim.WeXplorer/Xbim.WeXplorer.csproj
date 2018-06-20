@@ -20,8 +20,9 @@
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
-    <TypeScriptToolsVersion>2.2</TypeScriptToolsVersion>
+    <TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
     <UseGlobalApplicationHostFile />
+    <Use64BitIISExpress />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -60,12 +61,6 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Build\xbim-browser.css" />
-    <Content Include="Build\xbim-browser.min.js" />
-    <Content Include="Build\xbim-geometry-loader.js" />
-    <Content Include="Build\xbim-geometry-loader.min.js" />
-    <Content Include="Build\xbim-shim.js" />
-    <Content Include="Build\xbim-viewer.min.js" />
     <Content Include="Examples\BasicJsExampleAsync\index.html" />
     <Content Include="Examples\BrowserExample\browser.css" />
     <Content Include="Examples\BrowserExample\browser.js" />
@@ -86,9 +81,6 @@
     <Content Include="Libs\system.js" />
     <Content Include="Resources\bootstrap.css" />
     <Content Include="Utilities\TypingsBundler.exe" />
-    <Content Include="Viewer\browser\xbim-browser.css" />
-    <Content Include="Build\xbim-browser.js" />
-    <Content Include="Build\xbim-viewer.js" />
     <Content Include="Examples\TsSingleModule\index.html" />
     <Content Include="Examples\BasicJsExample\index.html" />
     <Content Include="Libs\gl-matrix.min.js" />
@@ -117,9 +109,6 @@
     <Content Include="Libs\query-string.js" />
     <Content Include="Libs\system.min.js" />
     <Content Include="Libs\webgl-utils.min.js" />
-    <TypeScriptCompile Include="Build\xbim-browser.d.ts" />
-    <TypeScriptCompile Include="Build\xbim-geometry-loader.d.ts" />
-    <TypeScriptCompile Include="Build\xbim-viewer.d.ts" />
     <TypeScriptCompile Include="Viewer\matrix\common.ts" />
     <TypeScriptCompile Include="Viewer\matrix\quat.ts" />
     <TypeScriptCompile Include="Viewer\matrix\mat3.ts" />
@@ -200,19 +189,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <TypeScriptCompile Include="Viewer\browser\attribute-dictionary.ts" />
-    <TypeScriptCompile Include="Viewer\browser\browser.ts" />
-    <TypeScriptCompile Include="Viewer\browser\cobie-utils.ts" />
-    <TypeScriptCompile Include="Viewer\browser\cobieuk-utils.ts" />
-    <TypeScriptCompile Include="Viewer\browser\visual-assignment-set.ts" />
-    <TypeScriptCompile Include="Viewer\browser\visual-attribute.ts" />
-    <TypeScriptCompile Include="Viewer\browser\visual-entity.ts" />
-    <TypeScriptCompile Include="Viewer\browser\visual-model.ts" />
-    <TypeScriptCompile Include="Viewer\browser\visual-property.ts" />
-    <TypeScriptCompile Include="Viewer\browser\visual-templates.ts" />
     <TypeScriptCompile Include="Examples\TsSingleModule\index.ts" />
     <TypeScriptCompile Include="Viewer\common\dictionary.ts" />
-    <TypeScriptCompile Include="Viewer\scene\node-product-shape.ts" />
     <TypeScriptCompile Include="Viewer\stream\wexbim-mesh.ts" />
     <TypeScriptCompile Include="Viewer\stream\wexbim-stream.ts" />
     <TypeScriptCompile Include="Viewer\transactions\session.ts" />
@@ -298,17 +276,16 @@
     <TypeScriptCompile Include="Viewer\binary-reader.ts" />
     <TypeScriptCompile Include="Viewer\model-geometry.ts" />
     <TypeScriptCompile Include="Viewer\model-handle.ts" />
-    <TypeScriptCompile Include="Viewer\scene\node-shape.ts" />
     <TypeScriptCompile Include="Viewer\product-inheritance.ts" />
     <TypeScriptCompile Include="Viewer\product-type.ts" />
     <TypeScriptCompile Include="Viewer\shaders\shaders.ts" />
     <TypeScriptCompile Include="Viewer\state.ts" />
     <TypeScriptCompile Include="Viewer\triangulated-shape.ts" />
     <TypeScriptCompile Include="Viewer\viewer.ts" />
-    <TypeScriptCompile Include="Viewer\scene\node.ts" />
-    <TypeScriptCompile Include="Viewer\scene\node-product.ts" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Build\" />
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
@@ -340,8 +317,8 @@
 if $(ConfigurationName) == Release build_after.bat</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PreBuildEvent>cd "$(ProjectDir)"
-build_before.bat</PreBuildEvent>
+    <PreBuildEvent>
+    </PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * Convenient class for binary reading. Arrays are read as new views on slices of the original data buffer,
  * individual values are read using little endian data view.
  */
-var BinaryReader = (function () {
+var BinaryReader = /** @class */ (function () {
     function BinaryReader() {
         this._buffer = null;
         this._view = null;

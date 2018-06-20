@@ -1,3 +1,4 @@
+"use strict";
 /* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -17,14 +18,13 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. */
-"use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var common_1 = require("./common");
 /**
  * @class 3 Dimensional Vector
  * @name vec3
  */
-var vec3 = (function () {
+var vec3 = /** @class */ (function () {
     function vec3() {
     }
     /**
@@ -644,82 +644,82 @@ var vec3 = (function () {
             Math.abs(a2 - b2) <= common_1.glMatrix.EPSILON * Math.max(1.0, Math.abs(a2), Math.abs(b2)));
     };
     ;
+    /**
+     * Alias for {@link public static subtract}
+     * @function
+     */
+    vec3.sub = vec3.subtract;
+    /**
+     * Alias for {@link public static multiply}
+     * @function
+     */
+    vec3.mul = vec3.multiply;
+    /**
+     * Alias for {@link public static divide}
+     * @function
+     */
+    vec3.div = vec3.divide;
+    /**
+     * Alias for {@link public static distance}
+     * @function
+     */
+    vec3.dist = vec3.distance;
+    /**
+     * Alias for {@link public static squaredDistance}
+     * @function
+     */
+    vec3.sqrDist = vec3.squaredDistance;
+    /**
+     * Alias for {@link public static length}
+     * @function
+     */
+    vec3.len = vec3.vectorLength;
+    /**
+     * Alias for {@link public static squaredLength}
+     * @function
+     */
+    vec3.sqrLen = vec3.squaredLength;
+    /**
+     * Perform some operation over an array of vec3s.
+     *
+     * @param {Array} a the array of vectors to iterate over
+     * @param {Number} stride Number of elements between the start of each public static  If 0 assumes tightly packed
+     * @param {Number} offset Number of elements to skip at the beginning of the array
+     * @param {Number} count Number of vec3s to iterate over. If 0 iterates over entire array
+     * @param {Function} fn Function to call for each vector in the array
+     * @param {Object} [arg] additional argument to pass to fn
+     * @returns {Array} a
+     * @function
+     */
+    vec3.forEach = (function () {
+        var vec = vec3.create();
+        return function (a, stride, offset, count, fn, arg) {
+            var i, l;
+            if (!stride) {
+                stride = 3;
+            }
+            if (!offset) {
+                offset = 0;
+            }
+            if (count) {
+                l = Math.min((count * stride) + offset, a.length);
+            }
+            else {
+                l = a.length;
+            }
+            for (i = offset; i < l; i += stride) {
+                vec[0] = a[i];
+                vec[1] = a[i + 1];
+                vec[2] = a[i + 2];
+                fn(vec, vec, arg);
+                a[i] = vec[0];
+                a[i + 1] = vec[1];
+                a[i + 2] = vec[2];
+            }
+            return a;
+        };
+    })();
     return vec3;
 }());
-/**
- * Alias for {@link public static subtract}
- * @function
- */
-vec3.sub = vec3.subtract;
-/**
- * Alias for {@link public static multiply}
- * @function
- */
-vec3.mul = vec3.multiply;
-/**
- * Alias for {@link public static divide}
- * @function
- */
-vec3.div = vec3.divide;
-/**
- * Alias for {@link public static distance}
- * @function
- */
-vec3.dist = vec3.distance;
-/**
- * Alias for {@link public static squaredDistance}
- * @function
- */
-vec3.sqrDist = vec3.squaredDistance;
-/**
- * Alias for {@link public static length}
- * @function
- */
-vec3.len = vec3.vectorLength;
-/**
- * Alias for {@link public static squaredLength}
- * @function
- */
-vec3.sqrLen = vec3.squaredLength;
-/**
- * Perform some operation over an array of vec3s.
- *
- * @param {Array} a the array of vectors to iterate over
- * @param {Number} stride Number of elements between the start of each public static  If 0 assumes tightly packed
- * @param {Number} offset Number of elements to skip at the beginning of the array
- * @param {Number} count Number of vec3s to iterate over. If 0 iterates over entire array
- * @param {Function} fn Function to call for each vector in the array
- * @param {Object} [arg] additional argument to pass to fn
- * @returns {Array} a
- * @function
- */
-vec3.forEach = (function () {
-    var vec = vec3.create();
-    return function (a, stride, offset, count, fn, arg) {
-        var i, l;
-        if (!stride) {
-            stride = 3;
-        }
-        if (!offset) {
-            offset = 0;
-        }
-        if (count) {
-            l = Math.min((count * stride) + offset, a.length);
-        }
-        else {
-            l = a.length;
-        }
-        for (i = offset; i < l; i += stride) {
-            vec[0] = a[i];
-            vec[1] = a[i + 1];
-            vec[2] = a[i + 2];
-            fn(vec, vec, arg);
-            a[i] = vec[0];
-            a[i + 1] = vec[1];
-            a[i + 2] = vec[2];
-        }
-        return a;
-    };
-})();
 exports.vec3 = vec3;
 //# sourceMappingURL=vec3.js.map

@@ -21,7 +21,7 @@ var navigation_cube_1 = require("./plugins/NavigationCube/navigation-cube");
 exports.NavigationCube = navigation_cube_1.NavigationCube;
 var navigation_home_1 = require("./plugins/NavigationHome/navigation-home");
 exports.NavigationHome = navigation_home_1.NavigationHome;
-var Viewer = (function () {
+var Viewer = /** @class */ (function () {
     /**
     * This is constructor of the xBIM Viewer. It gets HTMLCanvasElement or string ID as an argument. Viewer will than be initialized
     * in the context of specified canvas. Any other argument will throw exception.
@@ -598,6 +598,8 @@ var Viewer = (function () {
             else
                 return false;
         }
+        //set navigation origin and default distance to the merged region composed 
+        //from all models which are not stopped at the moment
         else {
             var region = this.forHandleOrAll(function (handle) {
                 return handle.region;
@@ -1920,7 +1922,7 @@ var Viewer = (function () {
     return Viewer;
 }());
 exports.Viewer = Viewer;
-var ModelPointers = (function () {
+var ModelPointers = /** @class */ (function () {
     function ModelPointers(gl, program) {
         //get attribute pointers
         this.NormalAttrPointer = gl.getAttribLocation(program, 'aNormal');

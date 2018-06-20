@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var navigation_home_textures_1 = require("./navigation-home-textures");
 var vec3_1 = require("../../matrix/vec3");
-var NavigationHome = (function () {
+var NavigationHome = /** @class */ (function () {
     /**
      * This is constructor of the Home plugin for {@link Viewer xBIM Viewer}. It gets optional Image object as an argument. If no image
      * is specified there is a default one (which is not very prety).

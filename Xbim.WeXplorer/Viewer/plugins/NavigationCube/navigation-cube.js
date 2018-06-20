@@ -5,7 +5,7 @@ var navigation_cube_textures_1 = require("./navigation-cube-textures");
 var mat4_1 = require("../../matrix/mat4");
 var mat3_1 = require("../../matrix/mat3");
 var vec3_1 = require("../../matrix/vec3");
-var NavigationCube = (function () {
+var NavigationCube = /** @class */ (function () {
     /**
      * This is constructor of the Navigation Cube plugin for {@link Viewer xBIM Viewer}. It gets optional Image as an argument.
      * The image will be used as a texture of the navigation cube. If you don't specify eny image default one will be used.

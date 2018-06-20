@@ -1,3 +1,4 @@
+"use strict";
 /* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -17,9 +18,8 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. */
-"use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var mat3 = (function () {
+var mat3 = /** @class */ (function () {
     function mat3() {
     }
     /**
@@ -42,25 +42,25 @@ var mat3 = (function () {
         return out;
     };
     ;
+    /**
+    * Creates a new identity mat3
+    *
+    * @returns {mat3} a new 3x3 matrix
+    */
+    mat3.create = function () {
+        var out = new Float32Array(9);
+        out[0] = 1;
+        out[1] = 0;
+        out[2] = 0;
+        out[3] = 0;
+        out[4] = 1;
+        out[5] = 0;
+        out[6] = 0;
+        out[7] = 0;
+        out[8] = 1;
+        return out;
+    };
     return mat3;
 }());
-/**
-* Creates a new identity mat3
-*
-* @returns {mat3} a new 3x3 matrix
-*/
-mat3.create = function () {
-    var out = new Float32Array(9);
-    out[0] = 1;
-    out[1] = 0;
-    out[2] = 0;
-    out[3] = 0;
-    out[4] = 1;
-    out[5] = 0;
-    out[6] = 0;
-    out[7] = 0;
-    out[8] = 1;
-    return out;
-};
 exports.mat3 = mat3;
 //# sourceMappingURL=mat3.js.map

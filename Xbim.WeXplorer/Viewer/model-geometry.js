@@ -4,7 +4,7 @@ var binary_reader_1 = require("./binary-reader");
 var triangulated_shape_1 = require("./triangulated-shape");
 var state_1 = require("./state");
 var product_type_1 = require("./product-type");
-var ModelGeometry = (function () {
+var ModelGeometry = /** @class */ (function () {
     function ModelGeometry() {
         this.meter = 1000;
         //this will be used to change appearance of the objects
@@ -217,13 +217,13 @@ var ModelGeometry = (function () {
     return ModelGeometry;
 }());
 exports.ModelGeometry = ModelGeometry;
-var ProductMap = (function () {
+var ProductMap = /** @class */ (function () {
     function ProductMap() {
     }
     return ProductMap;
 }());
 exports.ProductMap = ProductMap;
-var Region = (function () {
+var Region = /** @class */ (function () {
     function Region(region) {
         this.population = -1;
         this.centre = null;

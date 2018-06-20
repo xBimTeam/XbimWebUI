@@ -5,7 +5,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * that every undoable action has to be performed using 'Do()' function and has to provide
  * its 'undo' counterpart so session can perform undo and redo operations as necessary.
  */
-var Session = (function () {
+var Session = /** @class */ (function () {
     function Session() {
         // Array of undo redo actions
         this._do = [];

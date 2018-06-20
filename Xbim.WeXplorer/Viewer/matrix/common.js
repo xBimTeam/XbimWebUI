@@ -1,3 +1,4 @@
+"use strict";
 /* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -17,13 +18,12 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. */
-"use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * @class Common utilities
  * @name glMatrix
  */
-var glMatrix = (function () {
+var glMatrix = /** @class */ (function () {
     function glMatrix() {
     }
     /**
@@ -54,16 +54,16 @@ var glMatrix = (function () {
     glMatrix.equals = function (a, b) {
         return Math.abs(a - b) <= glMatrix.EPSILON * Math.max(1.0, Math.abs(a), Math.abs(b));
     };
+    // Configuration Constants
+    glMatrix.EPSILON = 0.000001;
+    glMatrix.ARRAY_TYPE = (typeof Float32Array !== 'undefined') ? Float32Array : Array;
+    glMatrix.RANDOM = Math.random;
+    glMatrix.ENABLE_SIMD = false;
+    // Capability detection
+    glMatrix.SIMD_AVAILABLE = (glMatrix.ARRAY_TYPE === Float32Array) && typeof (window['SIMD']) !== 'undefined';
+    glMatrix.USE_SIMD = glMatrix.ENABLE_SIMD && glMatrix.SIMD_AVAILABLE;
+    glMatrix.degree = Math.PI / 180;
     return glMatrix;
 }());
-// Configuration Constants
-glMatrix.EPSILON = 0.000001;
-glMatrix.ARRAY_TYPE = (typeof Float32Array !== 'undefined') ? Float32Array : Array;
-glMatrix.RANDOM = Math.random;
-glMatrix.ENABLE_SIMD = false;
-// Capability detection
-glMatrix.SIMD_AVAILABLE = (glMatrix.ARRAY_TYPE === Float32Array) && typeof (window['SIMD']) !== 'undefined';
-glMatrix.USE_SIMD = glMatrix.ENABLE_SIMD && glMatrix.SIMD_AVAILABLE;
-glMatrix.degree = Math.PI / 180;
 exports.glMatrix = glMatrix;
 //# sourceMappingURL=common.js.map

@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var binary_reader_1 = require("./binary-reader");
-var TriangulatedShape = (function () {
+var TriangulatedShape = /** @class */ (function () {
     function TriangulatedShape() {
         //This would load only shape data from binary file
         this.load = function (source) {

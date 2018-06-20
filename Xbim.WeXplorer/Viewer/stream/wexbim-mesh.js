@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var WexBimMesh = (function () {
+var WexBimMesh = /** @class */ (function () {
     function WexBimMesh(meshData) {
         this.VersionPos = 0;
         this.VertexCountPos = this.VersionPos + 1; //sizeof(byte)
@@ -82,7 +82,7 @@ var WexBimMesh = (function () {
     return WexBimMesh;
 }());
 exports.WexBimMesh = WexBimMesh;
-var WexBimMeshFace = (function () {
+var WexBimMeshFace = /** @class */ (function () {
     function WexBimMeshFace(readIndex, sizeofIndex, array, facesOffset) {
         this._readIndex = readIndex;
         this._array = array;
