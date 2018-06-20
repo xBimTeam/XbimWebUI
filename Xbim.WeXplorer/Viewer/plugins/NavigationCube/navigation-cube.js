@@ -85,6 +85,9 @@ var NavigationCube = /** @class */ (function () {
         * @member {Enum} NavigationCube#position
         */
         this.position = this.BOTTOM_RIGHT;
+        this._selfGetId = false;
+        this._currentMousePosition = [0, 0];
+        this._currentId = -1;
         this.vertices = new Float32Array([
             // Front face
             -0.3, -0.5, -0.3,
@@ -1029,7 +1032,9 @@ var NavigationCube = /** @class */ (function () {
                 return;
             }
             //this is for picking
+            self._selfGetId = true;
             var id = viewer.getID(x, y);
+            self._selfGetId = false;
             if (id >= self.TOP && id <= self.BACK_LEFT) {
                 self._alpha = self.activeAlpha;
                 self._selection = id;
@@ -1048,17 +1053,33 @@ var NavigationCube = /** @class */ (function () {
             var viewX = startX - r.left;
             var viewY = viewer._height - (startY - r.top);
             //this is for picking
+            self._selfGetId = true;
             var id = viewer.getID(viewX, viewY);
+            self._selfGetId = false;
             if (id >= self.TOP && id <= self.BACK_LEFT) {
                 //change viewer navigation mode to be 'orbit'
                 self._drag = true;
                 self._originalNavigation = viewer.navigationMode;
                 viewer.navigationMode = "orbit";
+                self._currentId = id;
+                self._currentMousePosition = [viewX, viewY];
             }
         }, true);
         window.addEventListener('mouseup', function (event) {
             if (self._drag === true) {
                 viewer.navigationMode = self._originalNavigation;
+                var startX = event.clientX;
+                var startY = event.clientY;
+                //get coordinates within canvas (with the right orientation)
+                var r = viewer._canvas.getBoundingClientRect();
+                var x = startX - r.left;
+                var y = viewer._height - (startY - r.top);
+                var dX = Math.abs(self._currentMousePosition[0] - x);
+                var dY = Math.abs(self._currentMousePosition[1] - y);
+                var distance = Math.sqrt(dX * dX + dY * dY);
+                if (distance < 4) {
+                    self.navigate(self._currentId);
+                }
             }
             self._drag = false;
         }, true);
@@ -1066,6 +1087,9 @@ var NavigationCube = /** @class */ (function () {
     };
     NavigationCube.prototype.onBeforeDraw = function () { };
     NavigationCube.prototype.onBeforePick = function (id) {
+        return this.onBeforeGetId(id);
+    };
+    NavigationCube.prototype.navigate = function (id) {
         if (id >= this.TOP && id <= this.BACK_LEFT) {
             var dir = vec3_1.vec3.create();
             var distance = this.viewer._distance;
@@ -1199,7 +1223,13 @@ var NavigationCube = /** @class */ (function () {
         this.setInactive();
     };
     //return false because this doesn't catch any ID event
-    NavigationCube.prototype.onBeforeGetId = function (id) { return false; };
+    NavigationCube.prototype.onBeforeGetId = function (id) {
+        if (!id || this._selfGetId)
+            return false;
+        if (id >= this.TOP && id <= this.BACK_LEFT)
+            return true;
+        return false;
+    };
     NavigationCube.prototype.setActive = function () {
         var gl = this.viewer.gl;
         //set own shader

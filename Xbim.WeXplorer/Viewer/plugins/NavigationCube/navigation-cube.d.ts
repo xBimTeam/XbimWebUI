@@ -101,10 +101,14 @@ export declare class NavigationCube implements IPlugin {
     private _idBuffer;
     private _texture;
     private _drag;
+    private _selfGetId;
+    private _currentMousePosition;
+    private _currentId;
     private _originalNavigation;
     init(viewer: Viewer): void;
     onBeforeDraw(): void;
     onBeforePick(id: any): boolean;
+    navigate(id: any): boolean;
     onAfterDraw(): void;
     onBeforeDrawId(): void;
     onAfterDrawId(): void;

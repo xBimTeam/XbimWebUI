@@ -16,6 +16,7 @@ var ModelGeometry = /** @class */ (function () {
         //	spans: [Int32Array([int, int]),Int32Array([int, int]), ...] //spanning indexes defining shapes of product and it's state
         //};
         this.productMaps = {};
+        this.productIdLookup = [];
     }
     ModelGeometry.prototype.parse = function (binReader) {
         var _this = this;
@@ -107,10 +108,12 @@ var ModelGeometry = /** @class */ (function () {
             var bBox = br.readFloat32Array(6);
             var map = {
                 productID: productLabel,
+                renderId: i + 1,
                 type: prodType,
                 bBox: bBox,
                 spans: []
             };
+            this.productIdLookup[i + 1] = productLabel;
             this.productMaps[productLabel] = map;
         }
         for (var iShape = 0; iShape < numShapes; iShape++) {
@@ -159,6 +162,7 @@ var ModelGeometry = /** @class */ (function () {
                         productID: 0,
                         type: typeEnum.IFCOPENINGELEMENT,
                         bBox: new Float32Array(6),
+                        renderId: 0,
                         spans: []
                     };
                     _this.productMaps[shape.pLabel] = map;
@@ -171,7 +175,7 @@ var ModelGeometry = /** @class */ (function () {
                 //fix indices to right absolute position. It is relative to the shape.
                 for (var i = 0; i < shapeGeom.indices.length; i++) {
                     _this.indices[iIndex] = shapeGeom.indices[i] + iVertex / 3;
-                    _this.products[iIndex] = shape.pLabel;
+                    _this.products[iIndex] = map.renderId;
                     _this.styleIndices[iIndex] = shape.style;
                     _this.transformations[iIndex] = shape.transform;
                     _this.states[2 * iIndex] = state; //set state

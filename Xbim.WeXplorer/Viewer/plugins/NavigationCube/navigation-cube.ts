@@ -128,6 +128,10 @@ export class NavigationCube implements IPlugin {
     private _texture: WebGLTexture;
 
     private _drag: boolean;
+    private _selfGetId = false;
+
+    private _currentMousePosition: number[] = [0, 0];
+    private _currentId = -1;
 
     private _originalNavigation: any;
 
@@ -237,7 +241,9 @@ export class NavigationCube implements IPlugin {
                 }
 
                 //this is for picking
+                self._selfGetId = true;
                 var id = viewer.getID(x, y);
+                self._selfGetId = false;
 
                 if (id >= self.TOP && id <= self.BACK_LEFT) {
                     self._alpha = self.activeAlpha;
@@ -262,13 +268,18 @@ export class NavigationCube implements IPlugin {
                 var viewY = viewer._height - (startY - r.top);
 
                 //this is for picking
+                self._selfGetId = true;
                 var id = viewer.getID(viewX, viewY);
+                self._selfGetId = false;
 
                 if (id >= self.TOP && id <= self.BACK_LEFT) {
                     //change viewer navigation mode to be 'orbit'
                     self._drag = true;
                     self._originalNavigation = viewer.navigationMode;
                     viewer.navigationMode = "orbit";
+
+                    self._currentId = id;
+                    self._currentMousePosition = [viewX, viewY];
                 }
             },
             true);
@@ -277,6 +288,22 @@ export class NavigationCube implements IPlugin {
             function (event) {
                 if (self._drag === true) {
                     viewer.navigationMode = self._originalNavigation;
+
+                    var startX = event.clientX;
+                    var startY = event.clientY;
+
+                    //get coordinates within canvas (with the right orientation)
+                    var r = viewer._canvas.getBoundingClientRect();
+                    var x = startX - r.left;
+                    var y = viewer._height - (startY - r.top);
+
+                    var dX = Math.abs(self._currentMousePosition[0] - x);
+                    var dY = Math.abs(self._currentMousePosition[1] - y);
+
+                    var distance = Math.sqrt(dX * dX + dY * dY);
+                    if (distance < 4) {
+                        self.navigate(self._currentId);
+                    }
                 }
                 self._drag = false;
             },
@@ -289,6 +316,10 @@ export class NavigationCube implements IPlugin {
     onBeforeDraw() { }
 
     onBeforePick(id) {
+        return this.onBeforeGetId(id);
+    }
+
+    navigate(id) {
         if (id >= this.TOP && id <= this.BACK_LEFT) {
 
             var dir = vec3.create();
@@ -431,7 +462,13 @@ export class NavigationCube implements IPlugin {
     }
 
     //return false because this doesn't catch any ID event
-    onBeforeGetId(id) { return false; }
+    onBeforeGetId(id) {
+        if (!id || this._selfGetId)
+            return false;
+        if (id >= this.TOP && id <= this.BACK_LEFT)
+            return true;
+        return false;
+    }
 
     setActive() {
         var gl = this.viewer.gl;

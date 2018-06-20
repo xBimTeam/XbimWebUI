@@ -32,6 +32,7 @@ export class ModelGeometry {
     public productMaps: { [id: number]: ProductMap; } = {};
     public regions: Region[];
     public transparentIndex: number;
+    public productIdLookup = [];
 
     public parse(binReader: BinaryReader) {
         var br = binReader;
@@ -126,10 +127,12 @@ export class ModelGeometry {
 
             var map = {
                 productID: productLabel,
+                renderId: i + 1,
                 type: prodType,
                 bBox: bBox,
                 spans: []
             };
+            this.productIdLookup[i + 1] = productLabel;
             this.productMaps[productLabel] = map;
         }
 
@@ -186,6 +189,7 @@ export class ModelGeometry {
                         productID: 0,
                         type: typeEnum.IFCOPENINGELEMENT,
                         bBox: new Float32Array(6),
+                        renderId: 0,
                         spans: []
                     };
                     this.productMaps[shape.pLabel] = map;
@@ -201,7 +205,7 @@ export class ModelGeometry {
                 //fix indices to right absolute position. It is relative to the shape.
                 for (var i = 0; i < shapeGeom.indices.length; i++) {
                     this.indices[iIndex] = shapeGeom.indices[i] + iVertex / 3;
-                    this.products[iIndex] = shape.pLabel;
+                    this.products[iIndex] = map.renderId;
                     this.styleIndices[iIndex] = shape.style;
                     this.transformations[iIndex] = shape.transform;
                     this.states[2 * iIndex] = state; //set state
@@ -258,6 +262,7 @@ export class ModelGeometry {
 
 export class ProductMap {
     productID: number;
+    renderId: number;
     type: ProductType;
     bBox: Float32Array;
     spans: Array<Int32Array>;

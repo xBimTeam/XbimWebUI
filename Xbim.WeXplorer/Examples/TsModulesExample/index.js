@@ -70,7 +70,7 @@ if (span) {
     span.innerHTML = "0";
 }
 //viewer.load(model, "base");
-viewer.loadAsync("/Build/xbim-geometry-loader.js", model, "base");
+viewer.load(model, "base");
 viewer.start();
 viewer.defineStyle(0, [255, 0, 0, 255]); //red
 viewer.defineStyle(1, [0, 0, 255, 100]); //semitransparent blue

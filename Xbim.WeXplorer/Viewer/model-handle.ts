@@ -203,6 +203,10 @@ export class ModelHandle {
         }
     }
 
+    public getProductId(renderId: number): number {
+        return this.model.productIdLookup[renderId];
+    }
+
     public getProductMap(id: number): ProductMap {
         var map = this.model.productMaps[id];
         if (typeof (map) !== 'undefined') return map;

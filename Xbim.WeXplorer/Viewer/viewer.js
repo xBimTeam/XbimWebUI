@@ -856,6 +856,10 @@ var Viewer = /** @class */ (function () {
             //this is for picking
             id = viewer.getID(viewX, viewY);
             modelId = viewer.getID(viewX, viewY, true);
+            // get product ID from reduced render ID
+            if (modelId) {
+                id = _this.forHandleOrAll(function (h) { return h.getProductId(id); }, modelId);
+            }
             /**
             * Occurs when mousedown event happens on underlying canvas.
             *
@@ -995,6 +999,10 @@ var Viewer = /** @class */ (function () {
             //this is for picking
             id = viewer.getID(viewX, viewY);
             modelId = viewer.getID(viewX, viewY, true);
+            // get product ID from reduced render ID
+            if (modelId) {
+                id = _this.forHandleOrAll(function (h) { return h.getProductId(id); }, modelId);
+            }
             /**
             * Occurs when mousedown event happens on underlying canvas.
             *
@@ -1114,6 +1122,10 @@ var Viewer = /** @class */ (function () {
             //this is for picking
             id = _this.getID(viewX, viewY);
             modelId = _this.getID(viewX, viewY, true);
+            // get product ID from reduced render ID
+            if (modelId) {
+                id = _this.forHandleOrAll(function (h) { return h.getProductId(id); }, modelId);
+            }
             var now = new Date();
             var isDoubleTap = (now.getTime() - lastTap.getTime()) < maximumLengthBetweenDoubleTaps;
             if (isDoubleTap) {

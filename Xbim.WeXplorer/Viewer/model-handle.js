@@ -134,6 +134,9 @@ var ModelHandle = /** @class */ (function () {
             }, this);
         }
     };
+    ModelHandle.prototype.getProductId = function (renderId) {
+        return this.model.productIdLookup[renderId];
+    };
     ModelHandle.prototype.getProductMap = function (id) {
         var map = this.model.productMaps[id];
         if (typeof (map) !== 'undefined')

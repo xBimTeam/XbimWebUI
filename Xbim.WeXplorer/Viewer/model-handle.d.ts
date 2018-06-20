@@ -30,6 +30,7 @@ export declare class ModelHandle {
     setActive(pointers: ModelPointers): void;
     draw(mode?: 'solid' | 'transparent'): void;
     drawProduct(id: number): void;
+    getProductId(renderId: number): number;
     getProductMap(id: number): ProductMap;
     getProductMaps(ids: number[]): ProductMap[];
     unload(): void;

@@ -996,6 +996,11 @@ export class Viewer {
             id = viewer.getID(viewX, viewY);
             modelId = viewer.getID(viewX, viewY, true);
 
+            // get product ID from reduced render ID
+            if (modelId) {
+                id = this.forHandleOrAll(h => { return h.getProductId(id); }, modelId)
+            }
+
             /**
             * Occurs when mousedown event happens on underlying canvas.
             *
@@ -1175,6 +1180,11 @@ export class Viewer {
             id = viewer.getID(viewX, viewY);
             modelId = viewer.getID(viewX, viewY, true);
 
+            // get product ID from reduced render ID
+            if (modelId) {
+                id = this.forHandleOrAll(h => { return h.getProductId(id); }, modelId)
+            }
+
             /**
             * Occurs when mousedown event happens on underlying canvas.
             *
@@ -1304,6 +1314,10 @@ export class Viewer {
             //this is for picking
             id = this.getID(viewX, viewY);
             modelId = this.getID(viewX, viewY, true);
+            // get product ID from reduced render ID
+            if (modelId) {
+                id = this.forHandleOrAll(h => { return h.getProductId(id); }, modelId)
+            }
 
             var now = new Date();
             var isDoubleTap = (now.getTime() - lastTap.getTime()) < maximumLengthBetweenDoubleTaps;

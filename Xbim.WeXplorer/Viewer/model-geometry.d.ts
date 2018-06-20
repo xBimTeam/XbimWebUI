@@ -16,6 +16,7 @@ export declare class ModelGeometry {
     };
     regions: Region[];
     transparentIndex: number;
+    productIdLookup: any[];
     parse(binReader: BinaryReader): void;
     load(source: any): void;
     onloaded: (geometry: ModelGeometry) => void;
@@ -23,6 +24,7 @@ export declare class ModelGeometry {
 }
 export declare class ProductMap {
     productID: number;
+    renderId: number;
     type: ProductType;
     bBox: Float32Array;
     spans: Array<Int32Array>;
