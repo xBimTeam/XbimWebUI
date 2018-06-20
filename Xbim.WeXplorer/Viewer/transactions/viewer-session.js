@@ -10,6 +10,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+var viewer_1 = require("../viewer");
 var session_1 = require("./session");
 /**
  * This class is a convenience wrapper around the viewer which provides
@@ -20,27 +21,8 @@ var ViewerSession = /** @class */ (function (_super) {
     function ViewerSession(viewer) {
         var _this = _super.call(this) || this;
         _this.viewer = viewer;
-        _this.snapshotsOn = false;
         return _this;
     }
-    Object.defineProperty(ViewerSession.prototype, "ClippingPlane", {
-        get: function () {
-            return this.viewer.clippingPlaneA;
-        },
-        set: function (plane) {
-            var _this = this;
-            var old = this.viewer.clippingPlaneA.slice(0);
-            var doAction = function () {
-                _this.viewer.clippingPlaneA = plane;
-            };
-            var undoAction = function () {
-                _this.viewer.clippingPlaneA = old;
-            };
-            _super.prototype.Do.call(this, doAction, undoAction);
-        },
-        enumerable: true,
-        configurable: true
-    });
     ViewerSession.prototype.clip = function (point, normal) {
         var _this = this;
         var plane = this.viewer.clippingPlaneA.slice(0);
@@ -68,6 +50,7 @@ var ViewerSession = /** @class */ (function (_super) {
         if (typeof (modelId) === 'undefined') {
             modelId = 0;
         }
+        var stateName = viewer_1.State[state];
         var old = this.viewer.getModelState(modelId);
         var doAction = function () {
             _this.viewer.setState(state, target, modelId);
@@ -126,7 +109,7 @@ var ViewerSession = /** @class */ (function (_super) {
         };
         _super.prototype.Do.call(this, doAction, undoAction);
     };
-    ViewerSession.prototype.stop = function (id) {
+    ViewerSession.prototype.stopModel = function (id) {
         var _this = this;
         var doAction = function () {
             _this.viewer.stop(id);
@@ -136,7 +119,7 @@ var ViewerSession = /** @class */ (function (_super) {
         };
         _super.prototype.Do.call(this, doAction, undoAction);
     };
-    ViewerSession.prototype.start = function (id) {
+    ViewerSession.prototype.startModel = function (id) {
         var _this = this;
         var doAction = function () {
             _this.viewer.start(id);
@@ -145,20 +128,6 @@ var ViewerSession = /** @class */ (function (_super) {
             _this.viewer.stop(id);
         };
         _super.prototype.Do.call(this, doAction, undoAction);
-    };
-    ViewerSession.prototype.takeSnapshots = function (miliseconds) {
-        var _this = this;
-        this.snapshotsOn = true;
-        var taker = function () {
-            //take snapshot and store it in a session as a restore point
-            if (_this.takeSnapshots) {
-                setTimeout(taker, miliseconds);
-            }
-        };
-        taker();
-    };
-    ViewerSession.prototype.stopSnapshots = function () {
-        this.snapshotsOn = false;
     };
     return ViewerSession;
 }(session_1.Session));

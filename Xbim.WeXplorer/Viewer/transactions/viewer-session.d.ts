@@ -7,7 +7,6 @@ import { Session } from './session';
 export declare class ViewerSession extends Session {
     private viewer;
     constructor(viewer: Viewer);
-    ClippingPlane: number[];
     clip(point?: number[], normal?: number[]): void;
     unclip(): void;
     setState(state: State, target: number | number[], modelId?: number): void;
@@ -15,9 +14,6 @@ export declare class ViewerSession extends Session {
     zoomTo(id?: number, model?: number): void;
     setCameraPosition(coordinates: number[]): void;
     setCameraTarget(prodId?: number, modelId?: number): void;
-    stop(id?: number): void;
-    start(id?: number): void;
-    private snapshotsOn;
-    takeSnapshots(miliseconds: number): void;
-    stopSnapshots(): void;
+    stopModel(id?: number): void;
+    startModel(id?: number): void;
 }

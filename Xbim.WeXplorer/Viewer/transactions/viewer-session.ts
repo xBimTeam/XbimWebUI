@@ -12,20 +12,6 @@ export class ViewerSession extends Session {
         super();
     }
 
-    public get ClippingPlane(): number[] {
-        return this.viewer.clippingPlaneA;
-    }
-    public set ClippingPlane(plane: number[]) {
-        let old = this.viewer.clippingPlaneA.slice(0);
-        var doAction = () => {
-            this.viewer.clippingPlaneA = plane;
-        };
-        var undoAction = () => {
-            this.viewer.clippingPlaneA = old;
-        };
-        super.Do(doAction, undoAction);
-    }
-
     public clip(point?: number[], normal?: number[]) {
         var plane = this.viewer.clippingPlaneA.slice(0);
         var doAction = () => {
@@ -52,6 +38,7 @@ export class ViewerSession extends Session {
         if (typeof (modelId) === 'undefined') {
             modelId = 0;
         }
+        var stateName = State[state];
         var old = this.viewer.getModelState(modelId);
         var doAction = () => {
             this.viewer.setState(state, target, modelId);
@@ -111,7 +98,7 @@ export class ViewerSession extends Session {
         super.Do(doAction, undoAction);
     }
 
-    public stop(id?: number) {
+    public stopModel(id?: number) {
         var doAction = () => {
             this.viewer.stop(id);
         };
@@ -121,7 +108,7 @@ export class ViewerSession extends Session {
         super.Do(doAction, undoAction);
     }
 
-    public start(id?: number) {
+    public startModel(id?: number) {
         var doAction = () => {
             this.viewer.start(id);
         };
@@ -129,24 +116,6 @@ export class ViewerSession extends Session {
             this.viewer.stop(id);
         };
         super.Do(doAction, undoAction);
-    }
-
-    private snapshotsOn: boolean = false;
-
-    public takeSnapshots(miliseconds: number) {
-        this.snapshotsOn = true;
-        let taker = () => {
-            //take snapshot and store it in a session as a restore point
-
-            if (this.takeSnapshots) {
-                setTimeout(taker, miliseconds);
-            }
-        };
-        taker();
-    }
-
-    public stopSnapshots() {
-        this.snapshotsOn = false;
     }
 }
 
