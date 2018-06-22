@@ -18,6 +18,8 @@ export { ProductInheritance } from './product-inheritance';
 export { NavigationCube } from "./plugins/NavigationCube/navigation-cube";
 export { NavigationHome } from "./plugins/NavigationHome/navigation-home";
 
+export { ViewerSession } from './transactions/viewer-session';
+
 export class Viewer {
 
     /**
@@ -483,6 +485,16 @@ export class Viewer {
         }
     }
 
+    /**
+     * Gets all product IDs of certain type
+     * @param {ProductType} type IFC product type
+     * @param {number} [modelId] optional ID of the model to ask for products
+     */
+    public getProductsOfType(type: ProductType, modelId?: number): number[] {
+        return this.forHandleOrAll((h: ModelHandle) => {
+            return h.getProductsOfType(type);
+        }, modelId);
+    }
 
     /**
     * Use this function to get state of the products in the model. You can compare result of this function 

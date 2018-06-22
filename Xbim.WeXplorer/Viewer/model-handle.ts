@@ -435,6 +435,16 @@ export class ModelHandle {
         this.bufferData(this._stateBuffer, this.model.states);
     };
 
+    public getProductsOfType(typeId: number): number[] {
+        const products: number[] = [];
+        //it is type
+        for (var i in this.model.productMaps) {
+            var map = this.model.productMaps[i];
+            if (map.type === typeId) products.push(map.productID);
+        }
+        return products;
+    }
+
     public getModelState(): Array<Array<number>> {
         var result = [];
         var products = this.model.productMaps;

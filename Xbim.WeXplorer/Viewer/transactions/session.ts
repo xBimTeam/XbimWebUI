@@ -17,9 +17,9 @@ export class Session
      * @param doAction Action to do
      * @param undoAction Action to undo
      */
-    public Do(doAction: () => void, undoAction: () => void): void {
+    public do(doAction: () => void, undoAction: () => void): void {
 
-        //check if this is a do after undo. Shrink the stact in that case
+        //check if this is a do after undo. Shrink the stact in that is the case
         var shrink = this._do.length - this._position - 1;
         if (shrink > 0) {
             this._do.splice(this._position + 1)
@@ -32,48 +32,48 @@ export class Session
         this._position++;
 
         doAction();
-        this.fire('do', this.GetEventArgs())
+        this.fire('do', this.getEventArgs())
     }
 
-    public Undo(): void {
-        if (!this.CanUndo) {
+    public undo(): void {
+        if (!this.canUndo) {
             return;
         }
 
         var action = this._undo[this._position--];
         action();
-        this.fire('undo', this.GetEventArgs())
+        this.fire('undo', this.getEventArgs())
     }
 
-    public Redo(): void {
-        if (!this.CanRedo) {
+    public redo(): void {
+        if (!this.canRedo) {
             return;
         }
 
-        var action = this._undo[++this._position];
+        var action = this._do[++this._position];
         action();
-        this.fire('redo', this.GetEventArgs())
+        this.fire('redo', this.getEventArgs())
     }
 
-    public get CanUndo(): boolean {
+    public get canUndo(): boolean {
         return this._position >= 0;
     }
 
-    public get CanRedo(): boolean {
+    public get canRedo(): boolean {
         return this._position < this._do.length - 1;
     }
 
-    public get Length(): number {
+    public get length(): number {
         return this._do.length;
     }
 
-    private GetEventArgs(): { canUndo: boolean, canRedo: boolean, length: number }
+    private getEventArgs(): { canUndo: boolean, canRedo: boolean, length: number }
     {
-        return { canUndo: this.CanUndo, canRedo: this.CanRedo, length: this.Length };
+        return { canUndo: this.canUndo, canRedo: this.canRedo, length: this.length };
     }
 
     //executes all handlers bound to event name
-    private fire(eventName: string, args) {
+    protected fire(eventName: string, args) {
         var handlers = this._events[eventName];
         if (!handlers) {
             return;

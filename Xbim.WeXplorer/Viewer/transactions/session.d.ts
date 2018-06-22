@@ -14,14 +14,14 @@ export declare class Session {
      * @param doAction Action to do
      * @param undoAction Action to undo
      */
-    Do(doAction: () => void, undoAction: () => void): void;
-    Undo(): void;
-    Redo(): void;
-    readonly CanUndo: boolean;
-    readonly CanRedo: boolean;
-    readonly Length: number;
-    private GetEventArgs();
-    private fire(eventName, args);
+    do(doAction: () => void, undoAction: () => void): void;
+    undo(): void;
+    redo(): void;
+    readonly canUndo: boolean;
+    readonly canRedo: boolean;
+    readonly length: number;
+    private getEventArgs();
+    protected fire(eventName: string, args: any): void;
     /**
      * Use this method to register to events of the viewer like {@link Viewer#event:pick pick}, {@link Viewer#event:mouseDown mouseDown},
      * {@link Viewer#event:loaded loaded} and others. You can define arbitrary number

@@ -42,6 +42,7 @@ export declare class ModelHandle {
     setState(state: State, args: number | number[]): void;
     resetStates(): void;
     resetStyles(): void;
+    getProductsOfType(typeId: number): number[];
     getModelState(): Array<Array<number>>;
     restoreModelState(state: Array<Array<number>>): void;
 }

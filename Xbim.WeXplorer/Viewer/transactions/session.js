@@ -19,8 +19,8 @@ var Session = /** @class */ (function () {
      * @param doAction Action to do
      * @param undoAction Action to undo
      */
-    Session.prototype.Do = function (doAction, undoAction) {
-        //check if this is a do after undo. Shrink the stact in that case
+    Session.prototype.do = function (doAction, undoAction) {
+        //check if this is a do after undo. Shrink the stact in that is the case
         var shrink = this._do.length - this._position - 1;
         if (shrink > 0) {
             this._do.splice(this._position + 1);
@@ -31,47 +31,47 @@ var Session = /** @class */ (function () {
         this._undo.push(undoAction);
         this._position++;
         doAction();
-        this.fire('do', this.GetEventArgs());
+        this.fire('do', this.getEventArgs());
     };
-    Session.prototype.Undo = function () {
-        if (!this.CanUndo) {
+    Session.prototype.undo = function () {
+        if (!this.canUndo) {
             return;
         }
         var action = this._undo[this._position--];
         action();
-        this.fire('undo', this.GetEventArgs());
+        this.fire('undo', this.getEventArgs());
     };
-    Session.prototype.Redo = function () {
-        if (!this.CanRedo) {
+    Session.prototype.redo = function () {
+        if (!this.canRedo) {
             return;
         }
-        var action = this._undo[++this._position];
+        var action = this._do[++this._position];
         action();
-        this.fire('redo', this.GetEventArgs());
+        this.fire('redo', this.getEventArgs());
     };
-    Object.defineProperty(Session.prototype, "CanUndo", {
+    Object.defineProperty(Session.prototype, "canUndo", {
         get: function () {
             return this._position >= 0;
         },
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(Session.prototype, "CanRedo", {
+    Object.defineProperty(Session.prototype, "canRedo", {
         get: function () {
             return this._position < this._do.length - 1;
         },
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(Session.prototype, "Length", {
+    Object.defineProperty(Session.prototype, "length", {
         get: function () {
             return this._do.length;
         },
         enumerable: true,
         configurable: true
     });
-    Session.prototype.GetEventArgs = function () {
-        return { canUndo: this.CanUndo, canRedo: this.CanRedo, length: this.Length };
+    Session.prototype.getEventArgs = function () {
+        return { canUndo: this.canUndo, canRedo: this.canRedo, length: this.length };
     };
     //executes all handlers bound to event name
     Session.prototype.fire = function (eventName, args) {

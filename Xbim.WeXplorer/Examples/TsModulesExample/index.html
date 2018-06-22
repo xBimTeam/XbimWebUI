@@ -118,33 +118,48 @@
                 </button>
 			</div>
 			<div>
-				<button onclick="viewer.setState(states.HIDDEN, types.IFCSPACE)"> Hide spaces
+				<button onclick="hideSpaces()"> Hide spaces
 				</button>
-				<button onclick="viewer.setState(states.UNDEFINED, types.IFCSPACE)"> Show spaces
+				<button onclick="showSpaces()"> Show spaces
 				</button>
 			</div>
-			<div>
-				<form>
-					<label> 
-						<input type="radio" name="radioHiding" value="hideOne"/> Hide on click
-					</label>
-					<label> 
-						<input type="radio" name="radioHiding" value="hideType"/> Hide by type
-					</label>
-					<label> 
-						<input type="radio" name="radioHiding" value="noHide"/> No hiding
-					</label>
-				</form>
-				<button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.setState(states.UNDEFINED, types[i])}}"> Show all
-				</button>
-				<button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.setStyle(1, types[i])}}"> Make all glass
-				</button>
-				<button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.setStyle(2, types[i])}}"> Make all white
-				</button>
+            <div>
+                <form>
+                    <label>
+                        <input type="radio" name="radioHiding" value="hideOne" /> Hide on click
+                    </label>
+                    <label>
+                        <input type="radio" name="radioHiding" value="hideType" /> Hide by type
+                    </label>
+                    <label>
+                        <input type="radio" name="radioHiding" value="selectOne" /> Select One
+                    </label>
+                    <label>
+                        <input type="radio" name="radioHiding" value="addToSelection" /> Add to selection
+                    </label>
+                    <label>
+                        <input type="radio" name="radioHiding" value="selectType" /> Select by Type
+                    </label>
+                    <label>
+                        <input type="radio" name="radioHiding" value="noHide" /> No Action
+                    </label>
+                </form>
+                <button onclick="showAll()">
+                    Show all
+                </button>
+                <button onclick="clearSelection()">
+                    Clear selection
+                </button>
+                <button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.setStyle(1, types[i])}}">
+                    Make all glass
+                </button>
+                <button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.setStyle(2, types[i])}}">
+                    Make all white
+                </button>
                 <button onclick="for (var i in types) { if (types[i] !== types.IFCSPACE) { viewer.setStyle(states.UNSTYLED, types[i]) } }">
                     Make all default
                 </button>
-			</div>
+            </div>
             <div>
                 Rendering mode:
                 <br />
@@ -158,6 +173,12 @@
                     <input type="radio" name="radioRenderingMode" value="gray" onchange="viewer.renderingMode = RenderingMode.GRAYSCALE;" /> Grayscale
                 </label>
             </div>
+<div>
+    Visibility and selection
+<br/>
+    <button onclick="Undo()">Undo</button>
+    <button onclick="Redo()">Redo</button>
+</div>
 		</div>
         <script type="text/javascript">
             SystemJS.config({

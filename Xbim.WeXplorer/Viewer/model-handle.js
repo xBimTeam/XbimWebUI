@@ -343,6 +343,16 @@ var ModelHandle = /** @class */ (function () {
         this.bufferData(this._stateBuffer, this.model.states);
     };
     ;
+    ModelHandle.prototype.getProductsOfType = function (typeId) {
+        var products = [];
+        //it is type
+        for (var i in this.model.productMaps) {
+            var map = this.model.productMaps[i];
+            if (map.type === typeId)
+                products.push(map.productID);
+        }
+        return products;
+    };
     ModelHandle.prototype.getModelState = function () {
         var result = [];
         var products = this.model.productMaps;

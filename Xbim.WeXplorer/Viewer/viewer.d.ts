@@ -1,9 +1,11 @@
 import { State } from './state';
+import { ProductType } from './product-type';
 export { State } from './state';
 export { ProductType } from './product-type';
 export { ProductInheritance } from './product-inheritance';
 export { NavigationCube } from "./plugins/NavigationCube/navigation-cube";
 export { NavigationHome } from "./plugins/NavigationHome/navigation-home";
+export { ViewerSession } from './transactions/viewer-session';
 export declare class Viewer {
     /**
     * This is constructor of the xBIM Viewer. It gets HTMLCanvasElement or string ID as an argument. Viewer will than be initialized
@@ -127,6 +129,12 @@ export declare class Viewer {
     */
     setState(state: State, target: number | number[], modelId?: number): void;
     private forHandleOrAll<T>(callback, modelId);
+    /**
+     * Gets all product IDs of certain type
+     * @param {ProductType} type IFC product type
+     * @param {number} [modelId] optional ID of the model to ask for products
+     */
+    getProductsOfType(type: ProductType, modelId?: number): number[];
     /**
     * Use this function to get state of the products in the model. You can compare result of this function
     * with one of values from {@link xState xState} enumeration. 0xFF is the default value.

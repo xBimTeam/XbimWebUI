@@ -1,4 +1,4 @@
-﻿import { Viewer, RenderingMode } from "../../Viewer/viewer";
+﻿import { Viewer, RenderingMode, ViewerSession } from "../../Viewer/viewer";
 import { State } from "../../Viewer/state";
 import { ProductType } from "../../Viewer/product-type";
 import { NavigationCube } from "../../Viewer/plugins/NavigationCube/navigation-cube";
@@ -24,18 +24,20 @@ var QueryString = function () {
         }
     }
     return queryString;
-} ();
+}();
 
 
 var viewer = new Viewer("xBIM-viewer");
 var types = ProductType;
 var states = State;
+var session = new ViewerSession(viewer);
 
 //make these global for the page
 document['viewer'] = viewer;
 document['types'] = types;
 document['states'] = states;
 document['RenderingMode'] = RenderingMode;
+window['session'] = session;
 
 viewer.background = [0, 0, 0, 0];
 viewer.on("error", function (arg) {
@@ -46,6 +48,7 @@ viewer.on("error", function (arg) {
     }
 });
 var model = "";
+var modelId = -1;
 if (typeof (QueryString["model"]) == "undefined") model = "/tests/data/SampleHouse.wexbim";
 else model = "/tests/data/" + QueryString["model"] + ".wexbim";
 viewer.show("back");
@@ -64,6 +67,9 @@ viewer.on("fps", function (fps) {
         span.innerHTML = fps;
     }
 });
+viewer.on('loaded', function (args) {
+    modelId = args.id;
+});
 var span = document.getElementById("fpt") as HTMLElement;
 if (span) {
     span.innerHTML = "0";
@@ -75,20 +81,17 @@ viewer.start();
 viewer.defineStyle(0, [255, 0, 0, 255]);  //red
 viewer.defineStyle(1, [0, 0, 255, 100]);  //semitransparent blue
 viewer.defineStyle(2, [255, 255, 255, 255]); //white
+
 document['makeWallsRed'] = function () {
     viewer.setStyle(0, types.IFCWALLSTANDARDCASE);
     viewer.setStyle(0, types.IFCCURTAINWALL);
     viewer.setStyle(0, types.IFCWALL);
 }
 document['selectAllWalls'] = function () {
-    viewer.setState(State.HIGHLIGHTED, types.IFCWALLSTANDARDCASE);
-    viewer.setState(State.HIGHLIGHTED, types.IFCCURTAINWALL);
-    viewer.setState(State.HIGHLIGHTED, types.IFCWALL);
+    session.selectType([types.IFCWALLSTANDARDCASE, types.IFCCURTAINWALL, types.IFCWALL], true);
 }
 document['hideWalls'] = function () {
-    viewer.setState(State.HIDDEN, types.IFCWALLSTANDARDCASE);
-    viewer.setState(State.HIDDEN, types.IFCCURTAINWALL);
-    viewer.setState(State.HIDDEN, types.IFCWALL);
+    session.hideType([types.IFCWALLSTANDARDCASE, types.IFCCURTAINWALL, types.IFCWALL]);
 }
 document['resetWalls'] = function () {
     viewer.setState(State.UNDEFINED, types.IFCWALLSTANDARDCASE);
@@ -99,14 +102,47 @@ document['resetWalls'] = function () {
 document['clip'] = function () {
     viewer.clippingPlaneA = [0, 0, -1, 2000];
     viewer.clippingPlaneB = [0, 0, 1, 100];
-}  
+}
 document['unclip'] = function () {
     viewer.clippingPlaneA = null;
     viewer.clippingPlaneB = null;
-}  
+}
+
+document['showSpaces'] = function () {
+    session.showType(ProductType.IFCSPACE);
+}
+
+document['showAll'] = function () {
+    session.show(session.hidden);
+}
+
+document['clearSelection'] = function () {
+    session.select([], true);
+}
+
+document['hideSpaces'] = function () {
+    session.hideType(ProductType.IFCSPACE);
+}
+
+document['Redo'] = function () {
+    if (session.canRedo) {
+        session.redo();
+    } else {
+        console.log('Nothing to redo.');
+    }
+}
+
+document['Undo'] = function () {
+    if (session.canUndo) {
+        session.undo();
+    } else {
+        console.log('Nothing to undo.');
+    }
+}
 
 viewer.on("pick", function (args) {
     var id = args.id;
+    var modelId = args.model;
     var radios = document.getElementsByName("radioHiding");
     for (var i in radios) {
         if (radios.hasOwnProperty(i)) {
@@ -114,10 +150,22 @@ viewer.on("pick", function (args) {
             if (radio.checked) {
                 var val = radio.value;
                 if (val === "noHiding") return;
-                if (val === "hideOne") viewer.setState(State.HIDDEN, [id]);
+                if (val === "hideOne") {
+                    session.hide([{ id, modelId }]);
+                }
+                if (val === "selectOne") {
+                    session.select([{ id, modelId }], true);
+                }
+                if (val === "addToSelection") {
+                    session.select([{ id, modelId }], false);
+                }
                 if (val === "hideType") {
                     var type = viewer.getProductType(id);
-                    viewer.setState(State.HIDDEN, type);
+                    session.hideType(type);
+                }
+                if (val === "selectType") {
+                    var type = viewer.getProductType(id);
+                    session.selectType(type, true);
                 }
                 break;
             }
@@ -127,5 +175,37 @@ viewer.on("pick", function (args) {
     //viewer.zoomTo(id);
 });
 
+//var mode = "addToSelection";
+//viewer.on("pick", function (args) {
+//    var id = args.id;
+//    var modelId = args.model;
+
+//    if (mode === "hideOne") {
+//        // this will hide single product. Use session.show([{ id, modelId }]) to show a single product
+//        session.hide([{ id, modelId }]);
+//    }
+//    if (mode === "selectOne") {
+//        // true will clear current selection and only select defined products
+//        session.select([{ id, modelId }], true);
+//    }
+//    if (mode === "addToSelection") {
+//        // false will keep current selection and will add to it
+//        session.select([{ id, modelId }], false);
+//    }
+//    if (mode === "hideType") {
+//        var type = viewer.getProductType(id, modelId);
+//        session.hideType(type);
+//    }
+//    if (mode === "selectType") {
+//        var type = viewer.getProductType(id, modelId);
+//        // true will replace current selection. False would add to current selection
+//        session.selectType(type, true);
+//    }
+//});
+
 var cube = new NavigationCube();
 viewer.addPlugin(cube);
+
+session.on('show', (ids) => { console.log('Show: ' + ids.map(i => i.id).toString()) });
+session.on('hide', (ids) => { console.log('Hide: ' + ids.map(i => i.id).toString()) });
+session.on('selection', (ids) => { console.log('Selection: ' + ids.map(i => i.id).toString()) });

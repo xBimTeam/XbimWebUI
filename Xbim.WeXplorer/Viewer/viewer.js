@@ -21,6 +21,8 @@ var navigation_cube_1 = require("./plugins/NavigationCube/navigation-cube");
 exports.NavigationCube = navigation_cube_1.NavigationCube;
 var navigation_home_1 = require("./plugins/NavigationHome/navigation-home");
 exports.NavigationHome = navigation_home_1.NavigationHome;
+var viewer_session_1 = require("./transactions/viewer-session");
+exports.ViewerSession = viewer_session_1.ViewerSession;
 var Viewer = /** @class */ (function () {
     /**
     * This is constructor of the xBIM Viewer. It gets HTMLCanvasElement or string ID as an argument. Viewer will than be initialized
@@ -386,6 +388,16 @@ var Viewer = /** @class */ (function () {
             });
             return result_1;
         }
+    };
+    /**
+     * Gets all product IDs of certain type
+     * @param {ProductType} type IFC product type
+     * @param {number} [modelId] optional ID of the model to ask for products
+     */
+    Viewer.prototype.getProductsOfType = function (type, modelId) {
+        return this.forHandleOrAll(function (h) {
+            return h.getProductsOfType(type);
+        }, modelId);
     };
     /**
     * Use this function to get state of the products in the model. You can compare result of this function
