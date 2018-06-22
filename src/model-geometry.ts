@@ -23,6 +23,7 @@ export class ModelGeometry {
     styles: Uint8Array;
 
     meter = 1000;
+    wcs = [0,0,0];
 
     //this will be used to change appearance of the objects
     //map objects have a format: 
@@ -38,6 +39,7 @@ export class ModelGeometry {
     private _iIndexBackward = 0;
     private _iTransform = 0;
     private _iMatrix = 0;
+    private _maxVersionSupported = 3;
 
     public productMaps: { [id: number]: ProductMap } = {};
     public productIdLookup = [];
@@ -52,8 +54,9 @@ export class ModelGeometry {
 
         let br = binReader;
         let magicNumber = br.readInt32();
-        if (magicNumber != 94132117) throw 'Magic number mismatch.';
+        if (magicNumber != 94132117) throw new Error('Magic number mismatch.');
         let version = br.readByte();
+        if (version > this._maxVersionSupported) throw new Error(`Viewer doesn't support version ${version} of the wexBIM stream`);
         let numShapes = br.readInt32();
         let numVertices = br.readInt32();
         let numTriangles = br.readInt32();
