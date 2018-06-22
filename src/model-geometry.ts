@@ -9,21 +9,21 @@ export class ModelGeometry {
     private progress: (message: Message) => void;
 
     //all this data is to be fed into GPU as attributes
-    normals: Uint8Array;
-    indices: Float32Array;
-    products: Float32Array;
-    transformations: Float32Array;
-    styleIndices: Uint16Array;
-    states: Uint8Array;
+    public normals: Uint8Array;
+    public indices: Float32Array;
+    public products: Float32Array;
+    public transformations: Float32Array;
+    public styleIndices: Uint16Array;
+    public states: Uint8Array;
     //this is the only array we need to keep alive on client side to be able to change appearance of the model
 
     //these will be sent to GPU as the textures
-    vertices: Float32Array;
-    matrices: Float32Array;
-    styles: Uint8Array;
+    public vertices: Float32Array;
+    public matrices: Float32Array;
+    public styles: Uint8Array;
 
-    meter = 1000;
-    wcs = [0,0,0];
+    public meter = 1000;
+    public wcs = [0, 0, 0];
 
     //this will be used to change appearance of the objects
     //map objects have a format: 
@@ -39,7 +39,7 @@ export class ModelGeometry {
     private _iIndexBackward = 0;
     private _iTransform = 0;
     private _iMatrix = 0;
-    private _maxVersionSupported = 3;
+    private _maxVersionSupported = 4;
 
     public productMaps: { [id: number]: ProductMap } = {};
     public productIdLookup = [];
@@ -60,10 +60,14 @@ export class ModelGeometry {
         let numShapes = br.readInt32();
         let numVertices = br.readInt32();
         let numTriangles = br.readInt32();
-        let numMatrices = br.readInt32();;
-        let numProducts = br.readInt32();;
-        let numStyles = br.readInt32();;
-        this.meter = br.readFloat32();;
+        let numMatrices = br.readInt32();
+        let numProducts = br.readInt32();
+        let numStyles = br.readInt32();
+        this.meter = br.readFloat32();
+        if (version > 3) {
+            this.wcs = [br.readFloat64(), br.readFloat64(), br.readFloat64()];
+        }
+
         let numRegions = br.readInt16();
 
         //create target buffers of correct sizes (avoid reallocation of memory, work with native typed arrays)
