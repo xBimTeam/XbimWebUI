@@ -51,13 +51,9 @@ export class ModelHandle {
     public set isolatedProducts(value: number[]) { this._drawProductIds = value; this.changed = true; }
 
     public getRegion(wcs: vec3): Region {
-        const shift = vec3.subtract(vec3.create(), this.wcs, wcs);
+        let result: Region = null;
         if (this.isolatedProducts == null) {
-            let result = Region.clone(this._region);
-            result.centre = vec3.add(vec3.create(), result.centre, shift);
-            let bboxOrigin = vec3.add(vec3.create(), shift, result.bbox.subarray(0, 3));
-            result.bbox.set(new Float32Array(bboxOrigin), 0);
-            return result;
+            result = Region.clone(this._region);
         } else {
             let maps: ProductMap[] = [];
             this.isolatedProducts.forEach(id => {
@@ -90,16 +86,23 @@ export class ModelHandle {
                 return new Float32Array([x, y, z, sx, sy, sz]);
 
             }, null);
-            const region = new Region();
-            region.population = maps.length;
-            region.bbox = bb;
-            region.centre = new Float32Array([
+            result = new Region();
+            result.population = maps.length;
+            result.bbox = bb;
+            result.centre = new Float32Array([
                 bb[0] + bb[3] / 2.0,
                 bb[1] + bb[4] / 2.0,
                 bb[2] + bb[5] / 2.0
             ]);
-            return region;
+            return result;
         }
+
+        // fix local displacement
+        const shift = vec3.subtract(vec3.create(), this.wcs, wcs);
+        result.centre = vec3.add(vec3.create(), shift, result.centre);
+        let bboxOrigin = vec3.add(vec3.create(), shift, result.bbox.subarray(0, 3));
+        result.bbox.set(new Float32Array(bboxOrigin), 0);
+        return result;
     }
 
     /**
