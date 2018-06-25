@@ -57,7 +57,7 @@ export class ModelHandle {
         } else {
             let maps: ProductMap[] = [];
             this.isolatedProducts.forEach(id => {
-                const map = this.getProductMap(id);
+                const map = this.getProductMap(id, wcs);
                 if (map) {
                     maps.push(map);
                 }
@@ -415,11 +415,21 @@ export class ModelHandle {
         return this._model.productIdLookup[renderId];
     }
 
-    public getProductMap(id: number): ProductMap {
+    public getProductMap(id: number, wcs?: vec3): ProductMap {
         if (this._empty) return null;
 
-        var map = this._model.productMaps[id];
-        if (typeof (map) !== 'undefined') return map;
+        let map = this._model.productMaps[id];
+        if (map != null) {
+            if (wcs != null) {
+                // create clone before we start changing it
+                map = ProductMap.clone(map);
+                const origin = map.bBox.subarray(0, 3);
+                const shift = vec3.subtract(vec3.create(), this.wcs, wcs);
+                const position = vec3.add(vec3.create(), origin, shift);
+                map.bBox.set(position, 0);
+            }
+            return map;
+        }
         return null;
     }
 
@@ -429,7 +439,7 @@ export class ModelHandle {
 
         ids.forEach(id => {
             var map = this._model.productMaps[id];
-            if (typeof (map) !== 'undefined')
+            if (map != null)
                 result.push(map);
         });
 

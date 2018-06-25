@@ -338,6 +338,16 @@ export class ProductMap {
     type: ProductType;
     bBox: Float32Array;
     spans: Array<Int32Array>;
+
+    public static clone(o: ProductMap): ProductMap {
+        const c = new ProductMap();
+        c.productID = o.productID;
+        c.renderId - o.renderId;
+        c.type = o.type;
+        c.bBox = new Float32Array(o.bBox);
+        c.spans = o.spans;
+        return c;
+    }
 }
 
 export class Region {

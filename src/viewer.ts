@@ -731,10 +731,11 @@ export class Viewer {
         }
 
         //set navigation origin and default distance to the product BBox
-        if (typeof (prodId) !== 'undefined' && prodId != null) {
+        if (prodId != null) {
+            const wcs = this.getCurrentWcs();
             //get product BBox and set it's centre as a navigation origin
             let bbox = this.forHandleOrAll((handle: ModelHandle) => {
-                let map = handle.getProductMap(prodId);
+                let map = handle.getProductMap(prodId, wcs);
                 if (map) {
                     return map.bBox;
                 }
