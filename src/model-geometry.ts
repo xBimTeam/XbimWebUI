@@ -360,15 +360,15 @@ export class Region {
     /**
      * Returns clone of this region
      */
-    public clone(): Region {
+    public static clone(o: Region): Region {
         let clone = new Region();
 
-        clone.population = this.population;
-        if (this.centre) {
-            clone.centre = new Float32Array(this.centre);
+        clone.population = o.population;
+        if (o.centre) {
+            clone.centre = new Float32Array(o.centre);
         }
-        if (this.bbox) {
-            clone.bbox = new Float32Array(this.bbox);
+        if (o.bbox) {
+            clone.bbox = new Float32Array(o.bbox);
         }
 
         return clone;

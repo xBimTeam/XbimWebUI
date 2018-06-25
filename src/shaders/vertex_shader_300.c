@@ -16,6 +16,9 @@ uniform vec4 uHighlightColour;
 //One meter
 uniform float uMeter;
 
+// World Coordinate System translation
+uniform vec3 uWcs;
+
 //sets if all the colours are only to be used for colour coding of IDs
 //this is used for picking
 uniform int uColorCoding;
@@ -232,6 +235,9 @@ void main(void) {
 		vColor = baseColor;
 	}
 
+	// apply world coordinate translation to align all models
+	mat4 w = mat4(1.0);
+	w[3] = w[3] + vec4(uWcs, 0.0);
 	// transform to GL space
-	gl_Position = uPMatrix * uMVMatrix * vec4(vPosition, 1.0);
+	gl_Position = uPMatrix *  uMVMatrix * w * vec4(vPosition, 1.0);
 }

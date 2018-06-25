@@ -199,7 +199,7 @@ export class Viewer {
         */
         this.perspectiveCamera = {
             /** @member {Number} PerspectiveCamera#fov - Field of view*/
-            fov: 45,
+            fov: 53,
             /** @member {Number} PerspectiveCamera#near - Near cutting plane*/
             near: 0,
             /** @member {Number} PerspectiveCamera#far - Far cutting plane*/
@@ -761,10 +761,11 @@ export class Viewer {
 
     private getMergedRegion(): Region {
         let region = new Region();
+        const wcs = this.getCurrentWcs();
         this._handles
-            .filter((h) => h != null && !h.stopped && h.region != null)
+            .filter((h) => h != null && !h.stopped && h.getRegion(wcs) != null)
             .forEach((h) => {
-                region = region.merge(h.region);
+                region = region.merge(h.getRegion(wcs));
             });
         return region;
     }
@@ -773,12 +774,13 @@ export class Viewer {
         let volume = (box: Float32Array) => {
             return box[3] * box[4] * box[5];
         }
+        const wcs = this.getCurrentWcs();
 
         let handle = this._handles
-            .filter((h) => h != null && !h.stopped && h.region != null)
+            .filter((h) => h != null && !h.stopped && h.getRegion(wcs) != null)
             .sort((a, b) => {
-                let volA = volume(a.region.bbox);
-                let volB = volume(b.region.bbox);
+                let volA = volume(a.getRegion(wcs).bbox);
+                let volB = volume(b.getRegion(wcs).bbox);
                 if (volA < volB) {
                     return -1;
                 }
@@ -791,7 +793,7 @@ export class Viewer {
             })
             .pop();
         if (handle)
-            return handle.region;
+            return handle.getRegion(wcs);
         else
             return null;
     }
@@ -801,10 +803,10 @@ export class Viewer {
     * @function Viewer#set
     * @param {Object} settings - Object containing key - value pairs
     */
-    public set(settings) {
-        for (var key in settings) {
+    public set(settings: object): void {
+        Object.getOwnPropertyNames(settings).forEach(key => {
             this[key] = settings[key];
-        }
+        });
     };
 
     /**
@@ -1578,6 +1580,14 @@ export class Viewer {
         this.mvMatrix = mat4.multiply(mat4.create(), transform, this.mvMatrix);
     }
 
+    private getCurrentWcs(): vec3 {
+        let wcs: vec3 = vec3.create();
+        const activeModels = this._handles.filter(h => !h.stopped);
+        if (activeModels.length > 0) {
+            wcs = activeModels[0].wcs;
+        }
+        return wcs;
+    }
     /**
     * This is a static draw method. You can use it if you just want to render model once with no navigation and interaction.
     * If you want interactive model call {@link Viewer#start start()} method. {@link Viewer#frame Frame event} is fired when draw call is finished.
@@ -1588,6 +1598,9 @@ export class Viewer {
         if (this._handles.length === 0) {
             return;
         }
+
+        const activeModels = this._handles.filter(h => !h.stopped);
+        let wcs = this.getCurrentWcs();
 
         //call all before-draw plugins
         this._plugins.forEach((plugin) => {
@@ -1664,14 +1677,14 @@ export class Viewer {
             //this makes sure that transparent objects are always rendered at the end.
             this._handles.forEach((handle) => {
                 if (!handle.stopped) {
-                    handle.setActive(this._pointers);
+                    handle.setActive(this._pointers, wcs);
                     handle.draw(DrawMode.SOLID);
                 }
             });
 
             this._handles.forEach((handle) => {
                 if (!handle.stopped) {
-                    handle.setActive(this._pointers);
+                    handle.setActive(this._pointers, wcs);
                     handle.draw(DrawMode.TRANSPARENT);
                 }
             });
@@ -1688,6 +1701,7 @@ export class Viewer {
 
     private drawXRAY(gl: WebGLRenderingContext) {
         const mode = this.renderingMode;
+        const wcs = this.getCurrentWcs();
 
         const transparentPass = () => {
             gl.enable(gl.CULL_FACE);
@@ -1699,7 +1713,7 @@ export class Viewer {
             gl.depthMask(false);
             this._handles.forEach((handle) => {
                 if (!handle.stopped) {
-                    handle.setActive(this._pointers);
+                    handle.setActive(this._pointers, wcs);
                     handle.draw();
                 }
             });
@@ -1713,7 +1727,7 @@ export class Viewer {
             gl.enable(gl.DEPTH_TEST);
             this._handles.forEach((handle) => {
                 if (!handle.stopped) {
-                    handle.setActive(this._pointers);
+                    handle.setActive(this._pointers, wcs);
                     handle.draw();
                 }
             });
@@ -1976,13 +1990,15 @@ export class Viewer {
         //set uniform for colour coding
         gl.uniform1i(this._colorCodingUniformPointer, ColourCoding.PRODUCTS);
 
+        const wcs = this.getCurrentWcs();
+
         //render colour coded image using latest buffered data
         this._handles.forEach((handle) => {
             if (!handle.stopped && handle.pickable) {
                 if (modelId) {
                     gl.uniform1i(this._colorCodingUniformPointer, handle.id);
                 }
-                handle.setActive(this._pointers);
+                handle.setActive(this._pointers, wcs);
                 handle.draw();
             }
         });

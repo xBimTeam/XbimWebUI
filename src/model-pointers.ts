@@ -13,6 +13,7 @@
     public MatrixTextureSizeUniform: WebGLUniformLocation;
     public StyleTextureSizeUniform: WebGLUniformLocation;
     public MeterUniform: WebGLUniformLocation;
+    public WcsUniform: WebGLUniformLocation;
 
     public ClippingAUniform: WebGLUniformLocation;
     public ClippingBUniform: WebGLUniformLocation;
@@ -41,6 +42,7 @@
         this.ClippingPlaneBUniform = gl.getUniformLocation(program, 'uClippingPlaneB');
         this.ClippingBUniform = gl.getUniformLocation(program, 'uClippingB');
         this.MeterUniform = gl.getUniformLocation(program, 'uMeter');
+        this.WcsUniform = gl.getUniformLocation(program, 'uWcs');
 
 
         //enable vertex attributes arrays

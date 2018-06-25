@@ -49,6 +49,10 @@ var modelId = QueryString["model"];
 var model = "";
 if (typeof (modelId) == "undefined") model = "/tests/data/SampleHouse.wexbim";
 else model = "/tests/data/" + modelId + ".wexbim";
+if (modelId != null && modelId === 'v4') {
+    model = modelId;
+}
+
 viewer.show(ViewType.BACK);
 viewer.on("pick", function (arg) {
     var span = document.getElementById("coords");
@@ -84,10 +88,16 @@ versionSpan.innerHTML = viewer.glVersion.toString();
 
 var progress = document.getElementById("progress")
 
-//viewer.load(model, "base");
-viewer.load(model, "base", null, (msg) => {
-    progress.innerHTML = `${msg.message} [${msg.percent}%]`;
-});
+if (model === 'v4') {
+    viewer.loadAsync("/tests/data/v4/CubeA.wexbim", "A", null, (msg) => {
+        progress.innerHTML = `${msg.message} [${msg.percent}%]`;
+    });    
+} else {
+    //viewer.load(model, "base");
+    viewer.load(model, "base", null, (msg) => {
+        progress.innerHTML = `${msg.message} [${msg.percent}%]`;
+    });
+}
 viewer.start();
 
 var cube = new NavigationCube();

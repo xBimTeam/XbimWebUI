@@ -3,6 +3,7 @@ import { State } from "./state";
 import { ModelPointers } from "./model-pointers";
 import { Product } from "./product-inheritance";
 import { Message, MessageType } from "./message";
+import { vec3 } from "./matrix/vec3";
 
 //this class holds pointers to textures, uniforms and data buffers which
 //make up a model in GPU
@@ -22,6 +23,11 @@ export class ModelHandle {
      * Conversion factor to one meter from model units
      */
     public meter: number;
+
+    /**
+     * local World Coordinate System origin
+     */
+    public wcs: vec3 = vec3.create();
 
     /**
      * indicates if this model should be used in a rendering loop or not.
@@ -44,9 +50,14 @@ export class ModelHandle {
     public get isolatedProducts(): number[] { return this._drawProductIds; }
     public set isolatedProducts(value: number[]) { this._drawProductIds = value; this.changed = true; }
 
-    public get region(): Region {
+    public getRegion(wcs: vec3): Region {
+        const shift = vec3.subtract(vec3.create(), this.wcs, wcs);
         if (this.isolatedProducts == null) {
-            return this._region;
+            let result = Region.clone(this._region);
+            result.centre = vec3.add(vec3.create(), result.centre, shift);
+            let bboxOrigin = vec3.add(vec3.create(), shift, result.bbox.subarray(0, 3));
+            result.bbox.set(new Float32Array(bboxOrigin), 0);
+            return result;
         } else {
             let maps: ProductMap[] = [];
             this.isolatedProducts.forEach(id => {
@@ -167,6 +178,7 @@ export class ModelHandle {
         this.id = ModelHandle._instancesNum++;
 
         this.meter = _model.meter;
+        this.wcs = _model.wcs;
 
         // handle the case when there is actually nothing in the model
         if (_model.indices.length === 0) {
@@ -187,13 +199,13 @@ export class ModelHandle {
 
         // set the most populated region
         regions.forEach((region) => {
-            if (region.population > this.region.population) {
+            if (region.population > this._region.population) {
                 this._region = region;
             }
         });
 
         // set default region if no region is defined. This shouldn't ever happen if model contains any geometry.
-        if (this.region == null) {
+        if (this.getRegion == null) {
             this._region = new Region();
             this._region.population = 1;
             this._region.centre = new Float32Array([0.0, 0.0, 0.0]);
@@ -231,7 +243,7 @@ export class ModelHandle {
     //this function sets this model as an active one
     //it needs an argument 'pointers' which contains pointers to
     //shader attributes and uniforms which are to be set.
-    public setActive(pointers: ModelPointers): void {
+    public setActive(pointers: ModelPointers, wcs: vec3): void {
         if (this.stopped || this._empty) {
             return;
         }
@@ -280,6 +292,12 @@ export class ModelHandle {
         gl.uniform1f(pointers.StyleTextureSizeUniform, this._styleTextureSize);
 
         gl.uniform1f(pointers.MeterUniform, this.meter);
+
+        // only shift by difference between this WCS and current global wcs
+        // this is expected to be a small correction allowing to work with relatively small numbers
+        //  in the viewer for models in real world coordinates
+        var diff = vec3.subtract(vec3.create(), this.wcs, wcs);
+        gl.uniform3fv(pointers.WcsUniform, new Float32Array(diff));
 
         //clipping uniforms
         gl.uniform1i(pointers.ClippingAUniform, this._clippingA ? 1 : 0);
