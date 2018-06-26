@@ -33,7 +33,7 @@ export class Viewer {
      * Switch between different navigation modes for left mouse button. Allowed values: <strong> 'pan', 'zoom', 'orbit' (or 'fixed-orbit') , 'free-orbit' and 'none'</strong>. Default value is <strong>'orbit'</strong>;
      * @member {String} Viewer#navigationMode
      */
-    public navigationMode: 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none' | 'look-around' = 'orbit';
+    public navigationMode: 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none' | 'look-around' | 'walk' = 'orbit';
 
     public get perspectiveCamera(): { fov: number, near: number, far: number } { return this._perspectiveCamera; }
     public set perspectiveCamera(value: { fov: number, near: number, far: number }) { this._perspectiveCamera = value; this.changed = true; }
@@ -129,7 +129,7 @@ export class Viewer {
     private _plugins: IPlugin[] = [];
     //Array of handles which can eventually contain handles to one or more models.
     private _handles: ModelHandle[] = [];
-    private get _activeHandles() { return this._handles.filter((h) => { return !h.stopped }); };
+    private get _activeHandles() { return this._handles.filter((h) => { return h != null && !h.stopped && !h.empty; }); };
     //shader program used for rendering
     private _shaderProgram: WebGLProgram = null;
 
@@ -145,6 +145,7 @@ export class Viewer {
     // and '.off('eventname', callback)'. Registered call-backs are triggered by the viewer when important events occur.
     private _events: { [id: string]: Array<(args: { message: string } | { event: Event, id: number, model: number } | { model: number, tag: any } | number) => void>; } = {};
 
+    // pointers to WebGL shader attributes and uniforms
     private _pointers: ModelPointers;
 
     /**
@@ -763,41 +764,43 @@ export class Viewer {
     private getMergedRegion(): Region {
         let region = new Region();
         const wcs = this.getCurrentWcs();
-        this._handles
-            .filter((h) => h != null && !h.stopped && h.getRegion(wcs) != null)
+        this._activeHandles
             .forEach((h) => {
-                region = region.merge(h.getRegion(wcs));
+                const r = h.getRegion(wcs);
+                if (r != null) {
+                    region = region.merge(h.getRegion(wcs));
+                }
             });
         return region;
     }
 
-    private getBiggestRegion(): Region {
-        let volume = (box: Float32Array) => {
-            return box[3] * box[4] * box[5];
-        }
-        const wcs = this.getCurrentWcs();
+    // private getBiggestRegion(): Region {
+    //     let volume = (box: Float32Array) => {
+    //         return box[3] * box[4] * box[5];
+    //     }
+    //     const wcs = this.getCurrentWcs();
 
-        let handle = this._handles
-            .filter((h) => h != null && !h.stopped && h.getRegion(wcs) != null)
-            .sort((a, b) => {
-                let volA = volume(a.getRegion(wcs).bbox);
-                let volB = volume(b.getRegion(wcs).bbox);
-                if (volA < volB) {
-                    return -1;
-                }
-                if (volA == volB) {
-                    return 0;
-                }
-                if (volA > volB) {
-                    return 1;
-                }
-            })
-            .pop();
-        if (handle)
-            return handle.getRegion(wcs);
-        else
-            return null;
-    }
+    //     let handle = this._handles
+    //         .filter((h) => h != null && !h.stopped && h.getRegion(wcs) != null)
+    //         .sort((a, b) => {
+    //             let volA = volume(a.getRegion(wcs).bbox);
+    //             let volB = volume(b.getRegion(wcs).bbox);
+    //             if (volA < volB) {
+    //                 return -1;
+    //             }
+    //             if (volA == volB) {
+    //                 return 0;
+    //             }
+    //             if (volA > volB) {
+    //                 return 1;
+    //             }
+    //         })
+    //         .pop();
+    //     if (handle)
+    //         return handle.getRegion(wcs);
+    //     else
+    //         return null;
+    // }
 
     /**
     * This method can be used for batch setting of viewer members. It doesn't check validity of the input.
@@ -2086,7 +2089,6 @@ export class Viewer {
             }
 
             handle.stopped = false;
-            handle.changed = true;
 
             // if the viewer is running already we can return from here
             if (this._isRunning) {
@@ -2117,7 +2119,8 @@ export class Viewer {
                 lastTime = newTime;
                 var fps = 1000 / span * 30;
                 /**
-                * Occurs after every 30th frame in animation. Use this event if you want to report FPS to the user. It might also be interesting performance measure.
+                * Occurs after every 30th frame in animation. Use this event if you want 
+                * to report FPS to the user. It might also be an interesting performance measure.
                 *
                 * @event Viewer#fps 
                 * @type {Number}
@@ -2130,8 +2133,9 @@ export class Viewer {
             }
 
             if (this._handles.length !== 0 && (this.changed || this._activeHandles.filter(h => h.changed).length != 0)) {
-                this.draw();
+
                 this.changed = false;
+                this.draw();
             }
             window.requestAnimationFrame(tick)
         }

@@ -32,7 +32,9 @@ export class ModelHandle {
     /**
      * indicates if this model should be used in a rendering loop or not.
      */
-    public stopped: boolean = false;
+    public get stopped(): boolean { return this._stopped; }
+    public set stopped(value: boolean) { this._stopped = value; this._changed = true; }
+    private _stopped: boolean = false;
 
     /**
      * participates in picking operation only if true
@@ -48,7 +50,7 @@ export class ModelHandle {
      * If drawProductId is defined, only this single product is drawn
      */
     public get isolatedProducts(): number[] { return this._drawProductIds; }
-    public set isolatedProducts(value: number[]) { this._drawProductIds = value; this.changed = true; }
+    public set isolatedProducts(value: number[]) { this._drawProductIds = value; this._changed = true; }
 
     public getRegion(wcs: vec3): Region {
         let result: Region = null;
@@ -109,7 +111,18 @@ export class ModelHandle {
      * Indicates if there are any changes to be drawn.
      * This flag is checked by the viewer to see if redraw is necessary
      */
-    public changed: boolean = true;
+    public get changed(): boolean {
+        return this._changed;
+    }
+    private _changed = false;
+
+    /**
+     * Some models are empty - they don't contain any geometry
+     */
+    public get empty(): boolean {
+        return this._empty;
+    }
+    private _empty = false;
 
     private _region: Region;
     private _drawProductIds: number[] = null;
@@ -135,7 +148,6 @@ export class ModelHandle {
     private _clippingB: boolean = false;
 
     private _glVersion: number = 1;
-    private _empty = false;
 
     private get gl1(): WebGLRenderingContext {
         return this._glVersion === 1 ? this._gl : null;
@@ -148,7 +160,7 @@ export class ModelHandle {
     public set clippingPlaneA(plane: number[]) {
         this._clippingPlaneA = plane;
         this._clippingA = plane != null;
-        this.changed = true;
+        this._changed = true;
     }
 
     public get clippingPlaneA(): number[] {
@@ -158,7 +170,7 @@ export class ModelHandle {
     public set clippingPlaneB(plane: number[]) {
         this._clippingPlaneB = plane;
         this._clippingB = plane != null;
-        this.changed = true;
+        this._changed = true;
     }
 
     public get clippingPlaneB(): number[] {
@@ -186,16 +198,18 @@ export class ModelHandle {
         // handle the case when there is actually nothing in the model
         if (_model.indices.length === 0) {
             this._empty = true;
+            this._changed = false;
             return;
         }
 
         this.InitGlBuffersAndTextures(_gl);
         this.InitRegions(_model.regions);
         this.InitGPU(_gl, _model, progress);
+        this._changed = true;
     }
 
     private InitRegions(regions: Region[]): void {
-        if (this._empty) {
+        if (this.empty) {
             return;
         }
         this._region = regions[0];
@@ -208,16 +222,16 @@ export class ModelHandle {
         });
 
         // set default region if no region is defined. This shouldn't ever happen if model contains any geometry.
-        if (this.getRegion == null) {
+        if (this._region == null) {
             this._region = new Region();
-            this._region.population = 1;
+            this._region.population = 0;
             this._region.centre = new Float32Array([0.0, 0.0, 0.0]);
-            this._region.bbox = new Float32Array([0.0, 0.0, 0.0, 10 * this.meter, 10 * this.meter, 10 * this.meter]);
+            this._region.bbox = new Float32Array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
         }
     }
 
     private InitGlBuffersAndTextures(gl: WebGLRenderingContext): void {
-        if (this._empty) {
+        if (this.empty) {
             return;
         }
 
@@ -247,7 +261,7 @@ export class ModelHandle {
     //it needs an argument 'pointers' which contains pointers to
     //shader attributes and uniforms which are to be set.
     public setActive(pointers: ModelPointers, wcs: vec3): void {
-        if (this.stopped || this._empty) {
+        if (this.stopped || this.empty) {
             return;
         }
 
@@ -315,7 +329,10 @@ export class ModelHandle {
 
     //this function must be called AFTER 'setActive()' function which sets up active buffers and uniforms
     public draw(mode?: DrawMode): void {
-        if (this.stopped || this._empty) {
+        // reset flag because current state is drawn
+        this._changed = false;
+
+        if (this.stopped || this.empty) {
             return;
         }
 
@@ -329,9 +346,6 @@ export class ModelHandle {
                 return result;
             }, new Array<ProductMap>())
             : null;
-
-        // reset flag because current state is drawn
-        this.changed = false;
 
         // if isolated product is requested but is not in this handle, don't draw and return
         if (maps != null && maps.length === 0) {
@@ -410,13 +424,13 @@ export class ModelHandle {
 
 
     public getProductId(renderId: number): number {
-        if (this._empty) return null;
+        if (this.empty) return null;
 
         return this._model.productIdLookup[renderId];
     }
 
     public getProductMap(id: number, wcs?: vec3): ProductMap {
-        if (this._empty) return null;
+        if (this.empty) return null;
 
         let map = this._model.productMaps[id];
         if (map != null) {
@@ -435,7 +449,7 @@ export class ModelHandle {
 
     public getProductMaps(ids: number[]): ProductMap[] {
         let result = new Array<ProductMap>();
-        if (this._empty) return result;
+        if (this.empty) return result;
 
         ids.forEach(id => {
             var map = this._model.productMaps[id];
@@ -447,7 +461,7 @@ export class ModelHandle {
     }
 
     public unload() {
-        if (this._empty) return null;
+        if (this.empty) return null;
 
         var gl = this._gl;
 
@@ -464,7 +478,7 @@ export class ModelHandle {
     }
 
     private InitGPU(gl: WebGLRenderingContext, model: ModelGeometry, progress: (msg: Message) => void) {
-        if (this._empty) return null;
+        if (this.empty) return null;
 
         const report = (percent: number): void => {
             const msg: Message = {
@@ -633,7 +647,7 @@ export class ModelHandle {
     }
 
     public getState(id: number): State {
-        if (this._empty) return null;
+        if (this.empty) return null;
 
         if (typeof (id) === 'undefined') throw 'id must be defined';
         var map = this.getProductMap(id);
@@ -646,7 +660,7 @@ export class ModelHandle {
     }
 
     public getStyle(id: number): number {
-        if (this._empty) return null;
+        if (this.empty) return null;
 
         if (typeof (id) === 'undefined') throw 'id must be defined';
         var map = this.getProductMap(id);
@@ -659,7 +673,7 @@ export class ModelHandle {
     }
 
     public setState(state: State, args: number | number[]): void {
-        if (this._empty) return null;
+        if (this.empty) return null;
 
         if (typeof (state) != 'number' && state < 0 && state > 255
         ) throw 'You have to specify state as an ID of state or index in style pallete.';
@@ -701,34 +715,34 @@ export class ModelHandle {
 
         //buffer data to GPU
         this.bufferData(this._stateBuffer, this._model.states);
-        this.changed = true;
+        this._changed = true;
     }
 
     public resetStates(): void {
-        if (this._empty) return null;
+        if (this.empty) return null;
 
         for (var i = 0; i < this._model.states.length; i += 2) {
             this._model.states[i] = State.UNDEFINED;
         }
         //buffer data to GPU
         this.bufferData(this._stateBuffer, this._model.states);
-        this.changed = true;
+        this._changed = true;
     }
 
     public resetStyles(): void {
-        if (this._empty) return null;
+        if (this.empty) return null;
 
         for (var i = 0; i < this._model.states.length; i += 2) {
             this._model.states[i + 1] = State.UNSTYLED;
         }
         //buffer data to GPU
         this.bufferData(this._stateBuffer, this._model.states);
-        this.changed = true;
+        this._changed = true;
     };
 
     public getModelState(): Array<Array<number>> {
         var result = [];
-        if (this._empty) return result;
+        if (this.empty) return result;
 
         var products = this._model.productMaps;
         for (var i in products) {
@@ -748,7 +762,7 @@ export class ModelHandle {
     }
 
     public restoreModelState(state: Array<Array<number>>): void {
-        if (this._empty) return null;
+        if (this.empty) return null;
 
         state.forEach((s) => {
             var id = s[0];
@@ -770,7 +784,7 @@ export class ModelHandle {
 
         //buffer data to GPU
         this.bufferData(this._stateBuffer, this._model.states);
-        this.changed = true;
+        this._changed = true;
     }
 }
 
