@@ -763,7 +763,7 @@ export class Viewer {
         }
     }
 
-    private getMergedRegion(): Region {
+    public getMergedRegion(): Region {
         let region = new Region();
         const wcs = this.getCurrentWcs();
         this._activeHandles
@@ -1712,8 +1712,18 @@ export class Viewer {
             return;
         }
 
-        const activeModels = this._handles.filter(h => !h.stopped);
         let wcs = this.getCurrentWcs();
+
+        let gl = this.gl;
+        
+        // clear previous data in buffers
+        this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+        let width = framebuffer ? framebuffer.width : this.width;
+        let height = framebuffer ? framebuffer.height : this.height;
+        
+        // set right size of viewport
+        gl.viewport(0, 0, width, height);
+        this.updatePMatrix(width, height);
 
         //call all before-draw plugins
         this._plugins.forEach((plugin) => {
@@ -1723,20 +1733,14 @@ export class Viewer {
             plugin.onBeforeDraw(width, height);
         });
 
-        var gl = this.setActive();
-        gl.useProgram(this._shaderProgram);
+        gl = this.setActive();
 
-        let width = framebuffer ? framebuffer.width : this.width;
-        let height = framebuffer ? framebuffer.height : this.height;
 
         // set styling texture
         gl.activeTexture(gl.TEXTURE4);
         gl.bindTexture(gl.TEXTURE_2D, this._stateStyleTexture);
         gl.uniform1i(this._stateStyleSamplerUniform, 4);
 
-        // set right size of viewport
-        gl.viewport(0, 0, width, height);
-        this.updatePMatrix(width, height);
 
         // set background colour
         gl.clearColor(this.background[0] / 255,
@@ -1744,8 +1748,7 @@ export class Viewer {
             this.background[2] / 255,
             this.background[3] / 255);
 
-        // clear previous data in buffers
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        
 
         //set uniforms (these may quickly change between calls to draw)
         gl.uniformMatrix4fv(this._pMatrixUniformPointer, false, this.pMatrix);

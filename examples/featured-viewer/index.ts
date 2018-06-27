@@ -1,4 +1,4 @@
-﻿import {Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube} from '../../xbim-viewer';
+﻿import { Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube, Grid } from '../../xbim-viewer';
 
 var QueryString = function () {
     // This function is anonymous, is executed immediately and 
@@ -88,22 +88,28 @@ versionSpan.innerHTML = viewer.glVersion.toString();
 
 var progress = document.getElementById("progress")
 
+viewer.on('loaded', () => {
+    viewer.start();
+})
+
 if (model === 'v4') {
     viewer.loadAsync("/tests/data/v4/CubeA.wexbim", "A", null, (msg) => {
         progress.innerHTML = `${msg.message} [${msg.percent}%]`;
-    });    
+    });
 } else {
     //viewer.load(model, "base");
     viewer.load(model, "base", null, (msg) => {
         progress.innerHTML = `${msg.message} [${msg.percent}%]`;
     });
 }
-viewer.start();
 
 var cube = new NavigationCube();
 cube.ratio = 0.05;
 cube.passiveAlpha = cube.activeAlpha = 0.85;
 viewer.addPlugin(cube);
+
+var grid = new Grid();
+viewer.addPlugin(grid);
 
 viewer.defineStyle(0, [255, 0, 0, 255]);  //red
 viewer.defineStyle(1, [0, 0, 255, 100]);  //semitransparent blue
