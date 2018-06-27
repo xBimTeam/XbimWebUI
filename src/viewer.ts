@@ -1241,12 +1241,12 @@ export class Viewer {
 
 
         var handleLookAround = (event: MouseEvent) => {
-            
+            const sensitivity = 0.5;
             if (viewer.navigationMode !== 'walk') {
                 return;
             }
 
-            this.navigate('look-at', event.movementX, event.movementY);
+            this.navigate('look-at', event.movementX * sensitivity , event.movementY * sensitivity);
 
         };
 
@@ -1636,7 +1636,7 @@ export class Viewer {
 
         // Walking is at constant pace
         if (type === 'walk') {
-            distance = this.meter;
+            distance = this.meter * 0.5;
         }
 
         //move to the navigation origin in view space
