@@ -109,7 +109,7 @@ export class Grid implements IPlugin {
             return;
         }
 
-        const spacing = size / this.numberOfLines;
+        const spacing = size / (this.numberOfLines + 1);
 
         const x = region.bbox[0] + region.bbox[3] / 2.0 - size / 2.0;
         const y = region.bbox[1] + region.bbox[4] / 2.0 - size / 2.0;
@@ -118,7 +118,7 @@ export class Grid implements IPlugin {
         const vertices: number[] = [];
 
         // x lines
-        for (let i = 1; i < this.numberOfLines; i++) {
+        for (let i = 1; i < this.numberOfLines + 1; i++) {
             vertices.push(x); // start x
             vertices.push(y + i * spacing); // start y
             vertices.push(z); // start z
@@ -129,7 +129,7 @@ export class Grid implements IPlugin {
         }
 
         // y lines
-        for (let i = 1; i < this.numberOfLines; i++) {
+        for (let i = 1; i < this.numberOfLines + 1; i++) {
             vertices.push(x + i * spacing); // start x
             vertices.push(y); // start y
             vertices.push(z); // start z
