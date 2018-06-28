@@ -107,6 +107,14 @@ export class NavigationCube implements IPlugin {
     */
     public position = this.BOTTOM_RIGHT;
 
+    /**
+    * Set this to true to stop rendering of this plugin
+    * @member {boolean} NavigationCube#stopped
+    */
+   public get stopped(): boolean { return this._stopped;}
+   public set stopped(value: boolean) { this._stopped = value; this.viewer.draw();}
+   private _stopped = false;
+
     private viewer: Viewer;
     private _shader: WebGLProgram;
     private _alpha: number;
@@ -212,7 +220,7 @@ export class NavigationCube implements IPlugin {
 
         viewer.canvas.addEventListener('mousemove',
             (event) => {
-                if (viewer.plugins.indexOf(this) < 0) {
+                if (this.stopped || viewer.plugins.indexOf(this) < 0) {
                     // don't do anything if this plugin is not active
                     return;
                 }
@@ -260,7 +268,12 @@ export class NavigationCube implements IPlugin {
         self._drag = false;
 
         viewer.canvas.addEventListener('mousedown',
-            function (event) {
+            (event) => {
+                if (this.stopped || viewer.plugins.indexOf(this) < 0) {
+                    // don't do anything if this plugin is not active
+                    return;
+                }
+
                 var startX = event.clientX;
                 var startY = event.clientY;
 
@@ -282,7 +295,13 @@ export class NavigationCube implements IPlugin {
             true);
 
         window.addEventListener('mouseup',
-            function (event) {
+            (event) => {
+                if (this.stopped || viewer.plugins.indexOf(this) < 0) {
+                    // don't do anything if this plugin is not active
+                    self._drag = false;
+                    return;
+                }
+
                 if (self._drag === true) {
                     viewer.navigationMode = self._originalNavigation;
                 }
@@ -424,6 +443,9 @@ export class NavigationCube implements IPlugin {
     }
 
     onAfterDraw(width: number, height: number) {
+        if (this.stopped) {
+            return;
+        }
         var gl = this.setActive();
         //set uniform for colour coding to false
         gl.uniform1f(this._colourCodingUniformPointer, 0);
@@ -433,6 +455,9 @@ export class NavigationCube implements IPlugin {
     onBeforeDrawId() { }
 
     onAfterDrawId() {
+        if (this.stopped) {
+            return;
+        }
         var gl = this.setActive();
         //set uniform for colour coding to false
         gl.uniform1f(this._colourCodingUniformPointer, 1);
@@ -440,6 +465,9 @@ export class NavigationCube implements IPlugin {
     }
 
     onAfterDrawModelId() {
+        if (this.stopped) {
+            return;
+        }
         var gl = this.setActive();
         //set uniform for colour coding to false
         gl.uniform1f(this._colourCodingUniformPointer, this._modelId);
@@ -458,6 +486,10 @@ export class NavigationCube implements IPlugin {
     }
 
     private draw(viewerWidth: number, viewerHeight: number) {
+        if (this.stopped) {
+            return;
+        }
+
         if (!this._initialized) return;
 
         var gl = this.viewer.gl;

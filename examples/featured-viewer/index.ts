@@ -142,6 +142,18 @@ document['clip'] = function () {
 document['unclip'] = function () {
     viewer.unclip();
 }
+document['stopCube'] = function () {
+    cube.stopped = true;
+}
+document['startCube'] = function () {
+    cube.stopped = false;
+}
+document['stopGrid'] = function () {
+    grid.stopped = true;
+}
+document['startGrid'] = function () {
+    grid.stopped = false;
+}
 document['takeSnapshot'] = function () {
     viewer.removePlugin(cube);
     var img = viewer.getCurrentImageDataUrl();

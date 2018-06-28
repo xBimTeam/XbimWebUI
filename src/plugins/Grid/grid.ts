@@ -33,6 +33,13 @@ export class Grid implements IPlugin {
      */
     public colour = [0.0, 0.0, 0.0, 0.6];
 
+    /**
+     * Set to true to stop rendering of this plugin
+     */
+    public get stopped(): boolean { return this._stopped;}
+    public set stopped(value: boolean) { this._stopped = value; this.viewer.draw();}
+    private _stopped = false;
+
     init(viewer: Viewer): void {
         this.viewer = viewer;
 
@@ -97,7 +104,7 @@ export class Grid implements IPlugin {
     }
 
     onAfterDraw(width: number, height: number): void {
-        if (!this.initialized) {
+        if (!this.initialized || this.stopped) {
             return;
         }
         const region = this.viewer.getMergedRegion();
