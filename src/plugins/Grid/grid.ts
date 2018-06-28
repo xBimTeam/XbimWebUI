@@ -96,7 +96,7 @@ export class Grid implements IPlugin {
         }
     }
 
-    onBeforeDraw(width: number, height: number): void {
+    onAfterDraw(width: number, height: number): void {
         if (!this.initialized) {
             return;
         }
@@ -161,7 +161,7 @@ export class Grid implements IPlugin {
         gl.drawArrays(gl.LINES, 0, vertices.length / 3);
     }
 
-    onAfterDraw(width: number, height: number): void { }
+    onBeforeDraw(width: number, height: number): void { }
 
     onBeforeDrawId(): void { }
 
