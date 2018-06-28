@@ -12,7 +12,7 @@
             margin: 0;
             background: linear-gradient(to top, #E8E8E8, white);
         }
-        
+
         canvas {
             width: 100%;
             height: 100%;
@@ -23,7 +23,21 @@
             left: 0;
             z-index: 0;
         }
-        
+
+        button {
+            border-radius: 5px;
+            border-style: solid;
+            padding: 5px 15px;
+            margin: 0;
+            border-width: 1px;
+            border-color: darkgray;
+            background-color: lightgray;
+        }
+
+        button:hover{
+            cursor: pointer;
+        }
+
         .left-panel,
         .right-panel {
             position: absolute;
@@ -34,21 +48,21 @@
             box-shadow: 0 0 10px darkgray;
             border-radius: 10px;
         }
-        
+
         .left-panel {
             left: 20px;
             max-width: 300px;
         }
-        
+
         .right-panel {
             right: 20px;
         }
-        
+
         .left-panel>div,
         .right-panel>div {
             margin-bottom: 0.8em;
         }
-        
+
         #initScript {
             display: block;
             width: 100%;
@@ -59,70 +73,70 @@
 
 
 <body>
-	<canvas id="xBIM-viewer"></canvas>
+    <canvas id="xBIM-viewer"></canvas>
 
-	<div class="left-panel">
-		<div id="progress">
+    <div class="left-panel">
+        <div id="progress">
 
-		</div>
-		<div>
-			Selected:
-			<span id="coords"></span>
-		</div>
-		<div>
-			Framerate (FPS):
-			<span id="fps"></span>
-		</div>
-		<div>
-			WebGL version:
-			<span id="webglVersion"></span>
-		</div>
+        </div>
+        <div>
+            Selected:
+            <span id="coords"></span>
+        </div>
+        <div>
+            Framerate (FPS):
+            <span id="fps"></span>
+        </div>
+        <div>
+            WebGL version:
+            <span id="webglVersion"></span>
+        </div>
 
-		<div>
-			Models:
-			<ul>
-				<li>
-					<a href="?model=OneWallHigh"> One Wall </a>
-				</li>
-				<li>
-					<a href="?model=OneWallTwoWindows"> One Wall Two Windows </a>
-				</li>
-				<li>
-					<a href="?model=TwoProxy"> Two proxy objects </a>
-				</li>
-				<li>
-					<a href="?model=TwoWallsTwoColour"> Two Walls Two Colour </a>
-				</li>
-				<li>
-					<a href="?model=FourWalls"> Four Walls </a>
-				</li>
-				<li>
-					<a href="?model=FourWallsDoorWindows"> Four Walls Door Windows </a>
-				</li>
-				<li>
-					<a href="?model=FourWallsDoorWindowsRoof"> Four Walls Door Windows Roof </a>
-				</li>
-				<li>
-					<a href="?model=LakesideRestaurant"> Lakeside Restaurant </a>
-				</li>
-				<li>
-					<a href="?model=SampleHouseV3"> Sample House (wexBIM V3)</a>
-				</li>
-				<li>
-					<a href="?model=windows-doors_duplex"> Duplex windows and doors (wexBIM V3)</a>
-				</li>
-				<li>
-					<a href="?model=Barracks_envelope"> Barracks envelope</a>
-				</li>
-				<li>
-					<a href="?model=v4"> V4 cube</a>
-				</li>
-			</ul>
-		</div>
-		<div>
-			<button onclick="takeSnapshot()">
-				Take snapshot
-			</button>
+        <div>
+            Models:
+            <ul>
+                <li>
+                    <a href="?model=OneWallHigh"> One Wall </a>
+                </li>
+                <li>
+                    <a href="?model=OneWallTwoWindows"> One Wall Two Windows </a>
+                </li>
+                <li>
+                    <a href="?model=TwoProxy"> Two proxy objects </a>
+                </li>
+                <li>
+                    <a href="?model=TwoWallsTwoColour"> Two Walls Two Colour </a>
+                </li>
+                <li>
+                    <a href="?model=FourWalls"> Four Walls </a>
+                </li>
+                <li>
+                    <a href="?model=FourWallsDoorWindows"> Four Walls Door Windows </a>
+                </li>
+                <li>
+                    <a href="?model=FourWallsDoorWindowsRoof"> Four Walls Door Windows Roof </a>
+                </li>
+                <li>
+                    <a href="?model=LakesideRestaurant"> Lakeside Restaurant </a>
+                </li>
+                <li>
+                    <a href="?model=SampleHouseV3"> Sample House (wexBIM V3)</a>
+                </li>
+                <li>
+                    <a href="?model=windows-doors_duplex"> Duplex windows and doors (wexBIM V3)</a>
+                </li>
+                <li>
+                    <a href="?model=Barracks_envelope"> Barracks envelope</a>
+                </li>
+                <li>
+                    <a href="?model=v4"> V4 cube</a>
+                </li>
+            </ul>
+        </div>
+        <div>
+            <button onclick="takeSnapshot()">
+                Take snapshot
+            </button>
             <br />
             <div id="snapshot"></div>
             <div id="initialSnapshot">
@@ -154,72 +168,72 @@
 
         <div>
             <button onclick="clip();"> Clip model
-			</button>
+            </button>
             <button onclick="unclip();"> Reset clipping
-			</button>
+            </button>
         </div>
         <div>
             <button onclick="viewer.camera = 'perspective';"> Perspective
-			</button>
+            </button>
             <button onclick="viewer.camera = 'orthogonal';"> Orthographic
-			</button>
+            </button>
         </div>
         <div>
             <button onclick="makeWallsRed()"> Make all walls red
-			</button>
+            </button>
             <button onclick="hideWalls()"> Hide all walls
-			</button>
+            </button>
             <button onclick="resetWalls()"> Reset walls
-			</button>
+            </button>
             <button onclick="selectAllWalls()">
-				Select
-			</button>
+                Select
+            </button>
         </div>
         <div>
             <button onclick="viewer.setState(states.HIDDEN, types.IFCSPACE)"> Hide spaces
-			</button>
+            </button>
             <button onclick="viewer.setState(states.UNDEFINED, types.IFCSPACE)"> Show spaces
-			</button>
+            </button>
         </div>
         <div>
             <form>
                 <label>
-					<input type="radio" name="radioHiding" value="hideOne" /> Hide on click
-				</label>
+                    <input type="radio" name="radioHiding" value="hideOne" /> Hide on click
+                </label>
                 <label>
-					<input type="radio" name="radioHiding" value="hideType" /> Hide by type
-				</label>
+                    <input type="radio" name="radioHiding" value="hideType" /> Hide by type
+                </label>
                 <label>
-					<input type="radio" name="radioHiding" value="noHide" /> No hiding
-				</label>
+                    <input type="radio" name="radioHiding" value="noHide" /> No hiding
+                </label>
             </form>
             <button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.setState(states.UNDEFINED, types[i])}}">
-				Show all
-			</button>
+                Show all
+            </button>
             <button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.setStyle(1, types[i])}}"> Make all glass
-			</button>
+            </button>
             <button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.setStyle(2, types[i])}}"> Make all white
-			</button>
+            </button>
             <button onclick="for (var i in types) { if (types[i] !== types.IFCSPACE) { viewer.setStyle(states.UNSTYLED, types[i]) } }">
-				Make all default
-			</button>
+                Make all default
+            </button>
         </div>
         <div>
             Rendering mode:
             <br />
             <label>
-				<input type="radio" name="radioRenderingMode" value="normal" checked="checked" onchange="viewer.renderingMode = RenderingMode.NORMAL;"
-				/> Normal
-			</label>
+                <input type="radio" name="radioRenderingMode" value="normal" checked="checked" onchange="viewer.renderingMode = RenderingMode.NORMAL;"
+                /> Normal
+            </label>
             <label>
-				<input type="radio" name="radioRenderingMode" value="xray" onchange="viewer.renderingMode = RenderingMode.XRAY;" /> X-Ray
-			</label>
+                <input type="radio" name="radioRenderingMode" value="xray" onchange="viewer.renderingMode = RenderingMode.XRAY;" /> X-Ray
+            </label>
             <label>
-				<input type="radio" name="radioRenderingMode" value="xray" onchange="viewer.renderingMode = RenderingMode.XRAY_ULTRA;" /> Ultra X-Ray
-			</label>
+                <input type="radio" name="radioRenderingMode" value="xray" onchange="viewer.renderingMode = RenderingMode.XRAY_ULTRA;" /> Ultra X-Ray
+            </label>
             <label>
-				<input type="radio" name="radioRenderingMode" value="gray" onchange="viewer.renderingMode = RenderingMode.GRAYSCALE;" /> Grayscale
-			</label>
+                <input type="radio" name="radioRenderingMode" value="gray" onchange="viewer.renderingMode = RenderingMode.GRAYSCALE;" /> Grayscale
+            </label>
         </div>
         <div>
             Grid and navigation cube
