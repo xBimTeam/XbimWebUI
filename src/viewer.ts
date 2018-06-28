@@ -773,6 +773,7 @@ export class Viewer {
                     region = region.merge(h.getRegion(wcs));
                 }
             });
+
         return region;
     }
 
@@ -1246,7 +1247,7 @@ export class Viewer {
                 return;
             }
 
-            this.navigate('look-at', event.movementX * sensitivity , event.movementY * sensitivity);
+            this.navigate('look-at', event.movementX * sensitivity, event.movementY * sensitivity);
 
         };
 
@@ -1293,7 +1294,7 @@ export class Viewer {
                         case 'look-around':
                             this.navigate('look-around', deltaX, deltaY);
                             break;
-                        
+
                         default:
                             break;
                     }
@@ -1345,8 +1346,8 @@ export class Viewer {
             if (viewer.navigationMode === 'walk') {
                 this.canvas.requestPointerLock();
             }
-          };
-        
+        };
+
         document.addEventListener('pointerlockchange', handlePointerLockChange, false);
 
         //attach callbacks
@@ -1374,15 +1375,15 @@ export class Viewer {
     private _initKeyboardEvents() {
         var viewer = this;
 
-        
+
         var isShiftKeyDown = false;
-       
+
         var id = -1;
         var modelId = -1;
 
         //listen to key events to support WASD and cursor nav
         document.addEventListener('keydown', (event: KeyboardEvent) => {
-            
+
             if (viewer.navigationMode === "walk") {
                 //console.log(event);
                 let multiplier = (event.shiftKey === true) ? 3 : 1;
@@ -1391,41 +1392,41 @@ export class Viewer {
                     case 'KeyW':
                         viewer.navigate('walk', 2 * multiplier, 0);
                         break;
-                    
+
                     case 'KeyS':
                         viewer.navigate('walk', -2 * multiplier, 0);
                         break;
-                    
+
                     case 'KeyA':
                         viewer.navigate('pan', 1 * multiplier, 0);
                         break;
-                    
+
                     case 'KeyD':
                         viewer.navigate('pan', -1 * multiplier, 0);
                         break;
-                    
+
                     case 'KeyR':
                     case 'ArrowUp':
                         viewer.navigate('pan', 0, 1 * multiplier);
                         break;
-                    
+
                     case 'KeyF':
                     case 'ArrowDown':
                         viewer.navigate('pan', 0, -1 * multiplier);
                         break;
-                    
+
                     case 'KeyQ':
                     case 'ArrowLeft':
                         viewer.navigate('look-around', 2, 0);
                         break;
-                    
+
                     case 'KeyE':
                     case 'ArrowRight':
                         viewer.navigate('look-around', -2, 0);
                         break;
-                    
+
                 }
-            }    
+            }
         }, false);
 
     }
@@ -1655,7 +1656,7 @@ export class Viewer {
 
             case 'fixed-orbit':
             case 'look-around':
-            case 'look-at':    
+            case 'look-at':
             case 'orbit':
                 mat4.rotate(transform, transform, degToRad(deltaY / 4), [1, 0, 0]);
 
@@ -1678,8 +1679,8 @@ export class Viewer {
                 mat4.translate(transform, transform, [0, 0, deltaX * distance / 20]);
                 mat4.translate(transform, transform, [0, 0, deltaY * distance / 20]);
                 break;
-            
-            
+
+
 
             default:
                 break;
@@ -1715,12 +1716,12 @@ export class Viewer {
         let wcs = this.getCurrentWcs();
 
         let gl = this.gl;
-        
+
         // clear previous data in buffers
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         let width = framebuffer ? framebuffer.width : this.width;
         let height = framebuffer ? framebuffer.height : this.height;
-        
+
         // set right size of viewport
         gl.viewport(0, 0, width, height);
         this.updatePMatrix(width, height);
@@ -1748,7 +1749,7 @@ export class Viewer {
             this.background[2] / 255,
             this.background[3] / 255);
 
-        
+
 
         //set uniforms (these may quickly change between calls to draw)
         gl.uniformMatrix4fv(this._pMatrixUniformPointer, false, this.pMatrix);

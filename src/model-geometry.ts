@@ -9,18 +9,18 @@ export class ModelGeometry {
     private progress: (message: Message) => void;
 
     //all this data is to be fed into GPU as attributes
-    public normals: Uint8Array;
-    public indices: Float32Array;
-    public products: Float32Array;
-    public transformations: Float32Array;
-    public styleIndices: Uint16Array;
-    public states: Uint8Array;
+    public normals = new Uint8Array(0);
+    public indices = new Float32Array(0);
+    public products = new Float32Array(0);
+    public transformations = new Float32Array(0);
+    public styleIndices = new Uint16Array(0);
+    public states = new Uint8Array(0);
     //this is the only array we need to keep alive on client side to be able to change appearance of the model
 
     //these will be sent to GPU as the textures
-    public vertices: Float32Array;
-    public matrices: Float32Array;
-    public styles: Uint8Array;
+    public vertices = new Float32Array(0);
+    public matrices = new Float32Array(0);
+    public styles = new Uint8Array(0);
 
     public meter = 1000;
     public wcs = [0, 0, 0];
@@ -50,6 +50,10 @@ export class ModelGeometry {
     private _styleMap = new StyleMap();
 
     private parse(binReader: BinaryReader) {
+        if (!binReader || binReader.isEOF()) {
+            // don't do anything if there is no data
+            return;
+        }
         this._reader = binReader;
 
         let br = binReader;

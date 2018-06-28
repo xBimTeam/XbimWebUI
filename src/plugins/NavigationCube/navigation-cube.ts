@@ -112,7 +112,7 @@ export class NavigationCube implements IPlugin {
     * @member {boolean} NavigationCube#stopped
     */
    public get stopped(): boolean { return this._stopped;}
-   public set stopped(value: boolean) { this._stopped = value; this.viewer.draw();}
+   public set stopped(value: boolean) { this._stopped = value; if (this.viewer) this.viewer.draw();}
    private _stopped = false;
 
     private viewer: Viewer;

@@ -37,7 +37,7 @@ export class Grid implements IPlugin {
      * Set to true to stop rendering of this plugin
      */
     public get stopped(): boolean { return this._stopped;}
-    public set stopped(value: boolean) { this._stopped = value; this.viewer.draw();}
+    public set stopped(value: boolean) { this._stopped = value; if (this.viewer) this.viewer.draw();}
     private _stopped = false;
 
     init(viewer: Viewer): void {
@@ -52,7 +52,10 @@ export class Grid implements IPlugin {
         this.vertex_buffer = gl.createBuffer();
 
         // Get the attribute location
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertex_buffer);
         this.coordinatesAttributePointer = gl.getAttribLocation(this.program, "coordinates");
+        gl.vertexAttribPointer(this.coordinatesAttributePointer, 3, gl.FLOAT, false, 0, 0);
+
         // Enable the attribute
         gl.enableVertexAttribArray(this.coordinatesAttributePointer);
 
@@ -108,7 +111,7 @@ export class Grid implements IPlugin {
             return;
         }
         const region = this.viewer.getMergedRegion();
-        if (!region || region.population === 0) {
+        if (!region || region.population < 1) {
             return;
         }
         const size = Math.max(region.bbox[3], region.bbox[4]) * this.factor;
@@ -157,12 +160,14 @@ export class Grid implements IPlugin {
 
         // Bind vertex buffer object
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertex_buffer);
-
         // Pass the vertex data to the buffer
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
 
+        
         // Point an attribute to the currently bound VBO
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertex_buffer);
         gl.vertexAttribPointer(this.coordinatesAttributePointer, 3, gl.FLOAT, false, 0, 0);
+
 
         // Draw lines
         gl.drawArrays(gl.LINES, 0, vertices.length / 3);
