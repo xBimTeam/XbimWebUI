@@ -1726,6 +1726,10 @@ export class Viewer {
         gl.viewport(0, 0, width, height);
         this.updatePMatrix(width, height);
 
+        // set blending function
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
         //call all before-draw plugins
         this._plugins.forEach((plugin) => {
             if (!plugin.onBeforeDraw) {

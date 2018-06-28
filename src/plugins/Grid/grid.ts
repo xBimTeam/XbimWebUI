@@ -168,6 +168,8 @@ export class Grid implements IPlugin {
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertex_buffer);
         gl.vertexAttribPointer(this.coordinatesAttributePointer, 3, gl.FLOAT, false, 0, 0);
 
+        //gl.disable(gl.BLEND);
+        gl.blendFunc(gl.ONE_MINUS_DST_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
         // Draw lines
         gl.drawArrays(gl.LINES, 0, vertices.length / 3);
