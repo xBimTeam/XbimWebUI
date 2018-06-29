@@ -72,21 +72,28 @@ void main(void) {
 	vec3 N = normalize(normalInterp);
   	vec3 L = normalize(uLight - vPosition);
 
-  	// Lambert's cosine law
+  	// Lambert's cosine law - this is positive number (0,1.0] if the angle between
+	// surface normal and light direction to the point is < 90DEG
   	float lambertian = max(dot(N, L), 0.0);
 
+	// default is no specular colour
   	float specular = 0.0;
 
-  	if(lambertian > 0.0) {
+	// only set reflection is the angle between light and surface normal is between 0 and 90DEG
+  	if (lambertian > 0.0) {
   	  vec3 R = reflect(-L, N);        // Reflected light vector
-  	  vec3 V = normalize(-vPosition); // Vector to viewer
+  	  //vec3 V = normalize(-vPosition); // Vector to viewer
+  	  vec3 V = L; // Vector to viewer
 
   	  // Compute the specular term
   	  float specAngle = max(dot(R, V), 0.0);
   	  specular = pow(specAngle, shininessVal);
   	}
 
-  	vFragColor = vec4(Ka * ambientColor +
+  	vFragColor = vec4(
+		  			  Ka * ambientColor +
                       Kd * lambertian * diffuseColor +
-                      Ks * specular * specularColor, vColor.a);
+                      Ks * specular * specularColor
+					 , vColor.a
+					  );
 }

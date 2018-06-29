@@ -1907,12 +1907,9 @@ export class Viewer {
     * @function Viewer#getCameraPosition
     */
     public getCameraPosition(): Float32Array {
-        var transform = mat4.create();
-        mat4.multiply(transform, this.pMatrix, this.mvMatrix);
-        var inv = mat4.create()
-        mat4.invert(inv, transform);
-        var eye = vec3.create();
-        vec3.transformMat4(eye, vec3.create(), inv);
+        const transform = mat4.multiply(mat4.create(), this.pMatrix, this.mvMatrix);
+        const inv = mat4.invert(mat4.create(), transform);
+        const eye = vec3.transformMat4(vec3.create(), vec3.create(), inv);
 
         return eye;
     }
