@@ -92,16 +92,10 @@ viewer.on('loaded', () => {
     viewer.start();
 })
 
-if (model === 'v4') {
-    viewer.loadAsync("/tests/data/v4/CubeA.wexbim", "A", null, (msg) => {
-        progress.innerHTML = `${msg.message} [${msg.percent}%]`;
-    });
-} else {
-    //viewer.load(model, "base");
-    viewer.load(model, "base", null, (msg) => {
-        progress.innerHTML = `${msg.message} [${msg.percent}%]`;
-    });
-}
+
+viewer.load(model, "base", null, (msg) => {
+    progress.innerHTML = `${msg.message} [${msg.percent}%]`;
+});
 
 var cube = new NavigationCube();
 cube.ratio = 0.05;
@@ -110,7 +104,7 @@ viewer.addPlugin(cube);
 
 var grid = new Grid();
 grid.zFactor = 20;
-grid.colour = [0,0,0,0.1];
+grid.colour = [0, 0, 0, 0.1];
 viewer.addPlugin(grid);
 
 viewer.defineStyle(0, [255, 0, 0, 255]);  //red
