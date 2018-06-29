@@ -933,11 +933,12 @@ export class Viewer {
         handle.tag = tag;
         this._handles.push(handle);
 
-        //only set camera parameters and the view if this is the first model
-        if (this._handles.length === 1) {
-            //set perspective camera near and far based on 1 meter dimension and size of the model
-            this.setCameraFromCurrentModels();
+        //set perspective camera near and far based on 1 meter dimension and size of the model
+        this.setCameraFromCurrentModels();
 
+        //only set camera parameters and the view if this is the first model
+        if (this._activeHandles.length === 1) {
+            
             //set centre and default distance based on the most populated region in the model
             this.setCameraTarget();
 
@@ -1696,9 +1697,9 @@ export class Viewer {
 
     private getCurrentWcs(): vec3 {
         let wcs: vec3 = vec3.create();
-        const activeModels = this._handles.filter(h => !h.stopped);
-        if (activeModels.length > 0) {
-            wcs = activeModels[0].wcs;
+        let nonEmpty = this._handles.filter(h => !h.empty);
+        if (nonEmpty.length > 0) {
+            wcs = nonEmpty[0].wcs;
         }
         return wcs;
     }
@@ -1709,12 +1710,8 @@ export class Viewer {
     * @fires Viewer#frame
     */
     public draw(framebuffer?: Framebuffer) {
-        if (this._handles.length === 0) {
-            return;
-        }
 
         let wcs = this.getCurrentWcs();
-
         let gl = this.gl;
 
         // clear previous data in buffers
@@ -2206,6 +2203,8 @@ export class Viewer {
             }
 
             handle.stopped = false;
+            //set perspective camera near and far based on 1 meter dimension and size of the model
+            this.setCameraFromCurrentModels();
 
             // if the viewer is running already we can return from here
             if (this._isRunning) {
@@ -2214,6 +2213,8 @@ export class Viewer {
         }
 
         this.changed = true;
+        //set perspective camera near and far based on 1 meter dimension and size of the model
+        this.setCameraFromCurrentModels();
 
         if (this._isRunning) {
             return;
@@ -2280,6 +2281,8 @@ export class Viewer {
 
         model.stopped = true;
         this.changed = true;
+        //set perspective camera near and far based on 1 meter dimension and size of the model
+        this.setCameraFromCurrentModels();
     }
 
     /**

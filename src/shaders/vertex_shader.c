@@ -129,15 +129,15 @@ vec4 getColor() {
 	return col2;
 }
 
-vec3 getVertexPosition(mat4 transform) {
+vec4 getVertexPosition(mat4 transform) {
 	vec2 coords = getTextureCoordinates(aVertexIndex, uVertexTextureSize);
 	vec3 point = vec3(texture2D(uVertexSampler, coords));
 
 	if (aTransformationIndex < -0.5) {
-		return point;
+		return vec4(point, 1.0);
 	}
 
-	return vec3(transform * vec4(point, 1.0));
+	return transform * vec4(point, 1.0);
 }
 
 mat4 getTransform() {
@@ -182,9 +182,13 @@ void main(void) {
 		return;
 	}
 
+	// apply world coordinate translation to align all models
+	mat4 w = mat4(1.0);
+	w[3] = w[3] + vec4(uWcs, 0.0);
+
 	//transform data to simulate camera perspective and position
 	mat4 transform = getTransform();
-	vPosition = getVertexPosition(transform);
+	vPosition = vec3(w * getVertexPosition(transform));
 	vNormal = getNormal(transform);
 
 	//product ID colour coding
@@ -234,9 +238,6 @@ void main(void) {
 		vColor = baseColor;
 	}
 
-	// apply world coordinate translation to align all models
-	mat4 w = mat4(1.0);
-	w[3] = w[3] + vec4(uWcs, 0.0);
 	// transform to GL space
-	gl_Position = uPMatrix *  uMVMatrix * w * vec4(vPosition, 1.0);
+	gl_Position = uPMatrix *  uMVMatrix * vec4(vPosition, 1.0);
 }

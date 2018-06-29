@@ -353,7 +353,8 @@ export class ModelHandle {
         }
 
         if (mode == null) {
-            //draw image frame
+            // make sure depth testing is on for general rendering
+            gl.depthMask(true);
             if (maps == null) {
                 gl.drawArrays(gl.TRIANGLES, 0, this._numberOfIndices);
             } else {
@@ -367,6 +368,8 @@ export class ModelHandle {
         }
 
         if (mode === DrawMode.SOLID && this._model.transparentIndex > 0) {
+            // make sure depth testing is on for solid rendering
+            gl.depthMask(true);
             if (maps == null) {
                 gl.drawArrays(gl.TRIANGLES, 0, this._model.transparentIndex);
             } else {

@@ -34,13 +34,15 @@ viewer.on("fps", function (fps) {
 
 let input = document.getElementById('input') as HTMLInputElement;
 input.addEventListener('change', () => {
-    if (!input.files) return;
+    if (!input.files || input.files.length === 0) return;
 
-    var file = input.files[0];
-    if (!file) return;
+    for (let i = 0; i < input.files.length; i++) {
+        const file = input.files[i];
+        viewer.load(file, file.name);
+        viewer.start();
+    }
 
-    viewer.load(file, file.name);
-    viewer.start();
+    input.value = null;
 });
 
 function refreshModelsPanel() {
