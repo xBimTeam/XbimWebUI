@@ -1,9 +1,14 @@
 import { Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube } from '../../xbim-viewer';
+import { Grid } from '../../src/plugins/Grid/grid';
 
 var models = [];
 
 var viewer = new Viewer("xBIM-viewer");
-viewer.background = [255, 255, 255];
+viewer.background = [0, 0, 0, 0];
+
+var grid = new Grid();
+viewer.addPlugin(grid);
+
 viewer.on("error", function (arg) {
     var container = viewer.canvas.parentNode as HTMLElement;
     if (container) {
@@ -12,15 +17,11 @@ viewer.on("error", function (arg) {
     }
 });
 viewer.on("pick", function (arg) {
-    var span = document.getElementById("id") as HTMLElement;
-    if (span) {
-        if (arg.id) {
-            span.innerHTML = arg.id.toString();
-        } else {
-            span.innerHTML = "";
-        }
-    }
-});
+    if (arg.id) {
+        console.log(`Selected id: ${arg.id}`);
+    } 
+}
+);
 viewer.on("loaded", function (evt) {
     models.push({ id: evt.model, name: evt.tag, stopped: false });
     refreshModelsPanel();
