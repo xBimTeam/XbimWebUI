@@ -19,7 +19,7 @@ viewer.on("error", function (arg) {
 viewer.on("pick", function (arg) {
     if (arg.id) {
         console.log(`Selected id: ${arg.id}`);
-    } 
+    }
 }
 );
 viewer.on("loaded", function (evt) {
@@ -47,16 +47,18 @@ input.addEventListener('change', () => {
 });
 
 function refreshModelsPanel() {
-    var html = "";
+    var html = "<table>";
     models.forEach(function (m) {
-        html += "<div> " + m.name + "&nbsp;";
-        html += "<button onclick='unload(" + m.id + ")'> Unload </button>";
+        html += "<tr>";
+        html += `<td>${m.name}</td>`;
+        html += "<td><button onclick='unload(" + m.id + ")'> Unload </button></td>";
         if (m.stopped)
-            html += " <button onclick='start(" + m.id + ")'> Start </button> ";
+            html += "<td> <button onclick='start(" + m.id + ")'> Start </button> </td>";
         else
-            html += " <button onclick='stopModel(" + m.id + ")'> Stop </button> ";
-        html += "</div>";
+            html += "<td> <button onclick='stopModel(" + m.id + ")'> Stop </button> </td>";
+        html += "</tr>";
     });
+    html += "</table>";
     let modelsDiv = document.getElementById('models') as HTMLDivElement;
     modelsDiv.innerHTML = html;
 }

@@ -104,7 +104,7 @@ viewer.addPlugin(cube);
 
 var grid = new Grid();
 grid.zFactor = 20;
-grid.colour = [0, 0, 0, 0.1];
+grid.colour = [0, 0, 0, 0.8];
 viewer.addPlugin(grid);
 
 viewer.defineStyle(0, [255, 0, 0, 255]);  //red

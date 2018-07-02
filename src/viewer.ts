@@ -202,9 +202,9 @@ export class Viewer {
             /** @member {Number} PerspectiveCamera#fov - Field of view*/
             fov: 53,
             /** @member {Number} PerspectiveCamera#near - Near cutting plane*/
-            near: 0,
+            near: 1,
             /** @member {Number} PerspectiveCamera#far - Far cutting plane*/
-            far: 0
+            far: 100
         };
 
         /**
@@ -1909,6 +1909,9 @@ export class Viewer {
     public getCameraPosition(): Float32Array {
         const transform = mat4.multiply(mat4.create(), this.pMatrix, this.mvMatrix);
         const inv = mat4.invert(mat4.create(), transform);
+        if (inv == null) {
+            return vec3.create();
+        }
         const eye = vec3.transformMat4(vec3.create(), vec3.create(), inv);
 
         return eye;

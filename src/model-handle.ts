@@ -320,11 +320,37 @@ export class ModelHandle {
         gl.uniform1i(pointers.ClippingAUniform, this._clippingA ? 1 : 0);
         gl.uniform1i(pointers.ClippingBUniform, this._clippingB ? 1 : 0);
         if (this._clippingA) {
-            gl.uniform4fv(pointers.ClippingPlaneAUniform, new Float32Array(this._clippingPlaneA));
+            const c = this.transformPlane(this._clippingPlaneA, wcs);
+            gl.uniform4fv(pointers.ClippingPlaneAUniform, c);
         }
         if (this._clippingB) {
-            gl.uniform4fv(pointers.ClippingPlaneBUniform, new Float32Array(this._clippingPlaneB));
+            const c = this.transformPlane(this._clippingPlaneB, wcs);
+            gl.uniform4fv(pointers.ClippingPlaneBUniform, c);
         }
+    }
+
+    private transformPlane(plane: number[], transform: vec3): Float32Array {
+        const normalLength = vec3.len(plane) ;
+        // plane components
+        const a = plane[0];
+        const b = plane[1];
+        const c = plane[2];
+        let d = plane[3];
+
+        // point closest to [0,0,0]
+        let x = (a * -d) / normalLength;
+        let y = (b * -d) / normalLength;
+        let z = (c * -d) / normalLength;
+
+        // translate
+        x -= transform[0];
+        y -= transform[1];
+        z -= transform[2];
+
+        //compute new normal equation of the plane
+        d = 0.0 - a * x - b * y - c * z;
+
+        return new Float32Array([a, b, c, d])
     }
 
     //this function must be called AFTER 'setActive()' function which sets up active buffers and uniforms
