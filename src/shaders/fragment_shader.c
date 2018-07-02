@@ -75,7 +75,8 @@ void main(void) {
 
   	if(lambertian > 0.0) {
   	  vec3 R = reflect(-L, N);        // Reflected light vector
-  	  vec3 V = normalize(-vPosition); // Vector to viewer
+  	  // vec3 V = normalize(-vPosition); // Vector to viewer
+  	  vec3 V = L; // Vector to viewer
 
   	  // Compute the specular term
   	  float specAngle = max(dot(R, V), 0.0);
