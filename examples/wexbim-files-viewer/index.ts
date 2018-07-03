@@ -7,7 +7,14 @@ var viewer = new Viewer("xBIM-viewer");
 viewer.background = [0, 0, 0, 0];
 
 var grid = new Grid();
+grid.zFactor = 20;
 viewer.addPlugin(grid);
+
+var cube = new NavigationCube();
+cube.ratio = 0.05;
+cube.passiveAlpha = cube.activeAlpha = 0.85;
+viewer.addPlugin(cube);
+
 
 viewer.on("error", function (arg) {
     var container = viewer.canvas.parentNode as HTMLElement;
