@@ -1235,6 +1235,12 @@ export class Viewer {
                 */
                 if (!handled) {
                     viewer.fire('pick', { id: id, model: modelId, event: event });
+                    // Handle double-click
+                    var time = (new Date()).getTime();
+                    if (time - timer < 250) {
+                        viewer.fire('dblclick', { id: id, model: modelId, event: event });
+                    }
+                    timer = time;
                 }
             }
 
@@ -1351,6 +1357,7 @@ export class Viewer {
 
         document.addEventListener('pointerlockchange', handlePointerLockChange, false);
 
+        var timer = 0;
         //attach callbacks
         this.canvas.addEventListener('mousedown', (event) => handleMouseDown(event), true);
         this.canvas.addEventListener('wheel', (event) => handleMouseScroll(event), true);

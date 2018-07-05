@@ -59,9 +59,19 @@ viewer.on("pick", function (arg) {
     if (span) {
         span.innerHTML = `Product id: ${arg.id}, model: ${arg.model}`;
     }
+    var state = viewer.getState(arg.id, arg.model);
+    if (state === State.HIGHLIGHTED) {
+        viewer.setState(State.UNDEFINED, [arg.id], arg.model);
+    } else {
+        viewer.setState(State.HIGHLIGHTED, [arg.id], arg.model);
+    }
 });
 viewer.on("mousedown", function (arg) {
     viewer.setCameraTarget(arg.id);
+});
+
+viewer.on("dblclick", function (arg) {
+    viewer.setState(State.HIDDEN, [arg.id], arg.model);
 });
 viewer.on("fps", function (fps) {
     var span = document.getElementById("fps") as HTMLSpanElement;
