@@ -265,7 +265,7 @@ export class ModelHandle {
             return;
         }
 
-        var gl = this._gl;
+        var gl = this._glVersion === 1 ? this.gl1 : this.gl2;
         //set predefined textures
         if (this._vertexTextureSize > 0) {
             gl.activeTexture(gl.TEXTURE1);
@@ -314,7 +314,7 @@ export class ModelHandle {
         // this is expected to be a small correction allowing to work with relatively small numbers
         //  in the viewer for models in real world coordinates
         var diff = vec3.subtract(vec3.create(), this.wcs, wcs);
-        gl.uniform3fv(pointers.WcsUniform, new Float32Array(diff));
+        gl.uniform3fv(pointers.WcsUniform, diff);
 
         //clipping uniforms
         gl.uniform1i(pointers.ClippingAUniform, this._clippingA ? 1 : 0);
