@@ -15,9 +15,7 @@
 		    "src\\plugins\\NavigationCube\\navigation-cube.js",
 		    "src\\plugins\\NavigationHome\\navigation-home.js",
         "resources/README.md"
-      ],
-      "includePattern":".+\\.js(doc)?$",
-      "excludePattern":"(^|\\/|\\\\)_"
+      ]
    },
    "plugins":[
       "plugins/markdown"

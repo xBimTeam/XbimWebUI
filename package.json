@@ -1,12 +1,12 @@
 {
-  "name": "xbim-webui",
+  "name": "@bimpress/viewer",
   "description": "Web user interface for BIM models processed by xBIM Toolkit",
   "license": "CDDL-1.0",
   "repository": {
     "type": "git",
     "url": ""
   },
-  "version": "1.0.4",
+  "version": "1.0.0",
   "devDependencies": {
     "@types/node": "7.0.18",
     "@types/webgl2": "0.0.3",

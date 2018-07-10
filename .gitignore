@@ -67,3 +67,4 @@ src/**/*.js
 
 # built assets
 dist
+docs
