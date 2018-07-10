@@ -1,12 +1,12 @@
 {
   "name": "@bimpress/viewer",
-  "description": "Web user interface for BIM models processed by xBIM Toolkit",
+  "description": "WebGL 3D viewer for wexBIM files",
   "license": "CDDL-1.0",
   "repository": {
     "type": "git",
     "url": ""
   },
-  "version": "1.0.0",
+  "version": "1.0.1",
   "devDependencies": {
     "@types/node": "7.0.18",
     "@types/webgl2": "0.0.3",
@@ -26,6 +26,7 @@
     "dist/*",
     "docs/*"
   ],
+  "main": "./dist/index.js",
   "scripts": {
     "docs": "tsc&&jsdoc -c jsdoc.config.json&&node utilities/clean.js .",
     "clean": "node utilities/clean.js .",

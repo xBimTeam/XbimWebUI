@@ -4,7 +4,7 @@ const ShaderPlugin = require('./utilities/shader-plugin');
 const ShaderWatchPlugin = require('./utilities/shader-watch-plugin');
 
 var entries = {};
-entries['xbim-viewer'] = './xbim-viewer.ts';
+entries['index'] = './index.ts';
 
 var tsLoader = 'ts-loader?' + JSON.stringify({
     compilerOptions: {
