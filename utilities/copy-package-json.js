@@ -10,11 +10,12 @@ let pckg = JSON.parse(packageData);
 
 // set patch to date-time based value
 const d = new Date();
-const patch = `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1, 2)}${pad(d.getUTCDate(), 2)}${pad(d.getUTCHours(),2)}${pad(d.getUTCMinutes(),2)}`;
-let version = pckg.version;
-let parts = version.split('.');
-parts[parts.length - 1] = patch;
-pckg.version = parts.join('.');
+const stamp = `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1, 2)}${pad(d.getUTCDate(), 2)}${pad(d.getUTCHours(),2)}${pad(d.getUTCMinutes(),2)}`;
+// let version = pckg.version;
+// let parts = version.split('.');
+// parts[parts.length - 1] = stamp;
+// pckg.version = parts.join('.');
+pckg.version = `${pckg.version}-pre${stamp}`;
 
 // remove scripts for publishing
 delete pckg.scripts;
