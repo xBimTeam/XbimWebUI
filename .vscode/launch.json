@@ -4,11 +4,12 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
         {
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
-            "program": "${workspaceFolder}\\debug.js",
+            "program": "${workspaceFolder}\\utilities\\copy-package-json.js",
             "outFiles": [
                 "${workspaceFolder}/**/*.js"
             ]

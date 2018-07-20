@@ -6,6 +6,11 @@
     "type": "git",
     "url": ""
   },
+  "author": {
+    "email": "info@xbim.net",
+    "name": "xBIM Ltd.",
+    "url": "https://www.bimpress.net"
+  },
   "version": "1.0.1",
   "devDependencies": {
     "@types/node": "7.0.18",
@@ -22,16 +27,11 @@
     "webpack-dev-server": "^3.1.0",
     "webpack-merge": "^4.1.2"
   },
-  "files": [
-    "dist/*",
-    "docs/*"
-  ],
-  "main": "./dist/index.js",
   "scripts": {
     "docs": "tsc&&jsdoc -c jsdoc.config.json&&node utilities/clean.js .",
     "clean": "node utilities/clean.js .",
     "start": "concurrently \"webpack-dev-server --open chrome --config webpack.dev.js\" \"webpack --watch --config webpack.worker.js \"",
-    "build": "webpack --config webpack.worker.js&&webpack --config webpack.prod.js",
+    "build": "webpack --config webpack.worker.js&&webpack --config webpack.prod.js&&node utilities/copy-package-json.js",
     "build:dev": "webpack --config webpack.worker.js&&webpack --config webpack.dev.js"
   }
 }
