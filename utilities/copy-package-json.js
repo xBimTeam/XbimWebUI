@@ -1,13 +1,16 @@
 const fs = require('fs');
 
-
+function pad(num, size) {
+    var s = "000000000" + num;
+    return s.substr(s.length-size);
+}
 
 let packageData = fs.readFileSync('package.json', 'utf8');
 let pckg = JSON.parse(packageData);
 
 // set patch to date-time based value
 const d = new Date();
-const patch = `${d.getFullYear()}${d.getMonth()}${d.getDate()}${d.getHours()}${d.getMinutes()}`;
+const patch = `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1, 2)}${pad(d.getUTCDate(), 2)}${pad(d.getUTCHours(),2)}${pad(d.getUTCMinutes(),2)}`;
 let version = pckg.version;
 let parts = version.split('.');
 parts[parts.length - 1] = patch;
