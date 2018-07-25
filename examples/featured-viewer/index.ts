@@ -1,4 +1,4 @@
-﻿import { Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube, Grid } from '../../xbim-viewer';
+﻿import { Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube, Grid } from '../..';
 
 var QueryString = function () {
     // This function is anonymous, is executed immediately and 

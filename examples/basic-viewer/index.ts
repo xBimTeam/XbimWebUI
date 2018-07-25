@@ -1,4 +1,4 @@
-import {Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube} from '../../xbim-viewer';
+import {Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube} from '../..';
 
 var viewer = new Viewer("viewer");
 var progress = document.getElementById("progress")

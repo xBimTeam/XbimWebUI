@@ -1,4 +1,4 @@
-import { Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube } from '../../xbim-viewer';
+import { Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube } from '../..';
 import { Grid } from '../../src/plugins/Grid/grid';
 
 var models = [];
