@@ -1,11 +1,13 @@
-﻿// Core viewer objects
-export * from './src/binary-reader';
-export * from './src/model-geometry';
-export * from './src/model-handle';
+﻿// Infrastructure
+// export * from './src/triangulated-shape';
+// export * from './src/binary-reader';
+// export * from './src/model-geometry';
+// export * from './src/model-handle';
+
+// Core viewer objects
 export * from './src/product-inheritance';
 export * from './src/product-type';
 export * from './src/state';
-export * from './src/triangulated-shape';
 export * from './src/message';
 export * from './src/viewer-event-map';
 export * from './src/viewer';
