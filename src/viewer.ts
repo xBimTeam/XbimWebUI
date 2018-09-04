@@ -861,13 +861,14 @@ export class Viewer {
                 progressProxy(msg);
 
                 // add handle and report progress of GPU feeding
-                self.addHandle(geometry, tag, progressProxy);
+                const wexBimId = self.addHandle(geometry, tag, progressProxy);
                 // report completed
                 if (progress) {
                     progress({
                         message: 'Model loaded',
                         type: MessageType.COMPLETED,
-                        percent: 100
+                        percent: 100,
+                        wexbimId: wexBimId
                     });
                 }
             }
@@ -925,7 +926,7 @@ export class Viewer {
 
     //this is a private function used to add loaded geometry as a new handle and to set up camera and 
     //default view if this is the first geometry loaded
-    private addHandle(geometry: ModelGeometry, tag: any, progress: (message: Message) => void): void {
+    private addHandle(geometry: ModelGeometry, tag: any, progress: (message: Message) => void): number {
         var gl = this.setActive();
         var handle = new ModelHandle(gl, geometry, progress);
 
@@ -959,7 +960,9 @@ export class Viewer {
          * @param {Any} tag - tag which was passed to 'Viewer.load()' function
          * 
         */
-        this.fire('loaded', { model: handle.id, tag: tag })
+        this.fire('loaded', { model: handle.id, tag: tag });
+
+        return handle.id;
     };
 
     /**

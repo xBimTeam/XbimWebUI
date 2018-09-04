@@ -3,6 +3,7 @@ export class Message {
     message: string;
     percent: number;
     result?: any;
+    wexbimId?: number;
 }
 
 export enum MessageType {
