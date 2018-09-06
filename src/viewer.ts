@@ -143,7 +143,9 @@ export class Viewer {
 
     // dictionary of named events which can be registered and unregistered by using '.on('eventname', callback)'
     // and '.off('eventname', callback)'. Registered call-backs are triggered by the viewer when important events occur.
-    private _events: { [id: string]: Array<(args: { message: string } | { event: Event, id: number, model: number } | { model: number, tag: any } | number) => void>; } = {};
+    private _events: { [entName: string]: Array<(args: { message: string } | { event: Event, id: number, model: number } | { model: number, tag: any } | number) => void>; } = {};
+
+    private _canvasListeners: { [evtName: string]: (event: Event) => any } = {};
 
     // pointers to WebGL shader attributes and uniforms
     private _pointers: ModelPointers;
@@ -303,7 +305,7 @@ export class Viewer {
         // with product ID and model ID
         //disable default context menu as it doesn't make much sense for the viewer
         //it can be replaced by custom menu when listening to 'contextMenu' of the viewer
-        this._initCanvasEventForwarding();
+        this._disableContextMenu();
 
         //This array keeps data for overlay styles.
         this._stateStyles = new Uint8Array(15 * 15 * 4);
@@ -939,7 +941,7 @@ export class Viewer {
 
         //only set camera parameters and the view if this is the first model
         if (this._activeHandles.length === 1) {
-            
+
             //set centre and default distance based on the most populated region in the model
             this.setCameraTarget();
 
@@ -1108,48 +1110,12 @@ export class Viewer {
 
     }
 
-    private _initCanvasEventForwarding() {
-        for (let prop in this.canvas) {
-            // skip all properties not starting with 'on'
-            if (prop.indexOf('on') !== 0) {
-                continue;
-            }
-
-            // remove 'on' at the beginning
-            var eventName = prop.slice(2);
-            // bind to canvas events
-            this.canvas.addEventListener(eventName, event => {
-                // only forward mouse and touch events where we can enrich the event
-                // with product and model ID from the model
-                if (!(event instanceof MouseEvent) && !(event instanceof TouchEvent)) {
-                    return;
-                }
-
-                // prevent context menu default action
-                if (event.type === 'contextmenu') {
-                    event.preventDefault();
-                }
-
-                var handlers = this._events[event.type];
-                if (!handlers || handlers.length === 0) {
-                    return event.type !== 'contextmenu';
-                }
-
-                let ids = this.getIdsFromEvent(event as MouseEvent);
-
-                //call the callbacks
-                handlers.slice().forEach((handler) => {
-                    try {
-                        handler({ event: event, id: ids.id, model: ids.model });
-                    }
-                    catch (e) {
-                        console.error(e);
-                    }
-                });
-
-                return event.type !== 'contextmenu';
-            });
-        }
+    private _disableContextMenu() {
+        // bind to canvas events
+        this.canvas.addEventListener('contextmenu', event => {
+            event.preventDefault();
+            return event.type !== 'contextmenu';
+        });
     }
 
     private _initMouseEvents() {
@@ -2423,6 +2389,35 @@ export class Viewer {
             events[eventName] = [];
         }
         events[eventName].push(handler);
+
+        const domEvtName = `on${eventName}`;
+        const isCanvEvt = this.canvas[domEvtName] != null;
+        if (!isCanvEvt) {
+            return;
+        }
+        const hasListener = this._canvasListeners[eventName] != null
+        if (hasListener) {
+            return;
+        }
+        // bind to canvas events
+        const listener = (event: Event) => {
+            // only forward mouse and touch events where we can enrich the event
+            // with product and model ID from the model
+            if (event instanceof MouseEvent) {
+                let ids = this.getIdsFromEvent(event as MouseEvent);
+                this.fire(eventName, { event: event, id: ids.id, model: ids.model });
+                return;
+            }
+            if (event instanceof TouchEvent) {
+                // get ID from the last touch
+                let ids = this.getIdsFromEvent(event.touches[event.touches.length - 1]);
+                this.fire(eventName, { event: event, id: ids.id, model: ids.model });
+                return;
+            }
+        };
+        this.canvas.addEventListener(eventName, listener);
+        // keep the reference to the listener so we can remove it when not needed any more
+        this._canvasListeners[eventName] = listener;
     }
 
     /**
@@ -2441,6 +2436,11 @@ export class Viewer {
         var index = callbacks.indexOf(callback);
         if (index >= 0) {
             callbacks.splice(index, 1);
+            const listener = this._canvasListeners[eventName];
+            // detach canvas listener if it is not needed anymore
+            if (callback.length === 0 && listener != null) {
+                this.canvas.removeEventListener(eventName, listener);
+            }
         }
     }
 
