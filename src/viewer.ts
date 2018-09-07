@@ -150,9 +150,17 @@ export class Viewer {
     // pointers to WebGL shader attributes and uniforms
     private _pointers: ModelPointers;
 
+    // cache of the request function. This should be kept from the constructor
+    // which should run outside of any Zone in case zoning is in use (like in Angular where init in NgZone causes complete refresh on every frame in efect)
+    private _requestAnimationFrame: (callback: FrameRequestCallback) => number;
+
     /**
     * This is constructor of the xBIM Viewer. It gets HTMLCanvasElement or string ID as an argument. Viewer will than be initialized 
-    * in the context of specified canvas. Any other argument will throw exception.
+    * in the context of specified canvas. Any other argument will throw exception. 
+    * 
+    * If any Zone technology is in use, this constructor should run in the root zone without any additional load. It has global event
+    * handlers and hooks in document.mousemove, document.keyup, requestAnimationFrame and otherw which need to run fast and should not
+    * cause any additional sideeffects (like data binding refresh in Angular)
     * @name Viewer
     * @constructor
     * @classdesc This is the main and the only class you need to load and render IFC models in wexBIM format. This viewer is part of
@@ -250,6 +258,20 @@ export class Viewer {
             return;
         }
 
+
+        // keep reference to the function in case it gets into zone. For example Angular uses
+        // NgZone forked from the root Zone to refresh data content. But we make heavy use of this
+        // asynchronous call and it would cause Angular to refresh constantly. That would innecessary increase
+        // CPU load.
+        this._requestAnimationFrame = window.requestAnimationFrame ||
+            window.webkitRequestAnimationFrame ||
+            window["mozRequestAnimationFrame"] ||
+            window["oRequestAnimationFrame"] ||
+            window["msRequestAnimationFrame"] ||
+            function (/* function FrameRequestCallback */ callback) {
+                window.setTimeout(callback, 1000 / 60);
+            };
+
         let gl = this.gl;
         let fptSupport = false;
 
@@ -327,7 +349,7 @@ export class Viewer {
                 elementHeight = this.height = this.canvas.height = this.canvas.offsetHeight;
                 elementWidth = this.width = this.canvas.width = this.canvas.offsetWidth;
             }
-            window.requestAnimationFrame(watchCanvasSize);
+            this._requestAnimationFrame(watchCanvasSize);
         };
         watchCanvasSize();
     }
@@ -2231,7 +2253,7 @@ export class Viewer {
                 this.changed = false;
                 this.draw();
             }
-            window.requestAnimationFrame(tick)
+            this._requestAnimationFrame(tick)
         }
 
         tick();
