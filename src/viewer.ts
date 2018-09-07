@@ -263,14 +263,14 @@ export class Viewer {
         // NgZone forked from the root Zone to refresh data content. But we make heavy use of this
         // asynchronous call and it would cause Angular to refresh constantly. That would innecessary increase
         // CPU load.
-        this._requestAnimationFrame = window.requestAnimationFrame ||
+        this._requestAnimationFrame = (window.requestAnimationFrame ||
             window.webkitRequestAnimationFrame ||
             window["mozRequestAnimationFrame"] ||
             window["oRequestAnimationFrame"] ||
             window["msRequestAnimationFrame"] ||
             function (/* function FrameRequestCallback */ callback) {
                 window.setTimeout(callback, 1000 / 60);
-            };
+            }).bind(window);
 
         let gl = this.gl;
         let fptSupport = false;
