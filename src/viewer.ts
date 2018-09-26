@@ -349,8 +349,7 @@ export class Viewer {
                 elementHeight = this.height = this.canvas.height = this.canvas.offsetHeight;
                 elementWidth = this.width = this.canvas.width = this.canvas.offsetWidth;
             }
-            // avoid recursion by creatin new wrapper function
-            this._requestAnimationFrame(() => watchCanvasSize());
+            this._requestAnimationFrame(watchCanvasSize);
         };
         watchCanvasSize();
     }
@@ -2254,8 +2253,7 @@ export class Viewer {
                 this.changed = false;
                 this.draw();
             }
-            // try to avoid recursion by creation of the new delegate every time
-            this._requestAnimationFrame(() => tick());
+            this._requestAnimationFrame(tick);
         }
 
         tick();
