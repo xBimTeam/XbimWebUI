@@ -1,9 +1,10 @@
-﻿import { ModelGeometry, ProductMap, Region } from "./reader/model-geometry";
-import { State } from "./state";
+﻿import { ModelGeometry, Region } from "./reader/model-geometry";
+import { State } from "./common/state";
 import { ModelPointers } from "./model-pointers";
 import { Product } from "./product-inheritance";
 import { Message, MessageType } from "./common/message";
 import { vec3 } from "./matrix/vec3";
+import { ProductMap } from "./common/product-map";
 
 //this class holds pointers to textures, uniforms and data buffers which
 //make up a model in GPU
@@ -676,12 +677,12 @@ export class ModelHandle {
     public getState(id: number): State {
         if (this.empty) return null;
 
-        if (typeof (id) === 'undefined') throw 'id must be defined';
+        if (id == null) throw 'id must be defined';
         var map = this.getProductMap(id);
         if (map === null) return null;
 
         var span = map.spans[0];
-        if (typeof (span) == 'undefined') return null;
+        if (span == null) return null;
 
         return this._model.states[span[0] * 2];
     }

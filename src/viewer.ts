@@ -1,4 +1,4 @@
-﻿import { State } from './state';
+﻿import { State } from './common/state';
 import { ProductType } from './product-type';
 import { ModelGeometry, Region } from './reader/model-geometry';
 import { ModelHandle, DrawMode } from './model-handle';

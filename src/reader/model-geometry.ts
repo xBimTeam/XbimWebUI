@@ -1,8 +1,9 @@
 ﻿import { BinaryReader } from "./binary-reader";
 import { TriangulatedShape } from "./triangulated-shape";
-import { State } from "../state";
+import { State, StatePriorities } from "../common/state";
 import { ProductType } from "../product-type";
 import { Message, MessageType } from "../common/message";
+import { ProductMap } from "../common/product-map";
 
 export class ModelGeometry {
 
@@ -121,13 +122,12 @@ export class ModelGeometry {
             let prodType = br.readInt16();
             let bBox = br.readFloat32Array(6);
 
-            let map: ProductMap = {
-                productID: productLabel,
-                renderId: i + 1,
-                type: prodType,
-                bBox: bBox,
-                spans: []
-            };
+            let map = new ProductMap();
+            map.productID = productLabel;
+            map.renderId = i + 1;
+            map.type = prodType;
+            map.bBox = bBox;
+            map.spans = [];
             this.productMaps[productLabel] = map;
             this.productIdLookup[i + 1] = productLabel;
         }
@@ -232,14 +232,12 @@ export class ModelGeometry {
             let begin = iIndex;
             let map = this.productMaps[shape.pLabel];
             if (typeof (map) === "undefined") {
-                //throw "Product hasn't been defined before.";
-                map = {
-                    productID: 0,
-                    renderId: 0,
-                    type: ProductType.IFCOPENINGELEMENT,
-                    bBox: new Float32Array(6),
-                    spans: []
-                };
+                map = new ProductMap();
+                map.productID = 0;
+                map.renderId = 0;
+                map.type = ProductType.IFCOPENINGELEMENT;
+                map.bBox = new Float32Array(6);
+                map.spans = [];
                 this.productMaps[shape.pLabel] = map;
             }
 
@@ -333,25 +331,6 @@ export class ModelGeometry {
     public onloaded: (geometry: ModelGeometry) => void;
 
     public onerror: (message?: string) => void;
-}
-
-
-export class ProductMap {
-    productID: number;
-    renderId: number;
-    type: ProductType;
-    bBox: Float32Array;
-    spans: Array<Int32Array>;
-
-    public static clone(o: ProductMap): ProductMap {
-        const c = new ProductMap();
-        c.productID = o.productID;
-        c.renderId - o.renderId;
-        c.type = o.type;
-        c.bBox = new Float32Array(o.bBox);
-        c.spans = o.spans;
-        return c;
-    }
 }
 
 export class Region {
