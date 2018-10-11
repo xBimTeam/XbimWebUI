@@ -1,8 +1,8 @@
-﻿import { ModelGeometry, ProductMap, Region } from "./model-geometry";
+﻿import { ModelGeometry, ProductMap, Region } from "./reader/model-geometry";
 import { State } from "./state";
 import { ModelPointers } from "./model-pointers";
 import { Product } from "./product-inheritance";
-import { Message, MessageType } from "./message";
+import { Message, MessageType } from "./common/message";
 import { vec3 } from "./matrix/vec3";
 
 //this class holds pointers to textures, uniforms and data buffers which

@@ -8,8 +8,8 @@
 export * from './src/product-inheritance';
 export * from './src/product-type';
 export * from './src/state';
-export * from './src/message';
-export * from './src/viewer-event-map';
+export * from './src/common/message';
+export * from './src/common/viewer-event-map';
 export * from './src/viewer';
 
 // Matrix math objects

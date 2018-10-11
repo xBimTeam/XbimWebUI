@@ -1,5 +1,5 @@
 import { Viewer } from "../viewer";
-import { ProductIdentity } from "../product-identity";
+import { ProductIdentity } from "../common/product-identity";
 
 export class MouseNavigation {
     public static initMouseEvents(viewer: Viewer) {

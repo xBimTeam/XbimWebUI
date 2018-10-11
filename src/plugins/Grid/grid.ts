@@ -1,6 +1,6 @@
 import { IPlugin } from '../plugin';
 import { Viewer } from '../../viewer';
-import { ProductIdentity } from '../../product-identity';
+import { ProductIdentity } from '../../common/product-identity';
 import { vshader } from './vshader';
 
 export class Grid implements IPlugin {

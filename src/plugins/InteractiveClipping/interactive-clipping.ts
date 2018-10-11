@@ -2,7 +2,7 @@
 import { vec3 } from '../../matrix/vec3';
 import { IPlugin } from '../plugin';
 import { Viewer } from '../../viewer';
-import { ProductIdentity } from '../../product-identity';
+import { ProductIdentity } from '../../common/product-identity';
 
 export class InteractiveClipping implements IPlugin {
 

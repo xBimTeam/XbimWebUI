@@ -1,5 +1,5 @@
-﻿import { ModelGeometry } from "../model-geometry";
-import { Message, MessageType } from '../message';
+﻿import { Message, MessageType } from '../common/message';
+import { ModelGeometry } from '../reader/model-geometry';
 
 //only run following script if this is created as a Dedicated Worker
 if (self && self instanceof DedicatedWorkerGlobalScope) {

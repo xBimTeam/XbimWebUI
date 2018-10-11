@@ -6,7 +6,7 @@ import { CubeTextures } from "./navigation-cube-textures";
 import { mat4 } from "../../matrix/mat4";
 import { mat3 } from "../../matrix/mat3";
 import { vec3 } from "../../matrix/vec3";
-import { ProductIdentity } from "../../product-identity";
+import { ProductIdentity } from "../../common/product-identity";
 
 
 export class NavigationCube implements IPlugin {

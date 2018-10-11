@@ -1,4 +1,4 @@
-﻿import { BinaryReader } from "../binary-reader";
+﻿import { BinaryReader } from "../reader/binary-reader";
 import { ProductType } from "../product-type";
 import { WexBimMesh } from "./wexbim-mesh";
 

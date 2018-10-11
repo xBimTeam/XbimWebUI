@@ -1,5 +1,5 @@
 ﻿import { freemem } from "os";
-import { Message, MessageType } from "./message";
+import { Message, MessageType } from "../common/message";
 
 /**
  * Convenient class for binary reading. Arrays are read as new views on slices of the original data buffer,
@@ -67,7 +67,7 @@ export class BinaryReader {
                 if (xhr.readyState == 4 && xhr.status == 200) {
                     var fReader = new FileReader();
                     fReader.onloadend = () => {
-                        if (fReader.result) {
+                        if (fReader.result && typeof(fReader.result) !== 'string') {
                             //set data buffer for next processing
                             self._buffer = fReader.result;
                             self._view = new DataView(self._buffer);
@@ -114,7 +114,7 @@ export class BinaryReader {
         } else if (source instanceof Blob || source instanceof File) {
             var fReader = new FileReader();
             fReader.onloadend = function () {
-                if (fReader.result) {
+                if (fReader.result && typeof(fReader.result) !== 'string') {
                     //set data buffer for next processing
                     self._buffer = fReader.result;
                     self._view = new DataView(self._buffer);

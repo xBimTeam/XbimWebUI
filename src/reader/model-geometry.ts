@@ -1,8 +1,8 @@
 ﻿import { BinaryReader } from "./binary-reader";
 import { TriangulatedShape } from "./triangulated-shape";
-import { State } from "./state";
-import { ProductType } from "./product-type";
-import { Message, MessageType } from "./message";
+import { State } from "../state";
+import { ProductType } from "../product-type";
+import { Message, MessageType } from "../common/message";
 
 export class ModelGeometry {
 

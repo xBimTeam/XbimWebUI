@@ -3,7 +3,7 @@ import { HomeTextures } from "./navigation-home-textures";
 
 import { vec3 } from "../../matrix/vec3";
 import { IPlugin } from "../plugin";
-import { ProductIdentity } from "../../product-identity";
+import { ProductIdentity } from "../../common/product-identity";
 
 export class NavigationHome implements IPlugin {
 
