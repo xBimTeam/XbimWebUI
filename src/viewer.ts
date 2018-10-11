@@ -22,6 +22,12 @@ import { Message, MessageType } from './message';
 import { ProductIdentity } from './product-identity';
 import { IPlugin } from './plugins/plugin';
 import { ViewerEventMap } from './viewer-event-map';
+import { MouseNavigation } from './navigation/mouse-navigation';
+import { KeyboardNavigation } from './navigation/keyboard-navigation';
+import { TouchNavigation } from './navigation/touch-navigation';
+import { CheckResult, Abilities } from './common/abilities';
+
+export type NavigationMode = 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none' | 'look-around' | 'walk' | 'look-at';
 
 export class Viewer {
 
@@ -33,7 +39,7 @@ export class Viewer {
      * Switch between different navigation modes for left mouse button. Allowed values: <strong> 'pan', 'zoom', 'orbit' (or 'fixed-orbit') , 'free-orbit' and 'none'</strong>. Default value is <strong>'orbit'</strong>;
      * @member {String} Viewer#navigationMode
      */
-    public navigationMode: 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none' | 'look-around' | 'walk' = 'orbit';
+    public navigationMode: NavigationMode = 'orbit';
 
     public get perspectiveCamera(): { fov: number, near: number, far: number } { return this._perspectiveCamera; }
     public set perspectiveCamera(value: { fov: number, near: number, far: number }) { this._perspectiveCamera = value; this.changed = true; }
@@ -316,12 +322,12 @@ export class Viewer {
         //initialize vertex attribute and uniform pointers
         this._initAttributesAndUniforms();
         //initialize mouse events to capture user interaction
-        this._initMouseEvents();
+        MouseNavigation.initMouseEvents(this);
         //initialize keyboard events to capture user interaction
-        this._initKeyboardEvents();
+        KeyboardNavigation.initKeyboardEvents(this);
         //initialize touch events to capute user interaction on touch devices
-        this._initTouchNavigationEvents();
-        this._initTouchTapEvents();
+        TouchNavigation.initTouchNavigationEvents(this);
+        TouchNavigation.initTouchTapEvents(this);
 
         // listen to all mouse and touch events of the canvas and enrich the information
         // with product ID and model ID
@@ -362,93 +368,8 @@ export class Viewer {
     * @function Viewer.check
     * @return {Prerequisites}
     */
-    public static check() {
-        /**
-        * This is a structure reporting errors and warnings about prerequisites of {@link Viewer Viewer}. It is result of {@link Viewer.checkPrerequisities checkPrerequisities()} static method.
-        *
-        * @name Prerequisites
-        * @class
-        */
-        var result = {
-            /**
-            * If this array contains any warnings Viewer will work but it might be slow or may not support full functionality.
-            * @member {string[]}  Prerequisites#warnings
-            */
-            warnings: [],
-            /**
-            * If this array contains any errors Viewer won't work at all or won't work as expected. 
-            * You can use messages in this array to report problems to user. However, user won't probably 
-            * be able to do to much with it except trying to use different browser. IE10- are not supported for example. 
-            * The latest version of IE should be all right.
-            * @member {string[]}  Prerequisites#errors
-            */
-            errors: [],
-            /**
-            * If false Viewer won't work at all or won't work as expected. 
-            * You can use messages in {@link Prerequisites#errors errors array} to report problems to user. However, user won't probably 
-            * be able to do to much with it except trying to use different browser. IE10- are not supported for example. 
-            * The latest version of IE should be all right.
-            * @member {string[]}  Prerequisites#noErrors
-            */
-            noErrors: false,
-            /**
-            * If false Viewer will work but it might be slow or may not support full functionality. Use {@link Prerequisites#warnings warnings array} to report problems.
-            * @member {string[]}  Prerequisites#noWarnings
-            */
-            noWarnings: false
-        };
-
-        //check WebGL support
-        var canvas = document.createElement('canvas');
-        if (!canvas) result.errors.push("Browser doesn't have support for HTMLCanvasElement. This is critical.");
-        else {
-            let gl: WebGLRenderingContext = null;
-            let glVersion = 0;
-            WebGLUtils.setupWebGL(canvas, (ctx, v) => {
-                gl = ctx;
-                glVersion = v;
-            }, null, (err) => {
-                result.errors.push(err);
-            });
-            if (gl == null) {
-                result.errors.push("Browser doesn't support WebGL. This is critical.");
-            }
-            else {
-                //check floating point extension availability for WebGL 1.0
-                var fpt = glVersion < 2 ? (
-                    gl.getExtension('OES_texture_float') ||
-                    gl.getExtension('MOZ_OES_texture_float') ||
-                    gl.getExtension('WEBKIT_OES_texture_float')
-                ) : true;
-
-                if (!fpt) {
-                    result.errors.push('Floating point texture extension is not supported.');
-                }
-
-                //check number of supported vertex shader textures. Minimum is 5 but standard requires 0.
-                var vertTextUnits = gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS);
-                if (vertTextUnits < 4)
-                    result.errors.push('Browser supports only ' +
-                        vertTextUnits +
-                        ' vertex texture image units but minimal requirement for the viewer is 4.');
-            }
-        }
-
-        //check FileReader and Blob support
-        if (!window['File'] ||
-            !window['FileReader'] ||
-            !window.Blob) result.errors.push("Browser doesn't support 'File', 'FileReader' or 'Blob' objects.");
-
-
-        //check for typed arrays
-        if (!window['Int32Array'] || !window['Float32Array'])
-            result.errors
-                .push("Browser doesn't support TypedArrays. These are crucial for binary parsing and for comunication with GPU.");
-
-        //set boolean members for convenience
-        if (result.errors.length == 0) result.noErrors = true;
-        if (result.warnings.length == 0) result.noWarnings = true;
-        return result;
+    public static check(): CheckResult {
+        return Abilities.check();
     }
 
     /**
@@ -1140,469 +1061,8 @@ export class Viewer {
         });
     }
 
-    private _initMouseEvents() {
-        var viewer = this;
-
-        var mouseDown = false;
-        var isShiftKeyDown = false;
-        var lastMouseX = null;
-        var lastMouseY = null;
-        var startX = null;
-        var startY = null;
-        var button = 'L';
-        var id = -1;
-        var modelId = -1;
-        var isPointerLocked = false;
-
-        //set initial conditions so that different gestures can be identified
-        var handleMouseDown = (event: MouseEvent) => {
-            mouseDown = true;
-            lastMouseX = event.clientX;
-            lastMouseY = event.clientY;
-            startX = event.clientX;
-            startY = event.clientY;
-
-            //get coordinates within canvas (with the right orientation)
-            var r = viewer.canvas.getBoundingClientRect();
-            var viewX = startX - r.left;
-            var viewY = viewer.height - (startY - r.top);
-
-            //this is for picking
-            const identity = this.getID(viewX, viewY);
-            id = identity.id;
-            modelId = identity.model;
-
-            //keep information about the mouse button
-            switch (event.button) {
-                case 0:
-                    button = 'left';
-                    break;
-
-                case 1:
-                    button = 'middle';
-                    break;
-
-                case 2:
-                    button = 'right';
-                    break;
-
-                default:
-                    button = 'left';
-                    break;
-            }
-
-            viewer.disableTextSelection();
-        };
-
-        var handleMouseUp = (event: MouseEvent) => {
-            mouseDown = false;
-
-            var endX = event.clientX;
-            var endY = event.clientY;
-
-            var deltaX = Math.abs(endX - startX);
-            var deltaY = Math.abs(endY - startY);
-
-            //if it was a longer movement do not perform picking
-            if (deltaX < 3 && deltaY < 3 && button === 'left') {
-
-                var handled = false;
-                const identity: ProductIdentity = { id: id, model: modelId };
-                viewer._plugins.forEach((plugin) => {
-                    if (!plugin.onBeforePick) {
-                        return;
-                    }
-                    handled = handled || plugin.onBeforePick(identity);
-                });
-
-                /**
-                * Occurs when user click on model.
-                *
-                * @event Viewer#pick
-                * @type {object}
-                * @param {Number} id - product ID of the element or null if there wasn't any product under mouse
-                * @param {Number} model - Model ID
-                * @param {MouseEvent} event - Original HTML event
-                */
-                if (!handled) {
-                    viewer.fire('pick', { id: id, model: modelId, event: event });
-                    // Handle double-click
-                    var time = (new Date()).getTime();
-                    if (time - timer < 250) {
-                        viewer.fire('dblclick', { id: id, model: modelId, event: event });
-                    }
-                    timer = time;
-                }
-            }
-
-            viewer.enableTextSelection();
-        };
-
-
-        var handleLookAround = (event: MouseEvent) => {
-            const sensitivity = 0.5;
-            if (viewer.navigationMode !== 'walk') {
-                return;
-            }
-
-            this.navigate('look-at', event.movementX * sensitivity, event.movementY * sensitivity);
-
-        };
-
-        var handleMouseMove = (event: MouseEvent) => {
-            if (!mouseDown) {
-                return;
-            }
-
-            if (viewer.navigationMode === 'none') {
-                return;
-            }
-
-            var newX = event.clientX;
-            var newY = event.clientY;
-
-            var deltaX = newX - lastMouseX;
-            var deltaY = newY - lastMouseY;
-
-            lastMouseX = newX;
-            lastMouseY = newY;
-
-            if (button === 'left') {
-                if (isShiftKeyDown) {
-                    this.navigate('pan', deltaX, deltaY);
-                } else {
-                    switch (viewer.navigationMode) {
-                        case 'free-orbit':
-                            this.navigate('free-orbit', deltaX, deltaY);
-                            break;
-
-                        case 'fixed-orbit':
-                        case 'orbit':
-                            this.navigate('orbit', deltaX, deltaY);
-                            break;
-
-                        case 'pan':
-                            this.navigate('pan', deltaX, deltaY);
-                            break;
-
-                        case 'zoom':
-                            this.navigate('zoom', deltaX, deltaY);
-                            break;
-
-                        case 'look-around':
-                            this.navigate('look-around', deltaX, deltaY);
-                            break;
-
-                        default:
-                            break;
-                    }
-                }
-            }
-            if (button === 'middle' || button === 'right') {
-                this.navigate('pan', deltaX, deltaY);
-            }
-
-        };
-
-        var handleMouseScroll = (event: WheelEvent) => {
-            if (viewer.navigationMode === 'none') {
-                return;
-            }
-            if (event.stopPropagation) {
-                event.stopPropagation();
-            }
-            if (event.preventDefault) {
-                event.preventDefault();
-            }
-
-            var sign = (x: any) => {
-                x = +x; // convert to a number
-                if (x === 0 || isNaN(x))
-                    return x;
-                return x > 0 ? 1 : -1;
-            };
-
-            //deltaX and deltaY have very different values in different web browsers so fixed value is used for constant functionality.
-            this.navigate('zoom', sign(event.deltaX) * -1.0, sign(event.deltaY) * -1.0);
-        };
-
-        // handle mouse movements when using PointerLock mode.
-        var handlePointerLockChange = (event: Event) => {
-            if (document.pointerLockElement === this.canvas) {
-                if (!isPointerLocked) {
-                    isPointerLocked = true;
-                    this.canvas.addEventListener('mousemove', handleLookAround, false);
-                }
-            } else {
-                isPointerLocked = false;
-                this.canvas.removeEventListener("mousemove", handleLookAround, false);
-            }
-        };
-
-        // handle pointer lock for walk mode to grab the mouse movement data
-        this.canvas.onclick = () => {
-            if (viewer.navigationMode === 'walk') {
-                this.canvas.requestPointerLock();
-            }
-        };
-
-        document.addEventListener('pointerlockchange', handlePointerLockChange, false);
-
-        var timer = 0;
-        //attach callbacks
-        this.canvas.addEventListener('mousedown', (event) => handleMouseDown(event), true);
-        this.canvas.addEventListener('wheel', (event) => handleMouseScroll(event), true);
-        window.addEventListener('mouseup', (event) => handleMouseUp(event), true);
-        window.addEventListener('mousemove', (event) => handleMouseMove(event), true);
-
-        //listen to key events to help navigation
-        document.addEventListener('keydown', (event: KeyboardEvent) => {
-            if (event.key === 'Shift' && this.navigationMode !== 'walk') {
-                isShiftKeyDown = true;
-                return;
-            }
-        }, false);
-
-        document.addEventListener('keyup', (event: KeyboardEvent) => {
-            if (event.key === 'Shift') {
-                isShiftKeyDown = false;
-                return;
-            }
-        }, false);
-    }
-
-    private _initKeyboardEvents() {
-        var viewer = this;
-
-
-        var isShiftKeyDown = false;
-
-        var id = -1;
-        var modelId = -1;
-
-        //listen to key events to support WASD and cursor nav
-        document.addEventListener('keydown', (event: KeyboardEvent) => {
-
-            if (viewer.navigationMode === "walk") {
-                //console.log(event);
-                let multiplier = (event.shiftKey === true) ? 3 : 1;
-
-                switch (event.code) {
-                    case 'KeyW':
-                        viewer.navigate('walk', 2 * multiplier, 0);
-                        break;
-
-                    case 'KeyS':
-                        viewer.navigate('walk', -2 * multiplier, 0);
-                        break;
-
-                    case 'KeyA':
-                        viewer.navigate('pan', 1 * multiplier, 0);
-                        break;
-
-                    case 'KeyD':
-                        viewer.navigate('pan', -1 * multiplier, 0);
-                        break;
-
-                    case 'KeyR':
-                    case 'ArrowUp':
-                        viewer.navigate('pan', 0, 1 * multiplier);
-                        break;
-
-                    case 'KeyF':
-                    case 'ArrowDown':
-                        viewer.navigate('pan', 0, -1 * multiplier);
-                        break;
-
-                    case 'KeyQ':
-                    case 'ArrowLeft':
-                        viewer.navigate('look-around', 2, 0);
-                        break;
-
-                    case 'KeyE':
-                    case 'ArrowRight':
-                        viewer.navigate('look-around', -2, 0);
-                        break;
-
-                }
-            }
-        }, false);
-
-    }
-
-    private _initTouchNavigationEvents() {
-
-        var lastTouchX_1: number;
-        var lastTouchY_1: number;
-        var lastTouchX_2: number;
-        var lastTouchY_2: number;
-        var lastTouchX_3: number;
-        var lastTouchY_3: number;
-
-
-        var handleTouchStart = (event: TouchEvent) => {
-            event.preventDefault();
-            if (event.touches.length >= 1) {
-                lastTouchX_1 = event.touches[0].clientX;
-                lastTouchY_1 = event.touches[0].clientY;
-            }
-            if (event.touches.length >= 2) {
-                lastTouchX_2 = event.touches[1].clientX;
-                lastTouchY_2 = event.touches[1].clientY;
-            }
-            if (event.touches.length >= 3) {
-                lastTouchX_3 = event.touches[2].clientX;
-                lastTouchY_3 = event.touches[2].clientY;
-            }
-        };
-
-        var handleTouchMove = (event: TouchEvent) => {
-            event.preventDefault();
-            if (this.navigationMode === 'none' || !event.touches) {
-                return;
-            }
-            if (event.touches.length === 1) {
-                // touch move with single finger -> orbit
-                var deltaX = event.touches[0].clientX - lastTouchX_1;
-                var deltaY = event.touches[0].clientY - lastTouchY_1;
-                lastTouchX_1 = event.touches[0].clientX;
-                lastTouchY_1 = event.touches[0].clientY;
-                // force-setting navigation mode to 'free-orbit' currently for touch navigation since regular orbit
-                // feels awkward and un-intuitive on touch devices
-                // MC: I prefer fixed orbit as it doesn't allow for wierd angles
-                this.navigate('orbit', deltaX, deltaY);
-            } else if (event.touches.length === 2) {
-                // touch move with two fingers -> zoom
-                var distanceBefore = Math.sqrt((lastTouchX_1 - lastTouchX_2) * (lastTouchX_1 - lastTouchX_2) +
-                    (lastTouchY_1 - lastTouchY_2) * (lastTouchY_1 - lastTouchY_2));
-                lastTouchX_1 = event.touches[0].clientX;
-                lastTouchY_1 = event.touches[0].clientY;
-                lastTouchX_2 = event.touches[1].clientX;
-                lastTouchY_2 = event.touches[1].clientY;
-                var distanceAfter = Math.sqrt((lastTouchX_1 - lastTouchX_2) * (lastTouchX_1 - lastTouchX_2) +
-                    (lastTouchY_1 - lastTouchY_2) * (lastTouchY_1 - lastTouchY_2));
-                if (distanceBefore > distanceAfter) {
-                    this.navigate('zoom', -1, -1); // Zooming out, fingers are getting closer together
-
-                } else {
-                    this.navigate('zoom', 1, 1); // zooming in, fingers are getting further apart
-                }
-            } else if (event.touches.length === 3) {
-                // touch move with three fingers -> pan
-                var directionX = ((event.touches[0]
-                    .clientX +
-                    event.touches[1].clientX +
-                    event.touches[2].clientX) /
-                    3) -
-                    ((lastTouchX_1 + lastTouchX_2 + lastTouchX_3) / 3);
-                var directionY = ((event.touches[0]
-                    .clientY +
-                    event.touches[1].clientY +
-                    event.touches[2].clientY) /
-                    3) -
-                    ((lastTouchY_1 + lastTouchY_2 + lastTouchY_3) / 3);
-                lastTouchX_1 = event.touches[0].clientX;
-                lastTouchY_1 = event.touches[0].clientY;
-                lastTouchX_2 = event.touches[1].clientX;
-                lastTouchY_2 = event.touches[1].clientY;
-                lastTouchY_3 = event.touches[2].clientX;
-                lastTouchY_3 = event.touches[2].clientY;
-                // pan seems to be too fast, just adding a factor here
-                var panFactor = 0.2;
-
-                this.navigate('pan', panFactor * directionX, panFactor * directionY);
-            }
-        }
-
-        this.canvas.addEventListener('touchstart', (event) => handleTouchStart(event), true);
-        this.canvas.addEventListener('touchmove', (event) => handleTouchMove(event), true);
-    }
-
-    private _initTouchTapEvents() {
-        var touchDown = false;
-        var lastTouchX: number;
-        var lastTouchY: number;
-        var maximumLengthBetweenDoubleTaps = 200;
-        var lastTap = new Date();
-
-        let identity: ProductIdentity = { id: null, model: null };
-
-        //set initial conditions so that different gestures can be identified
-        var handleTouchStart = (event: TouchEvent) => {
-            if (event.touches.length !== 1) {
-                return;
-            }
-
-
-            touchDown = true;
-            lastTouchX = event.touches[0].clientX;
-            lastTouchY = event.touches[0].clientY;
-            //get coordinates within canvas (with the right orientation)
-            var r = this.canvas.getBoundingClientRect();
-            var viewX = lastTouchX - r.left;
-            var viewY = this.height - (lastTouchY - r.top);
-
-            //this is for picking
-            identity = this.getID(viewX, viewY);
-
-            var now = new Date();
-            var isDoubleTap = (now.getTime() - lastTap.getTime()) < maximumLengthBetweenDoubleTaps;
-            if (isDoubleTap) {
-                this.fire('dblclick', { id: identity.model, model: identity.model, event: event });
-            };
-            lastTap = now;
-
-            /**
-            * Occurs when mousedown event happens on underlying canvas.
-            *
-            * @event Viewer#mouseDown
-            * @type {object}
-            * @param {Number} id - product ID of the element or null if there wasn't any product under mouse
-            * @param {Number} model - model ID
-            * @param {MouseEvent} event - original HTML event
-            */
-            this.fire('mousedown', { id: identity.id, model: identity.model, event: event });
-
-            this.disableTextSelection();
-        };
-
-        var handleTouchEnd = (event: TouchEvent) => {
-            if (!touchDown) {
-                return;
-            }
-            touchDown = false;
-
-            var endX = event.changedTouches[0].clientX;
-            var endY = event.changedTouches[0].clientY;
-
-            var deltaX = Math.abs(endX - lastTouchX);
-            var deltaY = Math.abs(endY - lastTouchY);
-
-            //if it was a longer movement do not perform picking
-            if (deltaX < 3 && deltaY < 3) {
-
-                var handled = false;
-                this._plugins.forEach((plugin) => {
-                    if (!plugin.onBeforePick) {
-                        return;
-                    }
-                    handled = handled || plugin.onBeforePick(identity);
-                },
-                    this);
-
-                if (!handled) this.fire('pick', { id: identity.id, model: identity.model, event: event });
-            }
-
-            this.enableTextSelection();
-        };
-
-
-        this.canvas.addEventListener('touchstart', (event) => handleTouchStart(event), true);
-        this.canvas.addEventListener('touchend', (event) => handleTouchEnd(event), true);
-    }
-
     private get meter(): number {
-        const handle = this._handles[0];
+        const handle = this._handles.find(h => !h.stopped);
         if (!handle) {
             return 1.0;
         }
@@ -1610,7 +1070,7 @@ export class Viewer {
         return handle.meter;
     }
 
-    private navigate(type, deltaX, deltaY) {
+    public navigate(type: NavigationMode, deltaX, deltaY) {
         if (!this._handles || !this._handles[0]) return;
         //translation in WCS is position from [0, 0, 0]
         var origin = new Float32Array(this.origin);
@@ -1665,7 +1125,6 @@ export class Viewer {
                     mat3.fromMat4(mat3.create(), this.mvMatrix));
                 mvZ = vec3.normalize(vec3.create(), mvZ);
                 transform = mat4.rotate(mat4.create(), transform, degToRad(deltaX / 4), mvZ);
-
                 break;
 
             case 'pan':
@@ -1678,8 +1137,6 @@ export class Viewer {
                 mat4.translate(transform, transform, [0, 0, deltaX * distance / 20]);
                 mat4.translate(transform, transform, [0, 0, deltaY * distance / 20]);
                 break;
-
-
 
             default:
                 break;
@@ -1922,7 +1379,7 @@ export class Viewer {
     * @param {Number} [model] Model ID
     * @return {Bool} True if target exists and zoom was successful, False otherwise
     */
-    public zoomTo(id?: number, model?: number) {
+    public zoomTo(id?: number, model?: number): boolean {
         var found = this.setCameraTarget(id, model);
         if (!found) return false;
 
@@ -2467,7 +1924,7 @@ export class Viewer {
     }
 
     //executes all handlers bound to event name
-    private fire<K extends keyof ViewerEventMap>(eventName: K, args: ViewerEventMap[K]) {
+    public fire<K extends keyof ViewerEventMap>(eventName: K, args: ViewerEventMap[K]) {
         var handlers = this._events[eventName];
         if (!handlers) {
             return;
