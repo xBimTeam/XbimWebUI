@@ -791,8 +791,7 @@ export class ModelHandle {
         if (this.empty) return null;
 
         // no args, so reset all states of all products
-        if (typeof (args) == 'undefined') {
-            if (this.empty) return null;
+        if (args == null) {
 
             var prodIds = Object.getOwnPropertyNames(this._model.productMaps);
             prodIds.forEach(id => {
