@@ -711,6 +711,8 @@ export class ModelHandle {
 
         var span = map.spans[0];
         if (typeof (span) == 'undefined') return null;
+
+        return span;
     }
 
     public addState(state: State, args: number | number[]): void {
