@@ -438,15 +438,69 @@ export class Viewer {
     * @param {Number} [modelId] - Id of the model
     * @param {Number[] | Number} target - Target of the change. It can either be array of product IDs or product type from {@link xProductType xProductType}.
     */
+    public addState(state: State, target: number | number[], modelId?: number) {
+        if (typeof (state) == 'undefined' || !(state >= 225 && state <= 255)) {
+            throw new Error('State has to be defined as 225 - 255. Use State enum.');
+        }
+        if (typeof (target) === 'undefined' || target === null) {
+            throw new Error('Target must be defined either as type ID or as a list of product IDs');
+        }
+
+        this.forHandleOrAll((h: ModelHandle) => { h.addState(state, target); }, modelId);
+        this.changed = true;
+    }
+
     public setState(state: State, target: number | number[], modelId?: number) {
         if (typeof (state) == 'undefined' || !(state >= 225 && state <= 255)) {
-            throw new Error('State has to be defined as 225 - 255. Use xState enum.');
+            throw new Error('State has to be defined as 225 - 255. Use State enum.');
         }
         if (typeof (target) === 'undefined' || target === null) {
             throw new Error('Target must be defined either as type ID or as a list of product IDs');
         }
 
         this.forHandleOrAll((h: ModelHandle) => { h.setState(state, target); }, modelId);
+        this.changed = true;
+    }
+
+    public removeState(state: State, target: number | number[], modelId?: number) {
+        if (typeof (state) == 'undefined' || !(state >= 225 && state <= 255)) {
+            throw new Error('State has to be defined as 225 - 255. Use State enum.');
+        }
+        if (typeof (target) === 'undefined' || target === null) {
+            throw new Error('Target must be defined either as type ID or as a list of product IDs');
+        }
+
+        this.forHandleOrAll((h: ModelHandle) => { h.removeState(state, target); }, modelId);
+        this.changed = true;
+    }
+
+    /**
+   * Use this function to get state of the products in the model. You can compare result of this function 
+   * with one of values from {@link xState xState} enumeration. 0xFF is the default value.
+   *
+   * @function Viewer#getState
+   * @param {Number} id - Id of the product. You would typically get the id from {@link Viewer#event:pick pick event} or similar event.
+   * @param {Number} [modelId] - Id of the model
+   */
+    public getState(id: number, modelId?: number): number {
+        return this.forHandleOrAll((h: ModelHandle) => {
+            return h.getState(id);
+        }, modelId);
+    }
+
+    /**
+    * Use this function to reset state of all products to 'UNDEFINED' which means visible and not highlighted. 
+    * You can use optional hideSpaces parameter if you also want to show spaces. They will be hidden by default.
+    * 
+    * @function Viewer#resetStates
+    * @param {Number[] | Number} target - Target of the change. It can either be array of product IDs or product type from {@link xProductType xProductType}.
+    * @param {Number} [modelId = null] - Optional Model ID. Id no ID is specified states are reset for all models.
+    */
+    public resetState(target: number | number[], modelId?: number) {
+        this.forHandleOrAll((h: ModelHandle) => {
+            h.resetState(target);
+        }, modelId);
+
         this.changed = true;
     }
 
@@ -481,38 +535,6 @@ export class Viewer {
         return this._handles.filter((h) => h != null && h.id == id).pop();
     }
 
-    /**
-    * Use this function to get state of the products in the model. You can compare result of this function 
-    * with one of values from {@link xState xState} enumeration. 0xFF is the default value.
-    *
-    * @function Viewer#getState
-    * @param {Number} id - Id of the product. You would typically get the id from {@link Viewer#event:pick pick event} or similar event.
-    * @param {Number} [modelId] - Id of the model
-    */
-    public getState(id: number, modelId?: number): number {
-        return this.forHandleOrAll((h: ModelHandle) => {
-            return h.getState(id);
-        }, modelId);
-    }
-
-    /**
-    * Use this function to reset state of all products to 'UNDEFINED' which means visible and not highlighted. 
-    * You can use optional hideSpaces parameter if you also want to show spaces. They will be hidden by default.
-    * 
-    * @function Viewer#resetStates
-    * @param {Bool} [hideSpaces = true] - Default state is UNDEFINED which would also show spaces. That is often not
-    * @param {Number} [modelId = null] - Optional Model ID. Id no ID is specified states are reset for all models.
-    */
-    public resetStates(hideSpaces?: boolean, modelId?: number): void {
-        this.forHandleOrAll((h: ModelHandle) => {
-            h.resetStates();
-            if (hideSpaces)
-                h.setState(State.HIDDEN, ProductType.IFCSPATIALELEMENT);
-        }, modelId);
-
-        this.changed = true;
-    }
-
     public getCurrentImageHtml(width: number = this.width, height: number = this.height): HTMLImageElement {
         var element = document.createElement("img") as HTMLImageElement;
         element.src = this.getCurrentImageDataUrl(width, height);
@@ -537,19 +559,25 @@ export class Viewer {
     }
 
 
+    public getProductsStates(modelId: number): Array<{ id: number, states: State[] }> {
+        var handle = this.getHandle(modelId);
+        if (handle == null) {
+            throw new Error('Model doesn\'t exist');
+        }
+        return handle.getStates();
+    }
 
     /**
      * Gets complete model state and style. Resulting object can be used to restore the state later on.
      * 
-     * @param {Number} id - Model ID which you can get from {@link Viewer#event:loaded loaded} event.
+     * @param {Number} modelId - Model ID which you can get from {@link Viewer#event:loaded loaded} event.
      * @returns {Array} - Array representing model state in compact form suitable for serialization
      */
-    public getModelState(id: number): Array<Array<number>> {
-        var handle = this.getHandle(id);
+    public getModelState(modelId: number): Array<Array<number>> {
+        var handle = this.getHandle(modelId);
         if (handle == null) {
             throw new Error('Model doesn\'t exist');
         }
-
         return handle.getModelState();
     }
 
@@ -570,7 +598,7 @@ export class Viewer {
 
     /**
     * Use this method for restyling of the model. This doesn't change the default appearance of the products so you can think about it as an overlay. You can 
-    * remove the overlay if you set the style to {@link xState#UNSTYLED xState.UNSTYLED} value. You can combine restyling and hiding in this way. 
+    * remove the overlay if you set the style to {@link State#UNSTYLED State.UNSTYLED} value. You can combine restyling and hiding in this way. 
     * Use {@link Viewer#defineStyle defineStyle()} to define styling first. 
     * 
     * @function Viewer#setStyle
@@ -594,7 +622,7 @@ export class Viewer {
                 .warn('You have used undefined colour for restyling. Elements with this style will have transparent black colour and hence will be invisible.');
 
         this.forHandleOrAll((handle: ModelHandle) => {
-            handle.setState(style, target);
+            handle.setStyle(style, target);
         }, modelId);
 
         this.changed = true;

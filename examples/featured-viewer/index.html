@@ -195,9 +195,9 @@
             </button>
         </div>
         <div>
-            <button onclick="viewer.setState(states.HIDDEN, types.IFCSPACE)"> Hide spaces
+            <button onclick="viewer.addState(states.HIDDEN, types.IFCSPACE)"> Hide spaces
             </button>
-            <button onclick="viewer.setState(states.UNDEFINED, types.IFCSPACE)"> Show spaces
+            <button onclick="viewer.resetState(types.IFCSPACE)"> Show spaces
             </button>
         </div>
         <div>
@@ -212,7 +212,7 @@
                     <input type="radio" name="radioHiding" value="noHide" /> No hiding
                 </label>
             </form>
-            <button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.setState(states.UNDEFINED, types[i])}}">
+            <button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.resetState(types[i])}}">
                 Show all
             </button>
             <button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.setStyle(1, types[i])}}"> Make all glass

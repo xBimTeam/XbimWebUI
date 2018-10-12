@@ -28,8 +28,13 @@ export class StatePriorities {
             return null;
         }
 
+        // we don't need to sort by priorities if there is only single value
+        if (states.length === 1) {
+            return states[0];
+        }
+
         const priorities = states.map(s => ({state: s, priority: this.getPriority(s)}));
-        priorities.sort(p => p.priority);
+        priorities.sort((a, b) => a.priority - b.priority);
 
         const top = priorities[0];
         if (top.priority > 50) {

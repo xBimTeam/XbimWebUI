@@ -61,9 +61,9 @@ viewer.on("pick", function (arg) {
     }
     var state = viewer.getState(arg.id, arg.model);
     if (state === State.HIGHLIGHTED) {
-        viewer.setState(State.UNDEFINED, [arg.id], arg.model);
+        viewer.removeState(State.HIGHLIGHTED, [arg.id], arg.model);
     } else {
-        viewer.setState(State.HIGHLIGHTED, [arg.id], arg.model);
+        viewer.addState(State.HIGHLIGHTED, [arg.id], arg.model);
     }
 });
 viewer.on("mousedown", function (arg) {
@@ -71,7 +71,7 @@ viewer.on("mousedown", function (arg) {
 });
 
 viewer.on("dblclick", function (arg) {
-    viewer.setState(State.HIDDEN, [arg.id], arg.model);
+    viewer.addState(State.HIDDEN, [arg.id], arg.model);
 });
 viewer.on("fps", function (fps) {
     var span = document.getElementById("fps") as HTMLSpanElement;
@@ -126,19 +126,19 @@ document['makeWallsRed'] = function () {
     viewer.setStyle(0, types.IFCWALL);
 }
 document['selectAllWalls'] = function () {
-    viewer.setState(State.HIGHLIGHTED, types.IFCWALLSTANDARDCASE);
-    viewer.setState(State.HIGHLIGHTED, types.IFCCURTAINWALL);
-    viewer.setState(State.HIGHLIGHTED, types.IFCWALL);
+    viewer.addState(State.HIGHLIGHTED, types.IFCWALLSTANDARDCASE);
+    viewer.addState(State.HIGHLIGHTED, types.IFCCURTAINWALL);
+    viewer.addState(State.HIGHLIGHTED, types.IFCWALL);
 }
 document['hideWalls'] = function () {
-    viewer.setState(State.HIDDEN, types.IFCWALLSTANDARDCASE);
-    viewer.setState(State.HIDDEN, types.IFCCURTAINWALL);
-    viewer.setState(State.HIDDEN, types.IFCWALL);
+    viewer.addState(State.HIDDEN, types.IFCWALLSTANDARDCASE);
+    viewer.addState(State.HIDDEN, types.IFCCURTAINWALL);
+    viewer.addState(State.HIDDEN, types.IFCWALL);
 }
 document['resetWalls'] = function () {
-    viewer.setState(State.UNDEFINED, types.IFCWALLSTANDARDCASE);
-    viewer.setState(State.UNDEFINED, types.IFCCURTAINWALL);
-    viewer.setState(State.UNDEFINED, types.IFCWALL);
+    viewer.resetState(types.IFCWALLSTANDARDCASE);
+    viewer.resetState(types.IFCCURTAINWALL);
+    viewer.resetState(types.IFCWALL);
 }
 
 document['clip'] = function () {
@@ -178,10 +178,10 @@ viewer.on("pick", function (args) {
             if (radio.checked) {
                 var val = radio.value;
                 if (val === "noHiding") return;
-                if (val === "hideOne") viewer.setState(State.HIDDEN, [id]);
+                if (val === "hideOne") viewer.addState(State.HIDDEN, [id]);
                 if (val === "hideType") {
                     var type = viewer.getProductType(id);
-                    viewer.setState(State.HIDDEN, type);
+                    viewer.addState(State.HIDDEN, type);
                 }
                 break;
             }

@@ -29,7 +29,7 @@ export class ProductMap {
 
     public removeState(state: State) {
         const index = this.states.indexOf(state);
-        if (index > -1) {
+        if (index < 0) {
             return;
         }
         this.states.splice(index, 1);

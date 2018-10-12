@@ -1,5 +1,5 @@
 ﻿import { ModelGeometry, Region } from "./reader/model-geometry";
-import { State } from "./common/state";
+import { State, StatePriorities } from "./common/state";
 import { ModelPointers } from "./model-pointers";
 import { Product } from "./product-inheritance";
 import { Message, MessageType } from "./common/message";
@@ -331,7 +331,7 @@ export class ModelHandle {
     }
 
     private transformPlane(plane: number[], transform: vec3): Float32Array {
-        const normalLength = vec3.len(plane) ;
+        const normalLength = vec3.len(plane);
         // plane components
         const a = plane[0];
         const b = plane[1];
@@ -675,19 +675,34 @@ export class ModelHandle {
     }
 
     public getState(id: number): State {
-        if (this.empty) return null;
-
-        if (id == null) throw 'id must be defined';
-        var map = this.getProductMap(id);
-        if (map === null) return null;
-
-        var span = map.spans[0];
+        var span = this.getFirstSpan(id);
         if (span == null) return null;
-
         return this._model.states[span[0] * 2];
     }
 
+    public getStates(): Array<{ id: number, states: State[] }> {
+        const result: Array<{ id: number, states: State[] }> = [];
+        var prodIds = Object.getOwnPropertyNames(this._model.productMaps);
+        prodIds.forEach(id => {
+            const map = this._model.productMaps[+id];
+            if (map.states == null || map.states.length === 0) {
+                return;
+            }
+            if (map.states.length === 1 && map.states[0] === State.UNDEFINED) {
+                return;
+            }
+            result.push({ id: map.productID, states: map.states.slice(0) });
+        });
+        return result;
+    }
+
     public getStyle(id: number): number {
+        var span = this.getFirstSpan(id);
+        if (span == null) return null;
+        return this._model.states[span[0] * 2 + 1];
+    }
+
+    private getFirstSpan(id: number): Int32Array {
         if (this.empty) return null;
 
         if (typeof (id) === 'undefined') throw 'id must be defined';
@@ -696,47 +711,21 @@ export class ModelHandle {
 
         var span = map.spans[0];
         if (typeof (span) == 'undefined') return null;
-
-        return this._model.states[span[0] * 2 + 1];
     }
 
-    public setState(state: State, args: number | number[]): void {
-        if (this.empty) return null;
-
-        if (typeof (state) != 'number' && state < 0 && state > 255
-        ) throw 'You have to specify state as an ID of state or index in style pallete.';
-        if (typeof (args) == 'undefined')
-            throw 'You have to specify products as an array of product IDs or as a product type ID';
-
-        var maps = [];
-        //it is type
-        if (typeof (args) == 'number') {
-            // get all non-abstract subtypes
-            const subTypes = Product.getAllSubTypes(args);
-
-            for (var n in this._model.productMaps) {
-                var map = this._model.productMaps[n];
-                if (subTypes.indexOf(map.type) > -1) {
-                    maps.push(map);
-                }
-            }
-        }
-        //it is a list of IDs
-        else {
-            for (var l = 0; l < args.length; l++) {
-                var id = args[l];
-                var map = this.getProductMap(id);
-                if (map != null) maps.push(map);
-            }
-        }
+    public addState(state: State, args: number | number[]): void {
+        if (this.empty) return;
+        this.checkStateArgs(state, args);
+        const maps = this.getMaps(args);
 
         //shift +1 if it is an overlay colour style or 0 if it is a state.
-        var shift = state <= 225 ? 1 : 0;
         maps.forEach((map) => {
+            map.addState(state);
+            const priorityState = map.state;
             map.spans.forEach((span) => {
                 //set state or style
                 for (var k = span[0]; k < span[1]; k++) {
-                    this._model.states[k * 2 + shift] = state;
+                    this._model.states[k * 2] = priorityState;
                 }
             });
         });
@@ -746,15 +735,143 @@ export class ModelHandle {
         this._changed = true;
     }
 
-    public resetStates(): void {
-        if (this.empty) return null;
+    public setState(state: State, args: number | number[]): void {
+        if (this.empty) return;
+        this.checkStateArgs(state, args);
+        const maps = this.getMaps(args);
 
-        for (var i = 0; i < this._model.states.length; i += 2) {
-            this._model.states[i] = State.UNDEFINED;
-        }
+        //shift +1 if it is an overlay colour style or 0 if it is a state.
+        maps.forEach((map) => {
+            map.states = [state];
+            map.spans.forEach((span) => {
+                //set state or style
+                for (var k = span[0]; k < span[1]; k++) {
+                    this._model.states[k * 2] = state;
+                }
+            });
+        });
+
         //buffer data to GPU
         this.bufferData(this._stateBuffer, this._model.states);
         this._changed = true;
+    }
+
+    public removeState(state: State, args: number | number[]): void {
+        if (this.empty) return;
+        this.checkStateArgs(state, args);
+        const maps = this.getMaps(args);
+
+        //shift +1 if it is an overlay colour style or 0 if it is a state.
+        maps.forEach((map) => {
+            map.removeState(state);
+            const priorityState = map.state;
+            map.spans.forEach((span) => {
+                //set state or style
+                for (var k = span[0]; k < span[1]; k++) {
+                    this._model.states[k * 2] = priorityState;
+                }
+            });
+        });
+
+        //buffer data to GPU
+        this.bufferData(this._stateBuffer, this._model.states);
+        this._changed = true;
+    }
+
+    private checkStateArgs(state: State, args: number | number[]) {
+        if (typeof (state) != 'number' && state < 0 && state > 255)
+            throw 'You have to specify state as an ID of state or index in style pallete.';
+        if (typeof (args) == 'undefined')
+            throw 'You have to specify products as an array of product IDs or as a product type ID';
+    }
+
+    public resetState(args?: number | number[]): void {
+        if (this.empty) return null;
+
+        // no args, so reset all states of all products
+        if (typeof (args) == 'undefined') {
+            if (this.empty) return null;
+
+            var prodIds = Object.getOwnPropertyNames(this._model.productMaps);
+            prodIds.forEach(id => {
+                const map = this._model.productMaps[+id];
+                map.clearState();
+            });
+
+            for (var i = 0; i < this._model.states.length; i += 2) {
+                this._model.states[i] = State.UNDEFINED;
+            }
+        } else {
+            // reset only products defined by type or list of instance ids
+            const maps = this.getMaps(args);
+
+            //shift +1 if it is an overlay colour style or 0 if it is a state.
+            maps.forEach((map) => {
+                map.clearState();
+                map.spans.forEach((span) => {
+                    //set state or style
+                    for (var k = span[0]; k < span[1]; k++) {
+                        this._model.states[k * 2] = State.UNDEFINED;
+                    }
+                });
+            });
+        }
+
+        //buffer data to GPU
+        this.bufferData(this._stateBuffer, this._model.states);
+        this._changed = true;
+    }
+
+    public setStyle(styleId: number, args: number | number[]): void {
+        if (this.empty) return null;
+
+        if (typeof (styleId) != 'number' && styleId < 0 && styleId > 255
+        ) throw 'You have to specify state as an ID of state or index in style pallete.';
+        if (typeof (args) == 'undefined')
+            throw 'You have to specify products as an array of product IDs or as a product type ID';
+
+        const maps = this.getMaps(args);
+
+        //shift +1 if it is an overlay colour style or 0 if it is a state.
+        maps.forEach((map) => {
+            map.addState(styleId);
+            const priorityState = map.state;
+            map.spans.forEach((span) => {
+                //set state or style
+                for (var k = span[0]; k < span[1]; k++) {
+                    this._model.states[k * 2 + 1] = styleId;
+                }
+            });
+        });
+
+        //buffer data to GPU
+        this.bufferData(this._stateBuffer, this._model.states);
+        this._changed = true;
+    }
+
+    private getMaps(args: number | number[]): ProductMap[] {
+        var maps: ProductMap[] = [];
+        //it is type
+        if (typeof (args) == 'number') {
+            // get all non-abstract subtypes
+            const subTypes = Product.getAllSubTypes(args);
+
+            Object.getOwnPropertyNames(this._model.productMaps).forEach(n => {
+                var map = this._model.productMaps[n];
+                if (subTypes.indexOf(map.type) > -1) {
+                    maps.push(map);
+                }
+            });
+        }
+        //it is a list of IDs
+        else {
+            for (var l = 0; l < args.length; l++) {
+                var id = args[l];
+                var map = this.getProductMap(id);
+                if (map != null) maps.push(map);
+            }
+        }
+        return maps;
     }
 
     public resetStyles(): void {
