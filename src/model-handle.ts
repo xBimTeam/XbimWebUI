@@ -722,8 +722,8 @@ export class ModelHandle {
 
         //shift +1 if it is an overlay colour style or 0 if it is a state.
         maps.forEach((map) => {
-            map.addState(state);
-            const priorityState = map.state;
+            ProductMap.addState(map, state);
+            const priorityState = ProductMap.getState(map);
             map.spans.forEach((span) => {
                 //set state or style
                 for (var k = span[0]; k < span[1]; k++) {
@@ -765,8 +765,8 @@ export class ModelHandle {
 
         //shift +1 if it is an overlay colour style or 0 if it is a state.
         maps.forEach((map) => {
-            map.removeState(state);
-            const priorityState = map.state;
+            ProductMap.removeState(map, state);
+            const priorityState = ProductMap.getState(map);
             map.spans.forEach((span) => {
                 //set state or style
                 for (var k = span[0]; k < span[1]; k++) {
@@ -796,7 +796,7 @@ export class ModelHandle {
             var prodIds = Object.getOwnPropertyNames(this._model.productMaps);
             prodIds.forEach(id => {
                 const map = this._model.productMaps[+id];
-                map.clearState();
+                map.states = [];
             });
 
             for (var i = 0; i < this._model.states.length; i += 2) {
@@ -808,7 +808,7 @@ export class ModelHandle {
 
             //shift +1 if it is an overlay colour style or 0 if it is a state.
             maps.forEach((map) => {
-                map.clearState();
+                map.states = [];
                 map.spans.forEach((span) => {
                     //set state or style
                     for (var k = span[0]; k < span[1]; k++) {
@@ -835,8 +835,6 @@ export class ModelHandle {
 
         //shift +1 if it is an overlay colour style or 0 if it is a state.
         maps.forEach((map) => {
-            map.addState(styleId);
-            const priorityState = map.state;
             map.spans.forEach((span) => {
                 //set state or style
                 for (var k = span[0]; k < span[1]; k++) {

@@ -20,29 +20,25 @@ export class ProductMap {
         return c;
     }
 
-    public addState(state: State) {
-        if (this.states.find(s => s == state) != null) {
+    public static addState(p: ProductMap, state: State) {
+        if (p.states.find(s => s == state) != null) {
             return;
         }
-        this.states.push(state);
+        p.states.push(state);
     }
 
-    public removeState(state: State) {
-        const index = this.states.indexOf(state);
+    public static removeState(p:ProductMap, state: State) {
+        const index = p.states.indexOf(state);
         if (index < 0) {
             return;
         }
-        this.states.splice(index, 1);
+        p.states.splice(index, 1);
     }
 
-    public clearState(): void {
-        this.states = [];
-    }
-
-    public get state(): State {
-        if (this.states == null || this.states.length === 0) {
+    public static getState(p:ProductMap): State {
+        if (p.states == null || p.states.length === 0) {
             return State.UNDEFINED;
         }
-        return StatePriorities.getHighestPriority(this.states);
+        return StatePriorities.getHighestPriority(p.states);
     }
 }
