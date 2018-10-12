@@ -562,9 +562,23 @@ export class Viewer {
     public getProductsStates(modelId: number): Array<{ id: number, states: State[] }> {
         var handle = this.getHandle(modelId);
         if (handle == null) {
-            throw new Error('Model doesn\'t exist');
+            throw new Error(`Model '${modelId}' doesn't exist`);
         }
         return handle.getStates();
+    }
+
+    public restoreProductsStates(modelId: number, stateMap: Array<{ id: number, states: State[] }>): void {
+        var handle = this.getHandle(modelId);
+        if (handle == null) {
+            throw new Error(`Model '${modelId}' doesn't exist`);
+        }
+
+        handle.resetState();
+        stateMap.forEach(sm => {
+            sm.states.forEach(s => {
+                handle.addState(s, [sm.id]);
+            });
+        });
     }
 
     /**
@@ -576,20 +590,20 @@ export class Viewer {
     public getModelState(modelId: number): Array<Array<number>> {
         var handle = this.getHandle(modelId);
         if (handle == null) {
-            throw new Error('Model doesn\'t exist');
+            throw new Error(`Model '${modelId}' doesn't exist`);
         }
         return handle.getModelState();
     }
 
     /**
      * Restores model state from the data previously captured with {@link Viewer#getModelState getModelState()} function
-     * @param {Number} id - ID of the model
+     * @param {Number} modelId - ID of the model
      * @param {Array} state - State of the model as obtained from {@link Viewer#getModelState getModelState()} function
      */
-    public restoreModelState(id: number, state: Array<Array<number>>) {
-        var handle = this.getHandle(id);
+    public restoreModelState(modelId: number, state: Array<Array<number>>) {
+        var handle = this.getHandle(modelId);
         if (handle == null) {
-            throw new Error("Model doesn't exist");
+            throw new Error(`Model '${modelId}' doesn't exist`);
         }
 
         handle.restoreModelState(state);
