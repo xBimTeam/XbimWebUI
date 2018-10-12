@@ -26,6 +26,6 @@
   ],
   "include": [ "**/*" ],
   "files": [
-    "../model-geometry.ts"
+    "../reader/model-geometry.ts"
   ]
 }
