@@ -400,7 +400,7 @@ export class ModelHandle {
             } else {
                 maps.forEach(map => {
                     map.spans
-                        .filter((s) => s[1] < this._model.transparentIndex)
+                        .filter((s) => s[1] <= this._model.transparentIndex)
                         .forEach((span) => {
                             gl.drawArrays(gl.TRIANGLES, span[0], span[1] - span[0]);
                         });
