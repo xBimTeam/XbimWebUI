@@ -41,8 +41,7 @@
         }
     }
 
-    public get2DCanvas(): HTMLCanvasElement
-    {
+    public getImageDataArray() : Uint8ClampedArray {
         let gl = this.gl;
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
         gl.bindRenderbuffer(gl.RENDERBUFFER, this.renderbuffer);
@@ -52,11 +51,7 @@
         var data = new Uint8Array(this.width * this.height * 4);
         gl.readPixels(0, 0, this.width, this.height, gl.RGBA, gl.UNSIGNED_BYTE, data);
 
-        // Create a 2D canvas to store the result 
-        var canvas = document.createElement('canvas');
-        canvas.width = this.width;
-        canvas.height = this.height;
-        var context = canvas.getContext('2d');
+        
 
         // Flip the image data vertically (discrepancy between coordinates)
         let transData = new Uint8ClampedArray(this.width * this.height * 4);
@@ -65,6 +60,19 @@
             let transIndex = this.height - i - 1;
             transData.set(new Uint8ClampedArray(row), transIndex * this.width * 4);
         }
+        return transData;
+    }
+
+    public get2DCanvas(): HTMLCanvasElement
+    {
+        // get transposed data
+        const transData = this.getImageDataArray();
+
+        // Create a 2D canvas to store the result 
+        var canvas = document.createElement('canvas');
+        canvas.width = this.width;
+        canvas.height = this.height;
+        var context = canvas.getContext('2d');
 
         // Copy the pixels to a 2D canvas
         var imageData = context.createImageData(this.width, this.height);

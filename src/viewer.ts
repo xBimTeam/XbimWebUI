@@ -108,12 +108,17 @@ export class Viewer {
      * @member {Number} Viewer#unitsInMeter
      */
     public get unitsInMeter(): number {
-        const info = this._activeHandles.map(h => h.meter);
+        const info = this.activeHandles.map(h => h.meter);
         if (info.length === 0) {
             return null;
         }
         return info[0];
     }
+
+    /**
+     * Returns a filtered array of currently active handles
+     */
+    public get activeHandles() { return this._handles.filter((h) => { return h != null && !h.stopped && !h.empty; }); };
 
     private _perspectiveCamera: { fov: number, near: number, far: number };
     private _orthogonalCamera: { left: number, right: number, top: number, bottom: number, near: number, far: number }
@@ -135,7 +140,6 @@ export class Viewer {
     private _plugins: IPlugin[] = [];
     //Array of handles which can eventually contain handles to one or more models.
     private _handles: ModelHandle[] = [];
-    private get _activeHandles() { return this._handles.filter((h) => { return h != null && !h.stopped && !h.empty; }); };
     //shader program used for rendering
     private _shaderProgram: WebGLProgram = null;
 
@@ -554,6 +558,19 @@ export class Viewer {
         return result;
     }
 
+    public getCurrentImageDataArray(width: number = this.width, height: number = this.height): Uint8ClampedArray {
+        //use background framebuffer
+        let frame = new Framebuffer(this.gl, width, height);
+
+        //force draw into defined framebuffer
+        this.draw(frame);
+
+        let result = frame.getImageDataArray();
+        //free resources
+        frame.delete();
+        return result;
+    }
+
     public getCurrentImageBlob(callback: (blob: Blob) => void): void {
         return this.canvas.toBlob(callback, 'image/png');
     }
@@ -753,7 +770,7 @@ export class Viewer {
     public getMergedRegion(): Region {
         let region = new Region();
         const wcs = this.getCurrentWcs();
-        this._activeHandles
+        this.activeHandles
             .forEach((h) => {
                 const r = h.getRegion(wcs);
                 if (r != null) {
@@ -925,7 +942,7 @@ export class Viewer {
         this.setCameraFromCurrentModels();
 
         //only set camera parameters and the view if this is the first model
-        if (this._activeHandles.length === 1) {
+        if (this.activeHandles.length === 1) {
 
             //set centre and default distance based on the most populated region in the model
             this.setCameraTarget();
@@ -957,7 +974,7 @@ export class Viewer {
      * This should be called whenever active models are very different (size, units)
      */
     public setCameraFromCurrentModels() {
-        if (this._activeHandles.length === 0) {
+        if (this.activeHandles.length === 0) {
             return;
         }
 
@@ -966,7 +983,7 @@ export class Viewer {
             return;
         }
 
-        const meter = this._activeHandles[0].meter;
+        const meter = this.activeHandles[0].meter;
         var maxSize = Math.max(region.bbox[3], region.bbox[4], region.bbox[5]);
         this.perspectiveCamera.far = maxSize * 50;
         this.perspectiveCamera.near = meter / 10.0;
@@ -976,9 +993,9 @@ export class Viewer {
         this.orthogonalCamera.near = this.perspectiveCamera.near;
         var ratio = 1.8;
         this.orthogonalCamera.top = maxSize / ratio;
-        this.orthogonalCamera.bottom = maxSize / ratio * -1;
-        this.orthogonalCamera.left = maxSize / ratio * -1 * this.width / this.height;
+        this.orthogonalCamera.bottom = -this.orthogonalCamera.top;
         this.orthogonalCamera.right = maxSize / ratio * this.width / this.height;
+        this.orthogonalCamera.left = -this.orthogonalCamera.right;
 
     }
 
@@ -1747,7 +1764,7 @@ export class Viewer {
                 return;
             }
 
-            if (this._handles.length !== 0 && (this.changed || this._activeHandles.filter(h => h.changed).length != 0)) {
+            if (this._handles.length !== 0 && (this.changed || this.activeHandles.filter(h => h.changed).length != 0)) {
 
                 this.changed = false;
                 this.draw();

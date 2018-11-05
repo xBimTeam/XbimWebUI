@@ -1,4 +1,5 @@
 ﻿import { Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube, Grid } from '../..';
+import { CameraType } from '../../src/viewer';
 
 var QueryString = function () {
     // This function is anonymous, is executed immediately and 
@@ -36,6 +37,7 @@ window['states'] = states;
 window['RenderingMode'] = RenderingMode;
 window['ViewType'] = ViewType;
 window['product'] = Product;
+window['CameraType'] = CameraType;
 
 viewer.background = [0, 0, 0, 0];
 viewer.on("error", function (arg) {
