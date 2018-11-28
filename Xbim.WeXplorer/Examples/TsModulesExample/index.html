@@ -82,8 +82,10 @@
 			<div>
                 <button onclick="viewer.navigationMode = 'orbit'">Orbit</button>
 				<button onclick="viewer.navigationMode = 'free-orbit'">Free orbit</button>
-				<button onclick="viewer.navigationMode = 'pan'">Pan</button>
+				<button onclick="viewer.navigationMode = 'pan'">Pan</button>  
 				<button onclick="viewer.navigationMode = 'zoom'">Zoom</button>
+                <br />
+                <input type="checkbox" id="chckLockXY" onchange="lockXYToggle()"/><label for="chckLockXY">Lock XY navigation</label>
 			</div>
 			<div>
 				<button onclick="viewer.show('front')">Front</button>

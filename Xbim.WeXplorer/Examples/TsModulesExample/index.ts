@@ -2,6 +2,7 @@
 import { State } from "../../Viewer/state";
 import { ProductType } from "../../Viewer/product-type";
 import { NavigationCube } from "../../Viewer/plugins/NavigationCube/navigation-cube";
+import { NavigationXYPlane } from "../../Viewer/plugins/NavigationXYPlane/navigation-xy-plane";
 
 var QueryString = function () {
     // This function is anonymous, is executed immediately and 
@@ -209,3 +210,10 @@ viewer.addPlugin(cube);
 session.on('show', (ids) => { console.log('Show: ' + ids.map(i => i.id).toString()) });
 session.on('hide', (ids) => { console.log('Hide: ' + ids.map(i => i.id).toString()) });
 session.on('selection', (ids) => { console.log('Selection: ' + ids.map(i => i.id).toString()) });
+
+var xyLock = new NavigationXYPlane();
+viewer.addPlugin(xyLock);
+
+document['lockXYToggle'] = function () {
+    xyLock.isActive = !xyLock.isActive;  
+}

@@ -31,7 +31,7 @@ export declare class WebGLUtils {
      *        canvas.
      * @return {string} The html.
      */
-    private static makeFailHTML(msg);
+    private static makeFailHTML;
     /**
      * Mesasge for getting a webgl browser
      * @type {string}

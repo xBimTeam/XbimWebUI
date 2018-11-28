@@ -57,7 +57,7 @@ export declare class NavigationHome implements IPlugin {
     */
     viewDirection: number[];
     init(xviewer: Viewer): void;
-    private _adjust();
+    private _adjust;
     onBeforeDraw(): void;
     onBeforePick(id: number): boolean;
     onAfterDraw(): void;

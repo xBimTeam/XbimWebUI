@@ -167,6 +167,7 @@
     <Content Include="jsdoc.config.json" />
     <Content Include="build_before.bat" />
     <Content Include="tests\data\envelop.wexbim" />
+    <TypeScriptCompile Include="Viewer\plugins\NavigationXYPlane\navigation-xy-plane.ts" />
     <Content Include="webpack.config.js" />
     <Content Include="Examples\WexBimStreamTest\wexbimtest.html" />
     <Content Include="Libs\gl-matrix\LICENSE.md" />
@@ -302,7 +303,7 @@
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>5981</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>http://localhost:5981/</IISUrl>
+          <IISUrl>http://localhost:5981</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>

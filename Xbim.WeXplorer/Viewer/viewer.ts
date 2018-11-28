@@ -1,6 +1,5 @@
 ﻿import { State } from './state';
 import { ProductType } from './product-type';
-import { ProductInheritance } from './product-inheritance';
 import { ModelGeometry, Region } from './model-geometry';
 import { ModelHandle } from './model-handle';
 import { Shaders } from './shaders/shaders';
@@ -10,6 +9,7 @@ import { WebGLUtils } from './common/webgl-utils';
 import { vec3 } from "./matrix/vec3";
 import { mat3 } from "./matrix/mat3";
 import { mat4 } from "./matrix/mat4";
+export { quat } from "./matrix/quat";
 
 //reexport these classes to make them available when viewer is the root package
 export { State } from './state';
@@ -17,6 +17,7 @@ export { ProductType } from './product-type';
 export { ProductInheritance } from './product-inheritance';
 export { NavigationCube } from "./plugins/NavigationCube/navigation-cube";
 export { NavigationHome } from "./plugins/NavigationHome/navigation-home";
+export { NavigationXYPlane } from "./plugins/NavigationXYPlane/navigation-xy-plane";
 
 export { ViewerSession } from './transactions/viewer-session';
 
@@ -403,7 +404,7 @@ export class Viewer {
     * @function Viewer#addPlugin
     * @param {object} plugin - plug-in object
     */
-    public addPlugin(plugin) {
+    public addPlugin(plugin: IPlugin) {
         this._plugins.push(plugin);
 
         if (!plugin.init) return;
@@ -1386,7 +1387,7 @@ export class Viewer {
         this._canvas.addEventListener('touchend', (event) => handleTouchEnd(event), true);
     }
 
-    private navigate(type, deltaX, deltaY) {
+    private navigate(type: string, deltaX: number, deltaY: number) {
         if (!this._handles || !this._handles[0]) return;
         //translation in WCS is position from [0, 0, 0]
         var origin = this._origin;
@@ -2347,6 +2348,8 @@ export enum RenderingMode {
 }
 
 export interface IPlugin {
+
+    init(viewer: Viewer): void;
 
     onBeforeDraw(): void;
     onAfterDraw(): void;

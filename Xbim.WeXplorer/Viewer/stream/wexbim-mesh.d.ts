@@ -28,5 +28,5 @@ export declare class WexBimMeshFace {
     readonly IsPlanar: boolean;
     readonly Indices: Uint32Array;
     readonly Normals: Float32Array;
-    private unpackNormal(u, v, normals, index);
+    private unpackNormal;
 }

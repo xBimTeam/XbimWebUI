@@ -10,6 +10,8 @@ var webgl_utils_1 = require("./common/webgl-utils");
 var vec3_1 = require("./matrix/vec3");
 var mat3_1 = require("./matrix/mat3");
 var mat4_1 = require("./matrix/mat4");
+var quat_1 = require("./matrix/quat");
+exports.quat = quat_1.quat;
 //reexport these classes to make them available when viewer is the root package
 var state_2 = require("./state");
 exports.State = state_2.State;
@@ -21,6 +23,8 @@ var navigation_cube_1 = require("./plugins/NavigationCube/navigation-cube");
 exports.NavigationCube = navigation_cube_1.NavigationCube;
 var navigation_home_1 = require("./plugins/NavigationHome/navigation-home");
 exports.NavigationHome = navigation_home_1.NavigationHome;
+var navigation_xy_plane_1 = require("./plugins/NavigationXYPlane/navigation-xy-plane");
+exports.NavigationXYPlane = navigation_xy_plane_1.NavigationXYPlane;
 var viewer_session_1 = require("./transactions/viewer-session");
 exports.ViewerSession = viewer_session_1.ViewerSession;
 var Viewer = /** @class */ (function () {

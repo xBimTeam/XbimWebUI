@@ -42,7 +42,7 @@ export class BinaryReader {
                     fReader.onloadend = function () {
                         if (fReader.result) {
                             //set data buffer for next processing
-                            self._buffer = fReader.result;
+                            self._buffer = fReader.result as ArrayBuffer;
                             self._view = new DataView(self._buffer);
                             //do predefined processing of the data
                             if (self.onloaded) {
@@ -69,7 +69,7 @@ export class BinaryReader {
             fReader.onloadend = function () {
                 if (fReader.result) {
                     //set data buffer for next processing
-                    self._buffer = fReader.result;
+                    self._buffer = fReader.result as ArrayBuffer;
                     self._view = new DataView(self._buffer);
                     //do predefined processing of the data
                     if (self.onloaded) {

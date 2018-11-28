@@ -23,8 +23,8 @@ export declare class BinaryReader {
     load(source: string | Blob | File | ArrayBuffer): void;
     seek(position: number): void;
     isEOF(): boolean;
-    private readArray<T>(unitSize, count, ctor);
-    private move(size);
+    private readArray;
+    private move;
     readByte(): number;
     readByteArray(count: number): Uint8Array;
     readUint8(): number;

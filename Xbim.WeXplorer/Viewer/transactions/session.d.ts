@@ -20,7 +20,7 @@ export declare class Session {
     readonly canUndo: boolean;
     readonly canRedo: boolean;
     readonly length: number;
-    private getEventArgs();
+    private getEventArgs;
     protected fire(eventName: string, args: any): void;
     /**
      * Use this method to register to events of the viewer like {@link Viewer#event:pick pick}, {@link Viewer#event:mouseDown mouseDown},

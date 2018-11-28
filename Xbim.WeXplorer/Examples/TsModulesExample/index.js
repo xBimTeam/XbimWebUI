@@ -4,6 +4,7 @@ var viewer_1 = require("../../Viewer/viewer");
 var state_1 = require("../../Viewer/state");
 var product_type_1 = require("../../Viewer/product-type");
 var navigation_cube_1 = require("../../Viewer/plugins/NavigationCube/navigation-cube");
+var navigation_xy_plane_1 = require("../../Viewer/plugins/NavigationXYPlane/navigation-xy-plane");
 var QueryString = function () {
     // This function is anonymous, is executed immediately and 
     // the return value is assigned to QueryString!
@@ -198,4 +199,9 @@ viewer.addPlugin(cube);
 session.on('show', function (ids) { console.log('Show: ' + ids.map(function (i) { return i.id; }).toString()); });
 session.on('hide', function (ids) { console.log('Hide: ' + ids.map(function (i) { return i.id; }).toString()); });
 session.on('selection', function (ids) { console.log('Selection: ' + ids.map(function (i) { return i.id; }).toString()); });
+var xyLock = new navigation_xy_plane_1.NavigationXYPlane();
+viewer.addPlugin(xyLock);
+document['lockXYToggle'] = function () {
+    xyLock.isActive = !xyLock.isActive;
+};
 //# sourceMappingURL=index.js.map

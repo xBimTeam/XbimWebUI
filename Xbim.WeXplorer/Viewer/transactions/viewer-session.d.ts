@@ -21,8 +21,8 @@ export declare class ViewerSession extends Session {
         id: number;
         modelId: number;
     }>;
-    private getSelectionClone();
-    private getProductsOfType(type);
+    private getSelectionClone;
+    private getProductsOfType;
     /**
     * Selects all instances of the specified type or types
     * @function ViewerSession.selectType

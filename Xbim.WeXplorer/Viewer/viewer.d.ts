@@ -1,10 +1,12 @@
 import { State } from './state';
 import { ProductType } from './product-type';
+export { quat } from "./matrix/quat";
 export { State } from './state';
 export { ProductType } from './product-type';
 export { ProductInheritance } from './product-inheritance';
 export { NavigationCube } from "./plugins/NavigationCube/navigation-cube";
 export { NavigationHome } from "./plugins/NavigationHome/navigation-home";
+export { NavigationXYPlane } from "./plugins/NavigationXYPlane/navigation-xy-plane";
 export { ViewerSession } from './transactions/viewer-session';
 export declare class Viewer {
     /**
@@ -92,9 +94,31 @@ export declare class Viewer {
     * @return {Prerequisites}
     */
     static check(): {
+        /**
+        * If this array contains any warnings Viewer will work but it might be slow or may not support full functionality.
+        * @member {string[]}  Prerequisites#warnings
+        */
         warnings: any[];
+        /**
+        * If this array contains any errors Viewer won't work at all or won't work as expected.
+        * You can use messages in this array to report problems to user. However, user won't probably
+        * be able to do to much with it except trying to use different browser. IE10- are not supported for example.
+        * The latest version of IE should be all right.
+        * @member {string[]}  Prerequisites#errors
+        */
         errors: any[];
+        /**
+        * If false Viewer won't work at all or won't work as expected.
+        * You can use messages in {@link Prerequisites#errors errors array} to report problems to user. However, user won't probably
+        * be able to do to much with it except trying to use different browser. IE10- are not supported for example.
+        * The latest version of IE should be all right.
+        * @member {string[]}  Prerequisites#noErrors
+        */
         noErrors: boolean;
+        /**
+        * If false Viewer will work but it might be slow or may not support full functionality. Use {@link Prerequisites#warnings warnings array} to report problems.
+        * @member {string[]}  Prerequisites#noWarnings
+        */
         noWarnings: boolean;
     };
     /**
@@ -103,7 +127,7 @@ export declare class Viewer {
     * @function Viewer#addPlugin
     * @param {object} plugin - plug-in object
     */
-    addPlugin(plugin: any): void;
+    addPlugin(plugin: IPlugin): void;
     /**
     * Removes plugin from the viewer. Plugins can implement certain methods which get called in certain moments in time like
     * before draw, after draw etc. This makes it possible to implement functionality tightly integrated into Viewer like navigation cube or others.
@@ -128,7 +152,7 @@ export declare class Viewer {
     * @param {Number[] | Number} target - Target of the change. It can either be array of product IDs or product type from {@link xProductType xProductType}.
     */
     setState(state: State, target: number | number[], modelId?: number): void;
-    private forHandleOrAll<T>(callback, modelId);
+    private forHandleOrAll;
     /**
      * Gets all product IDs of certain type
      * @param {ProductType} type IFC product type
@@ -227,8 +251,8 @@ export declare class Viewer {
     * @return {Bool} True if the target exists and is set, False otherwise
     */
     setCameraTarget(prodId?: number, modelId?: number): boolean;
-    private getMergedRegion();
-    private getBiggestRegion();
+    private getMergedRegion;
+    private getBiggestRegion;
     /**
     * This method can be used for batch setting of viewer members. It doesn't check validity of the input.
     * @function Viewer#set
@@ -259,7 +283,7 @@ export declare class Viewer {
     * @fires Viewer#loaded
     */
     load(model: string | Blob | File, tag?: any): void;
-    private addHandle(geometry, tag?);
+    private addHandle;
     /**
      * Unloads model from the GPU. This action is not reversible.
      *
@@ -267,11 +291,11 @@ export declare class Viewer {
      */
     unload(modelId: number): void;
     _initShaders(): void;
-    private _initAttributesAndUniforms();
-    private _initMouseEvents();
-    private _initTouchNavigationEvents();
-    private _initTouchTapEvents();
-    private navigate(type, deltaX, deltaY);
+    private _initAttributesAndUniforms;
+    private _initMouseEvents;
+    private _initTouchNavigationEvents;
+    private _initTouchTapEvents;
+    private navigate;
     /**
     * This is a static draw method. You can use it if you just want to render model once with no navigation and interaction.
     * If you want interactive model call {@link Viewer#start start()} method. {@link Viewer#frame Frame event} is fired when draw call is finished.
@@ -280,7 +304,7 @@ export declare class Viewer {
     */
     draw(): void;
     private _lastActiveHandlesCount;
-    private isChanged();
+    private isChanged;
     /**
     * Use this method to get actual camera position.
     * @function Viewer#getCameraPosition
@@ -355,10 +379,10 @@ export declare class Viewer {
     * @param {Object} callback - Handler to be removed
     */
     off(eventName: string, callback: any): void;
-    private fire(eventName, args);
-    private disableTextSelection();
-    private enableTextSelection();
-    private getSVGOverlay();
+    private fire;
+    private disableTextSelection;
+    private enableTextSelection;
+    private getSVGOverlay;
     /**
     * This method can be used to get parameter of the current clipping plane. If no clipping plane is active
     * this returns [[0,0,0],[0,0,0]];
@@ -413,9 +437,10 @@ export declare class ModelPointers {
 export declare enum RenderingMode {
     NORMAL = 0,
     GRAYSCALE = 1,
-    XRAY = 2,
+    XRAY = 2
 }
 export interface IPlugin {
+    init(viewer: Viewer): void;
     onBeforeDraw(): void;
     onAfterDraw(): void;
     onBeforeDrawId(): void;

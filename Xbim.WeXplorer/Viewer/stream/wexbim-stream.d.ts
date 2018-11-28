@@ -86,7 +86,7 @@ export declare class WexBimStream {
     };
     AddRegion(region: WexBimRegion): void;
     AddStyle(style: WexBimStyle): void;
-    private Union(boxA, boxB);
+    private Union;
     AddProduct(product: WexBimProduct): void;
     static Load(source: string | Blob | File | ArrayBuffer, callback: (wexbim: WexBimStream) => void): void;
     static ReadFromStream(reader: BinaryReader): WexBimStream;
