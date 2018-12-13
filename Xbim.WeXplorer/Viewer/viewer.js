@@ -858,8 +858,6 @@ var Viewer = /** @class */ (function () {
         var button = 'L';
         var id = -1;
         var modelId = -1;
-        viewer.lastMouseX = lastMouseX;
-        viewer.lastMouseY = lastMouseY;
         //set initial conditions so that different gestures can be identified
         var handleMouseDown = function (event) {
             mouseDown = true;
@@ -933,20 +931,18 @@ var Viewer = /** @class */ (function () {
             viewer.enableTextSelection();
         };
         var handleMouseMove = function (event) {
-            var newX = event.clientX;
-            var newY = event.clientY;
-            var deltaX = newX - lastMouseX;
-            var deltaY = newY - lastMouseY;
-            lastMouseX = newX;
-            lastMouseY = newY;
-            viewer.lastMouseX = lastMouseX;
-            viewer.lastMouseY = lastMouseY;
             if (!mouseDown) {
                 return;
             }
             if (viewer.navigationMode === 'none') {
                 return;
             }
+            var newX = event.clientX;
+            var newY = event.clientY;
+            var deltaX = newX - lastMouseX;
+            var deltaY = newY - lastMouseY;
+            lastMouseX = newX;
+            lastMouseY = newY;
             if (button === 'left') {
                 switch (viewer.navigationMode) {
                     case 'free-orbit':
@@ -1477,8 +1473,8 @@ var Viewer = /** @class */ (function () {
         //it is not necessary to render the image in full resolution so this factor is used for less resolution. 
         var factor = 8;
         var gl = this.gl;
-        var width = this._width / factor;
-        var height = this._height / factor;
+        var width = this._renderWidth / factor;
+        var height = this._renderHeight / factor;
         var xRatio = (x / this._width);
         var yRatio = (y / this._height);
         //create framebuffer
