@@ -1739,8 +1739,8 @@ export class Viewer {
         var factor = 8;
         var gl = this.gl;
 
-        var width = this._renderWidth / factor;
-        var height = this._renderHeight / factor;
+        var width = this._width / factor;
+        var height = this._height / factor;
 
         var xRatio = (x / this._width);
         var yRatio = (y / this._height);

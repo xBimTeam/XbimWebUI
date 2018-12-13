@@ -1473,8 +1473,8 @@ var Viewer = /** @class */ (function () {
         //it is not necessary to render the image in full resolution so this factor is used for less resolution. 
         var factor = 8;
         var gl = this.gl;
-        var width = this._renderWidth / factor;
-        var height = this._renderHeight / factor;
+        var width = this._width / factor;
+        var height = this._height / factor;
         var xRatio = (x / this._width);
         var yRatio = (y / this._height);
         //create framebuffer
