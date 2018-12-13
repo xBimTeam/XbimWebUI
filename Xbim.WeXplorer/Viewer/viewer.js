@@ -858,6 +858,8 @@ var Viewer = /** @class */ (function () {
         var button = 'L';
         var id = -1;
         var modelId = -1;
+        viewer.lastMouseX = lastMouseX;
+        viewer.lastMouseY = lastMouseY;
         //set initial conditions so that different gestures can be identified
         var handleMouseDown = function (event) {
             mouseDown = true;
@@ -931,18 +933,20 @@ var Viewer = /** @class */ (function () {
             viewer.enableTextSelection();
         };
         var handleMouseMove = function (event) {
-            if (!mouseDown) {
-                return;
-            }
-            if (viewer.navigationMode === 'none') {
-                return;
-            }
             var newX = event.clientX;
             var newY = event.clientY;
             var deltaX = newX - lastMouseX;
             var deltaY = newY - lastMouseY;
             lastMouseX = newX;
             lastMouseY = newY;
+            viewer.lastMouseX = lastMouseX;
+            viewer.lastMouseY = lastMouseY;
+            if (!mouseDown) {
+                return;
+            }
+            if (viewer.navigationMode === 'none') {
+                return;
+            }
             if (button === 'left') {
                 switch (viewer.navigationMode) {
                     case 'free-orbit':
@@ -1471,12 +1475,12 @@ var Viewer = /** @class */ (function () {
             plugin.onBeforeDrawId();
         });
         //it is not necessary to render the image in full resolution so this factor is used for less resolution. 
-        var factor = 2;
+        var factor = 8;
         var gl = this.gl;
         var width = this._width / factor;
         var height = this._height / factor;
-        x = x / factor;
-        y = y / factor;
+        var xRatio = (x / this._width);
+        var yRatio = (y / this._height);
         //create framebuffer
         var frameBuffer = gl.createFramebuffer();
         gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
@@ -1484,16 +1488,20 @@ var Viewer = /** @class */ (function () {
         var renderBuffer = gl.createRenderbuffer();
         gl.bindRenderbuffer(gl.RENDERBUFFER, renderBuffer);
         // allocate renderbuffer
-        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
+        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, 1, 1);
         var texture = gl.createTexture();
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
         // Set the parameters so we can render any image size.        
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        var pickingPMatrix = mat4_1.mat4.copy(mat4_1.mat4.create(), this._pMatrix);
+        pickingPMatrix[2 * 4] = xRatio * 2.0;
+        pickingPMatrix[(2 * 4) + 1] = yRatio * 2.0;
+        gl.uniformMatrix4fv(this._pMatrixUniformPointer, false, pickingPMatrix);
         // attach renderbuffer and texture
         gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderBuffer);
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
@@ -1504,6 +1512,8 @@ var Viewer = /** @class */ (function () {
         gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
         gl.viewport(0, 0, width, height);
         gl.enable(gl.DEPTH_TEST); //we don't use any kind of blending or transparency
+        gl.enable(gl.SCISSOR_TEST);
+        gl.scissor(0, 0, 1, 1);
         gl.disable(gl.BLEND);
         gl.clearColor(0, 0, 0, 0); //zero colour for no-values
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -1528,7 +1538,7 @@ var Viewer = /** @class */ (function () {
         });
         //get colour in of the pixel
         var result = new Uint8Array(4);
-        gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, result);
+        gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, result);
         //reset framebuffer to render into canvas again
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         //free GPU memory
@@ -1538,6 +1548,7 @@ var Viewer = /** @class */ (function () {
         //set back blending
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.enable(gl.BLEND);
+        gl.disable(gl.SCISSOR_TEST);
         //decode ID (bit shifting by multiplication)
         var hasValue = result[3] != 0; //0 transparency is only for no-values
         if (hasValue) {
