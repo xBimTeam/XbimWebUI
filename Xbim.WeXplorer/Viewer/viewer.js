@@ -439,7 +439,7 @@ var Viewer = /** @class */ (function () {
      * @returns {Array} - Array representing model state in compact form suitable for serialization
      */
     Viewer.prototype.getModelState = function (id) {
-        var handle = this._handles[id];
+        var handle = this._handles.filter(function (h) { return h.id === id; }).pop();
         if (typeof (handle) === 'undefined') {
             throw "Model doesn't exist";
         }

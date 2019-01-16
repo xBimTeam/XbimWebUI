@@ -536,7 +536,7 @@ export class Viewer {
      * @returns {Array} - Array representing model state in compact form suitable for serialization
      */
     public getModelState(id: number): Array<Array<number>> {
-        var handle = this._handles[id];
+        var handle = this._handles.filter(h => h.id === id).pop();
         if (typeof (handle) === 'undefined') {
             throw "Model doesn't exist";
         }
