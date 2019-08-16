@@ -24,7 +24,7 @@ import { KeyboardNavigation } from './navigation/keyboard-navigation';
 import { TouchNavigation } from './navigation/touch-navigation';
 import { CheckResult, Abilities } from './common/abilities';
 import { Animations } from './navigation/animations';
-import { mat4, vec3, mat3 } from 'gl-matrix';
+import { mat4, vec3, mat3, quat } from 'gl-matrix';
 
 export type NavigationMode = 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none' | 'look-around' | 'walk' | 'look-at';
 
@@ -1439,6 +1439,17 @@ export class Viewer {
         const eye = vec3.transformMat4(vec3.create(), vec3.create(), inv);
 
         return eye;
+    }
+
+    /**
+     * Use this method to get camera direction
+    * @function Viewer#getCameraDirection
+     */
+    public getCameraDirection(): vec3 {
+        const inv = mat4.invert(mat4.create(), this.mvMatrix);
+        const rotation = mat4.getRotation(quat.create(), inv);
+
+        return vec3.transformQuat(vec3.create(), vec3.fromValues(0,0,-1), rotation);
     }
 
     /**
