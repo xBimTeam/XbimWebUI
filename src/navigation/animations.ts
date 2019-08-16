@@ -33,6 +33,7 @@ export class Animations {
         this._rotationOn = false;
     }
 
+    private viewQueue: object[] = [];
     /**
      * Animates transition from the current view to target view
      * 
@@ -41,19 +42,17 @@ export class Animations {
      */
     public viewTo(end: mat4, duration: number): Promise<void> {
         return new Promise<void>((resolve, reject) => {
+
             if (duration <= 0) { // no animation needed.
                 this.viewer.mvMatrix = end;
                 resolve();
                 return;
             }
-            let start = mat4.copy(mat4.create(), this.viewer.mvMatrix);
-            if (mat4.equals(start, end)) { // nothing to do
-                resolve();
-                return;
-            }
-            let startRotation = mat4.getRotation(quat.create(), start);
-            let startScale = mat4.getScaling(vec3.create(), start);
-            let startTranslation = mat4.getTranslation(vec3.create(), start);
+
+            let start:mat4 = null;
+            let startRotation: quat = null;
+            let startScale: vec3 = null;
+            let startTranslation:vec3 = null;
 
             let endRotation = mat4.getRotation(quat.create(), end);
             let endScale = mat4.getScaling(vec3.create(), end);
@@ -64,10 +63,32 @@ export class Animations {
             const stepDuration = duration / stepsCount;
             const stepSize = 1.0 / stepsCount;
 
+            const id = {};
+            this.viewQueue.push(id);
             let state = 0.0;
+            let initialised = false;
             let step = () => {
-                state += stepSize;
+                if (this.viewQueue[0] != id) {
+                    // not our run, just wait, try again later
+                    setTimeout(step, stepDuration);
+                    return;
+                }
                 if (state < 1.0) {
+                    if (!initialised) {
+                        // get current start
+                        start = mat4.copy(mat4.create(), this.viewer.mvMatrix);
+                        startRotation = mat4.getRotation(quat.create(), start);
+                        startScale = mat4.getScaling(vec3.create(), start);
+                        startTranslation = mat4.getTranslation(vec3.create(), start);
+                        initialised = true;
+
+                        if (mat4.equals(start, end)) { // nothing to do - dequeue and quit
+                            this.viewQueue.shift();
+                            resolve();
+                            return;
+                        }
+                    }
+                    state += stepSize;
                     let rotation = quat.slerp(quat.create(), startRotation, endRotation, state);
                     let scale = vec3.lerp(vec3.create(), startScale, endScale, state);
                     let translation = vec3.lerp(vec3.create(), startTranslation, endTranslation, state);
@@ -77,8 +98,9 @@ export class Animations {
 
                     setTimeout(step, stepDuration);
                 }
-                else { // set exact value
+                else { // set exact value, remove from the queue and quit
                     this.viewer.mvMatrix = end;
+                    this.viewQueue.shift();
                     resolve();
                 }
             };

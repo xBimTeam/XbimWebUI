@@ -67,8 +67,6 @@ export class NavigationCube implements IPlugin {
     private _initialized: boolean = false;
     private _modelId = 1000001;
 
-    private _animations: Animations;
-
     //region where the cube is drawn. This helps to avoid unnecessary requests for ID
     private _region: number[];
 
@@ -152,7 +150,6 @@ export class NavigationCube implements IPlugin {
         //create own shader 
         this._shader = null;
         this._initShader();
-        this._animations = new Animations(viewer);
 
         this._alpha = this.passiveAlpha;
         this._selection = 0.0;
@@ -440,7 +437,7 @@ export class NavigationCube implements IPlugin {
 
         //use look-at function to set up camera and target
         const mv = mat4.lookAt(mat4.create(), camera, origin, heading);
-        this._animations.viewTo(mv, this.viewer.zoomDuration);
+        this.viewer.animations.viewTo(mv, this.viewer.zoomDuration);
         return true;
 
     }

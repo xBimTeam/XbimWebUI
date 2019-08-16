@@ -120,6 +120,11 @@ export class Viewer {
     public zoomDuration: number = 1000;
 
     /**
+     * Animations functionality
+     */
+    public animations: Animations = new Animations(this);
+
+    /**
      * Returns a filtered array of currently active handles
      */
     public get activeHandles() { return this._handles.filter((h) => { return h != null && !h.stopped && !h.empty; }); };
@@ -168,7 +173,6 @@ export class Viewer {
     // which should run outside of any Zone in case zoning is in use (like in Angular where init in NgZone causes complete refresh on every frame in efect)
     private _requestAnimationFrame: (callback: FrameRequestCallback) => number;
 
-    private _animations: Animations;
 
     /**
     * This is constructor of the xBIM Viewer. It gets HTMLCanvasElement or string ID as an argument. Viewer will than be initialized 
@@ -369,7 +373,7 @@ export class Viewer {
         };
         watchCanvasSize();
 
-        this._animations = new Animations(this);
+        this.animations = new Animations(this);
     }
 
     /**
@@ -723,7 +727,7 @@ export class Viewer {
             throw new Error('Parameter coordinates must be defined');
         }
         const mv = mat4.lookAt(mat4.create(), coordinates, this.origin, [0, 0, 1]);
-        this._animations.viewTo(mv, duration);
+        this.animations.viewTo(mv, duration);
     }
 
     /**
@@ -1474,7 +1478,7 @@ export class Viewer {
         vec3.add(eye, translation, this.origin);
 
         var mv = mat4.lookAt(mat4.create(), eye, this.origin, [0, 0, 1]);
-        return this._animations.viewTo(mv, this.zoomDuration);
+        return this.animations.viewTo(mv, this.zoomDuration);
     }
 
     /**
@@ -1497,7 +1501,7 @@ export class Viewer {
                 const mvTop = mat4.translate(mat4.create(),
                     mat4.create(),
                     [origin[0] * -1.0, origin[1] * -1.0, (distance + origin[2]) * -1.0]);
-                return this._animations.viewTo(mvTop, this.zoomDuration);
+                return this.animations.viewTo(mvTop, this.zoomDuration);
             case ViewType.BOTTOM:
                 //only move to origin and up and rotate 180 degrees around Y axis
                 var toOrigin = mat4.translate(mat4.create(),
@@ -1507,7 +1511,7 @@ export class Viewer {
                 var rotationZ = mat4.rotateZ(mat4.create(), rotationY, Math.PI);
                 const mvBottom = rotationZ;
 
-                return this._animations.viewTo(mvBottom, this.zoomDuration);
+                return this.animations.viewTo(mvBottom, this.zoomDuration);
             case ViewType.FRONT:
                 camera = [origin[0], origin[1] - distance, origin[2]];
                 break;
@@ -1529,20 +1533,20 @@ export class Viewer {
         }
         // use look-at function to set up camera and target
         const mv = mat4.lookAt(mat4.create(), camera, origin, heading);
-        return this._animations.viewTo(mv, this.zoomDuration);
+        return this.animations.viewTo(mv, this.zoomDuration);
     }
 
     /**
      * Starts rotation around to present the model
      */
     public startRotation() {
-        this._animations.startRotation();
+        this.animations.startRotation();
     }
     /**
      * Stops rotation of the model
      */
     public stopRotation(): void {
-        this._animations.stopRotation();
+        this.animations.stopRotation();
     }
 
 
