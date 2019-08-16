@@ -115,6 +115,11 @@ export class Viewer {
     }
 
     /**
+     * Number of milliseconds for animated zooming
+     */
+    public zoomDuration: number = 1000;
+
+    /**
      * Returns a filtered array of currently active handles
      */
     public get activeHandles() { return this._handles.filter((h) => { return h != null && !h.stopped && !h.empty; }); };
@@ -711,12 +716,14 @@ export class Viewer {
     * 
     * @function Viewer#setCameraPosition
     * @param {Number[]} coordinates - 3D coordinates of the camera in WCS
+    * @param {Number} [duration] - milliseconds for animation. 0 by default
     */
-    public setCameraPosition(coordinates: number[]) {
+    public setCameraPosition(coordinates: number[], duration: number = 0) {
         if (typeof (coordinates) == 'undefined') {
             throw new Error('Parameter coordinates must be defined');
         }
-        this.mvMatrix = mat4.lookAt(mat4.create(), coordinates, this.origin, [0, 0, 1]);
+        const mv = mat4.lookAt(mat4.create(), coordinates, this.origin, [0, 0, 1]);
+        this._animations.viewTo(mv, duration);
     }
 
     /**
@@ -1441,10 +1448,10 @@ export class Viewer {
     * @param {Number} [model] Model ID
     * @return {Bool} True if target exists and zoom was successful, False otherwise
     */
-    public zoomTo(id?: number, model?: number): Promise<boolean> {
+    public zoomTo(id?: number, model?: number): Promise<void> {
         var found = this.setCameraTarget(id, model);
         if (!found) 
-            return new Promise<boolean>((a, r) => a(false));
+            return new Promise<void>((a, r) => r());
 
         var eye = this.getCameraPosition();
         var dir = vec3.create();
@@ -1456,7 +1463,7 @@ export class Viewer {
         vec3.add(eye, translation, this.origin);
 
         var mv = mat4.lookAt(mat4.create(), eye, this.origin, [0, 0, 1]);
-        return this._animations.viewTo(mv, 1000);
+        return this._animations.viewTo(mv, this.zoomDuration);
     }
 
     /**
@@ -1467,7 +1474,7 @@ export class Viewer {
     * Directions of this views are defined by the coordinate system. Target and distance are defined by {@link Viewer#setCameraTarget setCameraTarget()} method to certain product ID
     * or to the model extent if {@link Viewer#setCameraTarget setCameraTarget()} is called with no arguments.
     */
-    public show(type: ViewType) {
+    public show(type: ViewType): Promise<void> {
         let origin = this.origin;
         let distance = this.distance;
         let camera = [0, 0, 0];
@@ -1476,10 +1483,10 @@ export class Viewer {
             //top and bottom are different because these are singular points for look-at function if heading is [0,0,1]
             case ViewType.TOP:
                 //only move to origin and up (negative values because we move camera against model)
-                this.mvMatrix = mat4.translate(mat4.create(),
+                const mvTop = mat4.translate(mat4.create(),
                     mat4.create(),
                     [origin[0] * -1.0, origin[1] * -1.0, (distance + origin[2]) * -1.0]);
-                return;
+                return this._animations.viewTo(mvTop, this.zoomDuration);
             case ViewType.BOTTOM:
                 //only move to origin and up and rotate 180 degrees around Y axis
                 var toOrigin = mat4.translate(mat4.create(),
@@ -1487,10 +1494,9 @@ export class Viewer {
                     [origin[0] * -1.0, origin[1] * +1.0, (origin[2] + distance) * -1]);
                 var rotationY = mat4.rotateY(mat4.create(), toOrigin, Math.PI);
                 var rotationZ = mat4.rotateZ(mat4.create(), rotationY, Math.PI);
-                this.mvMatrix = rotationZ;
-                // mat4.translate(mat4.create(), rotationZ, [0, 0, -1.0 * distance]);
-                return;
+                const mvBottom = rotationZ;
 
+                return this._animations.viewTo(mvBottom, this.zoomDuration);
             case ViewType.FRONT:
                 camera = [origin[0], origin[1] - distance, origin[2]];
                 break;
@@ -1511,7 +1517,8 @@ export class Viewer {
                 break;
         }
         // use look-at function to set up camera and target
-        this.mvMatrix = mat4.lookAt(mat4.create(), camera, origin, heading);
+        const mv = mat4.lookAt(mat4.create(), camera, origin, heading);
+        return this._animations.viewTo(mv, this.zoomDuration);
     }
 
     /**
