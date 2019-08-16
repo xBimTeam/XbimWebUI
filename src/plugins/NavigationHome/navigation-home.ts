@@ -1,7 +1,7 @@
 ﻿import { Viewer } from "../../viewer";
 import { HomeTextures } from "./navigation-home-textures";
 
-import { vec3 } from "../../matrix/vec3";
+import { vec3 } from "gl-matrix";
 import { IPlugin } from "../plugin";
 import { ProductIdentity } from "../../common/product-identity";
 

@@ -3,7 +3,7 @@ import { State, StatePriorities } from "./common/state";
 import { ModelPointers } from "./model-pointers";
 import { Product } from "./product-inheritance";
 import { Message, MessageType } from "./common/message";
-import { vec3 } from "./matrix/vec3";
+import { vec3 } from "gl-matrix";
 import { ProductMap } from "./common/product-map";
 
 //this class holds pointers to textures, uniforms and data buffers which
@@ -102,8 +102,8 @@ export class ModelHandle {
 
         // fix local displacement
         const shift = vec3.subtract(vec3.create(), this.wcs, wcs);
-        result.centre = vec3.add(vec3.create(), shift, result.centre);
-        let bboxOrigin = vec3.add(vec3.create(), shift, result.bbox.subarray(0, 3));
+        result.centre = vec3.add(vec3.create(), shift, this.getVec3(result.centre));
+        let bboxOrigin = vec3.add(vec3.create(), shift, this.getVec3(result.bbox.subarray(0, 3)));
         result.bbox.set(new Float32Array(bboxOrigin), 0);
         return result;
     }
@@ -194,7 +194,7 @@ export class ModelHandle {
         this.id = ModelHandle._instancesNum++;
 
         this.meter = _model.meter;
-        this.wcs = _model.wcs;
+        this.wcs = this.getVec3(_model.wcs);
 
         // handle the case when there is actually nothing in the model
         if (_model.indices.length === 0) {
@@ -465,7 +465,7 @@ export class ModelHandle {
             if (wcs != null) {
                 // create clone before we start changing it
                 map = ProductMap.clone(map);
-                const origin = map.bBox.subarray(0, 3);
+                const origin = this.getVec3(map.bBox.subarray(0, 3));
                 const shift = vec3.subtract(vec3.create(), this.wcs, wcs);
                 const position = vec3.add(vec3.create(), origin, shift);
                 map.bBox.set(position, 0);
@@ -570,6 +570,10 @@ export class ModelHandle {
             gl.bindBuffer(gl.ARRAY_BUFFER, pointer);
             gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
         }
+    }
+
+    private getVec3(a: ArrayLike<number>){
+        return vec3.fromValues(a[0], a[1], a[2]);
     }
 
     public static bufferTexture(gl: WebGLRenderingContext | WebGL2RenderingContext, pointer: WebGLTexture, data: any, numberOfComponents?: number): number {

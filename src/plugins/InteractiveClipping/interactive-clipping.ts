@@ -1,5 +1,4 @@
-﻿import { mat4 } from '../../matrix/mat4';
-import { vec3 } from '../../matrix/vec3';
+﻿import { mat4, vec3 } from 'gl-matrix';
 import { IPlugin } from '../plugin';
 import { Viewer } from '../../viewer';
 import { ProductIdentity } from '../../common/product-identity';

@@ -13,10 +13,7 @@ export * from './src/common/viewer-event-map';
 export * from './src/viewer';
 
 // Matrix math objects
-export * from "./src/matrix/vec3";
-export * from "./src/matrix/mat3";
-export * from "./src/matrix/mat4";
-export * from "./src/matrix/quat";
+export * from "gl-matrix";
 
 // Plugins
 export * from "./src/plugins/NavigationCube/navigation-cube";

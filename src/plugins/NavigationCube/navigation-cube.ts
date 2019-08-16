@@ -3,10 +3,8 @@ import { IPlugin } from "../plugin";
 import { cube_fshader } from "./cube_fshader";
 import { cube_vshader } from "./cube_vshader";
 import { CubeTextures } from "./navigation-cube-textures";
-import { mat4 } from "../../matrix/mat4";
-import { mat3 } from "../../matrix/mat3";
-import { vec3 } from "../../matrix/vec3";
 import { ProductIdentity } from "../../common/product-identity";
+import { vec3, mat4, mat3 } from "gl-matrix";
 
 
 export class NavigationCube implements IPlugin {

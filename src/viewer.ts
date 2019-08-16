@@ -15,9 +15,6 @@ import { vertex_shader_300 } from './shaders/vertex_shader_300';
 
 //ported libraries
 import { WebGLUtils } from './common/webgl-utils';
-import { vec3 } from "./matrix/vec3";
-import { mat3 } from "./matrix/mat3";
-import { mat4 } from "./matrix/mat4";
 import { Message, MessageType } from './common/message';
 import { ProductIdentity } from './common/product-identity';
 import { IPlugin } from './plugins/plugin';
@@ -26,6 +23,8 @@ import { MouseNavigation } from './navigation/mouse-navigation';
 import { KeyboardNavigation } from './navigation/keyboard-navigation';
 import { TouchNavigation } from './navigation/touch-navigation';
 import { CheckResult, Abilities } from './common/abilities';
+import { Animations } from './navigation/animations';
+import { mat4, vec3, mat3 } from 'gl-matrix';
 
 export type NavigationMode = 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none' | 'look-around' | 'walk' | 'look-at';
 
@@ -74,22 +73,22 @@ export class Viewer {
      * Coordinates in the WCS of the origin used for orbiting and panning [x, y, z]
      * @member {Number[]} Viewer#origin
      */
-    public get origin(): number[] { return this._origin; }
-    public set origin(value: number[]) { this._origin = value; this.changed = true; }
+    public get origin(): vec3 { return this._origin; }
+    public set origin(value: vec3) { this._origin = value; this.changed = true; }
 
     /**
      * World matrix
      * @member {Number[]} Viewer#mvMatrix
      */
-    public get mvMatrix(): Float32Array { return this._mvMatrix; }
-    public set mvMatrix(value: Float32Array) { this._mvMatrix = value; this.changed = true; }
+    public get mvMatrix(): mat4 { return this._mvMatrix; }
+    public set mvMatrix(value: mat4) { this._mvMatrix = value; this.changed = true; }
 
     /**
      * Camera matrix (perspective or orthogonal)
      * @member {Number[]} Viewer#pMatrix
      */
-    public get pMatrix(): Float32Array { return this._pMatrix; }
-    public set pMatrix(value: Float32Array) { this._pMatrix = value; this.changed = true; }
+    public get pMatrix(): mat4 { return this._pMatrix; }
+    public set pMatrix(value: mat4) { this._pMatrix = value; this.changed = true; }
     /**
      * Switch between different rendering modes.
      * @member {String} Viewer#renderingMode
@@ -129,9 +128,9 @@ export class Viewer {
     private _camera: CameraType = CameraType.PERSPECTIVE;
     private _background: number[] = [230, 230, 230, 255];
     private _highlightingColour: number[] = [255, 173, 33, 255];
-    private _origin: number[] = [0, 0, 0];
-    private _mvMatrix: Float32Array = mat4.create();
-    private _pMatrix: Float32Array = mat4.create();
+    private _origin: vec3 = vec3.create();
+    private _mvMatrix: mat4 = mat4.create();
+    private _pMatrix: mat4 = mat4.create();
     private _renderingMode: RenderingMode = RenderingMode.NORMAL;
 
     private _isRunning: boolean = false;
@@ -163,6 +162,8 @@ export class Viewer {
     // cache of the request function. This should be kept from the constructor
     // which should run outside of any Zone in case zoning is in use (like in Angular where init in NgZone causes complete refresh on every frame in efect)
     private _requestAnimationFrame: (callback: FrameRequestCallback) => number;
+
+    private _animations: Animations;
 
     /**
     * This is constructor of the xBIM Viewer. It gets HTMLCanvasElement or string ID as an argument. Viewer will than be initialized 
@@ -362,6 +363,8 @@ export class Viewer {
             this._requestAnimationFrame(watchCanvasSize);
         };
         watchCanvasSize();
+
+        this._animations = new Animations(this);
     }
 
     /**
@@ -748,7 +751,7 @@ export class Viewer {
                 }
             }, modelId);
             if (bbox) {
-                this.origin = [bbox[0] + bbox[3] / 2.0, bbox[1] + bbox[4] / 2.0, bbox[2] + bbox[5] / 2.0];
+                this.origin = vec3.fromValues(bbox[0] + bbox[3] / 2.0, bbox[1] + bbox[4] / 2.0, bbox[2] + bbox[5] / 2.0);
                 setDistance(bbox);
                 return true;
             } else
@@ -760,7 +763,7 @@ export class Viewer {
             let region = this.getMergedRegion();
 
             if (region && region.population > 0) {
-                this.origin = [region.centre[0], region.centre[1], region.centre[2]]
+                this.origin = vec3.fromValues(region.centre[0], region.centre[1], region.centre[2]);
                 setDistance(region.bbox);
             }
             return true;
@@ -1132,7 +1135,7 @@ export class Viewer {
     public navigate(type: NavigationMode, deltaX, deltaY) {
         if (!this._handles || !this._handles[0]) return;
         //translation in WCS is position from [0, 0, 0]
-        var origin = new Float32Array(this.origin);
+        var origin = vec3.copy(vec3.create(), this.origin);
         var camera = this.getCameraPosition();
 
         if (type === 'look-around') {
@@ -1151,7 +1154,7 @@ export class Viewer {
 
         //movement factor needs to be dependant on the distance but one meter is a minimum so that movement wouldn't stop when camera is in 0 distance from navigation origin
         var distanceVec = vec3.subtract(vec3.create(), origin, camera);
-        var distance = Math.max(vec3.vectorLength(distanceVec), this.meter);
+        var distance = Math.max(vec3.length(distanceVec), this.meter);
 
         // Walking is at constant pace
         if (type === 'walk') {
@@ -1420,7 +1423,7 @@ export class Viewer {
     * Use this method to get actual camera position.
     * @function Viewer#getCameraPosition
     */
-    public getCameraPosition(): Float32Array {
+    public getCameraPosition(): vec3 {
         const transform = mat4.multiply(mat4.create(), this.pMatrix, this.mvMatrix);
         const inv = mat4.invert(mat4.create(), transform);
         if (inv == null) {
@@ -1438,9 +1441,10 @@ export class Viewer {
     * @param {Number} [model] Model ID
     * @return {Bool} True if target exists and zoom was successful, False otherwise
     */
-    public zoomTo(id?: number, model?: number): boolean {
+    public zoomTo(id?: number, model?: number): Promise<boolean> {
         var found = this.setCameraTarget(id, model);
-        if (!found) return false;
+        if (!found) 
+            return new Promise<boolean>((a, r) => a(false));
 
         var eye = this.getCameraPosition();
         var dir = vec3.create();
@@ -1451,8 +1455,8 @@ export class Viewer {
         vec3.scale(translation, dir, this.distance * 1.2);
         vec3.add(eye, translation, this.origin);
 
-        this.mvMatrix = mat4.lookAt(mat4.create(), eye, this.origin, [0, 0, 1]);
-        return true;
+        var mv = mat4.lookAt(mat4.create(), eye, this.origin, [0, 0, 1]);
+        return this._animations.viewTo(mv, 1000);
     }
 
     /**
@@ -1510,25 +1514,24 @@ export class Viewer {
         this.mvMatrix = mat4.lookAt(mat4.create(), camera, origin, heading);
     }
 
-    private _rotationOn: boolean = false;
+    /**
+     * Starts rotation around to present the model
+     */
     public startRotation() {
-        this._rotationOn = true;
-        let interval = 30; // ms
-        let rotate = () => {
-            if (!this._rotationOn) {
-                return;
-            }
-            this.mvMatrix = mat4.rotateZ(mat4.create(), new Float32Array(this.mvMatrix), 0.2 * Math.PI / 180.0);
-            setTimeout(rotate, interval);
-        };
-        setTimeout(rotate, interval);
+        this._animations.startRotation();
     }
-
+    /**
+     * Stops rotation of the model
+     */
     public stopRotation(): void {
-        this._rotationOn = false;
+        this._animations.stopRotation();
     }
 
 
+    /**
+     * 
+     * @param msg Fires error event. This might be used by plugins.
+     */
     public error(msg) {
         /**
         * Occurs when viewer encounters error. You should listen to this because it might also report asynchronous errors which you would miss otherwise.

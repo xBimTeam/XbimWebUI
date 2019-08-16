@@ -9,8 +9,7 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "skipDefaultLibCheck": true,
-    "lib": [ "es6", "dom" ],
-    "types": [ "node", "webgl2" ]
+    "lib": [ "es6", "dom" ]
   },
   "exclude": [
     "node_modules",
