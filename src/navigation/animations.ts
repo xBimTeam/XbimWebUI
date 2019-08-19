@@ -3,14 +3,15 @@ import { mat4, vec3, quat } from "gl-matrix";
 
 export class Animations {
 
+    private setTimeout: (callback: ()=> void, offset: number) => void;
+
     /**
      * Constructor to handle all animations
      */
     constructor(private viewer: Viewer) {
-
+        // monkey patching protection
+        this.setTimeout = window.setTimeout.bind(window);
     }
-
-    private currentAnimation: Promise<void> = null;
 
     private _rotationOn: boolean = false;
     public startRotation(): Promise<void> {
@@ -23,9 +24,9 @@ export class Animations {
                     return;
                 }
                 this.viewer.mvMatrix = mat4.rotateZ(mat4.create(), this.viewer.mvMatrix, 0.2 * Math.PI / 180.0);
-                setTimeout(rotate, interval);
+                this.setTimeout(rotate, interval);
             };
-            setTimeout(rotate, interval);
+            this.setTimeout(rotate, interval);
         });
     }
 
@@ -33,7 +34,7 @@ export class Animations {
         this._rotationOn = false;
     }
 
-    private viewQueue: object[] = [];
+    private static viewQueue: object[] = [];
     /**
      * Animates transition from the current view to target view
      * 
@@ -64,13 +65,13 @@ export class Animations {
             const stepSize = 1.0 / stepsCount;
 
             const id = {};
-            this.viewQueue.push(id);
+            Animations.viewQueue.push(id);
             let state = 0.0;
             let initialised = false;
             let step = () => {
-                if (this.viewQueue[0] != id) {
+                if (Animations.viewQueue[0] != id) {
                     // not our run, just wait, try again later
-                    setTimeout(step, stepDuration);
+                    this.setTimeout(step, stepDuration);
                     return;
                 }
                 if (state < 1.0) {
@@ -83,7 +84,7 @@ export class Animations {
                         initialised = true;
 
                         if (mat4.equals(start, end)) { // nothing to do - dequeue and quit
-                            this.viewQueue.shift();
+                            Animations.viewQueue.shift();
                             resolve();
                             return;
                         }
@@ -96,17 +97,17 @@ export class Animations {
                     let mv = mat4.fromRotationTranslationScaleOrigin(mat4.create(), rotation, translation, scale, vec3.create());
                     this.viewer.mvMatrix = mv;
 
-                    setTimeout(step, stepDuration);
+                    this.setTimeout(step, stepDuration);
                 }
                 else { // set exact value, remove from the queue and quit
                     this.viewer.mvMatrix = end;
-                    this.viewQueue.shift();
+                    Animations.viewQueue.shift();
                     resolve();
                 }
             };
 
             // interpolate with timeout
-            setTimeout(step, stepDuration);
+            this.setTimeout(step, stepDuration);
         });
 
 
