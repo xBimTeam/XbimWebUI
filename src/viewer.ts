@@ -962,7 +962,7 @@ export class Viewer {
             this.setCameraTarget();
 
             //set default view
-            this.show(ViewType.DEFAULT);
+            this.show(ViewType.DEFAULT, false);
         }
 
         // force redraw so when 'loaded' is called listeners can operate with current canvas.
@@ -1489,7 +1489,8 @@ export class Viewer {
     * Directions of this views are defined by the coordinate system. Target and distance are defined by {@link Viewer#setCameraTarget setCameraTarget()} method to certain product ID
     * or to the model extent if {@link Viewer#setCameraTarget setCameraTarget()} is called with no arguments.
     */
-    public show(type: ViewType): Promise<void> {
+    public show(type: ViewType, withAnimation = true): Promise<void> {
+        let duration = withAnimation? this.zoomDuration : 0;
         let origin = this.origin;
         let distance = this.distance;
         let camera = [0, 0, 0];
@@ -1501,7 +1502,7 @@ export class Viewer {
                 const mvTop = mat4.translate(mat4.create(),
                     mat4.create(),
                     [origin[0] * -1.0, origin[1] * -1.0, (distance + origin[2]) * -1.0]);
-                return this.animations.viewTo(mvTop, this.zoomDuration);
+                return this.animations.viewTo(mvTop, duration);
             case ViewType.BOTTOM:
                 //only move to origin and up and rotate 180 degrees around Y axis
                 var toOrigin = mat4.translate(mat4.create(),
@@ -1511,7 +1512,7 @@ export class Viewer {
                 var rotationZ = mat4.rotateZ(mat4.create(), rotationY, Math.PI);
                 const mvBottom = rotationZ;
 
-                return this.animations.viewTo(mvBottom, this.zoomDuration);
+                return this.animations.viewTo(mvBottom, duration);
             case ViewType.FRONT:
                 camera = [origin[0], origin[1] - distance, origin[2]];
                 break;
@@ -1533,7 +1534,7 @@ export class Viewer {
         }
         // use look-at function to set up camera and target
         const mv = mat4.lookAt(mat4.create(), camera, origin, heading);
-        return this.animations.viewTo(mv, this.zoomDuration);
+        return this.animations.viewTo(mv, duration);
     }
 
     /**
