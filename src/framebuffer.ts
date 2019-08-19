@@ -1,7 +1,10 @@
-﻿export class Framebuffer {
+﻿import { DepthReader } from "./shaders/depth-reader";
+
+export class Framebuffer {
     public framebuffer: WebGLFramebuffer;
     public renderbuffer: WebGLRenderbuffer;
     public texture: WebGLTexture;
+    public depthTexture: WebGLTexture;
 
     private _disposed: boolean = false;
 
@@ -29,29 +32,63 @@
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1); 
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
 
+        // Create the depth texture
+        this.depthTexture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, this.depthTexture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT16, width, height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
 
-        // attach renderbuffer and texture
+        // attach renderbuffer and texture and depth texture
         gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this.renderbuffer);
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this.depthTexture, 0);
 
         if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE) {
             throw new Error('this combination of attachments does not work');
         }
     }
 
-    public getImageDataArray() : Uint8ClampedArray {
+    /**
+     * Returns one pixel at defined position
+     */
+    public getPixel(x: number, y: number): Uint8Array {
+        var result = new Uint8Array(4);
+        this.gl.readPixels(x, y, 1, 1, this.gl.RGBA, this.gl.UNSIGNED_BYTE, result);
+        return result;
+    }
+
+    public getDepth(x: number, y: number): number {
+        const reader = new DepthReader(this.gl);
+        const depth = reader.getDepth(x, y, this.depthTexture, this.width, this.height);
+        return depth;
+    }
+
+    public getId(x: number, y: number): number {
+        const result = this.getPixel(x, y);
+
+        //decode ID (bit shifting by multiplication)
+        var hasValue = result[3] != 0; //0 transparency is only for no-values
+        if (hasValue) {
+            var id = result[0] + result[1] * 256 + result[2] * 256 * 256;
+            return id;
+        }
+    }
+
+    public getImageDataArray(): Uint8ClampedArray {
         let gl = this.gl;
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
         gl.bindRenderbuffer(gl.RENDERBUFFER, this.renderbuffer);
-        //gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0);
 
         // Read the contents of the framebuffer
         var data = new Uint8Array(this.width * this.height * 4);
         gl.readPixels(0, 0, this.width, this.height, gl.RGBA, gl.UNSIGNED_BYTE, data);
 
-        
+
 
         // Flip the image data vertically (discrepancy between coordinates)
         let transData = new Uint8ClampedArray(this.width * this.height * 4);
@@ -63,8 +100,7 @@
         return transData;
     }
 
-    public get2DCanvas(): HTMLCanvasElement
-    {
+    public get2DCanvas(): HTMLCanvasElement {
         // get transposed data
         const transData = this.getImageDataArray();
 
@@ -106,6 +142,7 @@
         this.gl.deleteFramebuffer(this.framebuffer);
         this.gl.deleteRenderbuffer(this.renderbuffer);
         this.gl.deleteTexture(this.texture);
+        this.gl.deleteTexture(this.depthTexture);
 
         this._disposed = true;
     }

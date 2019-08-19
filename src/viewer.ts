@@ -288,7 +288,7 @@ export class Viewer {
             window["mozRequestAnimationFrame"] ||
             window["oRequestAnimationFrame"] ||
             window["msRequestAnimationFrame"] ||
-            function (/* function FrameRequestCallback */ callback) {
+            function (/* function FrameRequestCallback */ callback: () => void) {
                 window.setTimeout(callback, 1000 / 60);
             }).bind(window);
 
@@ -999,8 +999,8 @@ export class Viewer {
 
         const meter = this.activeHandles[0].meter;
         var maxSize = Math.max(region.bbox[3], region.bbox[4], region.bbox[5]);
-        this.perspectiveCamera.far = maxSize * 50;
-        this.perspectiveCamera.near = meter / 10.0;
+        this.perspectiveCamera.far = maxSize * 10;
+        this.perspectiveCamera.near = meter / 4;
 
         //set orthogonalCamera boundaries so that it makes a sense
         this.orthogonalCamera.far = this.perspectiveCamera.far;
@@ -1626,18 +1626,16 @@ export class Viewer {
         });
 
         //it is not necessary to render the image in full resolution so this factor is used for less resolution. 
-        var factor = 2;
-        var gl = this.setActive();
-        var width = this.width / factor;
-        var height = this.height / factor;
+        const factor = 2;
+        const gl = this.setActive();
+        const width = this.width / factor;
+        const height = this.height / factor;
         x = x / factor;
         y = y / factor;
 
-        const fb = new Framebuffer(gl, width, height);
         //create framebuffer
-        var frameBuffer = fb.framebuffer;
-
-        gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
+        const fb = new Framebuffer(gl, width, height);
+        //gl.bindFramebuffer(gl.FRAMEBUFFER, fb.framebuffer);
         gl.viewport(0, 0, width, height);
 
         gl.enable(gl.DEPTH_TEST); //we don't use any kind of blending or transparency
@@ -1676,10 +1674,10 @@ export class Viewer {
             }
         });
 
-        //get colour in of the pixel
-        var result = new Uint8Array(4);
-        gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, result);
+        //get colour in of the pixel [r,g,b,a]
+        var result = fb.getId(x, y);
 
+        var depth = fb.getDepth(x, y);
 
         //reset framebuffer to render into canvas again
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -1691,14 +1689,7 @@ export class Viewer {
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.enable(gl.BLEND);
 
-        //decode ID (bit shifting by multiplication)
-        var hasValue = result[3] != 0; //0 transparency is only for no-values
-        if (hasValue) {
-            var id = result[0] + result[1] * 256 + result[2] * 256 * 256;
-            return id;
-        }
-
-        return null;
+        return result;
     }
 
     /**
