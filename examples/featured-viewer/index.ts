@@ -1,5 +1,6 @@
 ﻿import { Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube, Grid } from '../..';
 import { CameraType } from '../../src/viewer';
+import { vec3 } from 'gl-matrix';
 
 var QueryString = function () {
     // This function is anonymous, is executed immediately and 
@@ -57,10 +58,15 @@ if (modelId != null && modelId === 'v4') {
 
 viewer.show(ViewType.BACK);
 viewer.on("pick", function (arg) {
-    var span = document.getElementById("coords");
-    if (span) {
-        span.innerHTML = `Product id: ${arg.id}, model: ${arg.model}`;
+    var span = document.getElementById("ids");
+    span.innerHTML = `Product id: ${arg.id}, model: ${arg.model}`;
+
+    if (arg && arg.xyz) {
+        var span = document.getElementById("coords");
+        const c = arg.xyz;
+        span.innerHTML = `Click in 3D: [${c[0].toFixed(2)}, ${c[1].toFixed(2)}, ${c[2].toFixed(2)}]`;
     }
+
     var state = viewer.getState(arg.id, arg.model);
     if (state === State.HIGHLIGHTED) {
         viewer.removeState(State.HIGHLIGHTED, [arg.id], arg.model);
@@ -170,9 +176,16 @@ document['takeSnapshot'] = function () {
     viewer.addPlugin(cube);
 }
 
-viewer.on("pick", function (args) {
+viewer.on("pick", args => {
     viewer.stopRotation();
     var id = args.id;
+    if (args.xyz)
+        viewer.origin = args.xyz;
+    else {
+        const c = viewer.getMergedRegion().centre;
+        viewer.origin = vec3.fromValues(c[0], c[1], c[2]);
+    }
+
     var radios = document.getElementsByName("radioHiding");
     for (var i in radios) {
         if (radios.hasOwnProperty(i)) {

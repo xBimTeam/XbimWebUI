@@ -1595,10 +1595,10 @@ export class Viewer {
 
     public getEventData(x: number, y: number): {id: number, model: number, xyz: vec3} {
         const eventData = this.getEventDataRaw(x, y);
-        const renderId = eventData.productId;
-        if (renderId == null) {
+        if (eventData == null) {
             return { id: null, model: null , xyz: null};
         }
+        const renderId = eventData.renderId;
         const modelId = eventData.modelId;
         const handle = this.getHandle(modelId);
 
@@ -1625,7 +1625,7 @@ export class Viewer {
 
     //this renders the colour coded model into the memory buffer
     //not to the canvas and use it to identify ID of the object from that
-    private getEventDataRaw(x: number, y: number): { productId: number, modelId: number, location: vec3 } {
+    private getEventDataRaw(x: number, y: number): { renderId: number, modelId: number, location: vec3 } {
 
         // it is not necessary to render the image in full resolution so this factor is used for less resolution. 
         const factor = 2;
@@ -1643,12 +1643,12 @@ export class Viewer {
 
         // create and bind framebuffer
         
+        let fb = new Framebuffer(gl, width, height);
         try {
             this._isRunning = false;
 
             // set viewport and generall settings
             this.setActive()
-            let fb = new Framebuffer(gl, width, height);
             gl.viewport(0, 0, width, height);
             gl.enable(gl.DEPTH_TEST); //we don't use any kind of blending or transparency
             gl.disable(gl.BLEND);
@@ -1689,9 +1689,14 @@ export class Viewer {
 
             //get colour in of the pixel [r,g,b,a]
             const productId = fb.getId(x, y);
+            if (productId == null)
+                return null;
 
             // adjust near and far clipping planes
             const locationRange = fb.getXYZRange(x, y);
+            if (locationRange == null)
+                return null;
+                
             const invPmat = mat4.invert(mat4.create(), this.pMatrix);
             const nearPoint = vec3.transformMat4(vec3.create(), locationRange.near, invPmat);
             const farPoint = vec3.transformMat4(vec3.create(), locationRange.far, invPmat);
@@ -1740,18 +1745,19 @@ export class Viewer {
                 eventLocation = vec3.transformMat4(vec3.create(), xyz, inv);
             }
 
-            fb.delete();
             // return complete result
             return {
                 location: eventLocation,
                 modelId: modelId,
-                productId: productId
+                renderId: productId
             };
         }
         catch (e) {
             this.error(e);
         }
         finally {
+            fb.delete();
+
             //reset framebuffer to render into canvas again
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
