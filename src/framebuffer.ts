@@ -1,4 +1,5 @@
 ﻿import { DepthReader } from "./shaders/depth-reader";
+import { vec3 } from "gl-matrix";
 
 export class Framebuffer {
     public framebuffer: WebGLFramebuffer;
@@ -66,6 +67,58 @@ export class Framebuffer {
         const reader = new DepthReader(this.gl);
         const depth = reader.getDepth(x, y, this.depthTexture, this.width, this.height);
         return depth;
+    }
+
+    /**
+     * Computes normalised X, Y, Z of event in the clip space
+     * 
+     * @param x X coordinate of the event
+     * @param y Y coordinate of the event
+     */
+    public getXYZ(x: number, y: number): vec3 {
+        const depth = this.getDepth(x, y);
+        if (depth == 255) { // infinity
+            return null;
+        }
+
+        // convert values to clip space where x and y are [-1, 1] and z is [0, 1]
+        const xc = x / this.width * 2.0 - 1.0;
+        const yc = y / this.height * 2.0 - 1.0;
+        const zc = (depth / 255.0 - 0.5) * 2.0;
+
+        return vec3.fromValues(xc, yc, zc);
+    }
+
+    /**
+     * Computes normalised X, Y, Z of event in the clip space with near and far bounds,
+     * This can be used to refine near and far clipping planes for more precise evaluation
+     * in the second pass.
+     * 
+     * @param x X coordinate of the event
+     * @param y Y coordinate of the event
+     */
+    public getXYZRange(x: number, y: number): { near: vec3, middle: vec3, far: vec3 } {
+        const depth = this.getDepth(x, y);
+        if (depth == 255) { // infinity
+            return null;
+        }
+
+        // convert values to clip space where x and y are [-1, 1] and z is [0, 1]
+        const xc = x / this.width * 2.0 - 1.0;
+        const yc = y / this.height * 2.0 - 1.0;
+        const zc = (depth / 255.0 - 0.5) * 2.0;
+
+        const depthNear = Math.max(depth - 2, 0);
+        const zcn = (depthNear / 255.0 - 0.5) * 2.0;
+
+        const depthFar = Math.min(depth + 2, 255);
+        const zcf = (depthFar / 255.0 - 0.5) * 2.0;
+
+        return {
+            far: vec3.fromValues(xc, yc, zcf),
+            near: vec3.fromValues(xc, yc, zcn),
+            middle: vec3.fromValues(xc, yc, zc)
+        }
     }
 
     public getId(x: number, y: number): number {

@@ -1,5 +1,6 @@
 import { Viewer } from "../viewer";
 import { ProductIdentity } from "../common/product-identity";
+import { vec3 } from "gl-matrix";
 
 export class TouchNavigation {
     public static initTouchNavigationEvents(viewer: Viewer) {
@@ -97,7 +98,7 @@ export class TouchNavigation {
         var maximumLengthBetweenDoubleTaps = 200;
         var lastTap = new Date();
 
-        let identity: ProductIdentity = { id: null, model: null };
+        let data: { id: number, model: number, xyz: vec3 }= { id: null, model: null, xyz: null };
 
         //set initial conditions so that different gestures can be identified
         var handleTouchStart = (event: TouchEvent) => {
@@ -115,12 +116,12 @@ export class TouchNavigation {
             var viewY = viewer.height - (lastTouchY - r.top);
 
             //viewer is for picking
-            identity = viewer.getID(viewX, viewY);
+            data = viewer.getEventData(viewX, viewY);
 
             var now = new Date();
             var isDoubleTap = (now.getTime() - lastTap.getTime()) < maximumLengthBetweenDoubleTaps;
             if (isDoubleTap) {
-                viewer.fire('dblclick', { id: identity.model, model: identity.model, event: event });
+                viewer.fire('dblclick', { id: data.id, model: data.model, event: event, xyz:  data.xyz});
             };
             lastTap = now;
 
@@ -133,7 +134,7 @@ export class TouchNavigation {
             * @param {Number} model - model ID
             * @param {MouseEvent} event - original HTML event
             */
-            viewer.fire('mousedown', { id: identity.id, model: identity.model, event: event });
+            viewer.fire('mousedown', { id: data.id, model: data.model, event: event, xyz: data.xyz });
 
             viewer.disableTextSelection();
         };
@@ -158,11 +159,11 @@ export class TouchNavigation {
                     if (!plugin.onBeforePick) {
                         return;
                     }
-                    handled = handled || plugin.onBeforePick(identity);
+                    handled = handled || plugin.onBeforePick(data);
                 },
                     viewer);
 
-                if (!handled) viewer.fire('pick', { id: identity.id, model: identity.model, event: event });
+                if (!handled) viewer.fire('pick', { id: data.id, model: data.model, event: event, xyz: data.xyz });
             }
 
             viewer.enableTextSelection();

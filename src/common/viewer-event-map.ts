@@ -1,3 +1,5 @@
+import { vec3 } from "gl-matrix";
+
 export interface ViewerEventMap {
     "click": ViewerInteractionEvent;
     "contextmenu": ViewerInteractionEvent;
@@ -72,4 +74,9 @@ export interface ViewerInteractionEvent {
      * Model ID, might be null if no product is selected
      */
     model: number;
+
+    /**
+     * Location in real 3D space of the model (excluding WCS)
+     */
+    xyz: vec3;
 }

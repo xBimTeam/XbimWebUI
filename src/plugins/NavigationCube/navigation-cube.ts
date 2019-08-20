@@ -252,7 +252,7 @@ export class NavigationCube implements IPlugin {
                 }
 
                 //this is for picking
-                var id = viewer.getID(x, y);
+                var id = viewer.getEventData(x, y);
 
                 if (id.id >= self.TOP && id.id <= self.BACK_LEFT) {
                     self._alpha = self.activeAlpha;
@@ -282,7 +282,7 @@ export class NavigationCube implements IPlugin {
                 var viewY = viewer.height - (startY - r.top);
 
                 //this is for picking
-                var id = viewer.getID(viewX, viewY);
+                var id = viewer.getEventData(viewX, viewY);
 
                 if (id.id >= self.TOP && id.id <= self.BACK_LEFT) {
                     //change viewer navigation mode to be 'orbit'

@@ -1,5 +1,6 @@
 import { Viewer } from "../viewer";
 import { ProductIdentity } from "../common/product-identity";
+import { vec3 } from "gl-matrix";
 
 export class MouseNavigation {
     public static initMouseEvents(viewer: Viewer) {
@@ -12,6 +13,7 @@ export class MouseNavigation {
         var button = 'L';
         var id = -1;
         var modelId = -1;
+        var xyz: vec3 = null;
         var isPointerLocked = false;
 
         //set initial conditions so that different gestures can be identified
@@ -28,9 +30,11 @@ export class MouseNavigation {
             var viewY = viewer.height - (startY - r.top);
 
             //this is for picking
-            const identity = viewer.getID(viewX, viewY);
-            id = identity.id;
-            modelId = identity.model;
+            const data = viewer.getEventData(viewX, viewY);
+            id = data.id;
+            modelId = data.model;
+            xyz = data.xyz;
+
 
             //keep information about the mouse button
             switch (event.button) {
@@ -85,11 +89,11 @@ export class MouseNavigation {
                 * @param {MouseEvent} event - Original HTML event
                 */
                 if (!handled) {
-                    viewer.fire('pick', { id: id, model: modelId, event: event });
+                    viewer.fire('pick', { id: id, model: modelId, event: event, xyz: xyz });
                     // Handle double-click
                     var time = (new Date()).getTime();
                     if (time - timer < 250) {
-                        viewer.fire('dblclick', { id: id, model: modelId, event: event });
+                        viewer.fire('dblclick', { id: id, model: modelId, event: event, xyz: xyz });
                     }
                     timer = time;
                 }

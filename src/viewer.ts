@@ -1580,7 +1580,7 @@ export class Viewer {
         this.fire('error', { message: msg });
     }
 
-    public getIdsFromEvent(event: MouseEvent | Touch): ProductIdentity {
+    public getEventDataFromEvent(event: MouseEvent | Touch): {id: number, model: number, xyz: vec3} {
         let x = event.clientX;
         let y = event.clientY;
 
@@ -1590,20 +1590,21 @@ export class Viewer {
         let viewY = this.height - (y - r.top);
 
         //get product id and model id
-        return this.getID(viewX, viewY);
+        return this.getEventData(viewX, viewY);
     }
 
-    public getID(x: number, y: number): ProductIdentity {
-        const renderId = this.getIdPart(x, y, false);
+    public getEventData(x: number, y: number): {id: number, model: number, xyz: vec3} {
+        const eventData = this.getEventDataRaw(x, y);
+        const renderId = eventData.productId;
         if (renderId == null) {
-            return { id: null, model: null };
+            return { id: null, model: null , xyz: null};
         }
-        const modelId = this.getIdPart(x, y, true);
+        const modelId = eventData.modelId;
         const handle = this.getHandle(modelId);
 
         // most possibly plugin object
         if (!handle) {
-            var identity = { id: renderId, model: modelId };
+            var identity = { id: renderId, model: modelId , xyz: eventData.location};
             var handled = false;
             this._plugins.forEach((plugin) => {
                 if (!plugin.onBeforeGetId) {
@@ -1615,95 +1616,155 @@ export class Viewer {
             if (!handled)
                 return identity;
             else
-                return { id: null, model: null };
+                return { id: null, model: null, xyz: null };
         }
 
         const productId = handle.getProductId(renderId);
-        return { id: productId, model: modelId };
+        return { id: productId, model: modelId, xyz: eventData.location };
     }
 
     //this renders the colour coded model into the memory buffer
     //not to the canvas and use it to identify ID of the object from that
-    private getIdPart(x: number, y: number, modelId: boolean = false): number {
+    private getEventDataRaw(x: number, y: number): { productId: number, modelId: number, location: vec3 } {
 
-        //skip all the GPU work if there is only one model loaded and model ID is requested
-        if (modelId && this._handles.length === 1 && this._plugins.length === 0) {
-            return this._handles[0].id;
-        }
-
-        //call all before-drawId plugins
-        this._plugins.forEach((plugin) => {
-            if (!plugin.onBeforeDrawId) {
-                return;
-            }
-            plugin.onBeforeDrawId();
-        });
-
-        //it is not necessary to render the image in full resolution so this factor is used for less resolution. 
+        // it is not necessary to render the image in full resolution so this factor is used for less resolution. 
         const factor = 2;
         const gl = this.setActive();
         const width = this.width / factor;
         const height = this.height / factor;
+        const wcs = this.getCurrentWcs();
+        const near = this.perspectiveCamera.near;
+        const far = this.perspectiveCamera.far;
+        const running = this._isRunning;
+
+        // normalise by factor
         x = x / factor;
         y = y / factor;
 
-        //create framebuffer
-        const fb = new Framebuffer(gl, width, height);
-        //gl.bindFramebuffer(gl.FRAMEBUFFER, fb.framebuffer);
-        gl.viewport(0, 0, width, height);
+        // create and bind framebuffer
+        
+        try {
+            this._isRunning = false;
 
-        gl.enable(gl.DEPTH_TEST); //we don't use any kind of blending or transparency
-        gl.disable(gl.BLEND);
-        gl.clearColor(0, 0, 0, 0); //zero colour for no-values
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            // set viewport and generall settings
+            this.setActive()
+            let fb = new Framebuffer(gl, width, height);
+            gl.viewport(0, 0, width, height);
+            gl.enable(gl.DEPTH_TEST); //we don't use any kind of blending or transparency
+            gl.disable(gl.BLEND);
 
-        //set uniform for colour coding
-        gl.uniform1i(this._colorCodingUniformPointer, ColourCoding.PRODUCTS);
+            // ------ draw colour coded product ids ----------
+            // clear all
+            gl.clearColor(0, 0, 0, 0); //zero colour for no-values
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        const wcs = this.getCurrentWcs();
-
-        //render colour coded image using latest buffered data
-        this._handles.forEach((handle) => {
-            if (!handle.stopped && handle.pickable) {
-                if (modelId) {
-                    gl.uniform1i(this._colorCodingUniformPointer, handle.id);
-                }
-                handle.setActive(this._pointers, wcs);
-                handle.draw();
-            }
-        });
-
-        //call all after-drawId plugins
-        this._plugins.forEach((plugin) => {
-            if (modelId) {
-                if (!plugin.onAfterDrawModelId) {
+            //call all before-drawId plugins
+            this._plugins.forEach((plugin) => {
+                if (!plugin.onBeforeDrawId) {
                     return;
                 }
-                plugin.onAfterDrawModelId();
-            } else {
+                plugin.onBeforeDrawId();
+            });
+
+            //set uniform for colour coding
+            this.setActive();
+            gl.uniform1i(this._colorCodingUniformPointer, ColourCoding.PRODUCTS);
+            gl.bindFramebuffer(gl.FRAMEBUFFER, fb.framebuffer);
+
+            //render colour coded image using latest buffered data
+            this._handles.forEach((handle) => {
+                if (!handle.stopped && handle.pickable) {
+                    handle.setActive(this._pointers, wcs);
+                    handle.draw();
+                }
+            });
+
+            //call all after-drawId plugins
+            this._plugins.forEach((plugin) => {
                 if (!plugin.onAfterDrawId) {
                     return;
                 }
                 plugin.onAfterDrawId();
+            });
+
+            //get colour in of the pixel [r,g,b,a]
+            const productId = fb.getId(x, y);
+
+            // adjust near and far clipping planes
+            const locationRange = fb.getXYZRange(x, y);
+            const invPmat = mat4.invert(mat4.create(), this.pMatrix);
+            const nearPoint = vec3.transformMat4(vec3.create(), locationRange.near, invPmat);
+            const farPoint = vec3.transformMat4(vec3.create(), locationRange.far, invPmat);
+            const tempNear = nearPoint[2] * -1.0;
+            const tempFar = farPoint[2] * -1.0;
+            this.perspectiveCamera.near = tempNear;
+            this.perspectiveCamera.far = tempFar;
+            
+            //  --------------- render model ids ---------------------
+            this.setActive();
+            gl.bindFramebuffer(gl.FRAMEBUFFER, fb.framebuffer);
+            this.updatePMatrix(width, height);
+            gl.uniformMatrix4fv(this._pMatrixUniformPointer, false, this.pMatrix);
+
+            // clear
+            gl.clearColor(0, 0, 0, 0); //zero colour for no-values
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+
+            //render colour coded image using latest buffered data
+            this._handles.forEach((handle) => {
+                if (!handle.stopped && handle.pickable) {
+                    gl.uniform1i(this._colorCodingUniformPointer, handle.id);
+                    handle.setActive(this._pointers, wcs);
+                    handle.draw();
+                }
+            });
+
+            //call all after-drawId plugins
+            this._plugins.forEach((plugin) => {
+                if (!plugin.onAfterDrawModelId) {
+                    return;
+                }
+                plugin.onAfterDrawModelId();
+            });
+
+            const modelId = fb.getId(x, y);
+
+            // get xyz in normalised clip space
+            const xyz = fb.getXYZ(x, y);
+            let eventLocation: vec3 = null;
+            if (xyz != null) { // not an infinity
+                const transform = mat4.multiply(mat4.create(), this.pMatrix, this.mvMatrix);
+                const inv = mat4.invert(mat4.create(), transform);
+                // actual location in real coordinates
+                eventLocation = vec3.transformMat4(vec3.create(), xyz, inv);
             }
-        });
 
-        //get colour in of the pixel [r,g,b,a]
-        var result = fb.getId(x, y);
+            fb.delete();
+            // return complete result
+            return {
+                location: eventLocation,
+                modelId: modelId,
+                productId: productId
+            };
+        }
+        catch (e) {
+            this.error(e);
+        }
+        finally {
+            //reset framebuffer to render into canvas again
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-        var depth = fb.getDepth(x, y);
+            //set back blending
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+            gl.enable(gl.BLEND);
 
-        //reset framebuffer to render into canvas again
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            this.perspectiveCamera.near = near;
+            this.perspectiveCamera.far = far;
+            this.updatePMatrix(width, height);
+            this._isRunning = running;
+        }
 
-        //free GPU memory
-        fb.delete();
-
-        //set back blending
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-        gl.enable(gl.BLEND);
-
-        return result;
     }
 
     /**
@@ -1973,14 +2034,14 @@ export class Viewer {
             // only forward mouse and touch events where we can enrich the event
             // with product and model ID from the model
             if (event instanceof MouseEvent) {
-                let ids = this.getIdsFromEvent(event as MouseEvent);
-                this.fire(eventName, { event: event, id: ids.id, model: ids.model });
+                let data = this.getEventDataFromEvent(event as MouseEvent);
+                this.fire(eventName, { event: event, id: data.id, model: data.model, xyz: data.xyz });
                 return;
             }
             if (event instanceof TouchEvent) {
                 // get ID from the last touch
-                let ids = this.getIdsFromEvent(event.touches[event.touches.length - 1]);
-                this.fire(eventName, { event: event, id: ids.id, model: ids.model });
+                let data = this.getEventDataFromEvent(event.touches[event.touches.length - 1]);
+                this.fire(eventName, { event: event, id: data.id, model: data.model, xyz: data.xyz });
                 return;
             }
         };
