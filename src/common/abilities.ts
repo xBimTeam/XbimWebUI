@@ -67,6 +67,16 @@ export class Abilities {
                     result.errors.push('Floating point texture extension is not supported.');
                 }
 
+                const dte = glVersion < 2 ? (
+                    gl.getExtension('WEBGL_depth_texture') ||
+                    gl.getExtension('WEBKIT_WEBGL_depth_texture') ||
+                    gl.getExtension('MOZ_WEBGL_depth_texture')
+                ) : true;
+
+                if (!dte) {
+                    result.warnings.push("Depth texture extension is not available. It will not be possible to get 3D coordinates of user interactions.");
+                }
+
                 //check number of supported vertex shader textures. Minimum is 5 but standard requires 0.
                 var vertTextUnits = gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS);
                 if (vertTextUnits < 4)
