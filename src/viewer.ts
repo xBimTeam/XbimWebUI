@@ -173,6 +173,17 @@ export class Viewer {
     // which should run outside of any Zone in case zoning is in use (like in Angular where init in NgZone causes complete refresh on every frame in efect)
     private _requestAnimationFrame: (callback: FrameRequestCallback) => number;
 
+    /**
+     * Holds reference to Floating Point Texture extension needed for WebGL1 implementations
+     */
+    private _fptExtension: object;
+
+    /**
+     * Holds reference to Depth Texture extension needed for WebGL2 implementations to get 3D coordinate of
+     * user interactions (click, pick, touch etc.)
+     */
+    private _depthTextureExtension: object;
+
 
     /**
     * This is constructor of the xBIM Viewer. It gets HTMLCanvasElement or string ID as an argument. Viewer will than be initialized 
@@ -293,24 +304,27 @@ export class Viewer {
             }).bind(window);
 
         let gl = this.gl;
-        let fptSupport = false;
 
         //detect floating point texture support
         if (this.glVersion < 2) {
-            fptSupport = (
+            this._fptExtension = (
                 gl.getExtension('OES_texture_float') ||
                 gl.getExtension('MOZ_OES_texture_float') ||
                 gl.getExtension('WEBKIT_OES_texture_float')
             );
-        } else {
-            fptSupport = true;
+            if (!this._fptExtension) {
+                // this is critical
+                throw new Error("Floating point texture support required.");
+            }
+            this._depthTextureExtension = (
+                gl.getExtension('WEBGL_depth_texture') ||
+                gl.getExtension('WEBKIT_WEBGL_depth_texture') ||
+                gl.getExtension('MOZ_WEBGL_depth_texture')
+            );
+            if (!this._depthTextureExtension) {
+                console.warn("WebGL 1.0 Depth texture extension not available. Interaction might be constrained as 3D of the event won't be calculated.");
+            }
         }
-
-        if (!fptSupport) {
-            this.error("Floating point texture support required.");
-            return;
-        }
-
 
         //set up DEPTH_TEST and BLEND so that transparent objects look right
         //this is not 100% perfect as it would be necessary to sort all objects from back to
@@ -1453,7 +1467,7 @@ export class Viewer {
         const inv = mat4.invert(mat4.create(), this.mvMatrix);
         const rotation = mat4.getRotation(quat.create(), inv);
 
-        return vec3.transformQuat(vec3.create(), vec3.fromValues(0,0,-1), rotation);
+        return vec3.transformQuat(vec3.create(), vec3.fromValues(0, 0, -1), rotation);
     }
 
     /**
@@ -1465,7 +1479,7 @@ export class Viewer {
     */
     public zoomTo(id?: number, model?: number): Promise<void> {
         var found = this.setCameraTarget(id, model);
-        if (!found) 
+        if (!found)
             return new Promise<void>((a, r) => r());
 
         var eye = this.getCameraPosition();
@@ -1490,7 +1504,7 @@ export class Viewer {
     * or to the model extent if {@link Viewer#setCameraTarget setCameraTarget()} is called with no arguments.
     */
     public show(type: ViewType, withAnimation = true): Promise<void> {
-        let duration = withAnimation? this.zoomDuration : 0;
+        let duration = withAnimation ? this.zoomDuration : 0;
         let origin = this.origin;
         let distance = this.distance;
         let camera = [0, 0, 0];
