@@ -74,8 +74,13 @@ viewer.on("pick", function (arg) {
         viewer.addState(State.HIGHLIGHTED, [arg.id], arg.model);
     }
 });
-viewer.on("mousedown", function (arg) {
-    viewer.setCameraTarget(arg.id);
+viewer.on("mousedown", args => {
+    if (args.xyz)
+        viewer.origin = args.xyz;
+    else {
+        const c = viewer.getMergedRegion().centre;
+        viewer.origin = vec3.fromValues(c[0], c[1], c[2]);
+    }
 });
 
 viewer.on("dblclick", function (arg) {
@@ -179,13 +184,6 @@ document['takeSnapshot'] = function () {
 viewer.on("pick", args => {
     viewer.stopRotation();
     var id = args.id;
-    if (args.xyz)
-        viewer.origin = args.xyz;
-    else {
-        const c = viewer.getMergedRegion().centre;
-        viewer.origin = vec3.fromValues(c[0], c[1], c[2]);
-    }
-
     var radios = document.getElementsByName("radioHiding");
     for (var i in radios) {
         if (radios.hasOwnProperty(i)) {

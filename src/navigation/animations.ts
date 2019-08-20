@@ -3,14 +3,22 @@ import { mat4, vec3, quat } from "gl-matrix";
 
 export class Animations {
 
+    private requestAnimationFrame: (callback: FrameRequestCallback) => number;
     private setTimeout: (callback: ()=> void, offset: number) => void;
-
     /**
      * Constructor to handle all animations
      */
     constructor(private viewer: Viewer) {
         // monkey patching protection
         this.setTimeout = window.setTimeout.bind(window);
+        this.requestAnimationFrame = (window.requestAnimationFrame ||
+            window.webkitRequestAnimationFrame ||
+            window["mozRequestAnimationFrame"] ||
+            window["oRequestAnimationFrame"] ||
+            window["msRequestAnimationFrame"] ||
+            function (/* function FrameRequestCallback */ callback: () => void) {
+                window.setTimeout(callback, 1000 / 60);
+            }).bind(window);
     }
 
     private _rotationOn: boolean = false;
@@ -97,6 +105,7 @@ export class Animations {
                     let mv = mat4.fromRotationTranslationScaleOrigin(mat4.create(), rotation, translation, scale, vec3.create());
                     this.viewer.mvMatrix = mv;
 
+                    // todo: use 'requestAnimationFrame' for more smooth behaviour
                     this.setTimeout(step, stepDuration);
                 }
                 else { // set exact value, remove from the queue and quit
@@ -106,8 +115,8 @@ export class Animations {
                 }
             };
 
-            // interpolate with timeout
-            this.setTimeout(step, stepDuration);
+            // start
+            step();
         });
 
 

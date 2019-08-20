@@ -1696,7 +1696,7 @@ export class Viewer {
             const locationRange = fb.getXYZRange(x, y);
             if (locationRange == null)
                 return null;
-                
+
             const invPmat = mat4.invert(mat4.create(), this.pMatrix);
             const nearPoint = vec3.transformMat4(vec3.create(), locationRange.near, invPmat);
             const farPoint = vec3.transformMat4(vec3.create(), locationRange.far, invPmat);
@@ -1756,6 +1756,7 @@ export class Viewer {
             this.error(e);
         }
         finally {
+            this.setActive();
             fb.delete();
 
             //reset framebuffer to render into canvas again
@@ -1768,6 +1769,7 @@ export class Viewer {
             this.perspectiveCamera.near = near;
             this.perspectiveCamera.far = far;
             this.updatePMatrix(width, height);
+            gl.uniformMatrix4fv(this._pMatrixUniformPointer, false, this.pMatrix);
             this._isRunning = running;
         }
 
@@ -2027,7 +2029,7 @@ export class Viewer {
         events[eventName].push(handler);
 
         const domEvtName = `on${eventName}`;
-        const isCanvEvt = this.canvas[domEvtName] != null;
+        const isCanvEvt = (typeof(this.canvas[domEvtName]) !== 'undefined');
         if (!isCanvEvt) {
             return;
         }

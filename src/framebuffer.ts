@@ -108,10 +108,10 @@ export class Framebuffer {
         const yc = y / this.height * 2.0 - 1.0;
         const zc = (depth / 255.0 - 0.5) * 2.0;
 
-        const depthNear = Math.max(depth - 1, 0);
+        const depthNear = Math.max(depth - 2, 0);
         const zcn = (depthNear / 255.0 - 0.5) * 2.0;
 
-        const depthFar = Math.min(depth + 1, 255);
+        const depthFar = Math.min(depth + 2, 255);
         const zcf = (depthFar / 255.0 - 0.5) * 2.0;
 
         return {
