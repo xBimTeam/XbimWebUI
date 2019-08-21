@@ -110,9 +110,9 @@ export class NavigationCube implements IPlugin {
     * Set this to true to stop rendering of this plugin
     * @member {boolean} NavigationCube#stopped
     */
-   public get stopped(): boolean { return this._stopped;}
-   public set stopped(value: boolean) { this._stopped = value; if (this.viewer) this.viewer.draw();}
-   private _stopped = false;
+    public get stopped(): boolean { return this._stopped; }
+    public set stopped(value: boolean) { this._stopped = value; if (this.viewer) this.viewer.draw(); }
+    private _stopped = false;
 
     private viewer: Viewer;
     private _shader: WebGLProgram;
@@ -240,23 +240,21 @@ export class NavigationCube implements IPlugin {
                     return;
                 }
 
-                let minX = self._region[0] * viewer.width;
-                let maxX = self._region[2] * viewer.width;
-                let minY = self._region[1] * viewer.height;
-                let maxY = self._region[3] * viewer.height;
-
-                if (x < minX || x > maxX || y < minY || y > maxY) {
+                if (!self.isInRegion(x, y)) {
                     self._alpha = self.passiveAlpha;
                     self._selection = 0;
                     return;
                 }
 
                 //this is for picking
-                var id = viewer.getEventData(x, y);
+                var data = viewer.getEventDataRaw(x, y);
+                if (data == null) {
+                    return;
+                }
 
-                if (id.id >= self.TOP && id.id <= self.BACK_LEFT) {
+                if (data.renderId >= self.TOP && data.renderId <= self.BACK_LEFT) {
                     self._alpha = self.activeAlpha;
-                    self._selection = id.id;
+                    self._selection = data.renderId;
                 } else {
                     self._alpha = self.passiveAlpha;
                     self._selection = 0;
@@ -268,10 +266,11 @@ export class NavigationCube implements IPlugin {
 
         viewer.canvas.addEventListener('mousedown',
             (event) => {
+                // don't do anything if this plugin is not active
                 if (this.stopped || viewer.plugins.indexOf(this) < 0) {
-                    // don't do anything if this plugin is not active
                     return;
                 }
+
 
                 var startX = event.clientX;
                 var startY = event.clientY;
@@ -281,10 +280,18 @@ export class NavigationCube implements IPlugin {
                 var viewX = startX - r.left;
                 var viewY = viewer.height - (startY - r.top);
 
-                //this is for picking
-                var id = viewer.getEventData(viewX, viewY);
+                // don't do anything if mousedown 
+                if (!self.isInRegion(viewX, viewY)) {
+                    return;
+                }
 
-                if (id.id >= self.TOP && id.id <= self.BACK_LEFT) {
+                var data = viewer.getEventDataRaw(viewX, viewY);
+                // not an event of this plugin
+                if (data == null || data.modelId !== this._modelId) {
+                    return;
+                }
+
+                if (data.renderId >= self.TOP && data.renderId <= self.BACK_LEFT) {
                     //change viewer navigation mode to be 'orbit'
                     self._drag = true;
                     self._originalNavigation = viewer.navigationMode;
@@ -308,7 +315,144 @@ export class NavigationCube implements IPlugin {
             },
             true);
 
-        this._initialized = true; 
+        viewer.on('pick', (args) => {
+            // normal pick where something from the model is actually selected
+            if (args.model != null) {
+                return;
+            }
+
+            const event = args.event;
+            if (!(event instanceof MouseEvent || event instanceof TouchEvent)) {
+                return;
+            }
+
+            const data = viewer.getEventDataFromEvent(event as MouseEvent, true);
+            if (data.model !== this._modelId) {
+                return;
+            }
+
+            const id = data.id;
+
+            var dir = vec3.create();
+            var distance = this.viewer.distance;
+            var diagonalRatio = 1.3;
+
+            switch (id) {
+                case this.TOP:
+                    this.viewer.show(ViewType.TOP);
+                    return true;
+                case this.BOTTOM:
+                    this.viewer.show(ViewType.BOTTOM);
+                    return true;
+                case this.LEFT:
+                    this.viewer.show(ViewType.LEFT);
+                    return true;
+                case this.RIGHT:
+                    this.viewer.show(ViewType.RIGHT);
+                    return true;
+                case this.FRONT:
+                    this.viewer.show(ViewType.FRONT);
+                    return true;
+                case this.BACK:
+                    this.viewer.show(ViewType.BACK);
+                    return true;
+                case this.TOP_LEFT_FRONT:
+                    dir = vec3.fromValues(-1, -1, 1);
+                    distance *= diagonalRatio;
+                    break;
+                case this.TOP_RIGHT_FRONT:
+                    dir = vec3.fromValues(1, -1, 1);
+                    distance *= diagonalRatio;
+                    break;
+                case this.TOP_LEFT_BACK:
+                    dir = vec3.fromValues(-1, 1, 1);
+                    distance *= diagonalRatio;
+                    break;
+                case this.TOP_RIGHT_BACK:
+                    dir = vec3.fromValues(1, 1, 1);
+                    distance *= diagonalRatio;
+                    break;
+                case this.BOTTOM_LEFT_FRONT:
+                    dir = vec3.fromValues(-1, -1, -1);
+                    distance *= diagonalRatio;
+                    break;
+                case this.BOTTOM_RIGHT_FRONT:
+                    dir = vec3.fromValues(1, -1, -1);
+                    distance *= diagonalRatio;
+                    break;
+                case this.BOTTOM_LEFT_BACK:
+                    dir = vec3.fromValues(-1, 1, -1);
+                    distance *= diagonalRatio;
+                    break;
+                case this.BOTTOM_RIGHT_BACK:
+                    dir = vec3.fromValues(1, 1, -1);
+                    distance *= diagonalRatio;
+                    break;
+                case this.TOP_LEFT:
+                    dir = vec3.fromValues(-1, 0, 1);
+                    distance *= diagonalRatio;
+                    break;
+                case this.TOP_RIGHT:
+                    dir = vec3.fromValues(1, 0, 1);
+                    distance *= diagonalRatio;
+                    break;
+                case this.TOP_FRONT:
+                    dir = vec3.fromValues(0, -1, 1);
+                    distance *= diagonalRatio;
+                    break;
+                case this.TOP_BACK:
+                    dir = vec3.fromValues(0, 1, 1);
+                    distance *= diagonalRatio;
+                    break;
+                case this.BOTTOM_LEFT:
+                    dir = vec3.fromValues(-1, 0, -1);
+                    distance *= diagonalRatio;
+                    break;
+                case this.BOTTOM_RIGHT:
+                    dir = vec3.fromValues(1, 0, -1);
+                    break;
+                case this.BOTTOM_FRONT:
+                    dir = vec3.fromValues(0, -1, -1);
+                    distance *= diagonalRatio;
+                    break;
+                case this.BOTTOM_BACK:
+                    dir = vec3.fromValues(0, 1, -1);
+                    distance *= diagonalRatio;
+                    break;
+                case this.FRONT_RIGHT:
+                    dir = vec3.fromValues(1, -1, 0);
+                    distance *= diagonalRatio;
+                    break;
+                case this.FRONT_LEFT:
+                    dir = vec3.fromValues(-1, -1, 0);
+                    distance *= diagonalRatio;
+                    break;
+                case this.BACK_RIGHT:
+                    dir = vec3.fromValues(1, 1, 0);
+                    distance *= diagonalRatio;
+                    break;
+                case this.BACK_LEFT:
+                    dir = vec3.fromValues(-1, 1, 0);
+                    distance *= diagonalRatio;
+                    break;
+                default:
+                    return false;
+            }
+
+            var o = this.viewer.origin;
+            var heading = vec3.fromValues(0, 0, 1);
+            var origin = vec3.fromValues(o[0], o[1], o[2]);
+
+            dir = vec3.normalize(vec3.create(), dir);
+            var shift = vec3.scale(vec3.create(), dir, distance);
+            var camera = vec3.add(vec3.create(), origin, shift);
+
+            //use look-at function to set up camera and target
+            const mv = mat4.lookAt(mat4.create(), camera, origin, heading);
+            this.viewer.animations.viewTo(mv, this.viewer.zoomDuration);
+        });
+
+        this._initialized = true;
 
     }
 
@@ -319,125 +463,7 @@ export class NavigationCube implements IPlugin {
             return false;
         }
 
-        const id = identity.id;
 
-        var dir = vec3.create();
-        var distance = this.viewer.distance;
-        var diagonalRatio = 1.3;
-
-        switch (id) {
-            case this.TOP:
-                this.viewer.show(ViewType.TOP);
-                return true;
-            case this.BOTTOM:
-                this.viewer.show(ViewType.BOTTOM);
-                return true;
-            case this.LEFT:
-                this.viewer.show(ViewType.LEFT);
-                return true;
-            case this.RIGHT:
-                this.viewer.show(ViewType.RIGHT);
-                return true;
-            case this.FRONT:
-                this.viewer.show(ViewType.FRONT);
-                return true;
-            case this.BACK:
-                this.viewer.show(ViewType.BACK);
-                return true;
-            case this.TOP_LEFT_FRONT:
-                dir = vec3.fromValues(-1, -1, 1);
-                distance *= diagonalRatio;
-                break;
-            case this.TOP_RIGHT_FRONT:
-                dir = vec3.fromValues(1, -1, 1);
-                distance *= diagonalRatio;
-                break;
-            case this.TOP_LEFT_BACK:
-                dir = vec3.fromValues(-1, 1, 1);
-                distance *= diagonalRatio;
-                break;
-            case this.TOP_RIGHT_BACK:
-                dir = vec3.fromValues(1, 1, 1);
-                distance *= diagonalRatio;
-                break;
-            case this.BOTTOM_LEFT_FRONT:
-                dir = vec3.fromValues(-1, -1, -1);
-                distance *= diagonalRatio;
-                break;
-            case this.BOTTOM_RIGHT_FRONT:
-                dir = vec3.fromValues(1, -1, -1);
-                distance *= diagonalRatio;
-                break;
-            case this.BOTTOM_LEFT_BACK:
-                dir = vec3.fromValues(-1, 1, -1);
-                distance *= diagonalRatio;
-                break;
-            case this.BOTTOM_RIGHT_BACK:
-                dir = vec3.fromValues(1, 1, -1);
-                distance *= diagonalRatio;
-                break;
-            case this.TOP_LEFT:
-                dir = vec3.fromValues(-1, 0, 1);
-                distance *= diagonalRatio;
-                break;
-            case this.TOP_RIGHT:
-                dir = vec3.fromValues(1, 0, 1);
-                distance *= diagonalRatio;
-                break;
-            case this.TOP_FRONT:
-                dir = vec3.fromValues(0, -1, 1);
-                distance *= diagonalRatio;
-                break;
-            case this.TOP_BACK:
-                dir = vec3.fromValues(0, 1, 1);
-                distance *= diagonalRatio;
-                break;
-            case this.BOTTOM_LEFT:
-                dir = vec3.fromValues(-1, 0, -1);
-                distance *= diagonalRatio;
-                break;
-            case this.BOTTOM_RIGHT:
-                dir = vec3.fromValues(1, 0, -1);
-                break;
-            case this.BOTTOM_FRONT:
-                dir = vec3.fromValues(0, -1, -1);
-                distance *= diagonalRatio;
-                break;
-            case this.BOTTOM_BACK:
-                dir = vec3.fromValues(0, 1, -1);
-                distance *= diagonalRatio;
-                break;
-            case this.FRONT_RIGHT:
-                dir = vec3.fromValues(1, -1, 0);
-                distance *= diagonalRatio;
-                break;
-            case this.FRONT_LEFT:
-                dir = vec3.fromValues(-1, -1, 0);
-                distance *= diagonalRatio;
-                break;
-            case this.BACK_RIGHT:
-                dir = vec3.fromValues(1, 1, 0);
-                distance *= diagonalRatio;
-                break;
-            case this.BACK_LEFT:
-                dir = vec3.fromValues(-1, 1, 0);
-                distance *= diagonalRatio;
-                break;
-            default:
-                return false;
-        }
-
-        var o = this.viewer.origin;
-        var heading = vec3.fromValues(0, 0, 1);
-        var origin = vec3.fromValues(o[0], o[1], o[2]);
-
-        dir = vec3.normalize(vec3.create(), dir);
-        var shift = vec3.scale(vec3.create(), dir, distance);
-        var camera = vec3.add(vec3.create(), origin, shift);
-
-        //use look-at function to set up camera and target
-        const mv = mat4.lookAt(mat4.create(), camera, origin, heading);
-        this.viewer.animations.viewTo(mv, this.viewer.zoomDuration);
         return true;
 
     }
@@ -474,15 +500,21 @@ export class NavigationCube implements IPlugin {
         this.draw(this.viewer.width, this.viewer.height);
     }
 
-    //return false because this doesn't catch any ID event
-    onBeforeGetId(id) { return false; }
-
     private setActive(): WebGLRenderingContext {
         var gl = this.viewer.gl;
         //set own shader
         gl.useProgram(this._shader);
 
         return gl;
+    }
+
+    private isInRegion(x: number, y: number) {
+        let minX = this._region[0] * this.viewer.width;
+        let maxX = this._region[2] * this.viewer.width;
+        let minY = this._region[1] * this.viewer.height;
+        let maxY = this._region[3] * this.viewer.height;
+
+        return !(x < minX || x > maxX || y < minY || y > maxY);
     }
 
     private draw(viewerWidth: number, viewerHeight: number) {

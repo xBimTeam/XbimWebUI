@@ -182,18 +182,4 @@ export class Grid implements IPlugin {
     onAfterDrawId(): void { }
 
     onAfterDrawModelId(): void { }
-
-    /**
-    * When this function returns true, viewer doesn't use the ID for anything else taking this ID as reserved by the plugin
-    */
-    onBeforeGetId(identity: ProductIdentity): boolean {
-        return false;
-    }
-
-    /**
-     * When this function returns true, viewer doesn't use the ID for anything else taking this ID as reserved by the plugin
-     */
-    onBeforePick(identity: ProductIdentity): boolean {
-        return false;
-    }
 }

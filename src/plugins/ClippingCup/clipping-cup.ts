@@ -25,6 +25,4 @@ export class ClippingCup implements IPlugin {
     onBeforeDrawId(): void { }
     onAfterDrawId(): void { }
     onAfterDrawModelId(): void { }
-    onBeforeGetId(identity: ProductIdentity): boolean { return false; }
-    onBeforePick(identity: ProductIdentity): boolean { return false; }
 }

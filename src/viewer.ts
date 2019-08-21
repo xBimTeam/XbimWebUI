@@ -1499,11 +1499,12 @@ export class Viewer {
     * Use this function to show default views.
     *
     * @function Viewer#show
-    * @param {String} type - Type of view. Allowed values are <strong>'top', 'bottom', 'front', 'back', 'left', 'right'</strong>. 
+    * @param {ViewType} type - Type of view. Allowed values are <strong>'top', 'bottom', 'front', 'back', 'left', 'right'</strong>. 
     * Directions of this views are defined by the coordinate system. Target and distance are defined by {@link Viewer#setCameraTarget setCameraTarget()} method to certain product ID
     * or to the model extent if {@link Viewer#setCameraTarget setCameraTarget()} is called with no arguments.
+    * @param {boolean} withAnimation - Optional parameter, default is 'true'. When true, transition to the view is animated. When false, view is changed imediately.
     */
-    public show(type: ViewType, withAnimation = true): Promise<void> {
+    public show(type: ViewType, withAnimation: boolean = true): Promise<void> {
         let duration = withAnimation ? this.zoomDuration : 0;
         let origin = this.origin;
         let distance = this.distance;
@@ -1580,7 +1581,7 @@ export class Viewer {
         this.fire('error', { message: msg });
     }
 
-    public getEventDataFromEvent(event: MouseEvent | Touch): {id: number, model: number, xyz: vec3} {
+    public getEventDataFromEvent(event: MouseEvent | Touch, raw: boolean = false): {id: number, model: number, xyz: vec3} {
         let x = event.clientX;
         let y = event.clientY;
 
@@ -1590,42 +1591,46 @@ export class Viewer {
         let viewY = this.height - (y - r.top);
 
         //get product id and model id
-        return this.getEventData(viewX, viewY);
+        if (!raw){
+            return this.getEventData(viewX, viewY);
+        }
+
+        const result = this.getEventDataRaw(viewX, viewY);
+        if (result == null) {
+            return null;
+        }
+
+        // return raw data (might be for plugin purposes for example)
+        return {id: result.renderId, model: result.modelId, xyz: result.location};
     }
 
     public getEventData(x: number, y: number): {id: number, model: number, xyz: vec3} {
         const eventData = this.getEventDataRaw(x, y);
+        const noData = { id: null, model: null , xyz: null};
         if (eventData == null) {
-            return { id: null, model: null , xyz: null};
+            return noData;
         }
         const renderId = eventData.renderId;
         const modelId = eventData.modelId;
         const handle = this.getHandle(modelId);
 
-        // most possibly plugin object
-        if (!handle) {
-            var identity = { id: renderId, model: modelId , xyz: eventData.location};
-            var handled = false;
-            this._plugins.forEach((plugin) => {
-                if (!plugin.onBeforeGetId) {
-                    return;
-                }
-                handled = handled || plugin.onBeforeGetId(identity);
-            });
-
-            if (!handled)
-                return identity;
-            else
-                return { id: null, model: null, xyz: null };
+        if (handle != null) {
+            const productId = handle.getProductId(renderId);
+            return { id: productId, model: modelId, xyz: eventData.location };
         }
 
-        const productId = handle.getProductId(renderId);
-        return { id: productId, model: modelId, xyz: eventData.location };
+        // most possibly plugin object
+        return noData;
     }
 
-    //this renders the colour coded model into the memory buffer
-    //not to the canvas and use it to identify ID of the object from that
-    private getEventDataRaw(x: number, y: number): { renderId: number, modelId: number, location: vec3 } {
+    /**
+     * This renders the colour coded model into the memory buffer
+     * not to the canvas and use it to identify ID, model id and 3D location at canvas location [x,y]
+     * 
+     * @param {number} x - X coordinate on the canvas
+     * @param {number} y - Y coordinate on the canvas
+     */
+    public getEventDataRaw(x: number, y: number): { renderId: number, modelId: number, location: vec3 } {
 
         // it is not necessary to render the image in full resolution so this factor is used for less resolution. 
         const factor = 2;
@@ -2037,19 +2042,23 @@ export class Viewer {
         if (hasListener) {
             return;
         }
-        // bind to canvas events
+        // bind to canvas events as a proxy dispatcher
         const listener = (event: Event) => {
             // only forward mouse and touch events where we can enrich the event
             // with product and model ID from the model
             if (event instanceof MouseEvent) {
                 let data = this.getEventDataFromEvent(event as MouseEvent);
-                this.fire(eventName, { event: event, id: data.id, model: data.model, xyz: data.xyz });
+                if (data != null) {
+                    this.fire(eventName, { event: event, id: data.id, model: data.model, xyz: data.xyz });
+                }
                 return;
             }
             if (event instanceof TouchEvent) {
                 // get ID from the last touch
                 let data = this.getEventDataFromEvent(event.touches[event.touches.length - 1]);
-                this.fire(eventName, { event: event, id: data.id, model: data.model, xyz: data.xyz });
+                if (data != null) {
+                    this.fire(eventName, { event: event, id: data.id, model: data.model, xyz: data.xyz });
+                }
                 return;
             }
         };

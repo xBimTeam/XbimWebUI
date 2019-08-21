@@ -154,16 +154,7 @@ export class TouchNavigation {
             //if it was a longer movement do not perform picking
             if (deltaX < 3 && deltaY < 3) {
 
-                var handled = false;
-                viewer.plugins.forEach((plugin) => {
-                    if (!plugin.onBeforePick) {
-                        return;
-                    }
-                    handled = handled || plugin.onBeforePick(data);
-                },
-                    viewer);
-
-                if (!handled) viewer.fire('pick', { id: data.id, model: data.model, event: event, xyz: data.xyz });
+                viewer.fire('pick', { id: data.id, model: data.model, event: event, xyz: data.xyz });
             }
 
             viewer.enableTextSelection();

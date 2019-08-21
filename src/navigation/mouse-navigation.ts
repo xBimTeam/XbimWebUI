@@ -70,15 +70,6 @@ export class MouseNavigation {
             //if it was a longer movement do not perform picking
             if (deltaX < 3 && deltaY < 3 && button === 'left') {
 
-                var handled = false;
-                const identity: ProductIdentity = { id: id, model: modelId };
-                viewer.plugins.forEach((plugin) => {
-                    if (!plugin.onBeforePick) {
-                        return;
-                    }
-                    handled = handled || plugin.onBeforePick(identity);
-                });
-
                 /**
                 * Occurs when user click on model.
                 *
@@ -88,15 +79,13 @@ export class MouseNavigation {
                 * @param {Number} model - Model ID
                 * @param {MouseEvent} event - Original HTML event
                 */
-                if (!handled) {
-                    viewer.fire('pick', { id: id, model: modelId, event: event, xyz: xyz });
-                    // Handle double-click
-                    var time = (new Date()).getTime();
-                    if (time - timer < 250) {
-                        viewer.fire('dblclick', { id: id, model: modelId, event: event, xyz: xyz });
-                    }
-                    timer = time;
+                viewer.fire('pick', { id: id, model: modelId, event: event, xyz: xyz });
+                // Handle double-click
+                var time = (new Date()).getTime();
+                if (time - timer < 250) {
+                    viewer.fire('dblclick', { id: id, model: modelId, event: event, xyz: xyz });
                 }
+                timer = time;
             }
 
             viewer.enableTextSelection();

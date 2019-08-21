@@ -219,11 +219,4 @@ export class InteractiveClipping implements IPlugin {
     }
     public onAfterDrawId(): void {
     }
-    public onBeforeGetId(id: ProductIdentity): boolean {
-        return false;
-    }
-    public onBeforePick(id: ProductIdentity): boolean {
-        return false;
-    }
-
 }

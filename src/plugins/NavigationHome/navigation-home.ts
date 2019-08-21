@@ -169,15 +169,11 @@ export class NavigationHome implements IPlugin {
 
     public onBeforeDraw() { }
 
-    public onBeforePick(id: ProductIdentity) { return false; }
-
     public onAfterDraw() { this._adjust(); }
 
     public onBeforeDrawId() { }
 
     public onAfterDrawId() { }
-
-    public onBeforeGetId(id: ProductIdentity) { return false; }
 
     public onAfterDrawModelId(): void { }
 
