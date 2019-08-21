@@ -23,8 +23,10 @@ export class Animations {
 
     private _rotationOn: boolean = false;
     public startRotation(): Promise<void> {
+        if (this._rotationOn){
+            return new Promise<void>((a, r) => {a();});
+        }
         this._rotationOn = true;
-        const interval = 30; // ms
         return new Promise<void>((a, r) => {
             let rotate = () => {
                 if (!this._rotationOn) {
@@ -32,9 +34,9 @@ export class Animations {
                     return;
                 }
                 this.viewer.mvMatrix = mat4.rotateZ(mat4.create(), this.viewer.mvMatrix, 0.2 * Math.PI / 180.0);
-                this.setTimeout(rotate, interval);
+                this.requestAnimationFrame(rotate);
             };
-            this.setTimeout(rotate, interval);
+            rotate();
         });
     }
 
