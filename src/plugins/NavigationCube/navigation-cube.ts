@@ -473,6 +473,9 @@ export class NavigationCube implements IPlugin {
             return;
         }
         var gl = this.setActive();
+        gl.disable(gl.BLEND);
+        gl.disable(gl.DEPTH_TEST);
+
         //set uniform for colour coding to false
         gl.uniform1f(this._colourCodingUniformPointer, 0);
         this.draw(width, height);

@@ -1,6 +1,5 @@
 import { IPlugin } from '../plugin';
 import { Viewer } from '../../viewer';
-import { ProductIdentity } from '../../common/product-identity';
 import { vshader } from './vshader';
 
 export class Grid implements IPlugin {
@@ -168,7 +167,8 @@ export class Grid implements IPlugin {
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertex_buffer);
         gl.vertexAttribPointer(this.coordinatesAttributePointer, 3, gl.FLOAT, false, 0, 0);
 
-        //gl.disable(gl.BLEND);
+        gl.enable(gl.BLEND);
+        gl.enable(gl.DEPTH_TEST);
         gl.blendFunc(gl.ONE_MINUS_DST_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
         // Draw lines
