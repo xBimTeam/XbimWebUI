@@ -8,6 +8,17 @@ export class Framebuffer {
     public depthTexture: WebGLTexture;
 
     private _disposed: boolean = false;
+    private _depthReader: DepthReader;
+
+    // only create depth reader when needed
+    private get depthReader(): DepthReader { 
+        if (this._depthReader != null) {
+            return this._depthReader;
+        }
+
+        this._depthReader = new DepthReader(this.gl);
+        return this._depthReader;
+    }
 
     constructor(
         private gl: WebGLRenderingContext,
@@ -58,6 +69,12 @@ export class Framebuffer {
         }
     }
 
+    public bind(): void {
+        const gl = this.gl;
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
+        gl.bindRenderbuffer(gl.RENDERBUFFER, this.renderbuffer);
+    }
+
     /**
      * Returns one pixel at defined position
      */
@@ -68,9 +85,7 @@ export class Framebuffer {
     }
 
     public getDepth(x: number, y: number): number {
-        const reader = new DepthReader(this.gl);
-        const depth = reader.getDepth(x, y, this.depthTexture, this.width, this.height);
-        return depth;
+        return this.depthReader.getDepth(x, y, this.depthTexture, this.width, this.height);
     }
 
     /**
@@ -112,10 +127,10 @@ export class Framebuffer {
         const yc = y / this.height * 2.0 - 1.0;
         const zc = (depth / 255.0 - 0.5) * 2.0;
 
-        const depthNear = Math.max(depth - 2, 0);
+        const depthNear = Math.max(depth - 1, 0);
         const zcn = (depthNear / 255.0 - 0.5) * 2.0;
 
-        const depthFar = Math.min(depth + 2, 255);
+        const depthFar = Math.min(depth + 1, 255);
         const zcf = (depthFar / 255.0 - 0.5) * 2.0;
 
         return {
@@ -202,6 +217,10 @@ export class Framebuffer {
         this.gl.deleteRenderbuffer(this.renderbuffer);
         this.gl.deleteTexture(this.texture);
         this.gl.deleteTexture(this.depthTexture);
+
+        if (this._depthReader != null) {
+            this._depthReader.delete();
+        }
 
         this._disposed = true;
     }

@@ -4,10 +4,25 @@ import { Framebuffer } from "../framebuffer";
 
 export class DepthReader {
 
-    private program: WebGLProgram;
+    // pointers
     private texUniform: WebGLUniformLocation;
     private vertAttrs: number
+    
+    // resources
+    private program: WebGLProgram;
     private vertBuffer: WebGLBuffer;
+    private fragmentShader: WebGLShader;
+    private vertexShader: WebGLShader;
+
+    // data
+    private vertices = new Float32Array([
+        0, 0,
+        0, 1,
+        1, 0,
+        1, 0,
+        0, 1,
+        1, 1,
+    ]);
 
     /**
      *
@@ -25,23 +40,23 @@ export class DepthReader {
         }
 
         //fragment shader
-        const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-        let fsCompiled = compile(fragmentShader, depth_fragment_shader);
+        this.fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+        let fsCompiled = compile(this.fragmentShader, depth_fragment_shader);
         if (!fsCompiled) {
             throw new Error("Failed to compile depth reading fragment shader");
         }
 
         //vertex shader (the more complicated one)
-        const vertexShader = gl.createShader(gl.VERTEX_SHADER);
-        let vsCompiled = compile(vertexShader, depth_vertex_shader);
+        this.vertexShader = gl.createShader(gl.VERTEX_SHADER);
+        let vsCompiled = compile(this.vertexShader, depth_vertex_shader);
         if (!vsCompiled) {
             throw new Error("Failed to compile depth reading vertex shader");
         }
 
         //link program
         this.program = gl.createProgram();
-        gl.attachShader(this.program, vertexShader);
-        gl.attachShader(this.program, fragmentShader);
+        gl.attachShader(this.program, this.vertexShader);
+        gl.attachShader(this.program, this.fragmentShader);
         gl.linkProgram(this.program);
 
         if (gl.getProgramParameter(this.program, gl.LINK_STATUS)) {
@@ -55,24 +70,16 @@ export class DepthReader {
         this.vertAttrs = gl.getAttribLocation(this.program, 'point');
 
         // Create a buffer.
-        var positionBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-        this.vertBuffer = positionBuffer;
+        this.vertBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertBuffer);
 
         // Put a unit quad in the buffer
-        var positions = [
-            0, 0,
-            0, 1,
-            1, 0,
-            1, 0,
-            0, 1,
-            1, 1,
-        ];
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, this.vertices, gl.STATIC_DRAW);
     }
 
     private draw(tex: WebGLTexture) {
         const gl = this.gl;
+        gl.useProgram(this.program);
 
         // Tell the shader to get the texture from texture unit 0
         gl.activeTexture(gl.TEXTURE0);
@@ -97,9 +104,8 @@ export class DepthReader {
         const gl = this.gl;
         gl.useProgram(this.program);
 
-        //create framebuffer
+        //create framebuffer for off-screen rendering
         const fb = new Framebuffer(gl, width, height);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, fb.framebuffer);
         gl.viewport(0, 0, width, height);
 
         // draw and get result
@@ -109,5 +115,16 @@ export class DepthReader {
         fb.delete();
         // all components should be the same
         return depth[0];
+    }
+
+    /**
+     * Deletes all WebGL resources
+     */
+    public delete(): void {
+        const gl = this.gl;
+        gl.deleteBuffer(this.vertBuffer);
+        gl.deleteShader(this.fragmentShader);
+        gl.deleteShader(this.vertexShader);
+        gl.deleteProgram(this.program);
     }
 }

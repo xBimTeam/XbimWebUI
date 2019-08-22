@@ -6,6 +6,7 @@ import { CubeTextures } from "./navigation-cube-textures";
 import { ProductIdentity } from "../../common/product-identity";
 import { vec3, mat4, mat3 } from "gl-matrix";
 import { Animations } from "../../navigation/animations";
+import { Framebuffer } from "../../framebuffer";
 
 
 export class NavigationCube implements IPlugin {
@@ -247,14 +248,14 @@ export class NavigationCube implements IPlugin {
                 }
 
                 //this is for picking
-                var data = viewer.getEventDataRaw(x, y);
-                if (data == null) {
+                var id = this.getId(event);
+                if (id == null) {
                     return;
                 }
 
-                if (data.renderId >= self.TOP && data.renderId <= self.BACK_LEFT) {
+                if (id >= self.TOP && id <= self.BACK_LEFT) {
                     self._alpha = self.activeAlpha;
-                    self._selection = data.renderId;
+                    self._selection = id;
                 } else {
                     self._alpha = self.passiveAlpha;
                     self._selection = 0;
@@ -285,13 +286,13 @@ export class NavigationCube implements IPlugin {
                     return;
                 }
 
-                var data = viewer.getEventDataRaw(viewX, viewY);
+                var id = this.getId(event);
                 // not an event of this plugin
-                if (data == null || data.modelId !== this._modelId) {
+                if (id == null) {
                     return;
                 }
 
-                if (data.renderId >= self.TOP && data.renderId <= self.BACK_LEFT) {
+                if (id >= self.TOP && id <= self.BACK_LEFT) {
                     //change viewer navigation mode to be 'orbit'
                     self._drag = true;
                     self._originalNavigation = viewer.navigationMode;
@@ -326,12 +327,15 @@ export class NavigationCube implements IPlugin {
                 return;
             }
 
-            const data = viewer.getEventDataFromEvent(event as MouseEvent, true);
-            if (data.model !== this._modelId) {
-                return;
+            let idArg: MouseEvent | Touch = null;
+            if (event instanceof MouseEvent) {
+                idArg = event;
+            } else {
+                const te = event as TouchEvent;
+                idArg = te.changedTouches[0];
             }
 
-            const id = data.id;
+            const id = this.getId(idArg);
 
             var dir = vec3.create();
             var distance = this.viewer.distance;
@@ -488,7 +492,7 @@ export class NavigationCube implements IPlugin {
             return;
         }
         var gl = this.setActive();
-        //set uniform for colour coding to false
+        //set uniform for colour coding to true
         gl.uniform1f(this._colourCodingUniformPointer, 1);
         this.draw(this.viewer.width, this.viewer.height);
     }
@@ -498,9 +502,33 @@ export class NavigationCube implements IPlugin {
             return;
         }
         var gl = this.setActive();
-        //set uniform for colour coding to false
+        //set uniform for colour coding to this model id
         gl.uniform1f(this._colourCodingUniformPointer, this._modelId);
         this.draw(this.viewer.width, this.viewer.height);
+    }
+
+    private getId(event: MouseEvent | Touch) {
+        let x = event.clientX;
+        let y = event.clientY;
+
+        //get coordinates within canvas (with the right orientation)
+        let r = this.viewer.canvas.getBoundingClientRect();
+        let viewX = x - r.left;
+        let viewY = this.viewer.height - (y - r.top);
+
+        const gl = this.viewer.gl;
+        var fb = new Framebuffer(gl, this.viewer.width, this.viewer.height);
+        gl.viewport(0, 0, this.viewer.width, this.viewer.height);
+        gl.enable(gl.DEPTH_TEST); //we don't use any kind of blending or transparency
+        gl.disable(gl.BLEND);
+        // clear all
+        gl.clearColor(0, 0, 0, 0); //zero colour for no-values
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        this.onAfterDrawId();
+        const id = fb.getId(viewX, viewY);;
+        fb.delete();
+        return id;
     }
 
     private setActive(): WebGLRenderingContext {

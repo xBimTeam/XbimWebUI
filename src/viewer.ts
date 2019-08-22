@@ -124,6 +124,7 @@ export class Viewer {
      */
     public animations: Animations = new Animations(this);
 
+
     /**
      * Returns a filtered array of currently active handles
      */
@@ -1610,7 +1611,7 @@ export class Viewer {
 
         const result = this.getEventDataRaw(viewX, viewY);
         if (result == null) {
-            return null;
+            return {id: null, model: null, xyz: null};
         }
 
         // return raw data (might be for plugin purposes for example)
