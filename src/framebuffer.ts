@@ -14,6 +14,10 @@ export class Framebuffer {
         public width: number,
         public height: number
     ) {
+        // width and height should be whole numbers
+        this.width = width = Math.floor(width);
+        this.height = height = Math.floor(height);
+
         //create framebuffer
         this.framebuffer = gl.createFramebuffer();
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
