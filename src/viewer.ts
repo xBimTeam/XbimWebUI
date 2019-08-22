@@ -1237,7 +1237,10 @@ export class Viewer {
         this.mvMatrix = mat4.multiply(mat4.create(), transform, this.mvMatrix);
     }
 
-    private getCurrentWcs(): vec3 {
+    /**
+     * Gets current WCS displacement used for visualisation
+     */
+    public getCurrentWcs(): vec3 {
         let wcs: vec3 = vec3.create();
         let nonEmpty = this._handles.filter(h => !h.empty);
         if (nonEmpty.length > 0) {
@@ -1457,6 +1460,16 @@ export class Viewer {
         const eye = vec3.transformMat4(vec3.create(), vec3.create(), inv);
 
         return eye;
+    }
+
+    /**
+     * Use this method to get camera position in the WCS coordinates. Useful for persistance
+     * accross executions.
+     */
+    public getCameraPositionWcs(): vec3 {
+        const position = this.getCameraPosition();
+        const wcs = this.getCurrentWcs();
+        return vec3.add(vec3.create(), position, wcs);
     }
 
     /**

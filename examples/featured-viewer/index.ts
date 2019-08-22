@@ -1,5 +1,6 @@
 ﻿import { Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube, Grid } from '../..';
 import { CameraType } from '../../src/viewer';
+import { Viewpoint } from '../../src/bcf/viewpoint';
 import { vec3 } from 'gl-matrix';
 
 var QueryString = function () {
@@ -175,9 +176,18 @@ document['startGrid'] = function () {
 }
 document['takeSnapshot'] = function () {
     viewer.removePlugin(cube);
-    var img = viewer.getCurrentImageDataUrl();
+    var img = viewer.getCurrentImageHtml(viewer.width/2, viewer.height/2);
+    img.style.width = "100%";
+
     var place = document.getElementById("snapshot");
-    place.innerHTML = "<img style='width:100%;' src=" + img + ">";
+    place.innerHTML = "";
+    place.appendChild(img)
+
+    const view = Viewpoint.GetViewpoint(viewer);
+    img.onclick = () => {
+        Viewpoint.SetViewpoint(viewer, view, 1000);
+    };
+
     viewer.addPlugin(cube);
 }
 

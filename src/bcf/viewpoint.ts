@@ -6,15 +6,23 @@ import { Line } from "./line";
 import { PerspectiveCamera } from "./perspective-camera";
 import { OrthogonalCamera } from "./orthogonal-camera";
 import { Components } from "./components";
+import { Viewer } from "../viewer";
+import { vec3, mat4 } from "gl-matrix";
 
 export class Viewpoint {
-    /**
-     * Index used for sorting of multiple viewpoints
-     */
-    public index: number;
 
     /**
-     * Unique ID of the viewpoint
+     * Static index used for autoincrement of viewpoints created in this session
+     */
+    private static _currentIndex: number = 0;
+
+    /**
+     * Index used for sorting of multiple viewpoints. (Autoincremented)
+     */
+    public index: number = ++Viewpoint._currentIndex;
+
+    /**
+     * Unique ID of the viewpoint. (Automatically created by default)
      */
     public guid: string = Guid.new();
 
@@ -57,4 +65,67 @@ export class Viewpoint {
      * Components in the viewpoint
      */
     public components: Components;
+
+
+    /**
+     * Creates BCF viewpoint from the current view
+     * 
+     * @param viewer viewer instance
+     */
+    public static GetViewpoint(viewer: Viewer): Viewpoint {
+        const view = new Viewpoint();
+
+        const toArray = (a: vec3) => {
+            return Array.prototype.slice.call(a);
+        };
+
+        // capture camera
+        view.perspective_camera = {
+            camera_direction: toArray(viewer.getCameraDirection()),
+            camera_up_vector: [0, 0, 1],
+            camera_view_point: toArray(viewer.getCameraPositionWcs()),
+            field_of_view: viewer.perspectiveCamera.fov
+        }
+
+        // capture image (good for preview for example)
+        const bytes = viewer.getCurrentImageDataArray(viewer.width / 2, viewer.height / 2);
+        var binary = '';
+        var len = bytes.byteLength;
+        for (var i = 0; i < len; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        const base64image = window.btoa(binary);
+        view.snapshot = {
+            snapshot_type: 'png',
+            snapshot_data: base64image
+        }
+
+        // capture current clipping planes: We may have different clipping planes for different submodels
+
+        // capture component styling (selection, overriden colours, visibility etc.) We should use IFC guids for this which is not in the scope of the viewer
+
+        return view;
+    }
+
+    public static SetViewpoint(viewer: Viewer, viewpoint: Viewpoint, duration: number = 0): void {
+        const toVec3 = (a: number[]) => {
+            if (a == null || a.length < 3)
+                return null;
+            return vec3.fromValues(a[0], a[1], a[2]);
+        };
+
+        const wcs = viewer.getCurrentWcs();
+
+        // reset camera (MV matrix)
+        if (viewpoint.perspective_camera) {
+            const eyeWcs = toVec3(viewpoint.perspective_camera.camera_view_point);
+            const eye = vec3.subtract(vec3.create(), eyeWcs, wcs);
+            const dir = toVec3(viewpoint.perspective_camera.camera_direction);
+            const target = vec3.add(vec3.create(), eye, dir);
+            const up = toVec3(viewpoint.perspective_camera.camera_up_vector) || vec3.fromValues(0,0,1);
+            const mv = mat4.lookAt(mat4.create(), eye, target, up);
+
+            viewer.animations.viewTo(mv, duration);
+        }
+    }
 }
