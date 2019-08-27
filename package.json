@@ -14,7 +14,6 @@
   "version": "1.0.3",
   "devDependencies": {
     "@types/node": "7.0.18",
-    "@types/webgl2": "0.0.3",
     "clean-webpack-plugin": "^0.1.18",
     "concurrently": "^3.5.1",
     "html-loader": "^0.5.5",
@@ -36,6 +35,7 @@
   },
   "dependencies": {
     "gl-matrix": "^3.0.0",
+    "@types/webgl2": "0.0.3",
     "@types/gl-matrix": "^2.4.5"
   }
 }
