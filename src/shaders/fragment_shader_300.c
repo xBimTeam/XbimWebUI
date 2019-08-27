@@ -5,6 +5,8 @@ uniform vec4 uClippingPlaneA;
 uniform vec4 uClippingPlaneB;
 uniform bool uClippingA;
 uniform bool uClippingB;
+// Gama, Brightness, Contrast
+uniform vec3 uGBC;
 
 // Light position
 uniform vec3 uLight;
@@ -90,10 +92,18 @@ void main(void) {
   	  specular = pow(specAngle, shininessVal);
   	}
 
-  	vFragColor = vec4(
+vec4 fragColor = vec4(
 		  			  Ka * ambientColor +
                       Kd * lambertian * diffuseColor +
                       Ks * specular * specularColor
 					 , vColor.a
 					  );
+
+	// apply gama, brightness and contrast to the colour, not to alpha
+	// https://krpano.com/forum/wbb/index.php?page=Thread&threadID=13863
+	fragColor.r = (pow(fragColor.r,uGBC[0]) - 0.5)*uGBC[1] + uGBC[2] + 0.5;
+    fragColor.g = (pow(fragColor.g,uGBC[0]) - 0.5)*uGBC[1] + uGBC[2] + 0.5;
+    fragColor.b = (pow(fragColor.b,uGBC[0]) - 0.5)*uGBC[1] + uGBC[2] + 0.5;
+
+  	vFragColor = fragColor;
 }

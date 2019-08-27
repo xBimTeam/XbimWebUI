@@ -96,6 +96,15 @@ export class Viewer {
     public get renderingMode(): RenderingMode { return this._renderingMode; }
     public set renderingMode(value: RenderingMode) { this._renderingMode = value; this.changed = true; }
 
+    public get gamma(): number { return this._gamma; };
+    public set gamma(value: number) { this._gamma = value; this.changed = true; };
+
+    public get contrast(): number { return this._contrast; };
+    public set contrast(value: number) { this._contrast = value; this.changed = true; };
+
+    public get brightness(): number { return this._brightness; };
+    public set brightness(value: number) { this._brightness = value; this.changed = true; };
+
     /**
      * Returns readonly array of plugins
      * @member {IPlugin[]} Viewer#plugins
@@ -160,6 +169,11 @@ export class Viewer {
     private _renderingModeUniformPointer: WebGLUniformLocation;
     private _highlightingColourUniformPointer: WebGLUniformLocation;
     private _stateStyleSamplerUniform: WebGLUniformLocation;
+    private _gammaContrastBrightnessUniform: WebGLUniformLocation;
+
+    private _gamma: number = 1.0;
+    private _contrast: number = 1.0;
+    private _brightness: number = 0.0;
 
     // dictionary of named events which can be registered and unregistered by using '.on('eventname', callback)'
     // and '.off('eventname', callback)'. Registered call-backs are triggered by the viewer when important events occur.
@@ -1135,6 +1149,7 @@ export class Viewer {
         this._renderingModeUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uRenderingMode');
         this._highlightingColourUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uHighlightColour');
         this._stateStyleSamplerUniform = gl.getUniformLocation(this._shaderProgram, 'uStateStyleSampler');
+        this._gammaContrastBrightnessUniform = gl.getUniformLocation(this._shaderProgram, 'uGBC');
 
         this._pointers = new ModelPointers(gl, this._shaderProgram);
 
@@ -1305,6 +1320,9 @@ export class Viewer {
         // set light source as a head light
         var camera = this.getCameraPosition();
         gl.uniform3fv(this._lightUniformPointer, camera);
+
+        //
+        gl.uniform3fv(this._gammaContrastBrightnessUniform, new Float32Array([this.gamma, this.contrast, this.brightness]));
 
         //use normal colour representation (1 would cause shader to use colour coding of IDs)
         gl.uniform1i(this._colorCodingUniformPointer, ColourCoding.NONE);
@@ -1595,7 +1613,7 @@ export class Viewer {
         this.fire('error', { message: msg });
     }
 
-    public getEventDataFromEvent(event: MouseEvent | Touch, raw: boolean = false): {id: number, model: number, xyz: vec3} {
+    public getEventDataFromEvent(event: MouseEvent | Touch, raw: boolean = false): { id: number, model: number, xyz: vec3 } {
         let x = event.clientX;
         let y = event.clientY;
 
@@ -1605,22 +1623,22 @@ export class Viewer {
         let viewY = this.height - (y - r.top);
 
         //get product id and model id
-        if (!raw){
+        if (!raw) {
             return this.getEventData(viewX, viewY);
         }
 
         const result = this.getEventDataRaw(viewX, viewY);
         if (result == null) {
-            return {id: null, model: null, xyz: null};
+            return { id: null, model: null, xyz: null };
         }
 
         // return raw data (might be for plugin purposes for example)
-        return {id: result.renderId, model: result.modelId, xyz: result.location};
+        return { id: result.renderId, model: result.modelId, xyz: result.location };
     }
 
-    public getEventData(x: number, y: number): {id: number, model: number, xyz: vec3} {
+    public getEventData(x: number, y: number): { id: number, model: number, xyz: vec3 } {
         const eventData = this.getEventDataRaw(x, y);
-        const noData = { id: null, model: null , xyz: null};
+        const noData = { id: null, model: null, xyz: null };
         if (eventData == null) {
             return noData;
         }
@@ -1661,7 +1679,7 @@ export class Viewer {
         y = y / factor;
 
         // create and bind framebuffer
-        
+
         let fb = new Framebuffer(gl, width, height);
         try {
             this._isRunning = false;
@@ -1723,7 +1741,7 @@ export class Viewer {
             const tempFar = farPoint[2] * -1.0;
             this.perspectiveCamera.near = tempNear;
             this.perspectiveCamera.far = tempFar;
-            
+
             //  --------------- render model ids ---------------------
             this.setActive();
             gl.bindFramebuffer(gl.FRAMEBUFFER, fb.framebuffer);
@@ -2048,7 +2066,7 @@ export class Viewer {
         events[eventName].push(handler);
 
         const domEvtName = `on${eventName}`;
-        const isCanvEvt = (typeof(this.canvas[domEvtName]) !== 'undefined');
+        const isCanvEvt = (typeof (this.canvas[domEvtName]) !== 'undefined');
         if (!isCanvEvt) {
             return;
         }

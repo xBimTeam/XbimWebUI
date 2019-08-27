@@ -250,6 +250,14 @@
             <button onclick="startGrid()"> Start grid </button>
         </div>
         <div>
+            Gamma: 
+            <input type="range" name="gamma" min="0" max="5" value="1.0" step="0.2" onchange="updateGamma(event)">
+            Contrast: 
+            <input type="range" name="contrast" min="0" max="5" value="1.0" step="0.2" onchange="updateContrast(event)">
+            Brightness:
+            <input type="range" name="brightness" min="0" max="1" value="0.0" step="0.1" onchange="updateBrightness(event)">
+        </div>
+        <div>
             Init script:
             <textarea id="initScript"></textarea>
             <button onclick="eval(initScript.value)" style="border-radius: 0 0 5px 5px">Run</button>

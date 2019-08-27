@@ -193,6 +193,24 @@ document['takeSnapshot'] = function () {
     viewer.addPlugin(cube);
 }
 
+document['updateGamma'] = function(evt: Event){
+    const input = evt.target as HTMLInputElement;
+    const value = parseFloat(input.value);
+    viewer.gamma = value;
+}
+
+document['updateContrast'] = function(evt: Event){
+    const input = evt.target as HTMLInputElement;
+    const value = parseFloat(input.value);
+    viewer.contrast = value;
+}
+
+document['updateBrightness'] = function(evt: Event){
+    const input = evt.target as HTMLInputElement;
+    const value = parseFloat(input.value);
+    viewer.brightness = value;
+}
+
 viewer.on("pick", args => {
     viewer.stopRotation();
     var id = args.id;

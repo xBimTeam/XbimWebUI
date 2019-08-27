@@ -40,7 +40,7 @@ module.exports = merge(common, {
         contentBase: ".",
         host: "localhost",
         publicPath: "/dist/",
-        port: 9000,
+        port: 9001,
         hot: true,
         overlay: {
             warnings: true,
