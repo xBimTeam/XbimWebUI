@@ -251,11 +251,11 @@
         </div>
         <div>
             Gamma: 
-            <input type="range" name="gamma" min="0" max="5" value="1.0" step="0.2" onchange="updateGamma(event)">
+            <input type="range" name="gamma" min="0" max="5" value="1.0" step="0.1" oninput="updateGamma(event)">
             Contrast: 
-            <input type="range" name="contrast" min="0" max="5" value="1.0" step="0.2" onchange="updateContrast(event)">
+            <input type="range" name="contrast" min="0" max="5" value="1.0" step="0.1" oninput="updateContrast(event)">
             Brightness:
-            <input type="range" name="brightness" min="0" max="1" value="0.0" step="0.1" onchange="updateBrightness(event)">
+            <input type="range" name="brightness" min="-1" max="1" value="0.0" step="0.1" oninput="updateBrightness(event)">
         </div>
         <div>
             Init script:
