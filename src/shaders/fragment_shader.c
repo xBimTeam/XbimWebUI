@@ -5,6 +5,9 @@ uniform vec4 uClippingPlaneB;
 uniform bool uClippingA;
 uniform bool uClippingB;
 
+// Gama, Brightness, Contrast
+uniform vec3 uGBC;
+
 // Light position
 uniform vec3 uLight;
 
