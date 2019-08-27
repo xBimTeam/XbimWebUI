@@ -1,10 +1,21 @@
 import { Viewer } from "../viewer";
 import { mat4, vec3, quat } from "gl-matrix";
+import { stat } from "fs";
+
+export enum EasingType {
+    LINEAR,
+    SINUS,
+    SINUS2,
+    CIRCLE
+}
 
 export class Animations {
 
     private requestAnimationFrame: (callback: FrameRequestCallback) => number;
-    private setTimeout: (callback: ()=> void, offset: number) => void;
+    private setTimeout: (callback: () => void, offset: number) => void;
+
+    public easing: EasingType = EasingType.SINUS2;
+
     /**
      * Constructor to handle all animations
      */
@@ -23,8 +34,8 @@ export class Animations {
 
     private _rotationOn: boolean = false;
     public startRotation(): Promise<void> {
-        if (this._rotationOn){
-            return new Promise<void>((a, r) => {a();});
+        if (this._rotationOn) {
+            return new Promise<void>((a, r) => { a(); });
         }
         this._rotationOn = true;
         return new Promise<void>((a, r) => {
@@ -60,10 +71,10 @@ export class Animations {
                 return;
             }
 
-            let start:mat4 = null;
+            let start: mat4 = null;
             let startRotation: quat = null;
             let startScale: vec3 = null;
-            let startTranslation:vec3 = null;
+            let startTranslation: vec3 = null;
             let startTime: number = 0;
 
             let endRotation = mat4.getRotation(quat.create(), end);
@@ -71,6 +82,7 @@ export class Animations {
             let endTranslation = mat4.getTranslation(vec3.create(), end);
 
             const id = {};
+            const easing = this.easing;
             Animations.viewQueue.push(id);
             let initialised = false;
             let step = () => {
@@ -97,6 +109,25 @@ export class Animations {
                         }
                     }
                     let state = (now - startTime) / duration;
+
+                    // apply easing in and out
+                    switch (easing) {
+                        case EasingType.LINEAR:
+                            break;
+                        case EasingType.CIRCLE:
+                            state = this.getCircleEasing(state);
+                            break;
+                        case EasingType.SINUS:
+                            state = this.getSinEasing(state);
+                            break;
+                        case EasingType.SINUS2:
+                            state = this.getSinEasing(state);
+                            state = this.getSinEasing(state);
+                            break;
+                        default:
+                            break;
+                    }
+
                     let rotation = quat.slerp(quat.create(), startRotation, endRotation, state);
                     let scale = vec3.lerp(vec3.create(), startScale, endScale, state);
                     let translation = vec3.lerp(vec3.create(), startTranslation, endTranslation, state);
@@ -119,5 +150,30 @@ export class Animations {
         });
 
 
+    }
+
+    /**
+     * Returns easing spread over circular path
+     * 
+     * @param value value between 0.0 and 1.0
+     */
+    private getCircleEasing(value: number): number {
+        // x2 + y2 = r2, r = 1
+        // y = Math.sqtr(r2 - x2)
+        if (value <= 0.5) {
+            const period = value * 2.0;
+            const y = Math.sqrt(1 - period * period);
+            return (1.0 - y) / 2.0;
+        } else {
+            const period = value * 2.0 - 2.0;
+            const y = Math.sqrt(1 - period * period);
+            return (1.0 + y) / 2.0;
+        }
+    }
+
+    private getSinEasing(value: number): number {
+        // apply easing in and out using sinus
+        let period = value * Math.PI - Math.PI / 2.0;
+        return Math.sin(period) * 0.5 + 0.5;
     }
 }
