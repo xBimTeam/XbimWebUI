@@ -176,8 +176,9 @@ document['startGrid'] = function () {
 }
 document['takeSnapshot'] = function () {
     viewer.removePlugin(cube);
-    var img = viewer.getCurrentImageHtml(viewer.width/2, viewer.height/2);
+    var img = viewer.getCurrentImageHtml(viewer.width / 2, viewer.height / 2);
     img.style.width = "100%";
+    img.style.cursor = "pointer";
 
     var place = document.getElementById("snapshot");
     place.innerHTML = "";
@@ -186,6 +187,7 @@ document['takeSnapshot'] = function () {
     const view = Viewpoint.GetViewpoint(viewer);
     img.onclick = () => {
         Viewpoint.SetViewpoint(viewer, view, 1000);
+        place.innerHTML = "";
     };
 
     viewer.addPlugin(cube);

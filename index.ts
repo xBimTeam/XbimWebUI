@@ -12,9 +12,6 @@ export * from './src/common/message';
 export * from './src/common/viewer-event-map';
 export * from './src/viewer';
 
-// Matrix math objects
-export * from "gl-matrix";
-
 // Plugins
 export * from "./src/plugins/NavigationCube/navigation-cube";
 export * from "./src/plugins/Grid/grid";
