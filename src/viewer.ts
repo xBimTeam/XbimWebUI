@@ -81,7 +81,7 @@ export class Viewer {
      * @member {Number[]} Viewer#mvMatrix
      */
     public get mvMatrix(): mat4 { return this._mvMatrix; }
-    public set mvMatrix(value: mat4) { this._mvMatrix = value; this.changed = true; }
+    public set mvMatrix(value: mat4) { this._mvMatrix = value; this.changed = true; this._mvMatrixTimestamp = Date.now(); }
 
     /**
      * Camera matrix (perspective or orthogonal)
@@ -96,14 +96,30 @@ export class Viewer {
     public get renderingMode(): RenderingMode { return this._renderingMode; }
     public set renderingMode(value: RenderingMode) { this._renderingMode = value; this.changed = true; }
 
+    /**
+     * Allows to adjust gamma of the view
+     */
     public get gamma(): number { return this._gamma; };
     public set gamma(value: number) { this._gamma = value; this.changed = true; };
 
+    /**
+     * Allows to adjust contrast of the view
+     */
     public get contrast(): number { return this._contrast; };
     public set contrast(value: number) { this._contrast = value; this.changed = true; };
 
+    /**
+     * Allows to adjust brightness of the view
+     */
     public get brightness(): number { return this._brightness; };
     public set brightness(value: number) { this._brightness = value; this.changed = true; };
+
+    /**
+     * Returns number of milliseconds for which Model View Matris hasn't been changed.
+     * This can be used for optimisations and actions to happen after vertain amount of time
+     * after the last movement of the model.
+     */
+    public get mvMatrixAge(): number { return Date.now() - this._mvMatrixTimestamp; }
 
     /**
      * Returns readonly array of plugins
@@ -152,6 +168,7 @@ export class Viewer {
     private _mvMatrix: mat4 = mat4.create();
     private _pMatrix: mat4 = mat4.create();
     private _renderingMode: RenderingMode = RenderingMode.NORMAL;
+    private _mvMatrixTimestamp: number = Date.now();
 
     private _isRunning: boolean = false;
     private _stateStyles: Uint8Array;
@@ -174,6 +191,8 @@ export class Viewer {
     private _gamma: number = 1.0;
     private _contrast: number = 1.0;
     private _brightness: number = 0.0;
+
+    private _currentFps: number = 60.0;
 
     // dictionary of named events which can be registered and unregistered by using '.on('eventname', callback)'
     // and '.off('eventname', callback)'. Registered call-backs are triggered by the viewer when important events occur.
@@ -401,6 +420,7 @@ export class Viewer {
             this._requestAnimationFrame(watchCanvasSize);
         };
         watchCanvasSize();
+        this._watchFps();
 
         this.animations = new Animations(this);
     }
@@ -1838,6 +1858,45 @@ export class Viewer {
     }
 
     /**
+     * Starts the loop watching animation frames and keeping record of the
+     * Frames per Second (FPS) rate. This should only be called once in the constructor.
+     */
+    private _watchFps() {
+        // FPS counting infrastructure
+        let lastTime = Date.now();
+        let count = 0;
+
+        const tick = () => {
+            count++;
+            const now = Date.now();
+            const lapsed = now - lastTime;
+            // compute and report FPS every 0.5s
+            if (lapsed >= 500) {
+                const fps = 1000 / lapsed * count;
+
+                // reset counter and timer
+                lastTime = now;
+                count = 0;
+
+                // only report change if there is any difference
+                if (Math.abs(this._currentFps - fps) >= 1.0) {
+                    this._currentFps = fps;
+                    /**
+                    * Occurs after every 30th frame in animation. Use this event if you want 
+                    * to report FPS to the user. It might also be an interesting performance measure.
+                    *
+                    * @event Viewer#fps 
+                    * @type {Number}
+                    */
+                    this.fire('fps', Math.floor(fps));
+                }
+            }
+            this._requestAnimationFrame(tick);
+        }
+        tick();
+    }
+
+    /**
      * Use this function to start animation of the model. If you start animation before geometry is loaded it will wait for content to render it.
      * This function is bound to browser framerate of the screen so it will stop consuming any resources if you switch to another tab.
      *
@@ -1874,29 +1933,7 @@ export class Viewer {
         // unblock and start the rendering loop
         this._isRunning = true;
 
-        // FPS counting infrastructure
-        var lastTime = new Date();
-        var counter = 0;
-
         const tick = () => {
-            counter++;
-            // compute and report FPS every 30 frames
-            if (counter == 30) {
-                counter = 0;
-                var newTime = new Date();
-                var span = newTime.getTime() - lastTime.getTime();
-                lastTime = newTime;
-                var fps = 1000 / span * 30;
-                /**
-                * Occurs after every 30th frame in animation. Use this event if you want 
-                * to report FPS to the user. It might also be an interesting performance measure.
-                *
-                * @event Viewer#fps 
-                * @type {Number}
-                */
-                this.fire('fps', Math.floor(fps));
-            }
-
             if (!this._isRunning) {
                 return;
             }
@@ -1908,7 +1945,6 @@ export class Viewer {
             }
             this._requestAnimationFrame(tick);
         }
-
         tick();
     }
 
