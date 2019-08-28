@@ -225,22 +225,23 @@ export class NavigationCube implements IPlugin {
                     return;
                 }
 
-                // user doing anything should cause redraw in case there is any form of interaction
-                viewer.changed = true;
-
+                
                 var startX = event.clientX;
                 var startY = event.clientY;
-
+                
                 //get coordinates within canvas (with the right orientation)
                 var r = viewer.canvas.getBoundingClientRect();
                 var x = startX - r.left;
                 var y = viewer.height - (startY - r.top);
-
+                
                 //cube hasn't been drawn yet
                 if (!self._region) {
                     return;
                 }
 
+                // user doing anything should cause redraw in case there is any form of interaction
+                // viewer.changed = true;
+                
                 if (!self.isInRegion(x, y)) {
                     self._alpha = self.passiveAlpha;
                     self._selection = 0;
@@ -250,16 +251,14 @@ export class NavigationCube implements IPlugin {
                 //this is for picking
                 var id = this.getId(event);
                 if (id == null) {
-                    return;
-                }
-
-                if (id >= self.TOP && id <= self.BACK_LEFT) {
-                    self._alpha = self.activeAlpha;
-                    self._selection = id;
-                } else {
                     self._alpha = self.passiveAlpha;
                     self._selection = 0;
-                }
+                } else  if (id >= self.TOP && id <= self.BACK_LEFT) {
+                    self._alpha = self.activeAlpha;
+                    self._selection = id;
+                } 
+                // overdraw the cube
+                this.onAfterDraw(viewer.width, viewer.height);
             },
             true);
 
