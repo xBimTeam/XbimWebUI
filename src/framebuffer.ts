@@ -9,9 +9,10 @@ export class Framebuffer {
 
     private _disposed: boolean = false;
     private _depthReader: DepthReader;
+    private _glVersion = 1;
 
     // only create depth reader when needed
-    private get depthReader(): DepthReader { 
+    private get depthReader(): DepthReader {
         if (this._depthReader != null) {
             return this._depthReader;
         }
@@ -28,6 +29,12 @@ export class Framebuffer {
         // width and height should be whole numbers
         this.width = width = Math.floor(width);
         this.height = height = Math.floor(height);
+
+        if (typeof (WebGL2RenderingContext) != 'undefined' && gl instanceof WebGL2RenderingContext) {
+            this._glVersion = 2;
+        } else {
+            this._glVersion = 1;
+        }
 
         //create framebuffer
         this.framebuffer = gl.createFramebuffer();
@@ -57,7 +64,11 @@ export class Framebuffer {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT16, width, height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
+        if (this._glVersion == 1) {
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, width, height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
+        } else {
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT16, width, height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
+        }
 
         // attach renderbuffer and texture and depth texture
         gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this.renderbuffer);

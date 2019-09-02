@@ -1,7 +1,8 @@
-﻿import { Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube, Grid } from '../..';
+﻿import { Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube, Grid, EasingType } from '../..';
 import { CameraType } from '../../src/viewer';
 import { Viewpoint } from '../../src/bcf/viewpoint';
 import { vec3 } from 'gl-matrix';
+import { PerformanceRating } from '../../src/performance-rating';
 
 var QueryString = function () {
     // This function is anonymous, is executed immediately and 
@@ -40,6 +41,8 @@ window['RenderingMode'] = RenderingMode;
 window['ViewType'] = ViewType;
 window['product'] = Product;
 window['CameraType'] = CameraType;
+window['PerformanceRating'] = PerformanceRating;
+window['EasingType'] = EasingType;
 
 viewer.background = [0, 0, 0, 0];
 viewer.on("error", function (arg) {
@@ -90,7 +93,7 @@ viewer.on("dblclick", function (arg) {
 viewer.on("fps", function (fps) {
     var span = document.getElementById("fps") as HTMLSpanElement;
     if (span) {
-        span.innerText = fps.toString();
+        span.innerText = `${fps}, performance: ${PerformanceRating[viewer.performance]}`;
     }
 });
 

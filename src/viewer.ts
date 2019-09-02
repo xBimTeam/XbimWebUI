@@ -25,6 +25,7 @@ import { TouchNavigation } from './navigation/touch-navigation';
 import { CheckResult, Abilities } from './common/abilities';
 import { Animations } from './navigation/animations';
 import { mat4, vec3, mat3, quat } from 'gl-matrix';
+import { PerformanceRating } from './performance-rating';
 
 export type NavigationMode = 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none' | 'look-around' | 'walk' | 'look-at';
 
@@ -121,6 +122,9 @@ export class Viewer {
      */
     public get mvMatrixAge(): number { return Date.now() - this._mvMatrixTimestamp; }
 
+    public get performance(): PerformanceRating { return this._performance; }
+    public set performance(value: PerformanceRating) { this._performance = value; this.changed = true; }
+
     /**
      * Returns readonly array of plugins
      * @member {IPlugin[]} Viewer#plugins
@@ -193,6 +197,7 @@ export class Viewer {
     private _brightness: number = 0.0;
 
     private _currentFps: number = 60.0;
+    private _performance: PerformanceRating = PerformanceRating.HIGH;
 
     // dictionary of named events which can be registered and unregistered by using '.on('eventname', callback)'
     // and '.off('eventname', callback)'. Registered call-backs are triggered by the viewer when important events occur.
@@ -421,6 +426,7 @@ export class Viewer {
         };
         watchCanvasSize();
         this._watchFps();
+        this._watchPerformance();
 
         this.animations = new Animations(this);
     }
@@ -843,34 +849,6 @@ export class Viewer {
 
         return region;
     }
-
-    // private getBiggestRegion(): Region {
-    //     let volume = (box: Float32Array) => {
-    //         return box[3] * box[4] * box[5];
-    //     }
-    //     const wcs = this.getCurrentWcs();
-
-    //     let handle = this._handles
-    //         .filter((h) => h != null && !h.stopped && h.getRegion(wcs) != null)
-    //         .sort((a, b) => {
-    //             let volA = volume(a.getRegion(wcs).bbox);
-    //             let volB = volume(b.getRegion(wcs).bbox);
-    //             if (volA < volB) {
-    //                 return -1;
-    //             }
-    //             if (volA == volB) {
-    //                 return 0;
-    //             }
-    //             if (volA > volB) {
-    //                 return 1;
-    //             }
-    //         })
-    //         .pop();
-    //     if (handle)
-    //         return handle.getRegion(wcs);
-    //     else
-    //         return null;
-    // }
 
     /**
     * This method can be used for batch setting of viewer members. It doesn't check validity of the input.
@@ -1894,6 +1872,43 @@ export class Viewer {
             this._requestAnimationFrame(tick);
         }
         tick();
+    }
+
+    /**
+     * This starts watching age of MV matrix and FPS and is setting
+     * rating to decide if complete model should be drawn or only a part.
+     */
+    private _watchPerformance() {
+        const noMove = 1000; // number of milliseconds when we consider MV matrix to be stable
+        const watchTime = 500;
+        const tick = () => {
+            // number of milliseconds since last MV matrix change
+            const age = this.mvMatrixAge;
+            // framerate updated approx. every 0.5 second
+            const fps = this._currentFps;
+
+            // no movement and already having full performance flag
+            if (age > noMove && this.performance == PerformanceRating.HIGH) {
+                return;
+            }
+
+            // no movement so render complete image
+            if (age > noMove) {
+                this.performance = PerformanceRating.HIGH;
+                return;
+            }
+
+            if (fps < 10 && this.performance > PerformanceRating.VERY_LOW) {
+                this.performance = PerformanceRating.VERY_LOW;
+            } else if (fps < 20 && this.performance > PerformanceRating.LOW) {
+                this.performance = PerformanceRating.LOW;
+            } else if (fps < 30 && this.performance > PerformanceRating.MEDIUM) {
+                this.performance = PerformanceRating.MEDIUM;
+            } 
+
+            this._requestAnimationFrame(tick);
+        };
+        setInterval(tick, watchTime);
     }
 
     /**
