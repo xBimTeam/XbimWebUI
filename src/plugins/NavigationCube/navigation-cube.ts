@@ -516,7 +516,7 @@ export class NavigationCube implements IPlugin {
         let viewY = this.viewer.height - (y - r.top);
 
         const gl = this.viewer.gl;
-        var fb = new Framebuffer(gl, this.viewer.width, this.viewer.height);
+        var fb = new Framebuffer(gl, this.viewer.width, this.viewer.height, this.viewer.hasDepthSupport);
         gl.viewport(0, 0, this.viewer.width, this.viewer.height);
         gl.enable(gl.DEPTH_TEST); //we don't use any kind of blending or transparency
         gl.disable(gl.BLEND);

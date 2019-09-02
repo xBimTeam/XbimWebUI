@@ -105,7 +105,7 @@ export class DepthReader {
         gl.useProgram(this.program);
 
         //create framebuffer for off-screen rendering
-        const fb = new Framebuffer(gl, width, height);
+        const fb = new Framebuffer(gl, width, height, false);
         gl.viewport(0, 0, width, height);
 
         // draw and get result

@@ -24,7 +24,8 @@ export class Framebuffer {
     constructor(
         private gl: WebGLRenderingContext,
         public width: number,
-        public height: number
+        public height: number,
+        private withDepth: boolean
     ) {
         // width and height should be whole numbers
         this.width = width = Math.floor(width);
@@ -58,22 +59,27 @@ export class Framebuffer {
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
 
         // Create the depth texture
-        this.depthTexture = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, this.depthTexture);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        if (this._glVersion == 1) {
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, width, height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
-        } else {
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT16, width, height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
+        if (withDepth) {
+            this.depthTexture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, this.depthTexture);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            if (this._glVersion == 1) {
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, width, height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
+            } else {
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT16, width, height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
+            }
         }
 
         // attach renderbuffer and texture and depth texture
-        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this.renderbuffer);
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this.depthTexture, 0);
+        if (withDepth) {
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this.depthTexture, 0);
+        } else {
+            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this.renderbuffer);
+        }
 
         if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE) {
             throw new Error('this combination of attachments does not work');
@@ -96,7 +102,11 @@ export class Framebuffer {
     }
 
     public getDepth(x: number, y: number): number {
-        return this.depthReader.getDepth(x, y, this.depthTexture, this.width, this.height);
+        if (this.withDepth) {
+            return this.depthReader.getDepth(x, y, this.depthTexture, this.width, this.height);
+        } else {
+            return -1;
+        }
     }
 
     /**
@@ -106,6 +116,10 @@ export class Framebuffer {
      * @param y Y coordinate of the event
      */
     public getXYZ(x: number, y: number): vec3 {
+        if (!this.withDepth) {
+            return null;
+        }
+
         const depth = this.getDepth(x, y);
         if (depth == 255) { // infinity
             return null;
@@ -128,6 +142,10 @@ export class Framebuffer {
      * @param y Y coordinate of the event
      */
     public getXYZRange(x: number, y: number): { near: vec3, middle: vec3, far: vec3 } {
+        if (!this.withDepth) {
+            return null;
+        }
+
         const depth = this.getDepth(x, y);
         if (depth == 255) { // infinity
             return null;

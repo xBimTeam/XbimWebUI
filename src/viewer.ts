@@ -1,5 +1,4 @@
 ﻿import { State } from './common/state';
-import { ProductType } from './product-type';
 import { ModelGeometry, Region } from './reader/model-geometry';
 import { ModelHandle, DrawMode } from './model-handle';
 import { Framebuffer } from './framebuffer';
@@ -223,6 +222,12 @@ export class Viewer {
      */
     private _depthTextureExtension: object;
 
+    public get hasDepthSupport(): boolean {
+        if (this.glVersion > 1) {
+            return true;
+        }
+        return this._depthTextureExtension != null;
+    }
 
     /**
     * This is constructor of the xBIM Viewer. It gets HTMLCanvasElement or string ID as an argument. Viewer will than be initialized 
@@ -614,7 +619,7 @@ export class Viewer {
 
     public getCurrentImageDataUrl(width: number = this.width, height: number = this.height): string {
         //use background framebuffer
-        let frame = new Framebuffer(this.gl, width, height);
+        let frame = new Framebuffer(this.gl, width, height, false);
 
         //force draw into defined framebuffer
         this.draw(frame);
@@ -627,7 +632,7 @@ export class Viewer {
 
     public getCurrentImageDataArray(width: number = this.width, height: number = this.height): Uint8ClampedArray {
         //use background framebuffer
-        let frame = new Framebuffer(this.gl, width, height);
+        let frame = new Framebuffer(this.gl, width, height, false);
 
         //force draw into defined framebuffer
         this.draw(frame);
@@ -1678,7 +1683,7 @@ export class Viewer {
 
         // create and bind framebuffer
 
-        let fb = new Framebuffer(gl, width, height);
+        let fb = new Framebuffer(gl, width, height, this.hasDepthSupport);
         try {
             this._isRunning = false;
 
