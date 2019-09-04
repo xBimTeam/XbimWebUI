@@ -1734,16 +1734,17 @@ export class Viewer {
 
             // adjust near and far clipping planes
             const locationRange = fb.getXYZRange(x, y);
-            if (locationRange == null)
-                return null;
+            if (locationRange != null) {
 
-            const invPmat = mat4.invert(mat4.create(), this.pMatrix);
-            const nearPoint = vec3.transformMat4(vec3.create(), locationRange.near, invPmat);
-            const farPoint = vec3.transformMat4(vec3.create(), locationRange.far, invPmat);
-            const tempNear = nearPoint[2] * -1.0;
-            const tempFar = farPoint[2] * -1.0;
-            this.perspectiveCamera.near = tempNear;
-            this.perspectiveCamera.far = tempFar;
+                const invPmat = mat4.invert(mat4.create(), this.pMatrix);
+                const nearPoint = vec3.transformMat4(vec3.create(), locationRange.near, invPmat);
+                const farPoint = vec3.transformMat4(vec3.create(), locationRange.far, invPmat);
+                const tempNear = nearPoint[2] * -1.0;
+                const tempFar = farPoint[2] * -1.0;
+                this.perspectiveCamera.near = tempNear;
+                this.perspectiveCamera.far = tempFar;
+            }
+
 
             //  --------------- render model ids ---------------------
             this.setActive();
@@ -1775,7 +1776,7 @@ export class Viewer {
 
             const modelId = fb.getId(x, y);
 
-            // get xyz in normalised clip space
+            // get xyz in optimised clip space
             const xyz = fb.getXYZ(x, y);
             let eventLocation: vec3 = null;
             if (xyz != null) { // not an infinity
@@ -1806,6 +1807,7 @@ export class Viewer {
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
             gl.enable(gl.BLEND);
 
+            // reset near and far clipping planes in case we optimised them for depth reading
             this.perspectiveCamera.near = near;
             this.perspectiveCamera.far = far;
             this.updatePMatrix(width, height);
@@ -1909,7 +1911,7 @@ export class Viewer {
                 this.performance = PerformanceRating.LOW;
             } else if (fps < 30 && this.performance > PerformanceRating.MEDIUM) {
                 this.performance = PerformanceRating.MEDIUM;
-            } 
+            }
 
             this._requestAnimationFrame(tick);
         };
