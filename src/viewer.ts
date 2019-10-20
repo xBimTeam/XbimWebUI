@@ -2175,8 +2175,10 @@ export class Viewer {
             callbacks.splice(index, 1);
             const listener = this._canvasListeners[eventName];
             // detach canvas listener if it is not needed anymore
-            if (callback.length === 0 && listener != null) {
+            if (callbacks.length === 0 && listener !== null) {
                 this.canvas.removeEventListener(eventName, listener);
+                this._canvasListeners[eventName] = null;
+
             }
         }
     }
