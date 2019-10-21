@@ -1510,13 +1510,16 @@ export class Viewer {
     * @function Viewer#zoomTo
     * @param {Number} [id] Product ID
     * @param {Number} [model] Model ID
+    * @param {boolean} withAnimation - Optional parameter, default is 'true'. When true, transition to the view is animated. When false, view is changed imediately.
     * @return {Bool} True if target exists and zoom was successful, False otherwise
     */
-    public zoomTo(id?: number, model?: number): Promise<void> {
+    public zoomTo(id?: number, model?: number, withAnimation: boolean = true): Promise<void> {
         var found = this.setCameraTarget(id, model);
-        if (!found)
+        if (!found) {
             return new Promise<void>((a, r) => r());
-
+        }
+        
+        let duration = withAnimation ? this.zoomDuration : 0;
         var eye = this.getCameraPosition();
         var dir = vec3.create();
         vec3.subtract(dir, eye, this.origin);
@@ -1527,7 +1530,7 @@ export class Viewer {
         vec3.add(eye, translation, this.origin);
 
         var mv = mat4.lookAt(mat4.create(), eye, this.origin, [0, 0, 1]);
-        return this.animations.viewTo(mv, this.zoomDuration);
+        return this.animations.viewTo(mv, duration);
     }
 
     /**
