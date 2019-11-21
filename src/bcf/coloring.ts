@@ -9,5 +9,5 @@ export class Coloring {
     /**
      * Colored components
      */
-    public components: 	Component[];
+    public components: Component[];
 }

@@ -2,7 +2,7 @@ import { Component } from "./component";
 import { Coloring } from "./coloring";
 import { Visibility } from "./visibility";
 
-export class Components{
+export class Components {
     /**
      * Selected components
      */

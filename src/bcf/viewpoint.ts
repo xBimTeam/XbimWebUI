@@ -85,7 +85,7 @@ export class Viewpoint {
             camera_up_vector: [0, 0, 1],
             camera_view_point: toArray(viewer.getCameraPositionWcs()),
             field_of_view: viewer.perspectiveCamera.fov
-        }
+        };
 
         // capture image (good for preview for example)
         const bytes = viewer.getCurrentImageDataArray(viewer.width / 2, viewer.height / 2);
@@ -98,7 +98,7 @@ export class Viewpoint {
         view.snapshot = {
             snapshot_type: 'png',
             snapshot_data: base64image
-        }
+        };
 
         // capture current clipping planes: We may have different clipping planes for different submodels
 
@@ -109,8 +109,9 @@ export class Viewpoint {
 
     public static SetViewpoint(viewer: Viewer, viewpoint: Viewpoint, duration: number = 0): void {
         const toVec3 = (a: number[]) => {
-            if (a == null || a.length < 3)
+            if (a == null || a.length < 3) {
                 return null;
+            }
             return vec3.fromValues(a[0], a[1], a[2]);
         };
 
@@ -122,7 +123,7 @@ export class Viewpoint {
             const eye = vec3.subtract(vec3.create(), eyeWcs, wcs);
             const dir = toVec3(viewpoint.perspective_camera.camera_direction);
             const target = vec3.add(vec3.create(), eye, dir);
-            const up = toVec3(viewpoint.perspective_camera.camera_up_vector) || vec3.fromValues(0,0,1);
+            const up = toVec3(viewpoint.perspective_camera.camera_up_vector) || vec3.fromValues(0, 0, 1);
             const mv = mat4.lookAt(mat4.create(), eye, target, up);
 
             viewer.animations.viewTo(mv, duration);

@@ -15,7 +15,9 @@
         "no-var-keyword": false,
         "prefer-const":false,
         "quotemark":false,
-        "variable-name":false
+        "variable-name":false,
+        "trailing-comma": false,
+        "object-literal-sort-keys": false
     },
     "rulesDirectory": []
 }

@@ -5,7 +5,7 @@ export class Visibility {
     /**
      * If true: Show all components, and hide the exceptions. If false: Hide all components and show exceptions;
      */
-    public default_visibility: 	boolean = false; 
+    public default_visibility: boolean = false;
 
     /**
      * Components to hide/show determined by default_visibility
