@@ -9,7 +9,8 @@ export class BinaryReader {
     private _buffer: ArrayBuffer = null;
     private _view: DataView = null;
     private _position: number = 0;
-    private _progress: (message: Message) => void = m => { };
+    // tslint:disable: no-empty
+    private _progress: (message: Message) => void = (m) => { };
     private _lastProgress = 0;
 
     /**
@@ -59,7 +60,9 @@ export class BinaryReader {
         progress = progress ? progress : (m) => { };
         this._progress = progress;
 
-        if (typeof (source) == 'undefined' || source == null) throw 'Source must be defined';
+        if (typeof (source) == 'undefined' || source == null) {
+            throw 'Source must be defined';
+        }
         if (typeof (source) == 'string') {
             const xhr = new XMLHttpRequest();
             xhr.open("GET", source, true);
@@ -82,7 +85,7 @@ export class BinaryReader {
                             message: 'Downloading geometry',
                             percent: Math.floor(evt.loaded / evt.total * 100.0),
                             type: MessageType.PROGRESS
-                        })
+                        });
                     };
                     fReader.readAsArrayBuffer(xhr.response);
                 }
@@ -91,21 +94,22 @@ export class BinaryReader {
                     var msg = 'Failed to fetch binary data from server. Server code: ' +
                         xhr.status +
                         '. This might be due to CORS policy of your browser if you run this as a local file.';
-                        progress(
+                    progress(
                             {
                                 message: 'Downloading geometry',
                                 percent: 0,
                                 type: MessageType.FAILED
                             }
                         );
-                    if (self.onerror)
+                    if (self.onerror) {
                         self.onerror(msg);
+                    }
                     throw msg;
                 }
             };
             xhr.responseType = 'blob';
             if (headers != null) {
-                Object.keys(headers).forEach(header => {
+                Object.keys(headers).forEach((header) => {
                     const value = headers[header];
                     xhr.setRequestHeader(header, value);
                 });
@@ -113,7 +117,7 @@ export class BinaryReader {
             xhr.send();
         } else if (source instanceof Blob || source instanceof File) {
             var fReader = new FileReader();
-            fReader.onloadend = function () {
+            fReader.onloadend = () => {
                 if (fReader.result && typeof(fReader.result) !== 'string') {
                     //set data buffer for next processing
                     self._buffer = fReader.result;
@@ -129,7 +133,7 @@ export class BinaryReader {
                     message: 'Loading binary data',
                     percent: Math.floor(evt.loaded / evt.total * 100.0),
                     type: MessageType.PROGRESS
-                })
+                });
             };
             fReader.readAsArrayBuffer(source);
         } else if (source instanceof ArrayBuffer) {
@@ -142,21 +146,24 @@ export class BinaryReader {
     }
 
     public seek(position: number): void {
-        if (position < 0 || position > this._buffer.byteLength)
-            throw "Position out of range."
+        if (position < 0 || position > this._buffer.byteLength) {
+            throw "Position out of range.";
+        }
 
         this._position = position;
     }
 
     public isEOF(): boolean {
-        if (this._position == null)
+        if (this._position == null) {
             throw "Position is not defined";
+        }
         return this._position == this._buffer.byteLength;
     }
 
     private readArray<T>(unitSize: number, count: number, ctor: new (data: ArrayBuffer) => T): T {
-        if (count == null)
+        if (count == null) {
             count = 1;
+        }
         var length = unitSize * count;
         var offset = this._position;
         this._position += length;
@@ -263,8 +270,9 @@ export class BinaryReader {
 
     //functions for a higher objects like points, colours and matrices
     public readChar(count?: number) {
-        if (count == null)
+        if (count == null) {
             count = 1;
+        }
         var bytes = this.readByteArray(count);
         var result = new Array(count);
         for (var i in bytes) {
@@ -274,8 +282,9 @@ export class BinaryReader {
     }
 
     public readPoint(count?: number) {
-        if (count == null)
+        if (count == null) {
             count = 1;
+        }
         var coords = this.readFloat32Array(count * 3);
         var result = new Array(count);
         for (var i = 0; i < count; i++) {
@@ -288,8 +297,9 @@ export class BinaryReader {
     }
 
     public readRgba(count?: number) {
-        if (count == null)
+        if (count == null) {
             count = 1;
+        }
         var values = this.readByteArray(count * 4);
         var result = new Array(count);
         for (var i = 0; i < count; i++) {
@@ -301,8 +311,9 @@ export class BinaryReader {
     }
 
     public readPackedNormal(count?: number) {
-        if (count == null)
+        if (count == null) {
             count = 1;
+        }
         var values = this.readUint8Array(count * 2);
         var result = new Array(count);
         for (var i = 0; i < count; i++) {
@@ -313,8 +324,9 @@ export class BinaryReader {
     }
 
     public readMatrix4x4(count?: number) {
-        if (count == null)
+        if (count == null) {
             count = 1;
+        }
         var values = this.readFloat32Array(count * 16);
         var result = new Array(count);
         for (var i = 0; i < count; i++) {
@@ -326,8 +338,9 @@ export class BinaryReader {
     }
 
     public readMatrix4x4_64(count?: number) {
-        if (count == null)
+        if (count == null) {
             count = 1;
+        }
         var values = this.readFloat64Array(count * 16);
         var result = new Array(count);
         for (var i = 0; i < count; i++) {

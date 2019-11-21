@@ -8,21 +8,21 @@ export class ClippingCup implements IPlugin {
     private caps: { [wexBimId: number]: { vertices: Float32Array, image: Uint8ClampedArray } };
     private activeHandles: ModelHandle[] = [];
 
-    init(viewer: Viewer): void {
+    public init(viewer: Viewer): void {
         this.viewer = viewer;
     }
 
-    onAfterDraw(width: number, height: number): void {
+    public onAfterDraw(width: number, height: number): void {
         // draw captured caps on cutting planes
     }
 
-
-    onBeforeDraw(width: number, height: number): void {
+    // tslint:disable: no-empty
+    public onBeforeDraw(width: number, height: number): void {
 
     }
 
     // following methods are not needed
-    onBeforeDrawId(): void { }
-    onAfterDrawId(): void { }
-    onAfterDrawModelId(): void { }
+    public onBeforeDrawId(): void { }
+    public onAfterDrawId(): void { }
+    public onAfterDrawModelId(): void { }
 }

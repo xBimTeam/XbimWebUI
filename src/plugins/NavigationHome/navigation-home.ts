@@ -84,7 +84,7 @@ export class NavigationHome implements IPlugin {
             var image = new Image();
             self._image = image;
             image.addEventListener("load",
-                function () {
+                () => {
                     self._adjust();
                 });
             image.src = data;
@@ -97,7 +97,7 @@ export class NavigationHome implements IPlugin {
 
         //add click event listener
         self._image.addEventListener("click",
-            function () {
+            () => {
                 var viewer = self._viewer;
                 //set target to full extent
                 viewer.setCameraTarget();
@@ -112,14 +112,14 @@ export class NavigationHome implements IPlugin {
 
         //set active state styling
         self._image.addEventListener("mouseover",
-            function () {
+            () => {
                 self._image.style.opacity = self.activeAlpha.toString(); //For real browsers;
                 self._image.style.filter = "alpha(opacity=" + Math.round(self.activeAlpha * 100.0) + ")"; //For IE;
             });
 
         //set passive state styling
         self._image.addEventListener("mouseleave",
-            function () {
+            () => {
                 self._image.style.opacity = self.passiveAlpha.toString(); //For real browsers;
                 self._image.style.filter = "alpha(opacity=" + Math.round(self.passiveAlpha * 100.0) + ")"; //For IE;
             });
@@ -166,6 +166,9 @@ export class NavigationHome implements IPlugin {
         this._image.style.top = Math.round(rect.top + rect.height * this.placementY) + "px";
 
     }
+
+
+    // tslint:disable: no-empty
 
     public onBeforeDraw() { }
 

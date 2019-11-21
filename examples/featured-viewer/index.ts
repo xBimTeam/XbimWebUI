@@ -4,7 +4,8 @@ import { Viewpoint } from '../../src/bcf/viewpoint';
 import { vec3 } from 'gl-matrix';
 import { PerformanceRating } from '../../src/performance-rating';
 
-var QueryString = function () {
+// tslint:disable-next-line: only-arrow-functions
+var QueryString = function() {
     // This function is anonymous, is executed immediately and 
     // the return value is assigned to QueryString!
     var queryString = {};
@@ -45,7 +46,7 @@ window['PerformanceRating'] = PerformanceRating;
 window['EasingType'] = EasingType;
 
 viewer.background = [0, 0, 0, 0];
-viewer.on("error", function (arg) {
+viewer.on("error", (arg) => {
     var container = viewer.canvas.parentNode as HTMLElement;
     if (container) {
         //preppend error report
@@ -54,14 +55,17 @@ viewer.on("error", function (arg) {
 });
 var modelId = QueryString["model"];
 var model = "";
-if (typeof (modelId) == "undefined") model = "/tests/data/SampleHouse.wexbim";
-else model = "/tests/data/" + modelId + ".wexbim";
+if (typeof (modelId) == "undefined") {
+    model = "/tests/data/SampleHouse.wexbim";
+} else {
+    model = "/tests/data/" + modelId + ".wexbim";
+}
 if (modelId != null && modelId === 'v4') {
     model = modelId;
 }
 
 viewer.show(ViewType.BACK);
-viewer.on("pick", function (arg) {
+viewer.on("pick", (arg) => {
     var span = document.getElementById("ids");
     span.innerHTML = `Product id: ${arg.id}, model: ${arg.model}`;
 
@@ -78,19 +82,19 @@ viewer.on("pick", function (arg) {
         viewer.addState(State.HIGHLIGHTED, [arg.id], arg.model);
     }
 });
-viewer.on("mousedown", args => {
-    if (args.xyz)
+viewer.on("mousedown", (args) => {
+    if (args.xyz) {
         viewer.origin = args.xyz;
-    else {
+    } else {
         const c = viewer.getMergedRegion().centre;
         viewer.origin = vec3.fromValues(c[0], c[1], c[2]);
     }
 });
 
-viewer.on("dblclick", function (arg) {
+viewer.on("dblclick", (arg) => {
     viewer.addState(State.HIDDEN, [arg.id], arg.model);
 });
-viewer.on("fps", function (fps) {
+viewer.on("fps", (fps) => {
     var span = document.getElementById("fps") as HTMLSpanElement;
     if (span) {
         span.innerText = `${fps}, performance: ${PerformanceRating[viewer.performance]}`;
@@ -113,11 +117,11 @@ if (span) {
 var versionSpan = document.getElementById("webglVersion") as HTMLSpanElement;
 versionSpan.innerHTML = viewer.glVersion.toString();
 
-var progress = document.getElementById("progress")
+var progress = document.getElementById("progress");
 
 viewer.on('loaded', () => {
     viewer.start();
-})
+});
 
 
 viewer.loadAsync(model, "base", null, (msg) => {
@@ -137,47 +141,47 @@ viewer.addPlugin(grid);
 viewer.defineStyle(0, [255, 0, 0, 255]);  //red
 viewer.defineStyle(1, [0, 0, 255, 100]);  //semitransparent blue
 viewer.defineStyle(2, [255, 255, 255, 255]); //white
-document['makeWallsRed'] = function () {
+document['makeWallsRed'] = () => {
     viewer.setStyle(0, types.IFCWALLSTANDARDCASE);
     viewer.setStyle(0, types.IFCCURTAINWALL);
     viewer.setStyle(0, types.IFCWALL);
-}
-document['selectAllWalls'] = function () {
+};
+document['selectAllWalls'] = () => {
     viewer.addState(State.HIGHLIGHTED, types.IFCWALLSTANDARDCASE);
     viewer.addState(State.HIGHLIGHTED, types.IFCCURTAINWALL);
     viewer.addState(State.HIGHLIGHTED, types.IFCWALL);
-}
-document['hideWalls'] = function () {
+};
+document['hideWalls'] = () => {
     viewer.addState(State.HIDDEN, types.IFCWALLSTANDARDCASE);
     viewer.addState(State.HIDDEN, types.IFCCURTAINWALL);
     viewer.addState(State.HIDDEN, types.IFCWALL);
-}
-document['resetWalls'] = function () {
+};
+document['resetWalls'] = () => {
     viewer.resetState(types.IFCWALLSTANDARDCASE);
     viewer.resetState(types.IFCCURTAINWALL);
     viewer.resetState(types.IFCWALL);
-}
+};
 
-document['clip'] = function () {
+document['clip'] = () => {
     viewer.setClippingPlaneA([0, 0, -1, 2000]);
     viewer.setClippingPlaneB([0, 0, 1, 100]);
-}
-document['unclip'] = function () {
+};
+document['unclip'] = () => {
     viewer.unclip();
-}
-document['stopCube'] = function () {
+};
+document['stopCube'] = () => {
     cube.stopped = true;
-}
-document['startCube'] = function () {
+};
+document['startCube'] = () => {
     cube.stopped = false;
-}
-document['stopGrid'] = function () {
+};
+document['stopGrid'] = () => {
     grid.stopped = true;
-}
-document['startGrid'] = function () {
+};
+document['startGrid'] = () => {
     grid.stopped = false;
-}
-document['takeSnapshot'] = function () {
+};
+document['takeSnapshot'] = () => {
     viewer.removePlugin(cube);
     var img = viewer.getCurrentImageHtml(viewer.width / 2, viewer.height / 2);
     img.style.width = "100%";
@@ -185,7 +189,7 @@ document['takeSnapshot'] = function () {
 
     var place = document.getElementById("snapshot");
     place.innerHTML = "";
-    place.appendChild(img)
+    place.appendChild(img);
 
     const view = Viewpoint.GetViewpoint(viewer);
     img.onclick = () => {
@@ -194,27 +198,27 @@ document['takeSnapshot'] = function () {
     };
 
     viewer.addPlugin(cube);
-}
+};
 
-document['updateGamma'] = function(evt: Event){
+document['updateGamma'] = (evt: Event) => {
     const input = evt.target as HTMLInputElement;
     const value = parseFloat(input.value);
     viewer.gamma = value;
-}
+};
 
-document['updateContrast'] = function(evt: Event){
+document['updateContrast'] = (evt: Event) => {
     const input = evt.target as HTMLInputElement;
     const value = parseFloat(input.value);
     viewer.contrast = value;
-}
+};
 
-document['updateBrightness'] = function(evt: Event){
+document['updateBrightness'] = (evt: Event) => {
     const input = evt.target as HTMLInputElement;
     const value = parseFloat(input.value);
     viewer.brightness = value;
-}
+};
 
-viewer.on("pick", args => {
+viewer.on("pick", (args) => {
     viewer.stopRotation();
     var id = args.id;
     var radios = document.getElementsByName("radioHiding");
@@ -223,8 +227,12 @@ viewer.on("pick", args => {
             var radio = radios[i] as HTMLInputElement;
             if (radio.checked) {
                 var val = radio.value;
-                if (val === "noHiding") return;
-                if (val === "hideOne") viewer.addState(State.HIDDEN, [id]);
+                if (val === "noHiding") {
+                    return;
+                }
+                if (val === "hideOne") {
+                    viewer.addState(State.HIDDEN, [id]);
+                }
                 if (val === "hideType") {
                     var type = viewer.getProductType(id);
                     viewer.addState(State.HIDDEN, type);
@@ -244,11 +252,11 @@ if (script) {
     scriptArea.value = script;
     viewer.on('loaded', () => {
         eval(script);
-    })
+    });
 }
 
 // persist script before loads
-window.addEventListener("beforeunload", function (event) {
+window.addEventListener("beforeunload", (event) => {
     localStorage.setItem('initScript-' + modelId, scriptArea.value);
 });
 

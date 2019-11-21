@@ -5,6 +5,7 @@ import { ProductIdentity } from '../../common/product-identity';
 
 export class InteractiveClipping implements IPlugin {
 
+    // tslint:disable: no-empty
     public onAfterDrawModelId(): void { }
 
     private _viewer: Viewer;
@@ -47,7 +48,9 @@ export class InteractiveClipping implements IPlugin {
         const viewer = this._viewer;
 
         var handleMouseDown = (event) => {
-            if (down) return;
+            if (down) {
+                return;
+            }
             down = true;
 
             viewer.disableTextSelection();
@@ -73,7 +76,9 @@ export class InteractiveClipping implements IPlugin {
         };
 
         var handleMouseUp = (event) => {
-            if (!down) return;
+            if (!down) {
+                return;
+            }
 
             //check if the points are not identical. 
             var r = svg.getBoundingClientRect();
@@ -131,7 +136,9 @@ export class InteractiveClipping implements IPlugin {
         };
 
         var handleMouseMove = (event) => {
-            if (!down) return;
+            if (!down) {
+                return;
+            }
 
             var r = svg.getBoundingClientRect();
             var x = event.clientX - r.left;
@@ -147,7 +154,7 @@ export class InteractiveClipping implements IPlugin {
             position.angle = 360.0 - angle + 90;
 
             g['setAttribute']('transform', 'rotate(' + angle + ' ' + position.x + ' ' + position.y + ')');
-        }
+        };
 
         //this._canvas.parentNode.appendChild(svg);
         document.documentElement.appendChild(svg)
@@ -161,7 +168,7 @@ export class InteractiveClipping implements IPlugin {
             window.removeEventListener('mouseup', handleMouseUp, true);
             window.removeEventListener('mousemove', handleMouseMove, true);
             //clear also itself
-            this.stopClipping = function () { };
+            this.stopClipping = () => { };
         };
     }
 

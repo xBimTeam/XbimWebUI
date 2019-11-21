@@ -7,8 +7,7 @@
     constructor(keyMaker?: (key: TKey) => string) {
         if (keyMaker) {
             this._getKey = keyMaker
-        }
-        else {
+        } else {
             this._getKey = k => k.toString();
         }
     }
@@ -25,8 +24,9 @@
     public Add(key: TKey, value: TValue): void {
         var index = this._getKey(key);
         var exist = this._internal[index];
-        if (exist)
+        if (exist) {
             throw new Error("This key exists already: " + index);
+        }
 
         this._internal[index] = value;
         this._count++;

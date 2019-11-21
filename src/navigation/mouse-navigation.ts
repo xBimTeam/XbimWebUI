@@ -170,8 +170,9 @@ export class MouseNavigation {
 
             var sign = (x: any) => {
                 x = +x; // convert to a number
-                if (x === 0 || isNaN(x))
+                if (x === 0 || isNaN(x)) {
                     return x;
+                }
                 return x > 0 ? 1 : -1;
             };
 

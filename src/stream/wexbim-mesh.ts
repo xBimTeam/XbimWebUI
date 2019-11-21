@@ -1,4 +1,5 @@
-﻿export interface ReadIndex {
+﻿// tslint:disable-next-line: interface-name
+export interface ReadIndex {
     (view: DataView, offset: number): number;
 }
 
@@ -50,12 +51,10 @@ export class WexBimMesh {
         if (this.VertexCount <= 0xFF) {
             readIndex = (view, offset) => view.getUint8(offset);
             sizeofIndex = 8 /*sizeof(byte)*/;
-        }
-        else if (this.VertexCount <= 0xFFFF) {
+        } else if (this.VertexCount <= 0xFFFF) {
             readIndex = (view, offset) => view.getInt16(offset, true);
             sizeofIndex = 16 /*sizeof(short)*/;
-        }
-        else {
+        } else {
             readIndex = (view, offset) => view.getInt32(offset, true);
             sizeofIndex = 32 /*sizeof(int)*/;
         }
@@ -68,6 +67,7 @@ export class WexBimMesh {
     }
 }
 
+// tslint:disable-next-line: max-classes-per-file
 export class WexBimMeshFace {
     private _array: ArrayBuffer;
     private _view: DataView;
@@ -102,8 +102,7 @@ export class WexBimMeshFace {
                     result[i * 3 + j] = this._readIndex(this._view, indexOffset + (j * this._sizeofIndex)); //skip the normal in the 2 bytes
                 }
             }
-        }
-        else {
+        } else {
             var indexSpan = this._sizeofIndex + 2;
             var triangleSpan = 3 * indexSpan;
             var indexOffset = this._offsetStart + 4 /*sizeof(int)*/;

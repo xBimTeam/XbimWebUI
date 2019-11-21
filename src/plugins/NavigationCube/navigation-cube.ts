@@ -112,7 +112,12 @@ export class NavigationCube implements IPlugin {
     * @member {boolean} NavigationCube#stopped
     */
     public get stopped(): boolean { return this._stopped; }
-    public set stopped(value: boolean) { this._stopped = value; if (this.viewer) this.viewer.draw(); }
+    public set stopped(value: boolean) {
+        this._stopped = value;
+        if (this.viewer) {
+            this.viewer.draw();
+        }
+    }
     private _stopped = false;
 
     private viewer: Viewer;
@@ -198,7 +203,7 @@ export class NavigationCube implements IPlugin {
             var image = new Image();
             self._image = image;
             image.addEventListener("load",
-                function () {
+                () => {
                     //load image texture into GPU
                     gl.bindTexture(gl.TEXTURE_2D, self._texture);
                     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
@@ -225,15 +230,15 @@ export class NavigationCube implements IPlugin {
                     return;
                 }
 
-                
+
                 var startX = event.clientX;
                 var startY = event.clientY;
-                
+
                 //get coordinates within canvas (with the right orientation)
                 var r = viewer.canvas.getBoundingClientRect();
                 var x = startX - r.left;
                 var y = viewer.height - (startY - r.top);
-                
+
                 //cube hasn't been drawn yet
                 if (!self._region) {
                     return;
@@ -241,7 +246,7 @@ export class NavigationCube implements IPlugin {
 
                 // user doing anything should cause redraw in case there is any form of interaction
                 // viewer.changed = true;
-                
+
                 if (!self.isInRegion(x, y)) {
                     self._alpha = self.passiveAlpha;
                     self._selection = 0;
@@ -253,10 +258,10 @@ export class NavigationCube implements IPlugin {
                 if (id == null) {
                     self._alpha = self.passiveAlpha;
                     self._selection = 0;
-                } else  if (id >= self.TOP && id <= self.BACK_LEFT) {
+                } else if (id >= self.TOP && id <= self.BACK_LEFT) {
                     self._alpha = self.activeAlpha;
                     self._selection = id;
-                } 
+                }
                 // overdraw the cube
                 this.onAfterDraw(viewer.width, viewer.height);
             },
@@ -459,9 +464,10 @@ export class NavigationCube implements IPlugin {
 
     }
 
-    onBeforeDraw(width: number, height: number) { }
+    // tslint:disable: no-empty
+    public onBeforeDraw(width: number, height: number) { }
 
-    onBeforePick(identity: ProductIdentity) {
+    public onBeforePick(identity: ProductIdentity) {
         if (identity.model !== this._modelId || identity.id == null) {
             return false;
         }
@@ -471,7 +477,7 @@ export class NavigationCube implements IPlugin {
 
     }
 
-    onAfterDraw(width: number, height: number) {
+    public onAfterDraw(width: number, height: number) {
         if (this.stopped) {
             return;
         }
@@ -484,9 +490,9 @@ export class NavigationCube implements IPlugin {
         this.draw(width, height);
     }
 
-    onBeforeDrawId() { }
+    public onBeforeDrawId() { }
 
-    onAfterDrawId() {
+    public onAfterDrawId() {
         if (this.stopped) {
             return;
         }
@@ -496,7 +502,7 @@ export class NavigationCube implements IPlugin {
         this.draw(this.viewer.width, this.viewer.height);
     }
 
-    onAfterDrawModelId() {
+    public onAfterDrawModelId() {
         if (this.stopped) {
             return;
         }
@@ -522,10 +528,11 @@ export class NavigationCube implements IPlugin {
         gl.disable(gl.BLEND);
         // clear all
         gl.clearColor(0, 0, 0, 0); //zero colour for no-values
+        // tslint:disable-next-line: no-bitwise
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         this.onAfterDrawId();
-        const id = fb.getId(viewX, viewY);;
+        const id = fb.getId(viewX, viewY);
         fb.delete();
         return id;
     }
@@ -552,7 +559,9 @@ export class NavigationCube implements IPlugin {
             return;
         }
 
-        if (!this._initialized) return;
+        if (!this._initialized) {
+            return;
+        }
 
         var gl = this.viewer.gl;
 
@@ -633,13 +642,17 @@ export class NavigationCube implements IPlugin {
         gl.uniform1i(this._textureUniformPointer, 1);
 
         var cfEnabled = gl.getParameter(gl.CULL_FACE);
-        if (!cfEnabled) gl.enable(gl.CULL_FACE);
+        if (!cfEnabled) {
+            gl.enable(gl.CULL_FACE);
+        }
 
         //draw the cube as an element array
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
         gl.drawElements(gl.TRIANGLES, this.indices.length, gl.UNSIGNED_SHORT, 0);
 
-        if (!cfEnabled) gl.disable(gl.CULL_FACE);
+        if (!cfEnabled) {
+            gl.disable(gl.CULL_FACE);
+        }
 
     }
 
@@ -647,7 +660,7 @@ export class NavigationCube implements IPlugin {
 
         var gl = this.viewer.gl;
         var viewer = this.viewer;
-        var compile = function (shader, code) {
+        var compile = (shader, code) => {
             gl.shaderSource(shader, code);
             gl.compileShader(shader);
             if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
@@ -655,7 +668,7 @@ export class NavigationCube implements IPlugin {
                 viewer.error(msg);
                 return null;
             }
-        }
+        };
 
         //fragment shader
         var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
@@ -677,7 +690,7 @@ export class NavigationCube implements IPlugin {
     }
 
 
-    vertices = new Float32Array([
+    public vertices = new Float32Array([
         // Front face
         -0.3, -0.5, -0.3,
         0.3, -0.5, -0.3,

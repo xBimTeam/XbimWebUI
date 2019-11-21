@@ -59,9 +59,13 @@ export class ModelGeometry {
 
         let br = binReader;
         let magicNumber = br.readInt32();
-        if (magicNumber != 94132117) throw new Error('Magic number mismatch.');
+        if (magicNumber != 94132117) {
+            throw new Error('Magic number mismatch.');
+        }
         let version = br.readByte();
-        if (version > this._maxVersionSupported) throw new Error(`Viewer doesn't support version ${version} of the wexBIM stream`);
+        if (version > this._maxVersionSupported) {
+            throw new Error(`Viewer doesn't support version ${version} of the wexBIM stream`);
+        }
         let numShapes = br.readInt32();
         let numVertices = br.readInt32();
         let numTriangles = br.readInt32();
@@ -135,7 +139,7 @@ export class ModelGeometry {
         //version 3 puts geometry in regions properly so it is possible to use this information for rendering
         if (version >= 3) {
             for (let r = 0; r < numRegions; r++) {
-                let region = this.regions[r]
+                let region = this.regions[r];
                 let geomCount = br.readInt32();
 
                 for (let g = 0; g < geomCount; g++) {
@@ -155,8 +159,9 @@ export class ModelGeometry {
                     let geometry = new TriangulatedShape();
                     geometry.parse(gbr);
                     //make sure that geometry is complete
-                    if (!gbr.isEOF())
+                    if (!gbr.isEOF()) {
                         throw new Error(`Incomplete reading of geometry for shape instance ${shapes[0].iLabel}`);
+                    }
 
                     //add data to arrays prepared for GPU
                     this.feedDataArrays(shapes, geometry);
@@ -207,12 +212,14 @@ export class ModelGeometry {
         if (typeof (arity) == 'undefined' || typeof (count) == 'undefined') {
             throw new Error('Wrong arguments for "square" function.');
         }
-        if (count == 0) return 0;
+        if (count == 0) {
+            return 0;
+        }
         let byteLength = count * arity;
         let imgSide = Math.ceil(Math.sqrt(byteLength / 4));
         //clamp to parity
         while ((imgSide * 4) % arity != 0) {
-            imgSide++
+            imgSide++;
         }
         let result = imgSide * imgSide * 4 / arity;
         return result;
@@ -220,7 +227,7 @@ export class ModelGeometry {
 
     private feedDataArrays(shapes: Array<ShapeRecord>, geometry: TriangulatedShape) {
         //copy shape data into inner array and set to null so it can be garbage collected
-        shapes.forEach(shape => {
+        shapes.forEach((shape) => {
             let iIndex = 0;
             //set iIndex according to transparency either from beginning or at the end
             if (shape.transparent) {
@@ -263,8 +270,11 @@ export class ModelGeometry {
             let end = iIndex;
             map.spans.push(new Int32Array([begin, end]));
 
-            if (shape.transparent) this._iIndexBackward -= geometry.indices.length;
-            else this._iIndexForward += geometry.indices.length;
+            if (shape.transparent) {
+                this._iIndexBackward -= geometry.indices.length;
+            } else {
+                this._iIndexForward += geometry.indices.length;
+            }
         },
             this);
 
@@ -294,8 +304,9 @@ export class ModelGeometry {
             }
 
             let styleItem = this._styleMap.GetStyle(styleId);
-            if (styleItem === null)
+            if (styleItem === null) {
                 styleItem = this._styleMap.GetStyle(-1); //default style
+            }
 
             shapeList.push({
                 pLabel: prodLabel,
@@ -310,6 +321,7 @@ export class ModelGeometry {
 
     //Source has to be either URL of wexBIM file or Blob representing wexBIM file
     public load(source, headers: { [name: string]: string }, progress: (message: Message) => void) {
+        // tslint:disable-next-line: no-empty
         this.progress = progress ? progress : (m) => { };
         //binary reading
         let br = new BinaryReader();
@@ -333,6 +345,7 @@ export class ModelGeometry {
     public onerror: (message?: string) => void;
 }
 
+// tslint:disable: max-classes-per-file
 export class Region {
     public population: number = -1;
     public centre: Float32Array = null;
@@ -373,8 +386,9 @@ export class Region {
      */
     public merge(region: Region): Region {
         //if this is a new empty region, return clone of the argument
-        if (this.population === -1 && this.centre === null && this.bbox === null)
+        if (this.population === -1 && this.centre === null && this.bbox === null) {
             return new Region(region);
+        }
 
         let out = new Region();
         out.population = this.population + region.population;
@@ -419,8 +433,9 @@ class StyleMap {
 
     public GetStyle(id: number): StyleRecord {
         let item = this._internal[id];
-        if (item)
+        if (item) {
             return item;
+        }
         return null;
     }
 }

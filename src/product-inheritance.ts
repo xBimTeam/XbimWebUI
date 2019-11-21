@@ -13,7 +13,7 @@
                 return type;
             }
             if (type.children) {
-                type.children.forEach((c) => { toProcess.push(c); })
+                type.children.forEach((c) => { toProcess.push(c); });
             }
         }
         return null;
@@ -29,7 +29,7 @@
                 roots.push(type);
             }
             if (type.children) {
-                type.children.forEach((c) => { toProcess.push(c); })
+                type.children.forEach((c) => { toProcess.push(c); });
             }
         }
 
@@ -42,7 +42,7 @@
                 result.push(type.id);
             }
             if (type.children) {
-                type.children.forEach((c) => { toProcess.push(c); })
+                type.children.forEach((c) => { toProcess.push(c); });
             }
         }
 
@@ -457,4 +457,4 @@ const ProductInheritance: Product = {
             ]
         }
     ]
-}
+};

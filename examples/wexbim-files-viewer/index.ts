@@ -16,24 +16,24 @@ cube.passiveAlpha = cube.activeAlpha = 0.85;
 viewer.addPlugin(cube);
 
 
-viewer.on("error", function (arg) {
+viewer.on("error", (arg) => {
     var container = viewer.canvas.parentNode as HTMLElement;
     if (container) {
         //preppend error report
         container.innerHTML = "<pre style='color:red;'>" + arg.message + "</pre>" + container.innerHTML;
     }
 });
-viewer.on("pick", function (arg) {
+viewer.on("pick", (arg) => {
     if (arg.id) {
         console.log(`Selected id: ${arg.id}`);
     }
 }
 );
-viewer.on("loaded", function (evt) {
+viewer.on("loaded", (evt) => {
     models.push({ id: evt.model, name: evt.tag, stopped: false });
     refreshModelsPanel();
 });
-viewer.on("fps", function (fps) {
+viewer.on("fps", (fps) => {
     var span = document.getElementById("fps");
     if (span) {
         span.innerHTML = fps.toString();
@@ -42,7 +42,9 @@ viewer.on("fps", function (fps) {
 
 let input = document.getElementById('input') as HTMLInputElement;
 input.addEventListener('change', () => {
-    if (!input.files || input.files.length === 0) return;
+    if (!input.files || input.files.length === 0) {
+        return;
+    }
 
     for (let i = 0; i < input.files.length; i++) {
         const file = input.files[i];
@@ -55,36 +57,37 @@ input.addEventListener('change', () => {
 
 function refreshModelsPanel() {
     var html = "<table>";
-    models.forEach(function (m) {
+    models.forEach((m) => {
         html += "<tr>";
         html += `<td>${m.name}</td>`;
         html += "<td><button onclick='unload(" + m.id + ")'> Unload </button></td>";
-        if (m.stopped)
+        if (m.stopped) {
             html += "<td> <button onclick='start(" + m.id + ")'> Start </button> </td>";
-        else
+        } else {
             html += "<td> <button onclick='stopModel(" + m.id + ")'> Stop </button> </td>";
+        }
         html += "</tr>";
     });
     html += "</table>";
     let modelsDiv = document.getElementById('models') as HTMLDivElement;
     modelsDiv.innerHTML = html;
 }
-function unload(id) {
+function unload(id: number) {
     viewer.unload(id);
-    models = models.filter(function (m) { return m.id !== id });
+    models = models.filter((m) => m.id !== id);
     refreshModelsPanel();
     viewer.draw();
 }
-function stop(id) {
+function stop(id: number) {
     viewer.stop(id);
-    var model = models.filter(function (m) { return m.id === id }).pop();
+    var model = models.filter((m) => m.id === id).pop();
     model.stopped = true;
     refreshModelsPanel();
 }
 
-function start(id) {
+function start(id: number) {
     viewer.start(id);
-    var model = models.filter(function (m) { return m.id === id }).pop();
+    var model = models.filter((m) => m.id === id).pop();
     model.stopped = false;
     refreshModelsPanel();
 }

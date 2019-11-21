@@ -1,5 +1,6 @@
 import { vec3 } from "gl-matrix";
 
+// tslint:disable-next-line: interface-name
 export interface ViewerEventMap {
     "click": ViewerInteractionEvent;
     "contextmenu": ViewerInteractionEvent;
@@ -42,6 +43,7 @@ export interface ViewerEventMap {
     "error": { message: string };
 }
 
+// tslint:disable-next-line: interface-name
 export interface ViewerLoadedEvent {
     /**
      * Model ID to be used for interaction with the viewer
@@ -58,6 +60,7 @@ export interface ViewerLoadedEvent {
  * Interaction events forward original canvas events
  * and retrieves product and model ID
  */
+// tslint:disable-next-line: interface-name
 export interface ViewerInteractionEvent {
 
     /**

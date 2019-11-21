@@ -17,7 +17,8 @@
         "quotemark":false,
         "variable-name":false,
         "trailing-comma": false,
-        "object-literal-sort-keys": false
+        "object-literal-sort-keys": false,
+        "object-literal-shorthand": false
     },
     "rulesDirectory": []
 }

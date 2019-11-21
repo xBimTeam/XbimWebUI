@@ -136,8 +136,7 @@ export class Animations {
                     this.viewer.mvMatrix = mv;
 
                     this.requestAnimationFrame(step);
-                }
-                else { // set exact value, remove from the queue and quit
+                } else { // set exact value, remove from the queue and quit
                     this.viewer.mvMatrix = end;
                     Animations.viewQueue.shift();
                     resolve();

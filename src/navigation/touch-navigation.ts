@@ -98,7 +98,7 @@ export class TouchNavigation {
         var maximumLengthBetweenDoubleTaps = 200;
         var lastTap = new Date();
 
-        let data: { id: number, model: number, xyz: vec3 }= { id: null, model: null, xyz: null };
+        let data: { id: number, model: number, xyz: vec3 } = { id: null, model: null, xyz: null };
 
         //set initial conditions so that different gestures can be identified
         var handleTouchStart = (event: TouchEvent) => {
@@ -121,7 +121,7 @@ export class TouchNavigation {
             var now = new Date();
             var isDoubleTap = (now.getTime() - lastTap.getTime()) < maximumLengthBetweenDoubleTaps;
             if (isDoubleTap) {
-                viewer.fire('dblclick', { id: data.id, model: data.model, event: event, xyz:  data.xyz});
+                viewer.fire('dblclick', { id: data.id, model: data.model, event: event, xyz: data.xyz });
             };
             lastTap = now;
 

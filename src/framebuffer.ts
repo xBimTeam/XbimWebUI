@@ -166,7 +166,7 @@ export class Framebuffer {
             far: vec3.fromValues(xc, yc, zcf),
             near: vec3.fromValues(xc, yc, zcn),
             middle: vec3.fromValues(xc, yc, zc)
-        }
+        };
     }
 
     public getId(x: number, y: number): number {

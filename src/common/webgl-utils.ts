@@ -108,7 +108,7 @@ export class WebGLUtils {
      * @return {WebGLRenderingContext} The created context.
      */
     public static setupWebGL(canvas: HTMLCanvasElement, done: (context: WebGLRenderingContext, version: number) => void,
-        attribs?: WebGLContextAttributes, onError?: (msg: string) => void): void {
+                             attribs?: WebGLContextAttributes, onError?: (msg: string) => void): void {
 
         function handleCreationError(msg) {
             var container = canvas.parentNode as HTMLElement;
@@ -121,18 +121,18 @@ export class WebGLUtils {
                 }
                 container.innerHTML = WebGLUtils.makeFailHTML(str);
             }
-        };
+        }
 
         onError = onError || handleCreationError;
 
         if (canvas.addEventListener) {
-            canvas.addEventListener("webglcontextcreationerror", function (event: WebGLContextEvent) {
+            canvas.addEventListener("webglcontextcreationerror",  (event: WebGLContextEvent) => {
                 onError(event.statusMessage);
             }, false);
         }
 
         WebGLUtils.create3DContext(canvas, done, attribs);
-    };
+    }
 
     /**
      * Creates a webgl context.
@@ -141,7 +141,7 @@ export class WebGLUtils {
      * @return {!WebGLContext} The created context.
      */
     public static create3DContext(canvas: HTMLCanvasElement, done: (context: WebGLRenderingContext | WebGL2RenderingContext, version: number) => void,
-        opt_attribs: {}): void {
+                                  opt_attribs: {}): void {
 
         let context: WebGLRenderingContext | WebGL2RenderingContext = null;
         try {
@@ -151,8 +151,7 @@ export class WebGLUtils {
                 done(context, 2);
                 return;
             }
-        }
-        catch { }
+        } catch { }
 
         var names = ["webgl", "experimental-webgl", "webkit-3d", "moz-webgl"];
         for (var ii = 0; ii < names.length; ++ii) {

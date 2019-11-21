@@ -59,7 +59,7 @@ export class ModelHandle {
             result = Region.clone(this._region);
         } else {
             let maps: ProductMap[] = [];
-            this.isolatedProducts.forEach(id => {
+            this.isolatedProducts.forEach((id) => {
                 const map = this.getProductMap(id, wcs);
                 if (map) {
                     maps.push(map);
@@ -190,7 +190,8 @@ export class ModelHandle {
             this._glVersion = 2;
         }
 
-        progress = progress ? progress : msg => { };
+        // tslint:disable-next-line: no-empty
+        progress = progress ? progress : (msg) => { };
         this.id = ModelHandle._instancesNum++;
 
         this.meter = _model.meter;
@@ -351,7 +352,7 @@ export class ModelHandle {
         //compute new normal equation of the plane
         d = 0.0 - a * x - b * y - c * z;
 
-        return new Float32Array([a, b, c, d])
+        return new Float32Array([a, b, c, d]);
     }
 
     //this function must be called AFTER 'setActive()' function which sets up active buffers and uniforms
@@ -384,7 +385,7 @@ export class ModelHandle {
             if (maps == null) {
                 gl.drawArrays(gl.TRIANGLES, 0, this._numberOfIndices);
             } else {
-                maps.forEach(map => {
+                maps.forEach((map) => {
                     map.spans.forEach((span) => {
                         gl.drawArrays(gl.TRIANGLES, span[0], span[1] - span[0]);
                     });
@@ -398,7 +399,7 @@ export class ModelHandle {
             if (maps == null) {
                 gl.drawArrays(gl.TRIANGLES, 0, this._model.transparentIndex);
             } else {
-                maps.forEach(map => {
+                maps.forEach((map) => {
                     map.spans
                         .filter((s) => s[1] <= this._model.transparentIndex)
                         .forEach((span) => {
@@ -420,7 +421,7 @@ export class ModelHandle {
             if (maps == null) {
                 gl.drawArrays(gl.TRIANGLES, this._model.transparentIndex, this._numberOfIndices - this._model.transparentIndex);
             } else {
-                maps.forEach(map => {
+                maps.forEach((map) => {
                     map.spans
                         .filter((s) => s[0] >= this._model.transparentIndex)
                         .forEach((span) => {
@@ -452,13 +453,17 @@ export class ModelHandle {
 
 
     public getProductId(renderId: number): number {
-        if (this.empty) return null;
+        if (this.empty) {
+            return null;
+        }
 
         return this._model.productIdLookup[renderId];
     }
 
     public getProductMap(id: number, wcs?: vec3): ProductMap {
-        if (this.empty) return null;
+        if (this.empty) {
+            return null;
+        }
 
         let map = this._model.productMaps[id];
         if (map != null) {
@@ -477,19 +482,24 @@ export class ModelHandle {
 
     public getProductMaps(ids: number[]): ProductMap[] {
         let result = new Array<ProductMap>();
-        if (this.empty) return result;
+        if (this.empty) {
+            return result;
+        }
 
-        ids.forEach(id => {
+        ids.forEach((id) => {
             var map = this._model.productMaps[id];
-            if (map != null)
+            if (map != null) {
                 result.push(map);
+            }
         });
 
         return result;
     }
 
     public unload() {
-        if (this.empty) return null;
+        if (this.empty) {
+            return null;
+        }
 
         var gl = this._gl;
 
@@ -506,7 +516,9 @@ export class ModelHandle {
     }
 
     private InitGPU(gl: WebGLRenderingContext, model: ModelGeometry, progress: (msg: Message) => void) {
-        if (this.empty) return null;
+        if (this.empty) {
+            return null;
+        }
 
         const report = (percent: number): void => {
             const msg: Message = {
@@ -572,7 +584,7 @@ export class ModelHandle {
         }
     }
 
-    private getVec3(a: ArrayLike<number>){
+    private getVec3(a: ArrayLike<number>) {
         return vec3.fromValues(a[0], a[1], a[2]);
     }
 
@@ -587,7 +599,7 @@ export class ModelHandle {
                 0, 0, 0, 0,
                 0, 0, 0, 0,
                 0, 0, 0, 0
-            ])
+            ]);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, dummySize, dummySize, 0, gl.RGBA, gl.UNSIGNED_BYTE, image);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
@@ -611,8 +623,12 @@ export class ModelHandle {
         }
 
 
-        if (size == 0) return 0;
-        if (size > maxSize) throw 'Too much data! It cannot fit into the texture.';
+        if (size == 0) {
+            return 0;
+        }
+        if (size > maxSize) {
+            throw 'Too much data! It cannot fit into the texture.';
+        }
 
         gl.bindTexture(gl.TEXTURE_2D, pointer);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0); //this is our convention
@@ -680,14 +696,16 @@ export class ModelHandle {
 
     public getState(id: number): State {
         var span = this.getFirstSpan(id);
-        if (span == null) return null;
+        if (span == null) {
+            return null;
+        }
         return this._model.states[span[0] * 2];
     }
 
     public getStates(): Array<{ id: number, states: State[] }> {
         const result: Array<{ id: number, states: State[] }> = [];
         var prodIds = Object.getOwnPropertyNames(this._model.productMaps);
-        prodIds.forEach(id => {
+        prodIds.forEach((id) => {
             const map = this._model.productMaps[+id];
             if (map.states == null || map.states.length === 0) {
                 return;
@@ -702,25 +720,37 @@ export class ModelHandle {
 
     public getStyle(id: number): number {
         var span = this.getFirstSpan(id);
-        if (span == null) return null;
+        if (span == null) {
+            return null;
+        }
         return this._model.states[span[0] * 2 + 1];
     }
 
     private getFirstSpan(id: number): Int32Array {
-        if (this.empty) return null;
+        if (this.empty) {
+            return null;
+        }
 
-        if (typeof (id) === 'undefined') throw 'id must be defined';
+        if (typeof (id) === 'undefined') {
+            throw 'id must be defined';
+        }
         var map = this.getProductMap(id);
-        if (map === null) return null;
+        if (map === null) {
+            return null;
+        }
 
         var span = map.spans[0];
-        if (typeof (span) == 'undefined') return null;
+        if (typeof (span) == 'undefined') {
+            return null;
+        }
 
         return span;
     }
 
     public addState(state: State, args: number | number[]): void {
-        if (this.empty) return;
+        if (this.empty) {
+            return;
+        }
         this.checkStateArgs(state, args);
         const maps = this.getMaps(args);
 
@@ -742,7 +772,9 @@ export class ModelHandle {
     }
 
     public setState(state: State, args: number | number[]): void {
-        if (this.empty) return;
+        if (this.empty) {
+            return;
+        }
         this.checkStateArgs(state, args);
         const maps = this.getMaps(args);
 
@@ -763,7 +795,9 @@ export class ModelHandle {
     }
 
     public removeState(state: State, args: number | number[]): void {
-        if (this.empty) return;
+        if (this.empty) {
+            return;
+        }
         this.checkStateArgs(state, args);
         const maps = this.getMaps(args);
 
@@ -785,20 +819,23 @@ export class ModelHandle {
     }
 
     private checkStateArgs(state: State, args: number | number[]) {
-        if (typeof (state) != 'number' && state < 0 && state > 255)
+        if (typeof (state) != 'number' && state < 0 && state > 255) {
             throw 'You have to specify state as an ID of state or index in style pallete.';
-        if (typeof (args) == 'undefined')
+        }
+        if (typeof (args) == 'undefined') {
             throw 'You have to specify products as an array of product IDs or as a product type ID';
+        }
     }
 
     public resetState(args?: number | number[]): void {
-        if (this.empty) return null;
-
+        if (this.empty) {
+            return null;
+        }
         // no args, so reset all states of all products
         if (args == null) {
 
             var prodIds = Object.getOwnPropertyNames(this._model.productMaps);
-            prodIds.forEach(id => {
+            prodIds.forEach((id) => {
                 const map = this._model.productMaps[+id];
                 map.states = [];
             });
@@ -828,12 +865,16 @@ export class ModelHandle {
     }
 
     public setStyle(styleId: number, args: number | number[]): void {
-        if (this.empty) return null;
+        if (this.empty) {
+            return null;
+        }
 
-        if (typeof (styleId) != 'number' && styleId < 0 && styleId > 255
-        ) throw 'You have to specify state as an ID of state or index in style pallete.';
-        if (typeof (args) == 'undefined')
+        if (typeof (styleId) != 'number' && styleId < 0 && styleId > 255) {
+            throw 'You have to specify state as an ID of state or index in style pallete.';
+        }
+        if (typeof (args) == 'undefined') {
             throw 'You have to specify products as an array of product IDs or as a product type ID';
+        }
 
         const maps = this.getMaps(args);
 
@@ -859,26 +900,28 @@ export class ModelHandle {
             // get all non-abstract subtypes
             const subTypes = Product.getAllSubTypes(args);
 
-            Object.getOwnPropertyNames(this._model.productMaps).forEach(n => {
+            Object.getOwnPropertyNames(this._model.productMaps).forEach((n) => {
                 var map = this._model.productMaps[n];
                 if (subTypes.indexOf(map.type) > -1) {
                     maps.push(map);
                 }
             });
-        }
-        //it is a list of IDs
-        else {
+        } else {         //it is a list of IDs
             for (var l = 0; l < args.length; l++) {
                 var id = args[l];
                 var map = this.getProductMap(id);
-                if (map != null) maps.push(map);
+                if (map != null) {
+                    maps.push(map);
+                }
             }
         }
         return maps;
     }
 
     public resetStyles(): void {
-        if (this.empty) return null;
+        if (this.empty) {
+            return null;
+        }
 
         for (var i = 0; i < this._model.states.length; i += 2) {
             this._model.states[i + 1] = State.UNSTYLED;
@@ -886,11 +929,13 @@ export class ModelHandle {
         //buffer data to GPU
         this.bufferData(this._stateBuffer, this._model.states);
         this._changed = true;
-    };
+    }
 
     public getModelState(): Array<Array<number>> {
         var result = [];
-        if (this.empty) return result;
+        if (this.empty) {
+            return result;
+        }
 
         var products = this._model.productMaps;
         for (var i in products) {
@@ -899,21 +944,27 @@ export class ModelHandle {
             }
             var map = products[i];
             var span = map.spans[0];
-            if (typeof (span) == 'undefined') continue;
+            if (typeof (span) == 'undefined') {
+                continue;
+            }
 
             var state = this._model.states[span[0] * 2];
             var style = this._model.states[span[0] * 2 + 1];
 
+            // tslint:disable-next-line: no-bitwise
             result.push([map.productID, state + (style << 8)]);
         }
         return result;
     }
 
     public restoreModelState(state: Array<Array<number>>): void {
-        if (this.empty) return null;
+        if (this.empty) {
+            return null;
+        }
 
         state.forEach((s) => {
             var id = s[0];
+            // tslint:disable: no-bitwise
             var style = s[1] >> 8;
             var state = s[1] - (style << 8);
 

@@ -15,10 +15,10 @@ export enum State {
 export class StatePriorities {
     public static getPriority(state: State): number {
         switch (state) {
-            case State.HIGHLIGHTED : return 1;
-            case State.PICKING_ONLY : return 2;
-            case State.HIDDEN : return 3;
-            case State.XRAYVISIBLE : return 4;
+            case State.HIGHLIGHTED: return 1;
+            case State.PICKING_ONLY: return 2;
+            case State.HIDDEN: return 3;
+            case State.XRAYVISIBLE: return 4;
             default: return 100;
         }
     }
@@ -33,7 +33,7 @@ export class StatePriorities {
             return states[0];
         }
 
-        const priorities = states.map(s => ({state: s, priority: this.getPriority(s)}));
+        const priorities = states.map(s => ({ state: s, priority: this.getPriority(s) }));
         priorities.sort((a, b) => a.priority - b.priority);
 
         const top = priorities[0];

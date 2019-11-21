@@ -1,9 +1,9 @@
 export class Message {
-    type: MessageType;
-    message: string;
-    percent: number;
-    result?: any;
-    wexbimId?: number;
+    public type: MessageType;
+    public message: string;
+    public percent: number;
+    public result?: any;
+    public wexbimId?: number;
 }
 
 export enum MessageType {

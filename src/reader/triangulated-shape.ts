@@ -16,21 +16,24 @@ export class TriangulatedShape {
         var iIndex = 0;
         var readIndex;
         if (numVertices <= 0xFF) {
-            readIndex = function (count) { return binReader.readByteArray(count); };
+            readIndex = (count: number) => binReader.readByteArray(count);
         } else if (numVertices <= 0xFFFF) {
-            readIndex = function (count) { return binReader.readUint16Array(count); };
+            readIndex = (count: number) => binReader.readUint16Array(count);
         } else {
-            readIndex = function (count) { return binReader.readInt32Array(count); };
+            readIndex = (count: number) => binReader.readInt32Array(count);
         }
 
         var numFaces = binReader.readInt32();
 
-        if (numVertices === 0 || numOfTriangles === 0)
+        if (numVertices === 0 || numOfTriangles === 0) {
             return;
+        }
 
         for (var i = 0; i < numFaces; i++) {
             var numTrianglesInFace = binReader.readInt32();
-            if (numTrianglesInFace == 0) continue;
+            if (numTrianglesInFace == 0) {
+                continue;
+            }
 
             var isPlanar = numTrianglesInFace > 0;
             numTrianglesInFace = Math.abs(numTrianglesInFace);
@@ -65,11 +68,11 @@ export class TriangulatedShape {
     }
 
     //This would load only shape data from binary file
-    public load = function (source) {
+    public load = (source) => {
         //binary reading
         var br = new BinaryReader();
         var self = this;
-        br.onloaded = function () {
+        br.onloaded = () => {
             self.parse(br);
             if (self.onloaded) {
                 self.onloaded(this);

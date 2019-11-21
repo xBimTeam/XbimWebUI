@@ -21,7 +21,8 @@ import { ViewerEventMap } from './common/viewer-event-map';
 import { MouseNavigation } from './navigation/mouse-navigation';
 import { KeyboardNavigation } from './navigation/keyboard-navigation';
 import { TouchNavigation } from './navigation/touch-navigation';
-import { CheckResult, Abilities } from './common/abilities';
+import { Abilities } from './common/abilities';
+import { CheckResult,  } from './common/checkResult';
 import { Animations } from './navigation/animations';
 import { mat4, vec3, mat3, quat } from 'gl-matrix';
 import { PerformanceRating } from './performance-rating';
@@ -99,20 +100,20 @@ export class Viewer {
     /**
      * Allows to adjust gamma of the view
      */
-    public get gamma(): number { return this._gamma; };
-    public set gamma(value: number) { this._gamma = value; this.changed = true; };
+    public get gamma(): number { return this._gamma; }
+    public set gamma(value: number) { this._gamma = value; this.changed = true; }
 
     /**
      * Allows to adjust contrast of the view
      */
-    public get contrast(): number { return this._contrast; };
-    public set contrast(value: number) { this._contrast = value; this.changed = true; };
+    public get contrast(): number { return this._contrast; }
+    public set contrast(value: number) { this._contrast = value; this.changed = true; }
 
     /**
      * Allows to adjust brightness of the view
      */
-    public get brightness(): number { return this._brightness; };
-    public set brightness(value: number) { this._brightness = value; this.changed = true; };
+    public get brightness(): number { return this._brightness; }
+    public set brightness(value: number) { this._brightness = value; this.changed = true; }
 
     /**
      * Returns number of milliseconds for which Model View Matris hasn't been changed.
@@ -135,7 +136,7 @@ export class Viewer {
      * @member {Number} Viewer#unitsInMeter
      */
     public get unitsInMeter(): number {
-        const info = this.activeHandles.map(h => h.meter);
+        const info = this.activeHandles.map((h) => h.meter);
         if (info.length === 0) {
             return null;
         }
@@ -156,10 +157,10 @@ export class Viewer {
     /**
      * Returns a filtered array of currently active handles
      */
-    public get activeHandles() { return this._handles.filter((h) => { return h != null && !h.stopped && !h.empty; }); };
+    public get activeHandles() { return this._handles.filter((h) => h != null && !h.stopped && !h.empty); }
 
     private _perspectiveCamera: { fov: number, near: number, far: number };
-    private _orthogonalCamera: { left: number, right: number, top: number, bottom: number, near: number, far: number }
+    private _orthogonalCamera: { left: number, right: number, top: number, bottom: number, near: number, far: number };
     private _width: number;
     private _height: number;
     //Default distance for default views (top, bottom, left, right, front, back)
@@ -251,10 +252,10 @@ export class Viewer {
         }
 
         if (typeof (canvas['nodeName']) != 'undefined' && canvas['nodeName'] === 'CANVAS') {
-            this.canvas = <HTMLCanvasElement>canvas;
+            this.canvas = <HTMLCanvasElement> canvas;
         }
         if (typeof (canvas) == 'string') {
-            this.canvas = <HTMLCanvasElement>document.getElementById(<string>canvas);
+            this.canvas = <HTMLCanvasElement> document.getElementById(<string> canvas);
         }
         if (this.canvas == null) {
             throw new Error('You have to specify canvas either as an ID of HTML element or the element itself');
@@ -266,7 +267,8 @@ export class Viewer {
 
         // make sure WebGL2RenderingContext is defined even if not implemented
         if (!window['WebGL2RenderingContext']) {
-            window['WebGL2RenderingContext'] = function () { };
+            // tslint:disable-next-line: no-empty
+            window['WebGL2RenderingContext'] = () => { };
         }
 
         /**
@@ -323,7 +325,7 @@ export class Viewer {
         WebGLUtils.setupWebGL(this.canvas, (ctx, version) => {
             this.gl = ctx;
             this.glVersion = version;
-        }, { preserveDrawingBuffer: true }, err => {
+        }, { preserveDrawingBuffer: true }, (err) => {
             this.error(err);
         });
 
@@ -343,7 +345,8 @@ export class Viewer {
             window["mozRequestAnimationFrame"] ||
             window["oRequestAnimationFrame"] ||
             window["msRequestAnimationFrame"] ||
-            function (/* function FrameRequestCallback */ callback: () => void) {
+            // tslint:disable-next-line: only-arrow-functions
+            function(/* function FrameRequestCallback */ callback: () => void) {
                 window.setTimeout(callback, 1000 / 60);
             }).bind(window);
 
@@ -455,7 +458,9 @@ export class Viewer {
     * @param {object} plugin - plug-in object
     */
     public addPlugin(plugin: IPlugin) {
-        if (!plugin.init) return;
+        if (!plugin.init) {
+            return;
+        }
 
         plugin.init(this);
         this._plugins.push(plugin);
@@ -470,7 +475,9 @@ export class Viewer {
     */
     public removePlugin(plugin: IPlugin) {
         var index = this._plugins.indexOf(plugin, 0);
-        if (index < 0) return;
+        if (index < 0) {
+            return;
+        }
         this._plugins.splice(index, 1);
         this.changed = true;
     }
@@ -483,7 +490,7 @@ export class Viewer {
     */
     public defineStyle(index: number, colour: number[]) {
         if (typeof (index) == 'undefined' || (index < 0 && index > 224)) {
-            throw new Error('Style index has to be defined as a number 0-224')
+            throw new Error('Style index has to be defined as a number 0-224');
         }
         if (typeof (colour) == 'undefined' || !colour.length || colour.length != 4) {
             throw new Error('Colour must be defined as an array of 4 bytes');
@@ -663,8 +670,8 @@ export class Viewer {
         }
 
         handle.resetState();
-        stateMap.forEach(sm => {
-            sm.states.forEach(s => {
+        stateMap.forEach((sm) => {
+            sm.states.forEach((s) => {
                 handle.addState(s, [sm.id]);
             });
         });
@@ -720,9 +727,9 @@ export class Viewer {
             this._stateStyles[style * 4 + 2],
             this._stateStyles[style * 4 + 3]
         ];
-        if (c[0] == 0 && c[1] == 0 && c[2] == 0 && c[3] == 0 && console && console.warn)
-            console
-                .warn('You have used undefined colour for restyling. Elements with this style will have transparent black colour and hence will be invisible.');
+        if (c[0] == 0 && c[1] == 0 && c[2] == 0 && c[3] == 0 && console && console.warn) {
+            console.warn('You have used undefined colour for restyling. Elements with this style will have transparent black colour and hence will be invisible.');
+        }
 
         this.forHandleOrAll((handle: ModelHandle) => {
             handle.setStyle(style, target);
@@ -809,7 +816,7 @@ export class Viewer {
                 Math.min(viewer.width, viewer.height) / Math.max(viewer.width, viewer.height) :
                 1;
             viewer.distance = size / (Math.tan(viewer.perspectiveCamera.fov * Math.PI / 180.0 / 2.0 * ratio) * 2.0);
-        }
+        };
 
         //set navigation origin and default distance to the product BBox
         if (prodId != null) {
@@ -825,12 +832,12 @@ export class Viewer {
                 this.origin = vec3.fromValues(bbox[0] + bbox[3] / 2.0, bbox[1] + bbox[4] / 2.0, bbox[2] + bbox[5] / 2.0);
                 setDistance(bbox);
                 return true;
-            } else
+            } else {
                 return false;
-        }
-        //set navigation origin and default distance to the merged region composed 
-        //from all models which are not stopped at the moment
-        else {
+            }
+        } else {
+            //set navigation origin and default distance to the merged region composed 
+            //from all models which are not stopped at the moment
             let region = this.getMergedRegion();
 
             if (region && region.population > 0) {
@@ -861,10 +868,10 @@ export class Viewer {
     * @param {Object} settings - Object containing key - value pairs
     */
     public set(settings: object): void {
-        Object.getOwnPropertyNames(settings).forEach(key => {
+        Object.getOwnPropertyNames(settings).forEach((key) => {
             this[key] = settings[key];
         });
-    };
+    }
 
     /**
     * This method uses WebWorker if available to load the model into this viewer.
@@ -891,6 +898,7 @@ export class Viewer {
                 m.type = MessageType.PROGRESS;
             }
             progress(m);
+        // tslint:disable-next-line: no-empty
         } : (m: Message) => { };
 
         //fall back to synchronous loading if worker is not available
@@ -898,7 +906,7 @@ export class Viewer {
             this.load(model, tag, headers, progress);
         }
 
-        const blob = new Blob([LoaderWorker], { type: 'application/javascript' })
+        const blob = new Blob([LoaderWorker], { type: 'application/javascript' });
         const worker = new Worker(URL.createObjectURL(blob));
         worker.onmessage = (evt) => {
             const msg = evt.data as Message;
@@ -921,12 +929,11 @@ export class Viewer {
                         wexbimId: wexBimId
                     });
                 }
-            }
-            else {
+            } else {
                 // pass the message from worker out
                 progressProxy(msg);
             }
-        }
+        };
         worker.onerror = (e) => {
             self.error(e.message);
         };
@@ -970,7 +977,7 @@ export class Viewer {
         };
         geometry.onerror = (msg) => {
             viewer.error(msg);
-        }
+        };
         geometry.load(model, headers, progress);
     }
 
@@ -1013,7 +1020,7 @@ export class Viewer {
         this.fire('loaded', { model: handle.id, tag: tag });
 
         return handle.id;
-    };
+    }
 
     /**
      * Sets camera parameters (near and far clipping planes) from current active models.
@@ -1075,7 +1082,7 @@ export class Viewer {
          * @param {any} tag - Tag passed to the viewer when model was loaded
          * @param {Number} model - Model ID
          */
-        this.fire('unloaded', { tag: handle.tag, model: handle.id })
+        this.fire('unloaded', { tag: handle.tag, model: handle.id });
     }
 
     //this function should be only called once during initialization
@@ -1092,7 +1099,7 @@ export class Viewer {
                 return false;
             }
             return true;
-        }
+        };
 
         //fragment shader
         const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
@@ -1142,7 +1149,7 @@ export class Viewer {
     }
 
     private _initAttributesAndUniforms(): void {
-        var gl = this.setActive();;
+        var gl = this.setActive();
 
         //create pointers to uniform variables for transformations
         this._pMatrixUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uPMatrix');
@@ -1161,14 +1168,14 @@ export class Viewer {
 
     private _disableContextMenu() {
         // bind to canvas events
-        this.canvas.addEventListener('contextmenu', event => {
+        this.canvas.addEventListener('contextmenu', (event) => {
             event.preventDefault();
             return event.type !== 'contextmenu';
         });
     }
 
     private get meter(): number {
-        const handle = this._handles.find(h => !h.stopped);
+        const handle = this._handles.find((h) => !h.stopped);
         if (!handle) {
             return 1.0;
         }
@@ -1177,7 +1184,9 @@ export class Viewer {
     }
 
     public navigate(type: NavigationMode, deltaX, deltaY) {
-        if (!this._handles || !this._handles[0]) return;
+        if (!this._handles || !this._handles[0]) {
+            return;
+        }
         //translation in WCS is position from [0, 0, 0]
         var origin = vec3.copy(vec3.create(), this.origin);
         var camera = this.getCameraPosition();
@@ -1261,7 +1270,7 @@ export class Viewer {
      */
     public getCurrentWcs(): vec3 {
         let wcs: vec3 = vec3.create();
-        let nonEmpty = this._handles.filter(h => !h.empty);
+        let nonEmpty = this._handles.filter((h) => !h.empty);
         if (nonEmpty.length > 0) {
             wcs = nonEmpty[0].wcs;
         }
@@ -1279,6 +1288,7 @@ export class Viewer {
         let gl = this.gl;
 
         // clear previous data in buffers
+        // tslint:disable-next-line: no-bitwise
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         let width = framebuffer ? framebuffer.width : this.width;
         let height = framebuffer ? framebuffer.height : this.height;
@@ -1382,7 +1392,7 @@ export class Viewer {
             }
             plugin.onAfterDraw(width, height);
         });
-    };
+    }
 
     private drawXRAY(gl: WebGLRenderingContext) {
         const mode = this.renderingMode;
@@ -1691,7 +1701,7 @@ export class Viewer {
             this._isRunning = false;
 
             // set viewport and generall settings
-            this.setActive()
+            this.setActive();
             gl.viewport(0, 0, width, height);
             gl.enable(gl.DEPTH_TEST); //we don't use any kind of blending or transparency
             gl.disable(gl.BLEND);
@@ -1699,6 +1709,7 @@ export class Viewer {
             // ------ draw colour coded product ids ----------
             // clear all
             gl.clearColor(0, 0, 0, 0); //zero colour for no-values
+            // tslint:disable-next-line: no-bitwise
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
             //call all before-drawId plugins
@@ -1732,8 +1743,9 @@ export class Viewer {
 
             //get colour in of the pixel [r,g,b,a]
             const productId = fb.getId(x, y);
-            if (productId == null)
+            if (productId == null) {
                 return null;
+            }
 
             // adjust near and far clipping planes
             const locationRange = fb.getXYZRange(x, y);
@@ -1757,6 +1769,7 @@ export class Viewer {
 
             // clear
             gl.clearColor(0, 0, 0, 0); //zero colour for no-values
+            // tslint:disable-next-line: no-bitwise
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
 
@@ -1795,11 +1808,9 @@ export class Viewer {
                 modelId: modelId,
                 renderId: productId
             };
-        }
-        catch (e) {
+        } catch (e) {
             this.error(e);
-        }
-        finally {
+        } finally {
             this.setActive();
             fb.delete();
 
@@ -1880,7 +1891,7 @@ export class Viewer {
                 }
             }
             this._requestAnimationFrame(tick);
-        }
+        };
         tick();
     }
 
@@ -1963,13 +1974,13 @@ export class Viewer {
                 return;
             }
 
-            if (this._handles.length !== 0 && (this.changed || this.activeHandles.filter(h => h.changed).length != 0)) {
+            if (this._handles.length !== 0 && (this.changed || this.activeHandles.filter((h) => h.changed).length != 0)) {
 
                 this.changed = false;
                 this.draw();
             }
             this._requestAnimationFrame(tick);
-        }
+        };
         tick();
     }
 
@@ -2022,8 +2033,9 @@ export class Viewer {
      */
     public isModelOn(id: number): boolean {
         var model = this.getHandle(id);
-        if (!model)
+        if (!model) {
             return false;
+        }
         return !model.stopped;
     }
 
@@ -2048,8 +2060,9 @@ export class Viewer {
      */
     public isModelLoaded(id: number): boolean {
         var model = this.getHandle(id);
-        if (!model)
+        if (!model) {
             return false;
+        }
         return true;
     }
 
@@ -2095,8 +2108,9 @@ export class Viewer {
     */
     public startPicking(id: number) {
         var model = this.getHandle(id);
-        if (typeof (model) === 'undefined')
+        if (typeof (model) === 'undefined') {
             throw "Model doesn't exist.";
+        }
 
         model.pickable = true;
     }
@@ -2131,7 +2145,7 @@ export class Viewer {
         if (!isCanvEvt) {
             return;
         }
-        const hasListener = this._canvasListeners[eventName] != null
+        const hasListener = this._canvasListeners[eventName] != null;
         if (hasListener) {
             return;
         }
@@ -2196,8 +2210,7 @@ export class Viewer {
         handlers.slice().forEach((handler) => {
             try {
                 handler(args);
-            }
-            catch (e) {
+            } catch (e) {
                 console.error(e);
             }
         });
@@ -2319,7 +2332,7 @@ export class Viewer {
             return {
                 PlaneA: handle.clippingPlaneA,
                 PlaneB: handle.clippingPlaneB
-            }
+            };
         }
         return null;
     }

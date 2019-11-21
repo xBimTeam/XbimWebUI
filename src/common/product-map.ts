@@ -2,12 +2,12 @@ import { ProductType } from "../product-type";
 import { State, StatePriorities } from "./state";
 
 export class ProductMap {
-    productID: number;
-    renderId: number;
-    type: ProductType;
-    bBox: Float32Array;
-    spans: Array<Int32Array>;
-    states: number[] = [];
+    public productID: number;
+    public renderId: number;
+    public type: ProductType;
+    public bBox: Float32Array;
+    public spans: Array<Int32Array>;
+    public states: number[] = [];
 
     public static clone(o: ProductMap): ProductMap {
         const c = new ProductMap();
@@ -27,7 +27,7 @@ export class ProductMap {
         p.states.push(state);
     }
 
-    public static removeState(p:ProductMap, state: State) {
+    public static removeState(p: ProductMap, state: State) {
         const index = p.states.indexOf(state);
         if (index < 0) {
             return;
@@ -35,7 +35,7 @@ export class ProductMap {
         p.states.splice(index, 1);
     }
 
-    public static getState(p:ProductMap): State {
+    public static getState(p: ProductMap): State {
         if (p.states == null || p.states.length === 0) {
             return State.UNDEFINED;
         }

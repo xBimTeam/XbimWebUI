@@ -35,11 +35,16 @@ export class Grid implements IPlugin {
     /**
      * Set to true to stop rendering of this plugin
      */
-    public get stopped(): boolean { return this._stopped;}
-    public set stopped(value: boolean) { this._stopped = value; if (this.viewer) this.viewer.draw();}
+    public get stopped(): boolean { return this._stopped; }
+    public set stopped(value: boolean) {
+        this._stopped = value;
+        if (this.viewer) {
+            this.viewer.draw();
+        }
+    }
     private _stopped = false;
 
-    init(viewer: Viewer): void {
+    public init(viewer: Viewer): void {
         this.viewer = viewer;
 
         const gl = viewer.gl;
@@ -70,7 +75,7 @@ export class Grid implements IPlugin {
 
         var gl = this.viewer.gl;
         var viewer = this.viewer;
-        var compile = function (shader, code) {
+        var compile = (shader, code) => {
             gl.shaderSource(shader, code);
             gl.compileShader(shader);
             if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
@@ -78,7 +83,7 @@ export class Grid implements IPlugin {
                 viewer.error(msg);
                 return null;
             }
-        }
+        };
 
         //fragment shader
         // Fragment shader source code
@@ -105,7 +110,7 @@ export class Grid implements IPlugin {
         }
     }
 
-    onAfterDraw(width: number, height: number): void {
+    public onAfterDraw(width: number, height: number): void {
         if (!this.initialized || this.stopped) {
             return;
         }
@@ -162,7 +167,7 @@ export class Grid implements IPlugin {
         // Pass the vertex data to the buffer
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
 
-        
+
         // Point an attribute to the currently bound VBO
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertex_buffer);
         gl.vertexAttribPointer(this.coordinatesAttributePointer, 3, gl.FLOAT, false, 0, 0);
@@ -175,11 +180,12 @@ export class Grid implements IPlugin {
         gl.drawArrays(gl.LINES, 0, vertices.length / 3);
     }
 
-    onBeforeDraw(width: number, height: number): void { }
+    // tslint:disable: no-empty
+    public onBeforeDraw(width: number, height: number): void { }
 
-    onBeforeDrawId(): void { }
+    public onBeforeDrawId(): void { }
 
-    onAfterDrawId(): void { }
+    public onAfterDrawId(): void { }
 
-    onAfterDrawModelId(): void { }
+    public onAfterDrawModelId(): void { }
 }
