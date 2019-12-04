@@ -82,7 +82,7 @@ export class Viewpoint {
         // capture camera
         view.perspective_camera = {
             camera_direction: toArray(viewer.getCameraDirection()),
-            camera_up_vector: [0, 0, 1],
+            camera_up_vector: toArray(viewer.getCameraHeading()),
             camera_view_point: toArray(viewer.getCameraPositionWcs()),
             field_of_view: viewer.perspectiveCamera.fov
         };
@@ -123,7 +123,20 @@ export class Viewpoint {
             const eye = vec3.subtract(vec3.create(), eyeWcs, wcs);
             const dir = toVec3(viewpoint.perspective_camera.camera_direction);
             const target = vec3.add(vec3.create(), eye, dir);
-            const up = toVec3(viewpoint.perspective_camera.camera_up_vector) || vec3.fromValues(0, 0, 1);
+            let up = toVec3(viewpoint.perspective_camera.camera_up_vector) || vec3.fromValues(0, 0, 1);
+
+            // target abd heading are collinear. This is singular orientation and will screw the view up.
+            let angle = vec3.angle(dir, up);
+            if (Math.abs(angle) < 1e-6 || Math.abs(angle - Math.PI) < 1e-6) {
+                console.warn('Collinear target and heading vectors for the view. Singularity will be fixed by guess.');
+
+                // looking up or down is most likely scenario for singularity
+                angle = vec3.angle(dir, vec3.fromValues(0, 0, 1));
+                if (Math.abs(angle) < 1e-6 || Math.abs(angle - Math.PI) < 1e-6) {
+                    up = vec3.fromValues(0, 1, 0);
+                }
+            }
+
             const mv = mat4.lookAt(mat4.create(), eye, target, up);
 
             viewer.animations.viewTo(mv, duration);

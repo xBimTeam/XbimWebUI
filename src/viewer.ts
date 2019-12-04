@@ -1516,6 +1516,17 @@ export class Viewer {
     }
 
     /**
+     * Use this method to get camera direction
+    * @function Viewer#getCameraHeading
+     */
+    public getCameraHeading(): vec3 {
+        const inv = mat4.invert(mat4.create(), this.mvMatrix);
+        const rotation = mat4.getRotation(quat.create(), inv);
+
+        return vec3.transformQuat(vec3.create(), vec3.fromValues(0, 1, 0), rotation);
+    }
+
+    /**
     * Use this method to zoom to specified element. If you don't specify a product ID it will zoom to full extent.
     * @function Viewer#zoomTo
     * @param {Number} [id] Product ID
