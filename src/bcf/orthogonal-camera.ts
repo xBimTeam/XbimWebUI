@@ -17,5 +17,5 @@ export class OrthogonalCamera {
     /**
      * proportion of camera view to model
      */
-    public view_to_world_scale: number[];
+    public view_to_world_scale: number;
 }

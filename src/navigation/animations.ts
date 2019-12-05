@@ -14,8 +14,6 @@ export class Animations {
     private requestAnimationFrame: (callback: FrameRequestCallback) => number;
     private setTimeout: (callback: () => void, offset: number) => void;
 
-    public easing: EasingType = EasingType.SINUS2;
-
     /**
      * Constructor to handle all animations
      */
@@ -62,7 +60,7 @@ export class Animations {
      * @param end Target model view matrix
      * @param duration Duration of the transition in milliseconds
      */
-    public viewTo(end: mat4, duration: number): Promise<void> {
+    public viewTo(end: mat4, duration: number, easing: EasingType = EasingType.SINUS2): Promise<void> {
         return new Promise<void>((resolve, reject) => {
 
             if (duration <= 0) { // no animation needed.
@@ -82,7 +80,6 @@ export class Animations {
             let endTranslation = mat4.getTranslation(vec3.create(), end);
 
             const id = {};
-            const easing = this.easing;
             Animations.viewQueue.push(id);
             let initialised = false;
             let step = () => {

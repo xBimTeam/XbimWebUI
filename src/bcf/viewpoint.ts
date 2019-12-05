@@ -84,7 +84,7 @@ export class Viewpoint {
             camera_direction: toArray(viewer.getCameraDirection()),
             camera_up_vector: toArray(viewer.getCameraHeading()),
             camera_view_point: toArray(viewer.getCameraPositionWcs()),
-            field_of_view: viewer.perspectiveCamera.fov
+            field_of_view: viewer.cameraProperties.fov
         };
 
         // capture image (good for preview for example)

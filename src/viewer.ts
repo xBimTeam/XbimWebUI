@@ -22,10 +22,11 @@ import { MouseNavigation } from './navigation/mouse-navigation';
 import { KeyboardNavigation } from './navigation/keyboard-navigation';
 import { TouchNavigation } from './navigation/touch-navigation';
 import { Abilities } from './common/abilities';
-import { CheckResult,  } from './common/checkResult';
-import { Animations } from './navigation/animations';
-import { mat4, vec3, mat3, quat } from 'gl-matrix';
+import { CheckResult, } from './common/checkResult';
+import { Animations, EasingType } from './navigation/animations';
+import { mat4, vec3, mat3, quat, vec4 } from 'gl-matrix';
 import { PerformanceRating } from './performance-rating';
+import { CameraProperties } from './camera';
 
 export type NavigationMode = 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none' | 'look-around' | 'walk' | 'look-at';
 
@@ -41,10 +42,7 @@ export class Viewer {
      */
     public navigationMode: NavigationMode = 'orbit';
 
-    public get perspectiveCamera(): { fov: number, near: number, far: number } { return this._perspectiveCamera; }
-    public set perspectiveCamera(value: { fov: number, near: number, far: number }) { this._perspectiveCamera = value; this.changed = true; }
-    public get orthogonalCamera(): { left: number, right: number, top: number, bottom: number, near: number, far: number } { return this._orthogonalCamera; }
-    public set orthogonalCamera(value: { left: number, right: number, top: number, bottom: number, near: number, far: number }) { this._orthogonalCamera = value; this.changed = true; }
+    public get cameraProperties(): CameraProperties { return this._camera; }
     public get width(): number { return this._width; }
     public set width(value: number) { this._width = value; this.changed = true; }
     public get height(): number { return this._height; }
@@ -55,8 +53,24 @@ export class Viewer {
      * Type of camera to be used. Available values are <strong>'perspective'</strong> and <strong>'orthogonal'</strong> You can change this value at any time with instant effect.
      * @member {string} Viewer#camera
      */
-    public get camera(): CameraType { return this._camera; }
-    public set camera(value: CameraType) { this._camera = value; this.changed = true; }
+    public get camera(): CameraType { return this._cameraType; }
+    public set camera(value: CameraType) {
+        const old = this._cameraType;
+        if (old == value) {
+            return;
+        }
+
+        // changing from perspective to orthogonal - we need to guess the width
+        if (value == CameraType.ORTHOGONAL) {
+
+        }
+
+        this._cameraType = value;
+
+
+        // set the flag for re-draw
+        this.changed = true;
+    }
     /**
      * Array of four integers between 0 and 255 representing RGBA colour components. This defines background colour of the viewer. You can change this value at any time with instant effect.
      * @member {Number[]} Viewer#background
@@ -159,13 +173,12 @@ export class Viewer {
      */
     public get activeHandles() { return this._handles.filter((h) => h != null && !h.stopped && !h.empty); }
 
-    private _perspectiveCamera: { fov: number, near: number, far: number };
-    private _orthogonalCamera: { left: number, right: number, top: number, bottom: number, near: number, far: number };
+    private _camera = new CameraProperties(() => { this.changed = true; });
     private _width: number;
     private _height: number;
     //Default distance for default views (top, bottom, left, right, front, back)
     private _distance: number = 0;
-    private _camera: CameraType = CameraType.PERSPECTIVE;
+    private _cameraType: CameraType = CameraType.PERSPECTIVE;
     private _background: number[] = [230, 230, 230, 255];
     private _highlightingColour: number[] = [255, 173, 33, 255];
     private _origin: vec3 = vec3.create();
@@ -252,10 +265,10 @@ export class Viewer {
         }
 
         if (typeof (canvas['nodeName']) != 'undefined' && canvas['nodeName'] === 'CANVAS') {
-            this.canvas = <HTMLCanvasElement> canvas;
+            this.canvas = <HTMLCanvasElement>canvas;
         }
         if (typeof (canvas) == 'string') {
-            this.canvas = <HTMLCanvasElement> document.getElementById(<string> canvas);
+            this.canvas = <HTMLCanvasElement>document.getElementById(<string>canvas);
         }
         if (this.canvas == null) {
             throw new Error('You have to specify canvas either as an ID of HTML element or the element itself');
@@ -271,55 +284,9 @@ export class Viewer {
             window['WebGL2RenderingContext'] = () => { };
         }
 
-        /**
-        * This is a structure that holds settings of perspective camera.
-        * @member {PerspectiveCamera} Viewer#perspectiveCamera
-        */
-        /**
-        * This is only a structure. Don't call the constructor.
-        * @classdesc This is a structure that holds settings of perspective camera. If you want 
-        * to switch viewer to use perspective camera set {@link Viewer#camera camera} to 'perspective'.
-        * You can modify this but it is not necessary because sensible values are 
-        * defined when geometry model is loaded with {@link Viewer#load load()} method. If you want to 
-        * change these values you have to do it after geometry is loaded.
-        * @class
-        * @name PerspectiveCamera
-        */
-        this.perspectiveCamera = {
-            /** @member {Number} PerspectiveCamera#fov - Field of view*/
-            fov: 53,
-            /** @member {Number} PerspectiveCamera#near - Near cutting plane*/
-            near: 1,
-            /** @member {Number} PerspectiveCamera#far - Far cutting plane*/
-            far: 100
-        };
-
-        /**
-        * This is a structure that holds settings of orthogonal camera. You can modify this but it is not necessary because sensible values are 
-        * defined when geometry model is loaded with {@link Viewer#load load()} method. If you want to change these values you have to do it after geometry is loaded.
-        * @member {OrthogonalCamera} Viewer#orthogonalCamera
-        */
-        /**
-        * This is only a structure. Don't call the constructor.
-        * @classdesc This is a structure that holds settings of orthogonal camera. If you want to switch viewer to use orthogonal camera set {@link Viewer#camera camera} to 'orthogonal'.
-        * @class
-        * @name OrthogonalCamera
-        */
-        this.orthogonalCamera = {
-            /** @member {Number} OrthogonalCamera#left*/
-            left: 0,
-            /** @member {Number} OrthogonalCamera#right*/
-            right: 0,
-            /** @member {Number} OrthogonalCamera#top*/
-            top: 0,
-            /** @member {Number} OrthogonalCamera#bottom*/
-            bottom: 0,
-            /** @member {Number} OrthogonalCamera#near*/
-            near: 0,
-            /** @member {Number} OrthogonalCamera#far*/
-            far: 0
-        };
-
+        this.cameraProperties.fov = 53;
+        this.cameraProperties.near = 1;
+        this.cameraProperties.far = 100;
 
         //*************************** Do all the set up of WebGL **************************
         WebGLUtils.setupWebGL(this.canvas, (ctx, version) => {
@@ -346,7 +313,7 @@ export class Viewer {
             window["oRequestAnimationFrame"] ||
             window["msRequestAnimationFrame"] ||
             // tslint:disable-next-line: only-arrow-functions
-            function(/* function FrameRequestCallback */ callback: () => void) {
+            function (/* function FrameRequestCallback */ callback: () => void) {
                 window.setTimeout(callback, 1000 / 60);
             }).bind(window);
 
@@ -798,6 +765,56 @@ export class Viewer {
     }
 
     /**
+     * Transforms axis aligned bounding box into current model view and returns width and height
+     * @param bBox Axis aligned bounding box
+     */
+    private getSizeInView(bBox: number[] | Float32Array): { width: number, height: number } {
+        const m = this.mvMatrix;
+
+        const right = Array.prototype.slice.call(m.slice(0, 3));
+        const up = Array.prototype.slice.call(m.slice(4, 7));
+        const back = Array.prototype.slice.call(m.slice(8, 11));
+        const translation = mat4.getTranslation(vec3.create(), m);
+
+        const xa = vec3.scale(vec3.create(), right, bBox[0]);
+        const xb = vec3.scale(vec3.create(), right, (bBox[0] + bBox[3]));
+
+        const ya = vec3.scale(vec3.create(), up, bBox[1]);
+        const yb = vec3.scale(vec3.create(), up, (bBox[1] + bBox[4]));
+
+        const za = vec3.scale(vec3.create(), back, bBox[2]);
+        const zb = vec3.scale(vec3.create(), back, (bBox[2] + bBox[5]));
+
+
+        const min1 = vec3.min(vec3.create(), xa, xb);
+        const min2 = vec3.min(vec3.create(), ya, yb);
+        const min3 = vec3.min(vec3.create(), za, zb);
+
+        const max1 = vec3.max(vec3.create(), xa, xb);
+        const max2 = vec3.max(vec3.create(), ya, yb);
+        const max3 = vec3.max(vec3.create(), za, zb);
+
+        const min = [
+            min1[0] + min2[0] + min3[0] + translation[0],
+            min1[1] + min2[1] + min3[1] + translation[1],
+            min1[2] + min2[2] + min3[2] + translation[2]
+        ]
+
+        const max = [
+            max1[0] + max2[0] + max3[0] + translation[0],
+            max1[1] + max2[1] + max3[1] + translation[1],
+            max1[2] + max2[2] + max3[2] + translation[2]
+        ]
+
+        const size = vec3.sub(vec3.create(), max, min);
+
+        return {
+            width: size[0], // X => width
+            height: size[1]  // Y => height
+        };
+    }
+
+    /**
     * This method sets navigation origin to the centroid of specified product's bounding box or to the centre of model if no product ID is specified.
     * This method doesn't affect the view itself but it has an impact on navigation. Navigation origin is used as a centre for orbiting and it is used
     * if you call functions like {@link Viewer.show show()} or {@link Viewer#zoomTo zoomTo()}.
@@ -807,15 +824,24 @@ export class Viewer {
     * @return {Bool} True if the target exists and is set, False otherwise
     */
     public setCameraTarget(prodId?: number, modelId?: number): boolean {
-        var viewer = this;
         //helper function for setting of the distance based on camera field of view and size of the product's bounding box
         var setDistance = (bBox: number[] | Float32Array) => {
-            let size = Math.sqrt(bBox[3] * bBox[3] + bBox[4] * bBox[4] + bBox[5] * bBox[5]);
+            const sizes = this.getSizeInView(bBox);
+            const subjectRatio = sizes.width / sizes.height;
+
             //set ratio to 1 if the viewer has no size (for example if canvas is not added to DOM yet)
-            let ratio = (viewer.width > 0 && viewer.height > 0) && viewer.width < viewer.height ?
-                Math.min(viewer.width, viewer.height) / Math.max(viewer.width, viewer.height) :
+            const viewRatio = (this.width > 0 && this.height > 0) ?
+                this.width / this.height :
                 1;
-            viewer.distance = size / (Math.tan(viewer.perspectiveCamera.fov * Math.PI / 180.0 / 2.0 * ratio) * 2.0);
+
+            let width = sizes.width;
+            // subject proportions wouldn't fit into view proportions
+            if (subjectRatio < viewRatio) {
+                width = width * viewRatio / subjectRatio;
+            }
+
+            this.distance = width / (Math.tan(this.cameraProperties.fov * Math.PI / 180.0 / 2.0) * 2.0);
+            this.cameraProperties.width = width;
         };
 
         //set navigation origin and default distance to the product BBox
@@ -898,7 +924,7 @@ export class Viewer {
                 m.type = MessageType.PROGRESS;
             }
             progress(m);
-        // tslint:disable-next-line: no-empty
+            // tslint:disable-next-line: no-empty
         } : (m: Message) => { };
 
         //fall back to synchronous loading if worker is not available
@@ -1038,18 +1064,9 @@ export class Viewer {
 
         const meter = this.activeHandles[0].meter;
         var maxSize = Math.max(region.bbox[3], region.bbox[4], region.bbox[5]);
-        this.perspectiveCamera.far = maxSize * 10;
-        this.perspectiveCamera.near = meter / 4;
-
-        //set orthogonalCamera boundaries so that it makes a sense
-        this.orthogonalCamera.far = this.perspectiveCamera.far;
-        this.orthogonalCamera.near = this.perspectiveCamera.near;
-        var ratio = 1.8;
-        this.orthogonalCamera.top = maxSize / ratio;
-        this.orthogonalCamera.bottom = -this.orthogonalCamera.top;
-        this.orthogonalCamera.right = maxSize / ratio * this.width / this.height;
-        this.orthogonalCamera.left = -this.orthogonalCamera.right;
-
+        this.cameraProperties.far = maxSize * 10;
+        this.cameraProperties.near = meter / 4;
+        this.cameraProperties.width = maxSize;
     }
 
     /**
@@ -1251,6 +1268,7 @@ export class Viewer {
             case 'zoom':
                 mat4.translate(transform, transform, [0, 0, deltaX * distance / 20]);
                 mat4.translate(transform, transform, [0, 0, deltaY * distance / 20]);
+                this.cameraProperties.width -= deltaY * distance / 20;
                 break;
 
             default:
@@ -1262,7 +1280,11 @@ export class Viewer {
         transform = mat4.translate(mat4.create(), transform, translation);
 
         //apply transformation in right order
-        this.mvMatrix = mat4.multiply(mat4.create(), transform, this.mvMatrix);
+        const mv = mat4.multiply(mat4.create(), transform, this.mvMatrix);
+        this.mvMatrix = mv;
+        
+        // const duration = type === 'zoom' ? 100 : 0;
+        // this.animations.viewTo(mv, duration, EasingType.LINEAR);
     }
 
     /**
@@ -1449,33 +1471,27 @@ export class Viewer {
     }
 
     private updatePMatrix(width: number, height: number) {
+        const aspect = width / height;
         //set up cameras
         switch (this.camera) {
             case CameraType.PERSPECTIVE:
                 mat4.perspective(this.pMatrix,
-                    this.perspectiveCamera.fov * Math.PI / 180.0,
-                    width / height,
-                    this.perspectiveCamera.near,
-                    this.perspectiveCamera.far);
+                    this.cameraProperties.fov * Math.PI / 180.0,
+                    aspect,
+                    this.cameraProperties.near,
+                    this.cameraProperties.far);
                 break;
 
             case CameraType.ORTHOGONAL:
-                mat4.ortho(this.pMatrix,
-                    this.orthogonalCamera.left,
-                    this.orthogonalCamera.right,
-                    this.orthogonalCamera.bottom,
-                    this.orthogonalCamera.top,
-                    this.orthogonalCamera.near,
-                    this.orthogonalCamera.far);
+                const w = this.cameraProperties.width;
+                const h = w / aspect;
+                mat4.ortho(this.pMatrix, w / -2, w / 2, h / -2, h / 2,
+                    this.cameraProperties.near,
+                    this.cameraProperties.far);
                 break;
 
             default:
-                mat4.perspective(this.pMatrix,
-                    this.perspectiveCamera.fov * Math.PI / 180.0,
-                    width / height,
-                    this.perspectiveCamera.near,
-                    this.perspectiveCamera.far);
-                break;
+                throw new Error('Undefined camera type');
         }
     }
 
@@ -1484,8 +1500,7 @@ export class Viewer {
     * @function Viewer#getCameraPosition
     */
     public getCameraPosition(): vec3 {
-        const transform = mat4.multiply(mat4.create(), this.pMatrix, this.mvMatrix);
-        const inv = mat4.invert(mat4.create(), transform);
+        const inv = mat4.invert(mat4.create(), this.mvMatrix);
         if (inv == null) {
             return vec3.create();
         }
@@ -1539,18 +1554,23 @@ export class Viewer {
         if (!found) {
             return new Promise<void>((a, r) => r());
         }
-        
-        let duration = withAnimation ? this.zoomDuration : 0;
-        var eye = this.getCameraPosition();
-        var dir = vec3.create();
-        vec3.subtract(dir, eye, this.origin);
+
+        const duration = withAnimation ? this.zoomDuration : 0;
+        const eye = this.getCameraPosition();
+        let dir = vec3.subtract(vec3.create(), eye, this.origin);
         dir = vec3.normalize(vec3.create(), dir);
+
+        const angle = vec3.angle(dir, [0, 0, 1]);
+        let heading = vec3.fromValues(0, 0, 1);
+        if (Math.abs(angle) < 1e-6 || Math.abs(angle - Math.PI) < 1e-6) {
+            heading = this.getCameraHeading();
+        }
 
         var translation = vec3.create();
         vec3.scale(translation, dir, this.distance * 1.2);
         vec3.add(eye, translation, this.origin);
 
-        var mv = mat4.lookAt(mat4.create(), eye, this.origin, [0, 0, 1]);
+        var mv = mat4.lookAt(mat4.create(), eye, this.origin, heading);
         return this.animations.viewTo(mv, duration);
     }
 
@@ -1697,8 +1717,8 @@ export class Viewer {
         const width = this.width / factor;
         const height = this.height / factor;
         const wcs = this.getCurrentWcs();
-        const near = this.perspectiveCamera.near;
-        const far = this.perspectiveCamera.far;
+        const near = this.cameraProperties.near;
+        const far = this.cameraProperties.far;
         const running = this._isRunning;
 
         // normalise by factor
@@ -1767,8 +1787,8 @@ export class Viewer {
                 const farPoint = vec3.transformMat4(vec3.create(), locationRange.far, invPmat);
                 const tempNear = nearPoint[2] * -1.0;
                 const tempFar = farPoint[2] * -1.0;
-                this.perspectiveCamera.near = tempNear;
-                this.perspectiveCamera.far = tempFar;
+                this.cameraProperties.near = tempNear;
+                this.cameraProperties.far = tempFar;
             }
 
 
@@ -1833,8 +1853,8 @@ export class Viewer {
             gl.enable(gl.BLEND);
 
             // reset near and far clipping planes in case we optimised them for depth reading
-            this.perspectiveCamera.near = near;
-            this.perspectiveCamera.far = far;
+            this.cameraProperties.near = near;
+            this.cameraProperties.far = far;
             this.updatePMatrix(width, height);
             gl.uniformMatrix4fv(this._pMatrixUniformPointer, false, this.pMatrix);
             this._isRunning = running;

@@ -1,7 +1,7 @@
 ﻿import { Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube, Grid, EasingType } from '../..';
 import { CameraType } from '../../src/viewer';
 import { Viewpoint } from '../../src/bcf/viewpoint';
-import { vec3 } from 'gl-matrix';
+import { vec3, mat4 } from 'gl-matrix';
 import { PerformanceRating } from '../../src/performance-rating';
 
 // tslint:disable-next-line: only-arrow-functions
@@ -30,7 +30,7 @@ var QueryString = function() {
 
 
 var viewer = new Viewer("xBIM-viewer");
-viewer.perspectiveCamera.fov = 53;
+viewer.cameraProperties.fov = 53;
 var types = ProductType;
 var states = State;
 
