@@ -11,6 +11,9 @@ uniform vec3 uGBC;
 // Light position
 uniform vec3 uLight;
 
+// Frustum test
+uniform mat4 uSectionBox;
+
 varying vec4 vColor;
 //position in real world. This is used for clipping.
 varying vec3 vPosition;
@@ -24,6 +27,14 @@ void main(void) {
 	//test if this fragment is to be discarded from vertex shader
 	if ( vDiscard > 0.5) discard;
 	
+	// test frustum (section box)
+	vec4 fp = uSectionBox * vec4(vPosition, 1);
+	if (
+		fp.x > 1.0 || fp.x < -1.0 || 
+		fp.y > 1.0 || fp.y < -1.0 || 
+		fp.z > 1.0 || fp.z < -1.0) 
+		discard;
+
 	//test if clipping plane is defined
 	if (uClippingA)
 	{

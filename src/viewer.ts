@@ -27,6 +27,7 @@ import { Animations, EasingType } from './navigation/animations';
 import { mat4, vec3, mat3, quat, vec4 } from 'gl-matrix';
 import { PerformanceRating } from './performance-rating';
 import { CameraProperties } from './camera';
+import { SectionBox } from './section-box';
 
 export type NavigationMode = 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none' | 'look-around' | 'walk' | 'look-at';
 
@@ -43,12 +44,18 @@ export class Viewer {
     public navigationMode: NavigationMode = 'orbit';
 
     public get cameraProperties(): CameraProperties { return this._camera; }
+
+    public get sectionBox(): SectionBox { return this._sectionBox; }
+
     public get width(): number { return this._width; }
     public set width(value: number) { this._width = value; this.changed = true; }
+    
     public get height(): number { return this._height; }
     public set height(value: number) { this._height = value; this.changed = true; }
+    
     public get distance(): number { return this._distance; }
     public set distance(value: number) { this._distance = value; this.changed = true; }
+    
     /**
      * Type of camera to be used. Available values are <strong>'perspective'</strong> and <strong>'orthogonal'</strong> You can change this value at any time with instant effect.
      * @member {string} Viewer#camera
@@ -174,6 +181,7 @@ export class Viewer {
     public get activeHandles() { return this._handles.filter((h) => h != null && !h.stopped && !h.empty); }
 
     private _camera = new CameraProperties(() => { this.changed = true; });
+    private _sectionBox = new SectionBox(() => { this._sectionMatrix = this._sectionBox.matrix; this.changed = true; });
     private _width: number;
     private _height: number;
     //Default distance for default views (top, bottom, left, right, front, back)
@@ -186,6 +194,10 @@ export class Viewer {
     private _pMatrix: mat4 = mat4.create();
     private _renderingMode: RenderingMode = RenderingMode.NORMAL;
     private _mvMatrixTimestamp: number = Date.now();
+    private _sectionMatrix = mat4.ortho(mat4.create(), 
+        - Number.MAX_VALUE, Number.MAX_VALUE, 
+        - Number.MAX_VALUE, Number.MAX_VALUE, 
+        - Number.MAX_VALUE, Number.MAX_VALUE);
 
     private _isRunning: boolean = false;
     private _stateStyles: Uint8Array;
@@ -204,6 +216,7 @@ export class Viewer {
     private _highlightingColourUniformPointer: WebGLUniformLocation;
     private _stateStyleSamplerUniform: WebGLUniformLocation;
     private _gammaContrastBrightnessUniform: WebGLUniformLocation;
+    private _sectionBoxUniform: WebGLUniformLocation;
 
     private _gamma: number = 1.0;
     private _contrast: number = 1.0;
@@ -769,6 +782,7 @@ export class Viewer {
      * @param bBox Axis aligned bounding box
      */
     private getSizeInView(bBox: number[] | Float32Array): { width: number, height: number } {
+        // http://dev.theomader.com/transform-bounding-boxes/
         const m = this.mvMatrix;
 
         const right = Array.prototype.slice.call(m.slice(0, 3));
@@ -1177,6 +1191,7 @@ export class Viewer {
         this._highlightingColourUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uHighlightColour');
         this._stateStyleSamplerUniform = gl.getUniformLocation(this._shaderProgram, 'uStateStyleSampler');
         this._gammaContrastBrightnessUniform = gl.getUniformLocation(this._shaderProgram, 'uGBC');
+        this._sectionBoxUniform = gl.getUniformLocation(this._shaderProgram, 'uSectionBox');
 
         this._pointers = new ModelPointers(gl, this._shaderProgram);
 
@@ -1282,7 +1297,7 @@ export class Viewer {
         //apply transformation in right order
         const mv = mat4.multiply(mat4.create(), transform, this.mvMatrix);
         this.mvMatrix = mv;
-        
+
         // const duration = type === 'zoom' ? 100 : 0;
         // this.animations.viewTo(mv, duration, EasingType.LINEAR);
     }
@@ -1356,8 +1371,10 @@ export class Viewer {
         var camera = this.getCameraPosition();
         gl.uniform3fv(this._lightUniformPointer, camera);
 
-        //
+        // gamma, contrast and brightness are passed through in a single vector
         gl.uniform3fv(this._gammaContrastBrightnessUniform, new Float32Array([this.gamma, this.contrast, this.brightness]));
+
+        gl.uniformMatrix4fv(this._sectionBoxUniform, false, this._sectionMatrix);
 
         //use normal colour representation (1 would cause shader to use colour coding of IDs)
         gl.uniform1i(this._colorCodingUniformPointer, ColourCoding.NONE);
@@ -1592,21 +1609,13 @@ export class Viewer {
         switch (type) {
             //top and bottom are different because these are singular points for look-at function if heading is [0,0,1]
             case ViewType.TOP:
-                //only move to origin and up (negative values because we move camera against model)
-                const mvTop = mat4.translate(mat4.create(),
-                    mat4.create(),
-                    [origin[0] * -1.0, origin[1] * -1.0, (distance + origin[2]) * -1.0]);
-                return this.animations.viewTo(mvTop, duration);
+                camera = [origin[0], origin[1], origin[2] + distance];
+                heading = [0, 1, 0];
+                break;
             case ViewType.BOTTOM:
-                //only move to origin and up and rotate 180 degrees around Y axis
-                var toOrigin = mat4.translate(mat4.create(),
-                    mat4.create(),
-                    [origin[0] * -1.0, origin[1] * +1.0, (origin[2] + distance) * -1]);
-                var rotationY = mat4.rotateY(mat4.create(), toOrigin, Math.PI);
-                var rotationZ = mat4.rotateZ(mat4.create(), rotationY, Math.PI);
-                const mvBottom = rotationZ;
-
-                return this.animations.viewTo(mvBottom, duration);
+                camera = [origin[0], origin[1], origin[2] - distance];
+                heading = [0, -1, 0];
+                break;
             case ViewType.FRONT:
                 camera = [origin[0], origin[1] - distance, origin[2]];
                 break;
