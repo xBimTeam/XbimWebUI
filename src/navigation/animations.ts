@@ -148,6 +148,86 @@ export class Animations {
 
     }
 
+    private static zoomQueue: Array<{ mv: mat4, width: number }> = [];
+    /**
+     * Animates transition from the current view to target view
+     * 
+     * @param end Target model view matrix
+     * @param duration Duration of the transition in milliseconds
+     */
+    public addZoom(distance: number, duration: number): Promise<void> {
+        // current model view
+        let currentMv = mat4.copy(mat4.create(), this.viewer.mvMatrix);
+        let currentWidth = this.viewer.cameraProperties.width;
+
+        // if there is an animation in progress, zoom should start where that ends
+        if (Animations.zoomQueue.length > 0) {
+            const current = Animations.zoomQueue[Animations.zoomQueue.length - 1];
+            currentMv = current.mv;
+            currentWidth = current.width;
+        }
+
+        // get zoom direction
+        const inv = mat4.invert(mat4.create(), currentMv);
+        const rotation = mat4.getRotation(quat.create(), inv);
+        const cameraDirection = vec3.transformQuat(vec3.create(), vec3.fromValues(0, 0, -1), rotation);
+        const zoomDirection = vec3.negate(vec3.create(), cameraDirection);
+        const move = vec3.scale(vec3.create(), zoomDirection, distance);
+
+        // final state
+        const end = { mv: mat4.translate(mat4.create(), currentMv, move), width: currentWidth - distance };
+
+
+        return new Promise<void>((resolve, reject) => {
+            if (duration <= 0) { // no animation needed.
+                Animations.zoomQueue = [];
+                this.viewer.mvMatrix = end.mv;
+                this.viewer.cameraProperties.width = end.width;
+                resolve();
+                return;
+            }
+
+            let startTime: number = Date.now();
+            let endTranslation = move;
+
+            Animations.zoomQueue.push(end);
+            let step = () => {
+                if (Animations.zoomQueue[0] != end) {
+                    // check we are in the queue
+                    var exist = Animations.zoomQueue.filter(m => m == end).pop() != null;
+                    if (!exist)
+                        return;
+
+                    // not our run, just wait, try again later
+                    this.requestAnimationFrame(step);
+                    return;
+                }
+                const now = Date.now();
+                if (now < (startTime + duration)) {
+
+                    let state = (now - startTime) / duration;
+                    let translation = vec3.lerp(vec3.create(), vec3.create(), endTranslation, state);
+                    let delta = distance * state;
+                    this.viewer.mvMatrix = mat4.translate(mat4.create(), currentMv, translation);
+                    this.viewer.cameraProperties.width = currentWidth - delta;
+
+                    this.requestAnimationFrame(step);
+                } else { // set exact value, remove from the queue and quit
+                    this.viewer.mvMatrix = end.mv;
+                    this.viewer.cameraProperties.width = end.width;
+                    Animations.zoomQueue.shift();
+                    resolve();
+                    return;
+                }
+            };
+
+            // start
+            step();
+        });
+
+
+    }
+
     /**
      * Returns easing spread over circular path
      * 

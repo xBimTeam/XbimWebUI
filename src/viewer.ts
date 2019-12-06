@@ -1281,11 +1281,10 @@ export class Viewer {
 
             case 'walk':
             case 'zoom':
-                mat4.translate(transform, transform, [0, 0, deltaX * distance / 20]);
-                mat4.translate(transform, transform, [0, 0, deltaY * distance / 20]);
-                this.cameraProperties.width -= deltaY * distance / 20;
-                break;
-
+                // smooth zooming animation
+                const move = deltaY * distance / 20;
+                this.animations.addZoom(move, 100);
+                return;
             default:
                 break;
         }
