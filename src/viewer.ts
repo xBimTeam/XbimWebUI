@@ -1583,7 +1583,7 @@ export class Viewer {
         }
 
         var translation = vec3.create();
-        vec3.scale(translation, dir, this.distance * 1.2);
+        vec3.scale(translation, dir, this.distance);
         vec3.add(eye, translation, this.origin);
 
         var mv = mat4.lookAt(mat4.create(), eye, this.origin, heading);

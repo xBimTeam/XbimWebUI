@@ -173,9 +173,19 @@ export class Animations {
         const cameraDirection = vec3.transformQuat(vec3.create(), vec3.fromValues(0, 0, -1), rotation);
         const zoomDirection = vec3.negate(vec3.create(), cameraDirection);
         const move = vec3.scale(vec3.create(), zoomDirection, distance);
+        const fov = this.viewer.cameraProperties.fov * Math.PI / 180.0;
+        let deltaWidth =  2.0 * distance * Math.tan(fov / 2.0);
+        const oneMeter = this.viewer.unitsInMeter;
+
+        // avoid singularity where width is negative and image is flipped.
+        if ((currentWidth - deltaWidth) <  oneMeter)
+            deltaWidth = 0;
 
         // final state
-        const end = { mv: mat4.translate(mat4.create(), currentMv, move), width: currentWidth - distance };
+        const end = { 
+            mv: mat4.translate(mat4.create(), currentMv, move), 
+            width: currentWidth - deltaWidth
+         };
 
 
         return new Promise<void>((resolve, reject) => {
@@ -207,7 +217,9 @@ export class Animations {
 
                     let state = (now - startTime) / duration;
                     let translation = vec3.lerp(vec3.create(), vec3.create(), endTranslation, state);
-                    let delta = distance * state;
+                    let delta = deltaWidth * state;
+
+                    // set position and perspective width
                     this.viewer.mvMatrix = mat4.translate(mat4.create(), currentMv, translation);
                     this.viewer.cameraProperties.width = currentWidth - delta;
 
