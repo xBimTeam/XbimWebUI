@@ -224,18 +224,18 @@ export class Framebuffer {
     /**
      * Gets current image data from the framebuffer as Base64 string
      */
-    public getImageDataUrl(): string {
+    public getImageDataUrl(type: 'png' | 'jpeg' = 'png'): string {
         let canvas = this.get2DCanvas();
-        return canvas.toDataURL('image/png');
+        return canvas.toDataURL(`image/${type}`);
     }
 
     /**
      * Gets current image data as a BLOB. Use callback to handle data.
      * @param callback Use callback to handle Blob
      */
-    public getImageDataBlob(callback: (blob: Blob) => void): void {
+    public getImageDataBlob(callback: (blob: Blob) => void, type: 'png' | 'jpeg' = 'png'): void {
         let canvas = this.get2DCanvas();
-        canvas.toBlob(callback, 'image/png');
+        canvas.toBlob(callback, `image/${type}`);
     }
 
     /**

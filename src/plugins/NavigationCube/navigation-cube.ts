@@ -340,11 +340,7 @@ export class NavigationCube implements IPlugin {
             }
 
             const id = this.getId(idArg);
-
-            var dir = vec3.create();
-            var distance = this.viewer.distance;
-            var diagonalRatio = 1.3;
-
+            let dir = vec3.create();
             switch (id) {
                 case this.TOP:
                     this.viewer.show(ViewType.TOP);
@@ -366,98 +362,81 @@ export class NavigationCube implements IPlugin {
                     return true;
                 case this.TOP_LEFT_FRONT:
                     dir = vec3.fromValues(-1, -1, 1);
-                    distance *= diagonalRatio;
                     break;
                 case this.TOP_RIGHT_FRONT:
                     dir = vec3.fromValues(1, -1, 1);
-                    distance *= diagonalRatio;
                     break;
                 case this.TOP_LEFT_BACK:
                     dir = vec3.fromValues(-1, 1, 1);
-                    distance *= diagonalRatio;
                     break;
                 case this.TOP_RIGHT_BACK:
                     dir = vec3.fromValues(1, 1, 1);
-                    distance *= diagonalRatio;
                     break;
                 case this.BOTTOM_LEFT_FRONT:
                     dir = vec3.fromValues(-1, -1, -1);
-                    distance *= diagonalRatio;
                     break;
                 case this.BOTTOM_RIGHT_FRONT:
                     dir = vec3.fromValues(1, -1, -1);
-                    distance *= diagonalRatio;
                     break;
                 case this.BOTTOM_LEFT_BACK:
                     dir = vec3.fromValues(-1, 1, -1);
-                    distance *= diagonalRatio;
                     break;
                 case this.BOTTOM_RIGHT_BACK:
                     dir = vec3.fromValues(1, 1, -1);
-                    distance *= diagonalRatio;
                     break;
                 case this.TOP_LEFT:
                     dir = vec3.fromValues(-1, 0, 1);
-                    distance *= diagonalRatio;
                     break;
                 case this.TOP_RIGHT:
                     dir = vec3.fromValues(1, 0, 1);
-                    distance *= diagonalRatio;
                     break;
                 case this.TOP_FRONT:
                     dir = vec3.fromValues(0, -1, 1);
-                    distance *= diagonalRatio;
                     break;
                 case this.TOP_BACK:
                     dir = vec3.fromValues(0, 1, 1);
-                    distance *= diagonalRatio;
                     break;
                 case this.BOTTOM_LEFT:
                     dir = vec3.fromValues(-1, 0, -1);
-                    distance *= diagonalRatio;
                     break;
                 case this.BOTTOM_RIGHT:
                     dir = vec3.fromValues(1, 0, -1);
                     break;
                 case this.BOTTOM_FRONT:
                     dir = vec3.fromValues(0, -1, -1);
-                    distance *= diagonalRatio;
                     break;
                 case this.BOTTOM_BACK:
                     dir = vec3.fromValues(0, 1, -1);
-                    distance *= diagonalRatio;
                     break;
                 case this.FRONT_RIGHT:
                     dir = vec3.fromValues(1, -1, 0);
-                    distance *= diagonalRatio;
                     break;
                 case this.FRONT_LEFT:
                     dir = vec3.fromValues(-1, -1, 0);
-                    distance *= diagonalRatio;
                     break;
                 case this.BACK_RIGHT:
                     dir = vec3.fromValues(1, 1, 0);
-                    distance *= diagonalRatio;
                     break;
                 case this.BACK_LEFT:
                     dir = vec3.fromValues(-1, 1, 0);
-                    distance *= diagonalRatio;
                     break;
                 default:
                     return false;
             }
 
-            var o = this.viewer.origin;
-            var heading = vec3.fromValues(0, 0, 1);
-            var origin = vec3.fromValues(o[0], o[1], o[2]);
+            const bbox = viewer.setCameraTarget();
+            const origin = vec3.fromValues(bbox[0] + bbox[3] / 2.0, bbox[1] + bbox[4] / 2.0, bbox[2] + bbox[5] / 2.0);
+            const heading = vec3.fromValues(0, 0, 1);
+
+            const widthAndDistance = viewer.getDistanceAndWidth(bbox, dir, heading);
 
             dir = vec3.normalize(vec3.create(), dir);
-            var shift = vec3.scale(vec3.create(), dir, distance);
+            var shift = vec3.scale(vec3.create(), dir, widthAndDistance.distance);
             var camera = vec3.add(vec3.create(), origin, shift);
 
             //use look-at function to set up camera and target
             const mv = mat4.lookAt(mat4.create(), camera, origin, heading);
-            this.viewer.animations.viewTo(mv, this.viewer.zoomDuration);
+            this.viewer.animations.viewTo({mv: mv, width: widthAndDistance.width}, this.viewer.zoomDuration);
         });
 
         this._initialized = true;

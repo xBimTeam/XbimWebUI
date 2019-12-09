@@ -6,7 +6,7 @@ import { Line } from "./line";
 import { PerspectiveCamera } from "./perspective-camera";
 import { OrthogonalCamera } from "./orthogonal-camera";
 import { Components } from "./components";
-import { Viewer } from "../viewer";
+import { Viewer, CameraType } from "../viewer";
 import { vec3, mat4 } from "gl-matrix";
 
 export class Viewpoint {
@@ -72,31 +72,41 @@ export class Viewpoint {
      * 
      * @param viewer viewer instance
      */
-    public static GetViewpoint(viewer: Viewer): Viewpoint {
+    public static GetViewpoint(viewer: Viewer, width = viewer.width / 2.0): Viewpoint {
         const view = new Viewpoint();
+        const aspect = viewer.width / viewer.height;
+        const height = viewer.height / aspect;
 
         const toArray = (a: vec3) => {
             return Array.prototype.slice.call(a);
         };
 
         // capture camera
-        view.perspective_camera = {
-            camera_direction: toArray(viewer.getCameraDirection()),
-            camera_up_vector: toArray(viewer.getCameraHeading()),
-            camera_view_point: toArray(viewer.getCameraPositionWcs()),
-            field_of_view: viewer.cameraProperties.fov
-        };
+        if (viewer.camera == CameraType.PERSPECTIVE) {
+            view.perspective_camera = {
+                camera_direction: toArray(viewer.getCameraDirection()),
+                camera_up_vector: toArray(viewer.getCameraHeading()),
+                camera_view_point: toArray(viewer.getCameraPositionWcs()),
+                field_of_view: viewer.cameraProperties.fov
+            };
+        } else {
+            // width of view in meters
+            const modelWidth = viewer.cameraProperties.width / viewer.unitsInMeter;
+            const viewportWidth = viewer.width / Viewpoint.resolution;
+            view.orthogonal_camera = {
+                camera_direction: toArray(viewer.getCameraDirection()),
+                camera_up_vector: toArray(viewer.getCameraHeading()),
+                camera_view_point: toArray(viewer.getCameraPositionWcs()),
+                view_to_world_scale: viewportWidth / modelWidth
+            }
+        }
 
         // capture image (good for preview for example)
-        const bytes = viewer.getCurrentImageDataArray(viewer.width / 2, viewer.height / 2);
-        var binary = '';
-        var len = bytes.byteLength;
-        for (var i = 0; i < len; i++) {
-            binary += String.fromCharCode(bytes[i]);
-        }
-        const base64image = window.btoa(binary);
+        const dataUrl = viewer.getCurrentImageDataUrl(width, height, 'jpeg');
+        // strip 'data:image/jpeg;base64,' from the data url
+        const base64image = dataUrl.substring(23);
         view.snapshot = {
-            snapshot_type: 'png',
+            snapshot_type: 'jpg',
             snapshot_data: base64image
         };
 
@@ -117,29 +127,75 @@ export class Viewpoint {
 
         const wcs = viewer.getCurrentWcs();
 
-        // reset camera (MV matrix)
-        if (viewpoint.perspective_camera) {
-            const eyeWcs = toVec3(viewpoint.perspective_camera.camera_view_point);
-            const eye = vec3.subtract(vec3.create(), eyeWcs, wcs);
-            const dir = toVec3(viewpoint.perspective_camera.camera_direction);
-            const target = vec3.add(vec3.create(), eye, dir);
-            let up = toVec3(viewpoint.perspective_camera.camera_up_vector) || vec3.fromValues(0, 0, 1);
+        let camViewPoint = viewpoint.perspective_camera != null ?
+            viewpoint.perspective_camera.camera_view_point :
+            viewpoint.orthogonal_camera.camera_view_point;
+        let camDir = viewpoint.perspective_camera != null ?
+            viewpoint.perspective_camera.camera_direction :
+            viewpoint.orthogonal_camera.camera_direction;
+        let camUpDir = viewpoint.perspective_camera != null ?
+            viewpoint.perspective_camera.camera_up_vector :
+            viewpoint.orthogonal_camera.camera_up_vector;
 
-            // target abd heading are collinear. This is singular orientation and will screw the view up.
-            let angle = vec3.angle(dir, up);
+        const eyeWcs = toVec3(camViewPoint);
+        const eye = vec3.subtract(vec3.create(), eyeWcs, wcs);
+        const dir = toVec3(camDir);
+        const target = vec3.add(vec3.create(), eye, dir);
+        let up = toVec3(camUpDir) || vec3.fromValues(0, 0, 1);
+
+        // target abd heading are collinear. This is singular orientation and will screw the view up.
+        let angle = vec3.angle(dir, up);
+        if (Math.abs(angle) < 1e-6 || Math.abs(angle - Math.PI) < 1e-6) {
+            console.warn('Collinear target and heading vectors for the view. Singularity will be fixed by guess.');
+
+            // looking up or down is most likely scenario for singularity
+            angle = vec3.angle(dir, vec3.fromValues(0, 0, 1));
             if (Math.abs(angle) < 1e-6 || Math.abs(angle - Math.PI) < 1e-6) {
-                console.warn('Collinear target and heading vectors for the view. Singularity will be fixed by guess.');
-
-                // looking up or down is most likely scenario for singularity
-                angle = vec3.angle(dir, vec3.fromValues(0, 0, 1));
-                if (Math.abs(angle) < 1e-6 || Math.abs(angle - Math.PI) < 1e-6) {
-                    up = vec3.fromValues(0, 1, 0);
-                }
+                up = vec3.fromValues(0, 1, 0);
             }
-
-            const mv = mat4.lookAt(mat4.create(), eye, target, up);
-
-            viewer.animations.viewTo(mv, duration);
         }
+
+        // set camera type and properties
+        let orthCamWidth = viewer.cameraProperties.width;
+        if (viewpoint.perspective_camera) {
+            viewer.camera = CameraType.PERSPECTIVE;            
+            if (viewpoint.perspective_camera.field_of_view != null && viewpoint.perspective_camera.field_of_view > 0) {
+                viewer.cameraProperties.fov = viewpoint.perspective_camera.field_of_view;
+            }
+        }
+        if (viewpoint.orthogonal_camera) {
+            viewer.camera = CameraType.ORTHOGONAL;
+            if (viewpoint.orthogonal_camera.view_to_world_scale != null && viewpoint.orthogonal_camera.view_to_world_scale > 0) {
+                const scale = viewpoint.orthogonal_camera.view_to_world_scale;
+                const viewportWidth = viewer.width / Viewpoint.resolution;
+                const modelWidth = viewportWidth / scale;
+                orthCamWidth = modelWidth * viewer.unitsInMeter;
+            }
+        }
+        
+        // set camera (MV matrix)
+        const mv = mat4.lookAt(mat4.create(), eye, target, up);
+        viewer.animations.viewTo({ mv: mv, width: orthCamWidth }, duration);
+    }
+
+    // static cache for resolution
+    private static _resolution: number = null;
+
+    /**
+     * Number of pixels per meter in the browser
+     */
+    private static get resolution(): number {
+        if (Viewpoint._resolution != null) {
+            return Viewpoint._resolution;
+        }
+
+        var e = document.createElement("div");
+        e.style.position = "absolute";
+        e.style.width = "100mm";
+        document.body.appendChild(e);
+        var rect = e.getBoundingClientRect();
+        document.body.removeChild(e);
+        Viewpoint._resolution = rect.width / 0.1;
+        return Viewpoint._resolution;
     }
 }

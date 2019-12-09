@@ -53,58 +53,58 @@ export class Animations {
         this._rotationOn = false;
     }
 
-    private static viewQueue: object[] = [];
+    private static viewQueue: Array<{ mv: mat4, width: number }> = [];
     /**
      * Animates transition from the current view to target view
      * 
      * @param end Target model view matrix
      * @param duration Duration of the transition in milliseconds
      */
-    public viewTo(end: mat4, duration: number, easing: EasingType = EasingType.SINUS2): Promise<void> {
+    public viewTo(end: { mv: mat4, width: number }, duration: number, easing: EasingType = EasingType.SINUS2): Promise<void> {
         return new Promise<void>((resolve, reject) => {
 
             if (duration <= 0) { // no animation needed.
-                this.viewer.mvMatrix = end;
+                this.viewer.mvMatrix = end.mv;
+                this.viewer.cameraProperties.width = end.width;
                 resolve();
                 return;
             }
 
-            let start: mat4 = null;
-            let startRotation: quat = null;
-            let startScale: vec3 = null;
-            let startTranslation: vec3 = null;
-            let startTime: number = 0;
+            let start = null; 
+            if (Animations.viewQueue.length > 0) {
+                start = Animations.viewQueue[Animations.viewQueue.length - 1];
+            } else {
+                start = {
+                    mv: mat4.copy(mat4.create(), this.viewer.mvMatrix),
+                    width: this.viewer.cameraProperties.width
+                };
+            }
 
-            let endRotation = mat4.getRotation(quat.create(), end);
-            let endScale = mat4.getScaling(vec3.create(), end);
-            let endTranslation = mat4.getTranslation(vec3.create(), end);
+            // start and end are the same, do nothing and return
+            if (mat4.equals(start.mv, end.mv) && Math.abs(start.width - end.width) < 1e-6) {
+                resolve();
+                return;
+            }
 
-            const id = {};
-            Animations.viewQueue.push(id);
-            let initialised = false;
+            let startRotation: quat = mat4.getRotation(quat.create(), start.mv);
+            let startScale: vec3 = mat4.getScaling(vec3.create(), start.mv);
+            let startTranslation: vec3 = mat4.getTranslation(vec3.create(), start.mv);
+            let startTime: number = null;
+
+            let endRotation = mat4.getRotation(quat.create(), end.mv);
+            let endScale = mat4.getScaling(vec3.create(), end.mv);
+            let endTranslation = mat4.getTranslation(vec3.create(), end.mv);
+
+            Animations.viewQueue.push(end);
             let step = () => {
-                if (Animations.viewQueue[0] != id) {
+                if (Animations.viewQueue[0] != end) {
                     // not our run, just wait, try again later
                     this.requestAnimationFrame(step);
                     return;
                 }
+                if (startTime == null) { startTime = Date.now(); }
                 const now = Date.now();
-                if (!initialised || now < (startTime + duration)) {
-                    if (!initialised) {
-                        // get current start
-                        start = mat4.copy(mat4.create(), this.viewer.mvMatrix);
-                        startRotation = mat4.getRotation(quat.create(), start);
-                        startScale = mat4.getScaling(vec3.create(), start);
-                        startTranslation = mat4.getTranslation(vec3.create(), start);
-                        initialised = true;
-                        startTime = Date.now();
-
-                        if (mat4.equals(start, end)) { // nothing to do - dequeue and quit
-                            Animations.viewQueue.shift();
-                            resolve();
-                            return;
-                        }
-                    }
+                if (now < (startTime + duration)) {
                     let state = (now - startTime) / duration;
 
                     // apply easing in and out
@@ -128,13 +128,16 @@ export class Animations {
                     let rotation = quat.slerp(quat.create(), startRotation, endRotation, state);
                     let scale = vec3.lerp(vec3.create(), startScale, endScale, state);
                     let translation = vec3.lerp(vec3.create(), startTranslation, endTranslation, state);
+                    let widthDelta = (end.width - start.width) * state;
 
                     let mv = mat4.fromRotationTranslationScaleOrigin(mat4.create(), rotation, translation, scale, vec3.create());
                     this.viewer.mvMatrix = mv;
+                    this.viewer.cameraProperties.width = start.width + widthDelta;
 
                     this.requestAnimationFrame(step);
                 } else { // set exact value, remove from the queue and quit
-                    this.viewer.mvMatrix = end;
+                    this.viewer.mvMatrix = end.mv;
+                    this.viewer.cameraProperties.width = end.width;
                     Animations.viewQueue.shift();
                     resolve();
                     return;
@@ -174,18 +177,18 @@ export class Animations {
         const zoomDirection = vec3.negate(vec3.create(), cameraDirection);
         const move = vec3.scale(vec3.create(), zoomDirection, distance);
         const fov = this.viewer.cameraProperties.fov * Math.PI / 180.0;
-        let deltaWidth =  2.0 * distance * Math.tan(fov / 2.0);
+        let deltaWidth = 2.0 * distance * Math.tan(fov / 2.0);
         const oneMeter = this.viewer.unitsInMeter;
 
         // avoid singularity where width is negative and image is flipped.
-        if ((currentWidth - deltaWidth) <  oneMeter)
+        if ((currentWidth - deltaWidth) < oneMeter)
             deltaWidth = 0;
 
         // final state
-        const end = { 
-            mv: mat4.translate(mat4.create(), currentMv, move), 
+        const end = {
+            mv: mat4.translate(mat4.create(), currentMv, move),
             width: currentWidth - deltaWidth
-         };
+        };
 
 
         return new Promise<void>((resolve, reject) => {
@@ -197,7 +200,7 @@ export class Animations {
                 return;
             }
 
-            let startTime: number = Date.now();
+            let startTime: number = null;
             let endTranslation = move;
 
             Animations.zoomQueue.push(end);
@@ -212,6 +215,9 @@ export class Animations {
                     this.requestAnimationFrame(step);
                     return;
                 }
+                // first run - set start
+                if (startTime == null)
+                    startTime = Date.now();
                 const now = Date.now();
                 if (now < (startTime + duration)) {
 

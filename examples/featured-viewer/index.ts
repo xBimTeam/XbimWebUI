@@ -64,7 +64,6 @@ if (modelId != null && modelId === 'v4') {
     model = modelId;
 }
 
-viewer.show(ViewType.BACK);
 viewer.on("pick", (arg) => {
     var span = document.getElementById("ids");
     span.innerHTML = `Product id: ${arg.id}, model: ${arg.model}`;
@@ -121,6 +120,7 @@ var progress = document.getElementById("progress");
 
 viewer.on('loaded', () => {
     viewer.start();
+    viewer.show(ViewType.BACK);
 });
 
 

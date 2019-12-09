@@ -49,13 +49,10 @@ export class Viewer {
 
     public get width(): number { return this._width; }
     public set width(value: number) { this._width = value; this.changed = true; }
-    
+
     public get height(): number { return this._height; }
     public set height(value: number) { this._height = value; this.changed = true; }
-    
-    public get distance(): number { return this._distance; }
-    public set distance(value: number) { this._distance = value; this.changed = true; }
-    
+
     /**
      * Type of camera to be used. Available values are <strong>'perspective'</strong> and <strong>'orthogonal'</strong> You can change this value at any time with instant effect.
      * @member {string} Viewer#camera
@@ -184,8 +181,6 @@ export class Viewer {
     private _sectionBox = new SectionBox(() => { this._sectionMatrix = this._sectionBox.matrix; this.changed = true; });
     private _width: number;
     private _height: number;
-    //Default distance for default views (top, bottom, left, right, front, back)
-    private _distance: number = 0;
     private _cameraType: CameraType = CameraType.PERSPECTIVE;
     private _background: number[] = [230, 230, 230, 255];
     private _highlightingColour: number[] = [255, 173, 33, 255];
@@ -194,9 +189,9 @@ export class Viewer {
     private _pMatrix: mat4 = mat4.create();
     private _renderingMode: RenderingMode = RenderingMode.NORMAL;
     private _mvMatrixTimestamp: number = Date.now();
-    private _sectionMatrix = mat4.ortho(mat4.create(), 
-        - Number.MAX_VALUE, Number.MAX_VALUE, 
-        - Number.MAX_VALUE, Number.MAX_VALUE, 
+    private _sectionMatrix = mat4.ortho(mat4.create(),
+        - Number.MAX_VALUE, Number.MAX_VALUE,
+        - Number.MAX_VALUE, Number.MAX_VALUE,
         - Number.MAX_VALUE, Number.MAX_VALUE);
 
     private _isRunning: boolean = false;
@@ -604,14 +599,14 @@ export class Viewer {
         return element;
     }
 
-    public getCurrentImageDataUrl(width: number = this.width, height: number = this.height): string {
+    public getCurrentImageDataUrl(width: number = this.width, height: number = this.height, type: 'png' | 'jpeg' = 'png'): string {
         //use background framebuffer
         let frame = new Framebuffer(this.gl, width, height, false);
 
         //force draw into defined framebuffer
         this.draw(frame);
 
-        let result = frame.getImageDataUrl();
+        let result = frame.getImageDataUrl(type);
         //free resources
         frame.delete();
         return result;
@@ -767,28 +762,40 @@ export class Viewer {
     * 
     * @function Viewer#setCameraPosition
     * @param {Number[]} coordinates - 3D coordinates of the camera in WCS
-    * @param {Number} [duration] - milliseconds for animation. 0 by default
+    * @param {Number} targetWidth - Target width of orthogonal viewport
+    * @param {Number} duration - milliseconds for animation.
     */
-    public setCameraPosition(coordinates: number[], duration: number = 0) {
+    public setCameraPosition(coordinates: number[], targetWidth: number, duration: number) {
         if (typeof (coordinates) == 'undefined') {
             throw new Error('Parameter coordinates must be defined');
         }
         const mv = mat4.lookAt(mat4.create(), coordinates, this.origin, [0, 0, 1]);
-        this.animations.viewTo(mv, duration);
+        this.animations.viewTo({ mv: mv, width: targetWidth }, duration);
     }
 
     /**
      * Transforms axis aligned bounding box into current model view and returns width and height
      * @param bBox Axis aligned bounding box
+     * @param viewDirection Direction of the view
+     * @param upDirection Up direction of the camera
      */
-    private getSizeInView(bBox: number[] | Float32Array): { width: number, height: number } {
+    private getSizeInView(bBox: number[] | Float32Array, viewDirection: vec3, upDirection: vec3): { width: number, height: number, depth: number } {
         // http://dev.theomader.com/transform-bounding-boxes/
-        const m = this.mvMatrix;
+
+        // create transformation matrix from direction
+        viewDirection = vec3.normalize(vec3.create(), viewDirection);
+        upDirection = vec3.normalize(vec3.create(), upDirection);
+        const moveDirection = vec3.negate(vec3.create(), viewDirection);
+        const boxSize = Math.max(bBox[3], bBox[4], bBox[5]);
+        const boxPosition = vec3.fromValues(bBox[0] + bBox[3] / 2.0, bBox[1] + bBox[4] / 2.0, bBox[2] + bBox[5] / 2.0)
+        const move = vec3.scale(vec3.create(), moveDirection, boxSize);
+        const eye = vec3.add(vec3.create(), boxPosition, move);
+
+        const m = mat4.lookAt(mat4.create(), eye, boxPosition, upDirection);
 
         const right = Array.prototype.slice.call(m.slice(0, 3));
         const up = Array.prototype.slice.call(m.slice(4, 7));
         const back = Array.prototype.slice.call(m.slice(8, 11));
-        const translation = mat4.getTranslation(vec3.create(), m);
 
         const xa = vec3.scale(vec3.create(), right, bBox[0]);
         const xb = vec3.scale(vec3.create(), right, (bBox[0] + bBox[3]));
@@ -809,24 +816,49 @@ export class Viewer {
         const max3 = vec3.max(vec3.create(), za, zb);
 
         const min = [
-            min1[0] + min2[0] + min3[0] + translation[0],
-            min1[1] + min2[1] + min3[1] + translation[1],
-            min1[2] + min2[2] + min3[2] + translation[2]
+            min1[0] + min2[0] + min3[0],
+            min1[1] + min2[1] + min3[1],
+            min1[2] + min2[2] + min3[2]
         ]
 
         const max = [
-            max1[0] + max2[0] + max3[0] + translation[0],
-            max1[1] + max2[1] + max3[1] + translation[1],
-            max1[2] + max2[2] + max3[2] + translation[2]
+            max1[0] + max2[0] + max3[0],
+            max1[1] + max2[1] + max3[1],
+            max1[2] + max2[2] + max3[2]
         ]
 
         const size = vec3.sub(vec3.create(), max, min);
 
         return {
-            width: size[0], // X => width
-            height: size[1]  // Y => height
+            width: size[0] * 1.2, // X => width
+            height: size[1] * 1.2,  // Y => height
+            depth: size[2]
         };
     }
+
+    //helper function for setting of the distance based on camera field of view and size of the product's bounding box
+    public getDistanceAndWidth(bBox: number[] | Float32Array, viewDirection: vec3, upDirection: vec3): { distance: number, width: number } {
+        const sizes = this.getSizeInView(bBox, viewDirection, upDirection);
+        const subjectRatio = sizes.width / sizes.height;
+
+        //set ratio to 1 if the viewer has no size (for example if canvas is not added to DOM yet)
+        const viewRatio = (this.width > 0 && this.height > 0) ?
+            this.width / this.height :
+            1;
+
+        let width = sizes.width;
+        // subject proportions wouldn't fit into view proportions
+        if (subjectRatio < viewRatio) {
+            width = width * viewRatio / subjectRatio;
+        }
+
+        const distance = (width / (Math.tan(this.cameraProperties.fov * Math.PI / 180.0 / 2.0) * 2.0)) ;
+
+        return {
+            distance: distance,
+            width: width
+        };
+    };
 
     /**
     * This method sets navigation origin to the centroid of specified product's bounding box or to the centre of model if no product ID is specified.
@@ -835,29 +867,9 @@ export class Viewer {
     * @function Viewer#setCameraTarget
     * @param {Number} prodId [optional] Product ID. You can get ID either from semantic structure of the model or from {@link Viewer#event:pick pick event}.
     * @param {Number} [modelId] - Optional ID of a specific model.
-    * @return {Bool} True if the target exists and is set, False otherwise
+    * @return {number[]} Returns bounding box of the target, null if not found
     */
-    public setCameraTarget(prodId?: number, modelId?: number): boolean {
-        //helper function for setting of the distance based on camera field of view and size of the product's bounding box
-        var setDistance = (bBox: number[] | Float32Array) => {
-            const sizes = this.getSizeInView(bBox);
-            const subjectRatio = sizes.width / sizes.height;
-
-            //set ratio to 1 if the viewer has no size (for example if canvas is not added to DOM yet)
-            const viewRatio = (this.width > 0 && this.height > 0) ?
-                this.width / this.height :
-                1;
-
-            let width = sizes.width;
-            // subject proportions wouldn't fit into view proportions
-            if (subjectRatio < viewRatio) {
-                width = width * viewRatio / subjectRatio;
-            }
-
-            this.distance = width / (Math.tan(this.cameraProperties.fov * Math.PI / 180.0 / 2.0) * 2.0);
-            this.cameraProperties.width = width;
-        };
-
+    public setCameraTarget(prodId?: number, modelId?: number): number[] | Float32Array {
         //set navigation origin and default distance to the product BBox
         if (prodId != null) {
             const wcs = this.getCurrentWcs();
@@ -870,10 +882,9 @@ export class Viewer {
             }, modelId);
             if (bbox) {
                 this.origin = vec3.fromValues(bbox[0] + bbox[3] / 2.0, bbox[1] + bbox[4] / 2.0, bbox[2] + bbox[5] / 2.0);
-                setDistance(bbox);
-                return true;
+                return bbox;
             } else {
-                return false;
+                return null;
             }
         } else {
             //set navigation origin and default distance to the merged region composed 
@@ -882,9 +893,8 @@ export class Viewer {
 
             if (region && region.population > 0) {
                 this.origin = vec3.fromValues(region.centre[0], region.centre[1], region.centre[2]);
-                setDistance(region.bbox);
             }
-            return true;
+            return region.bbox;
         }
     }
 
@@ -1036,12 +1046,8 @@ export class Viewer {
 
         //only set camera parameters and the view if this is the first model
         if (this.activeHandles.length === 1) {
-
-            //set centre and default distance based on the most populated region in the model
-            this.setCameraTarget();
-
             //set default view
-            this.show(ViewType.DEFAULT, false);
+            this.show(ViewType.DEFAULT, null, null, false);
         }
 
         // force redraw so when 'loaded' is called listeners can operate with current canvas.
@@ -1283,7 +1289,7 @@ export class Viewer {
             case 'zoom':
                 // smooth zooming animation
                 const move = deltaY * distance / 20;
-                this.animations.addZoom(move, 100);
+                this.animations.addZoom(move, 50);
                 return;
             default:
                 break;
@@ -1566,14 +1572,15 @@ export class Viewer {
     * @return {Bool} True if target exists and zoom was successful, False otherwise
     */
     public zoomTo(id?: number, model?: number, withAnimation: boolean = true): Promise<void> {
-        var found = this.setCameraTarget(id, model);
-        if (!found) {
+        var bBox = this.setCameraTarget(id, model);
+        if (bBox == null) {
             return new Promise<void>((a, r) => r());
         }
 
+        const origin = vec3.fromValues(bBox[0] + bBox[3] / 2.0, bBox[1] + bBox[4] / 2.0, bBox[2] + bBox[5] / 2.0);
         const duration = withAnimation ? this.zoomDuration : 0;
         const eye = this.getCameraPosition();
-        let dir = vec3.subtract(vec3.create(), eye, this.origin);
+        let dir = vec3.subtract(vec3.create(), eye, origin);
         dir = vec3.normalize(vec3.create(), dir);
 
         const angle = vec3.angle(dir, [0, 0, 1]);
@@ -1582,12 +1589,14 @@ export class Viewer {
             heading = this.getCameraHeading();
         }
 
-        var translation = vec3.create();
-        vec3.scale(translation, dir, this.distance);
-        vec3.add(eye, translation, this.origin);
+        const distAndWidth = this.getDistanceAndWidth(bBox, dir, heading);
 
-        var mv = mat4.lookAt(mat4.create(), eye, this.origin, heading);
-        return this.animations.viewTo(mv, duration);
+        var translation = vec3.create();
+        vec3.scale(translation, dir, distAndWidth.distance);
+        vec3.add(eye, translation, origin);
+
+        var mv = mat4.lookAt(mat4.create(), eye, origin, heading);
+        return this.animations.viewTo({ mv: mv, width: distAndWidth.width }, duration);
     }
 
     /**
@@ -1599,44 +1608,55 @@ export class Viewer {
     * or to the model extent if {@link Viewer#setCameraTarget setCameraTarget()} is called with no arguments.
     * @param {boolean} withAnimation - Optional parameter, default is 'true'. When true, transition to the view is animated. When false, view is changed imediately.
     */
-    public show(type: ViewType, withAnimation: boolean = true): Promise<void> {
+    public show(type: ViewType, id?: number, model?: number, withAnimation: boolean = true): Promise<void> {
+        var bBox = this.setCameraTarget(id, model);
+        if (bBox == null) {
+            return new Promise<void>((a, r) => r());
+        }
+
         let duration = withAnimation ? this.zoomDuration : 0;
-        let origin = this.origin;
-        let distance = this.distance;
-        let camera = [0, 0, 0];
-        let heading = [0, 0, 1];
+        const origin = vec3.fromValues(bBox[0] + bBox[3] / 2.0, bBox[1] + bBox[4] / 2.0, bBox[2] + bBox[5] / 2.0);
+
+        let viewDirection: vec3 = null;
+        let heading: vec3 = vec3.fromValues(0,0,1);
         switch (type) {
             //top and bottom are different because these are singular points for look-at function if heading is [0,0,1]
             case ViewType.TOP:
-                camera = [origin[0], origin[1], origin[2] + distance];
-                heading = [0, 1, 0];
+                viewDirection = vec3.fromValues(0, 0, -1);
+                heading = vec3.fromValues(0, 1, 0);
                 break;
             case ViewType.BOTTOM:
-                camera = [origin[0], origin[1], origin[2] - distance];
-                heading = [0, -1, 0];
+                viewDirection = vec3.fromValues(0, 0, 1);
+                heading = vec3.fromValues(0, -1, 0);
                 break;
             case ViewType.FRONT:
-                camera = [origin[0], origin[1] - distance, origin[2]];
+                viewDirection = vec3.fromValues(0, 1, 0);
                 break;
             case ViewType.BACK:
-                camera = [origin[0], origin[1] + distance, origin[2]];
+                viewDirection = vec3.fromValues(0, -1, 0);
                 break;
             case ViewType.LEFT:
-                camera = [origin[0] - distance, origin[1], origin[2]];
+                viewDirection = vec3.fromValues(-1, 0, 0);
                 break;
             case ViewType.RIGHT:
-                camera = [origin[0] + distance, origin[1], origin[2]];
+                viewDirection = vec3.fromValues(1, 0, 0);
                 break;
             case ViewType.DEFAULT:
-                let a = Math.sqrt(distance * distance / 3);
-                camera = [origin[0] - a, origin[1] - a, origin[2] + (a * 0.33)];
+                let a = Math.sqrt(3);
+                viewDirection = vec3.fromValues(a, a, -a);
                 break;
             default:
                 break;
         }
+
+        const distAndWidth = this.getDistanceAndWidth(bBox, viewDirection, heading);
+        const moveDir = vec3.negate(vec3.create(), viewDirection);
+        const move = vec3.scale(vec3.create(), moveDir, distAndWidth.distance);
+        const camera = vec3.add(vec3.create(), origin, move);
+
         // use look-at function to set up camera and target
         const mv = mat4.lookAt(mat4.create(), camera, origin, heading);
-        return this.animations.viewTo(mv, duration);
+        return this.animations.viewTo({mv: mv, width: distAndWidth.width}, duration);
     }
 
     /**
