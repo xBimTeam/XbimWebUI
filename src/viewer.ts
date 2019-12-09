@@ -830,8 +830,8 @@ export class Viewer {
         const size = vec3.sub(vec3.create(), max, min);
 
         return {
-            width: size[0] * 1.2, // X => width
-            height: size[1] * 1.2,  // Y => height
+            width: size[0] * 1.0, // X => width
+            height: size[1] * 1.0,  // Y => height
             depth: size[2]
         };
     }
@@ -847,12 +847,15 @@ export class Viewer {
             1;
 
         let width = sizes.width;
+        let height = sizes.height;
         // subject proportions wouldn't fit into view proportions
-        if (subjectRatio < viewRatio) {
-            width = width * viewRatio / subjectRatio;
+        if (subjectRatio > viewRatio) {
+            height = width / viewRatio;
+        } else if (subjectRatio < viewRatio) {
+            width = height * viewRatio;
         }
 
-        const distance = (width / (Math.tan(this.cameraProperties.fov * Math.PI / 180.0 / 2.0) * 2.0)) ;
+        const distance = height / (Math.tan(this.cameraProperties.fov * Math.PI / 180.0 / 2.0) * 2.0);
 
         return {
             distance: distance,
@@ -1618,7 +1621,7 @@ export class Viewer {
         const origin = vec3.fromValues(bBox[0] + bBox[3] / 2.0, bBox[1] + bBox[4] / 2.0, bBox[2] + bBox[5] / 2.0);
 
         let viewDirection: vec3 = null;
-        let heading: vec3 = vec3.fromValues(0,0,1);
+        let heading: vec3 = vec3.fromValues(0, 0, 1);
         switch (type) {
             //top and bottom are different because these are singular points for look-at function if heading is [0,0,1]
             case ViewType.TOP:
@@ -1642,8 +1645,7 @@ export class Viewer {
                 viewDirection = vec3.fromValues(1, 0, 0);
                 break;
             case ViewType.DEFAULT:
-                let a = Math.sqrt(3);
-                viewDirection = vec3.fromValues(a, a, -a);
+                viewDirection = vec3.normalize(vec3.create(), [1, 1, -1]);
                 break;
             default:
                 break;
@@ -1656,7 +1658,7 @@ export class Viewer {
 
         // use look-at function to set up camera and target
         const mv = mat4.lookAt(mat4.create(), camera, origin, heading);
-        return this.animations.viewTo({mv: mv, width: distAndWidth.width}, duration);
+        return this.animations.viewTo({ mv: mv, width: distAndWidth.width }, duration);
     }
 
     /**

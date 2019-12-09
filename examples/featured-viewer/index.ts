@@ -120,7 +120,7 @@ var progress = document.getElementById("progress");
 
 viewer.on('loaded', () => {
     viewer.start();
-    viewer.show(ViewType.BACK);
+    viewer.show(ViewType.DEFAULT);
 });
 
 

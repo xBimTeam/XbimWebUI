@@ -1,4 +1,4 @@
-import { vec3, mat4, quat } from "gl-matrix";
+import { vec3, mat4 } from "gl-matrix";
 
 export class SectionBox {
     private _location: vec3;
@@ -63,5 +63,21 @@ export class SectionBox {
 
         if (this._onChange)
             this._onChange();
+    }
+
+    /**
+     * Sets all values for section box in one go as a copy from supplied box
+     * @param box Section box values to be used
+     */
+    public setTo(box: SectionBox) {
+        this._location = vec3.clone(box.location);
+        this._lengthX = box._lengthX;
+        this._lengthY = box._lengthY;
+        this._lengthZ = box._lengthZ;
+        this._rotationX = box._rotationX;
+        this._rotationY = box._rotationY;
+        this._rotationZ = box._rotationZ;
+
+        if (this._onChange) this._onChange();
     }
 }
