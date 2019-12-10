@@ -428,7 +428,7 @@ export class NavigationCube implements IPlugin {
             const origin = vec3.fromValues(bbox[0] + bbox[3] / 2.0, bbox[1] + bbox[4] / 2.0, bbox[2] + bbox[5] / 2.0);
             const heading = vec3.fromValues(0, 0, 1);
 
-            const widthAndDistance = viewer.getDistanceAndWidth(bbox, dir, heading);
+            const widthAndDistance = viewer.getDistanceAndHeight(bbox, dir, heading);
 
             dir = vec3.normalize(vec3.create(), dir);
             var shift = vec3.scale(vec3.create(), dir, widthAndDistance.distance);
@@ -436,7 +436,7 @@ export class NavigationCube implements IPlugin {
 
             //use look-at function to set up camera and target
             const mv = mat4.lookAt(mat4.create(), camera, origin, heading);
-            this.viewer.animations.viewTo({mv: mv, width: widthAndDistance.width}, this.viewer.zoomDuration);
+            this.viewer.animations.viewTo({mv: mv, height: widthAndDistance.height}, this.viewer.zoomDuration);
         });
 
         this._initialized = true;

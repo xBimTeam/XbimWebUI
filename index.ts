@@ -11,6 +11,7 @@ export * from './src/common/state';
 export * from './src/common/message';
 export * from './src/common/viewer-event-map';
 export * from './src/viewer';
+export * from './src/camera';
 export { EasingType } from './src/navigation/animations';
 
 // Plugins

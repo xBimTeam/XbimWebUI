@@ -26,7 +26,7 @@ import { CheckResult, } from './common/checkResult';
 import { Animations, EasingType } from './navigation/animations';
 import { mat4, vec3, mat3, quat, vec4 } from 'gl-matrix';
 import { PerformanceRating } from './performance-rating';
-import { CameraProperties } from './camera';
+import { CameraProperties, CameraType } from './camera';
 import { SectionBox } from './section-box';
 
 export type NavigationMode = 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none' | 'look-around' | 'walk' | 'look-at';
@@ -57,24 +57,8 @@ export class Viewer {
      * Type of camera to be used. Available values are <strong>'perspective'</strong> and <strong>'orthogonal'</strong> You can change this value at any time with instant effect.
      * @member {string} Viewer#camera
      */
-    public get camera(): CameraType { return this._cameraType; }
-    public set camera(value: CameraType) {
-        const old = this._cameraType;
-        if (old == value) {
-            return;
-        }
-
-        // changing from perspective to orthogonal - we need to guess the width
-        if (value == CameraType.ORTHOGONAL) {
-
-        }
-
-        this._cameraType = value;
-
-
-        // set the flag for re-draw
-        this.changed = true;
-    }
+    public get camera(): CameraType { return this.cameraProperties.type; }
+    public set camera(value: CameraType) { this.cameraProperties.type = value; this.changed = true; }
     /**
      * Array of four integers between 0 and 255 representing RGBA colour components. This defines background colour of the viewer. You can change this value at any time with instant effect.
      * @member {Number[]} Viewer#background
@@ -181,7 +165,6 @@ export class Viewer {
     private _sectionBox = new SectionBox(() => { this._sectionMatrix = this._sectionBox.matrix; this.changed = true; });
     private _width: number;
     private _height: number;
-    private _cameraType: CameraType = CameraType.PERSPECTIVE;
     private _background: number[] = [230, 230, 230, 255];
     private _highlightingColour: number[] = [255, 173, 33, 255];
     private _origin: vec3 = vec3.create();
@@ -762,15 +745,15 @@ export class Viewer {
     * 
     * @function Viewer#setCameraPosition
     * @param {Number[]} coordinates - 3D coordinates of the camera in WCS
-    * @param {Number} targetWidth - Target width of orthogonal viewport
+    * @param {Number} targetHeight - Target width of orthogonal viewport
     * @param {Number} duration - milliseconds for animation.
     */
-    public setCameraPosition(coordinates: number[], targetWidth: number, duration: number) {
+    public setCameraPosition(coordinates: number[], targetHeight: number, duration: number) {
         if (typeof (coordinates) == 'undefined') {
             throw new Error('Parameter coordinates must be defined');
         }
         const mv = mat4.lookAt(mat4.create(), coordinates, this.origin, [0, 0, 1]);
-        this.animations.viewTo({ mv: mv, width: targetWidth }, duration);
+        this.animations.viewTo({ mv: mv, height: targetHeight }, duration);
     }
 
     /**
@@ -837,7 +820,7 @@ export class Viewer {
     }
 
     //helper function for setting of the distance based on camera field of view and size of the product's bounding box
-    public getDistanceAndWidth(bBox: number[] | Float32Array, viewDirection: vec3, upDirection: vec3): { distance: number, width: number } {
+    public getDistanceAndHeight(bBox: number[] | Float32Array, viewDirection: vec3, upDirection: vec3): { distance: number, height: number } {
         const sizes = this.getSizeInView(bBox, viewDirection, upDirection);
         const subjectRatio = sizes.width / sizes.height;
 
@@ -858,8 +841,8 @@ export class Viewer {
         const distance = height / (Math.tan(this.cameraProperties.fov * Math.PI / 180.0 / 2.0) * 2.0);
 
         return {
-            distance: distance,
-            width: width
+            distance: distance + sizes.depth / 2.0,
+            height: height * 1.1
         };
     };
 
@@ -1045,7 +1028,7 @@ export class Viewer {
         this._handles.push(handle);
 
         //set perspective camera near and far based on 1 meter dimension and size of the model
-        this.setCameraFromCurrentModels();
+        this.setNearAndFarFromCurrentModels();
 
         //only set camera parameters and the view if this is the first model
         if (this.activeHandles.length === 1) {
@@ -1075,7 +1058,7 @@ export class Viewer {
      * Sets camera parameters (near and far clipping planes) from current active models.
      * This should be called whenever active models are very different (size, units)
      */
-    public setCameraFromCurrentModels() {
+    public setNearAndFarFromCurrentModels() {
         if (this.activeHandles.length === 0) {
             return;
         }
@@ -1089,7 +1072,6 @@ export class Viewer {
         var maxSize = Math.max(region.bbox[3], region.bbox[4], region.bbox[5]);
         this.cameraProperties.far = maxSize * 10;
         this.cameraProperties.near = meter / 4;
-        this.cameraProperties.width = maxSize;
     }
 
     /**
@@ -1496,28 +1478,7 @@ export class Viewer {
     }
 
     private updatePMatrix(width: number, height: number) {
-        const aspect = width / height;
-        //set up cameras
-        switch (this.camera) {
-            case CameraType.PERSPECTIVE:
-                mat4.perspective(this.pMatrix,
-                    this.cameraProperties.fov * Math.PI / 180.0,
-                    aspect,
-                    this.cameraProperties.near,
-                    this.cameraProperties.far);
-                break;
-
-            case CameraType.ORTHOGONAL:
-                const w = this.cameraProperties.width;
-                const h = w / aspect;
-                mat4.ortho(this.pMatrix, w / -2, w / 2, h / -2, h / 2,
-                    this.cameraProperties.near,
-                    this.cameraProperties.far);
-                break;
-
-            default:
-                throw new Error('Undefined camera type');
-        }
+        this.pMatrix = this.cameraProperties.getProjectionMatrix(width, height);
     }
 
     /**
@@ -1592,14 +1553,14 @@ export class Viewer {
             heading = this.getCameraHeading();
         }
 
-        const distAndWidth = this.getDistanceAndWidth(bBox, dir, heading);
+        const distAndWidth = this.getDistanceAndHeight(bBox, dir, heading);
 
         var translation = vec3.create();
         vec3.scale(translation, dir, distAndWidth.distance);
         vec3.add(eye, translation, origin);
 
         var mv = mat4.lookAt(mat4.create(), eye, origin, heading);
-        return this.animations.viewTo({ mv: mv, width: distAndWidth.width }, duration);
+        return this.animations.viewTo({ mv: mv, height: distAndWidth.height }, duration);
     }
 
     /**
@@ -1651,14 +1612,14 @@ export class Viewer {
                 break;
         }
 
-        const distAndWidth = this.getDistanceAndWidth(bBox, viewDirection, heading);
+        const distAndWidth = this.getDistanceAndHeight(bBox, viewDirection, heading);
         const moveDir = vec3.negate(vec3.create(), viewDirection);
         const move = vec3.scale(vec3.create(), moveDir, distAndWidth.distance);
         const camera = vec3.add(vec3.create(), origin, move);
 
         // use look-at function to set up camera and target
         const mv = mat4.lookAt(mat4.create(), camera, origin, heading);
-        return this.animations.viewTo({ mv: mv, width: distAndWidth.width }, duration);
+        return this.animations.viewTo({ mv: mv, height: distAndWidth.height }, duration);
     }
 
     /**
@@ -2011,7 +1972,7 @@ export class Viewer {
 
             handle.stopped = false;
             //set perspective camera near and far based on 1 meter dimension and size of the model
-            this.setCameraFromCurrentModels();
+            this.setNearAndFarFromCurrentModels();
 
             // if the viewer is running already we can return from here
             if (this._isRunning) {
@@ -2021,7 +1982,7 @@ export class Viewer {
 
         this.changed = true;
         //set perspective camera near and far based on 1 meter dimension and size of the model
-        this.setCameraFromCurrentModels();
+        this.setNearAndFarFromCurrentModels();
 
         if (this._isRunning) {
             return;
@@ -2066,7 +2027,7 @@ export class Viewer {
         model.stopped = true;
         this.changed = true;
         //set perspective camera near and far based on 1 meter dimension and size of the model
-        this.setCameraFromCurrentModels();
+        this.setNearAndFarFromCurrentModels();
     }
 
     /**
@@ -2422,7 +2383,4 @@ export enum ViewType {
     DEFAULT
 }
 
-export enum CameraType {
-    PERSPECTIVE = 0,
-    ORTHOGONAL = 1
-}
+

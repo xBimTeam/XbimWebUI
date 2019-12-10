@@ -6,8 +6,9 @@ import { Line } from "./line";
 import { PerspectiveCamera } from "./perspective-camera";
 import { OrthogonalCamera } from "./orthogonal-camera";
 import { Components } from "./components";
-import { Viewer, CameraType } from "../viewer";
+import { Viewer } from "../viewer";
 import { vec3, mat4 } from "gl-matrix";
+import { CameraType } from "../camera";
 
 export class Viewpoint {
 
@@ -91,13 +92,13 @@ export class Viewpoint {
             };
         } else {
             // width of view in meters
-            const modelWidth = viewer.cameraProperties.width / viewer.unitsInMeter;
-            const viewportWidth = viewer.width / Viewpoint.resolution;
+            const modelHeight = viewer.cameraProperties.height / viewer.unitsInMeter;
+            const viewportHeight = viewer.height / Viewpoint.resolution;
             view.orthogonal_camera = {
                 camera_direction: toArray(viewer.getCameraDirection()),
                 camera_up_vector: toArray(viewer.getCameraHeading()),
                 camera_view_point: toArray(viewer.getCameraPositionWcs()),
-                view_to_world_scale: viewportWidth / modelWidth
+                view_to_world_scale: viewportHeight / modelHeight
             }
         }
 
@@ -156,7 +157,7 @@ export class Viewpoint {
         }
 
         // set camera type and properties
-        let orthCamWidth = viewer.cameraProperties.width;
+        let orthCamHeight = viewer.cameraProperties.height;
         if (viewpoint.perspective_camera) {
             viewer.camera = CameraType.PERSPECTIVE;            
             if (viewpoint.perspective_camera.field_of_view != null && viewpoint.perspective_camera.field_of_view > 0) {
@@ -167,15 +168,15 @@ export class Viewpoint {
             viewer.camera = CameraType.ORTHOGONAL;
             if (viewpoint.orthogonal_camera.view_to_world_scale != null && viewpoint.orthogonal_camera.view_to_world_scale > 0) {
                 const scale = viewpoint.orthogonal_camera.view_to_world_scale;
-                const viewportWidth = viewer.width / Viewpoint.resolution;
-                const modelWidth = viewportWidth / scale;
-                orthCamWidth = modelWidth * viewer.unitsInMeter;
+                const viewportHeight = viewer.height / Viewpoint.resolution;
+                const modelHeight = viewportHeight / scale;
+                orthCamHeight = modelHeight * viewer.unitsInMeter;
             }
         }
         
         // set camera (MV matrix)
         const mv = mat4.lookAt(mat4.create(), eye, target, up);
-        viewer.animations.viewTo({ mv: mv, width: orthCamWidth }, duration);
+        viewer.animations.viewTo({ mv: mv, height: orthCamHeight }, duration);
     }
 
     // static cache for resolution

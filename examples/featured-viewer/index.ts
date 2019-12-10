@@ -1,5 +1,5 @@
 ﻿import { Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube, Grid, EasingType } from '../..';
-import { CameraType } from '../../src/viewer';
+import { CameraType } from '../../src/camera';
 import { Viewpoint } from '../../src/bcf/viewpoint';
 import { vec3, mat4 } from 'gl-matrix';
 import { PerformanceRating } from '../../src/performance-rating';

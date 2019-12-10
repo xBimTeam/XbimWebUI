@@ -53,35 +53,35 @@ export class Animations {
         this._rotationOn = false;
     }
 
-    private static viewQueue: Array<{ mv: mat4, width: number }> = [];
+    private static viewQueue: Array<{ mv: mat4, height: number }> = [];
     /**
      * Animates transition from the current view to target view
      * 
      * @param end Target model view matrix
      * @param duration Duration of the transition in milliseconds
      */
-    public viewTo(end: { mv: mat4, width: number }, duration: number, easing: EasingType = EasingType.SINUS2): Promise<void> {
+    public viewTo(end: { mv: mat4, height: number }, duration: number, easing: EasingType = EasingType.SINUS2): Promise<void> {
         return new Promise<void>((resolve, reject) => {
 
             if (duration <= 0) { // no animation needed.
                 this.viewer.mvMatrix = end.mv;
-                this.viewer.cameraProperties.width = end.width;
+                this.viewer.cameraProperties.height = end.height;
                 resolve();
                 return;
             }
 
-            let start = null; 
+            let start: { mv: mat4, height: number } = null; 
             if (Animations.viewQueue.length > 0) {
                 start = Animations.viewQueue[Animations.viewQueue.length - 1];
             } else {
                 start = {
                     mv: mat4.copy(mat4.create(), this.viewer.mvMatrix),
-                    width: this.viewer.cameraProperties.width
+                    height: this.viewer.cameraProperties.height
                 };
             }
 
             // start and end are the same, do nothing and return
-            if (mat4.equals(start.mv, end.mv) && Math.abs(start.width - end.width) < 1e-6) {
+            if (mat4.equals(start.mv, end.mv) && Math.abs(start.height - end.height) < 1e-6) {
                 resolve();
                 return;
             }
@@ -128,16 +128,16 @@ export class Animations {
                     let rotation = quat.slerp(quat.create(), startRotation, endRotation, state);
                     let scale = vec3.lerp(vec3.create(), startScale, endScale, state);
                     let translation = vec3.lerp(vec3.create(), startTranslation, endTranslation, state);
-                    let widthDelta = (end.width - start.width) * state;
+                    let heightDelta = (end.height - start.height) * state;
 
                     let mv = mat4.fromRotationTranslationScaleOrigin(mat4.create(), rotation, translation, scale, vec3.create());
                     this.viewer.mvMatrix = mv;
-                    this.viewer.cameraProperties.width = start.width + widthDelta;
+                    this.viewer.cameraProperties.height = start.height + heightDelta;
 
                     this.requestAnimationFrame(step);
                 } else { // set exact value, remove from the queue and quit
                     this.viewer.mvMatrix = end.mv;
-                    this.viewer.cameraProperties.width = end.width;
+                    this.viewer.cameraProperties.height = end.height;
                     Animations.viewQueue.shift();
                     resolve();
                     return;
@@ -151,7 +151,7 @@ export class Animations {
 
     }
 
-    private static zoomQueue: Array<{ mv: mat4, width: number }> = [];
+    private static zoomQueue: Array<{ mv: mat4, height: number }> = [];
     /**
      * Animates transition from the current view to target view
      * 
@@ -161,13 +161,13 @@ export class Animations {
     public addZoom(distance: number, duration: number): Promise<void> {
         // current model view
         let currentMv = mat4.copy(mat4.create(), this.viewer.mvMatrix);
-        let currentWidth = this.viewer.cameraProperties.width;
+        let currentHeight = this.viewer.cameraProperties.height;
 
         // if there is an animation in progress, zoom should start where that ends
         if (Animations.zoomQueue.length > 0) {
             const current = Animations.zoomQueue[Animations.zoomQueue.length - 1];
             currentMv = current.mv;
-            currentWidth = current.width;
+            currentHeight = current.height;
         }
 
         // get zoom direction
@@ -177,17 +177,17 @@ export class Animations {
         const zoomDirection = vec3.negate(vec3.create(), cameraDirection);
         const move = vec3.scale(vec3.create(), zoomDirection, distance);
         const fov = this.viewer.cameraProperties.fov * Math.PI / 180.0;
-        let deltaWidth = 2.0 * distance * Math.tan(fov / 2.0);
+        let deltaHeight = 2.0 * distance * Math.tan(fov / 2.0);
         const oneMeter = this.viewer.unitsInMeter;
 
         // avoid singularity where width is negative and image is flipped.
-        if ((currentWidth - deltaWidth) < oneMeter)
-            deltaWidth = 0;
+        if ((currentHeight - deltaHeight) < oneMeter)
+            deltaHeight = 0;
 
         // final state
         const end = {
             mv: mat4.translate(mat4.create(), currentMv, move),
-            width: currentWidth - deltaWidth
+            height: currentHeight- deltaHeight
         };
 
 
@@ -195,7 +195,7 @@ export class Animations {
             if (duration <= 0) { // no animation needed.
                 Animations.zoomQueue = [];
                 this.viewer.mvMatrix = end.mv;
-                this.viewer.cameraProperties.width = end.width;
+                this.viewer.cameraProperties.height = end.height;
                 resolve();
                 return;
             }
@@ -223,16 +223,16 @@ export class Animations {
 
                     let state = (now - startTime) / duration;
                     let translation = vec3.lerp(vec3.create(), vec3.create(), endTranslation, state);
-                    let delta = deltaWidth * state;
+                    let delta = deltaHeight * state;
 
                     // set position and perspective width
                     this.viewer.mvMatrix = mat4.translate(mat4.create(), currentMv, translation);
-                    this.viewer.cameraProperties.width = currentWidth - delta;
+                    this.viewer.cameraProperties.height = currentHeight - delta;
 
                     this.requestAnimationFrame(step);
                 } else { // set exact value, remove from the queue and quit
                     this.viewer.mvMatrix = end.mv;
-                    this.viewer.cameraProperties.width = end.width;
+                    this.viewer.cameraProperties.height = end.height;
                     Animations.zoomQueue.shift();
                     resolve();
                     return;
