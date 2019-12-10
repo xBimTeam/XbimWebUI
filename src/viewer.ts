@@ -838,11 +838,12 @@ export class Viewer {
             width = height * viewRatio;
         }
 
+        height = height * 1.2; // make it little bit more far away so there is some space around the model
         const distance = height / (Math.tan(this.cameraProperties.fov * Math.PI / 180.0 / 2.0) * 2.0);
 
         return {
-            distance: distance + sizes.depth / 2.0,
-            height: height * 1.1
+            distance: distance,
+            height: height
         };
     };
 
@@ -872,16 +873,17 @@ export class Viewer {
             } else {
                 return null;
             }
-        } else {
-            //set navigation origin and default distance to the merged region composed 
-            //from all models which are not stopped at the moment
-            let region = this.getMergedRegion();
+        }
 
-            if (region && region.population > 0) {
-                this.origin = vec3.fromValues(region.centre[0], region.centre[1], region.centre[2]);
-            }
+        //set navigation origin and default distance to the merged region composed 
+        //from all models which are not stopped at the moment
+        let region = this.getMergedRegion();
+        if (region && region.population > 0) {
+            this.origin = vec3.fromValues(region.centre[0], region.centre[1], region.centre[2]);
             return region.bbox;
         }
+
+        return null;
     }
 
     public getMergedRegion(): Region {
