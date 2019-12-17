@@ -387,8 +387,6 @@ export class Viewer {
             if (this.canvas.offsetHeight !== elementHeight || this.canvas.offsetWidth !== elementWidth) {
                 elementHeight = this.height = this.canvas.height = this.canvas.offsetHeight;
                 elementWidth = this.width = this.canvas.width = this.canvas.offsetWidth;
-
-                console.log('canvas size changed ', this.canvas.offsetHeight, this.canvas.offsetWidth);
             }
             this._requestAnimationFrame(watchCanvasSize);
         };

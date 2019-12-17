@@ -55,6 +55,13 @@ export class SectionBox {
     }
 
     /**
+     * Alias for setToInfinity(). Makes the section box infinitely large so it doesn't crop anything in the view
+     */
+    public clear(): void {
+        this.setToInfinity();
+    }
+
+    /**
      * Sets frustum to maximum extens so that it shouldn't cut anything in the view.
      */
     public setToInfinity(): void {
@@ -157,12 +164,28 @@ export class SectionBox {
         const Xdir = vec3.normalize(vec3.create(), results[0].plane.direction);
         const Ydir = vec3.normalize(vec3.create(), results[1].plane.direction);
         const Zdir = vec3.normalize(vec3.create(), results[2].plane.direction);
-        const rotation = quat.setAxes(quat.create(), Ydir, Xdir, Zdir);
+        const rotation = quat.setAxes(quat.create(), vec3.negate(vec3.create(), Zdir), Xdir, Ydir);
 
         // get roll (X), pitch (Y) and yaw (Z) euler angles
         // https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
-        
+        const angles = this.toEulerAngles(rotation);
 
+        // set values
+        this._location = location;
+        this._lengthX = sizeX;
+        this._lengthY = sizeY;
+        this._lengthZ = sizeZ;
+        this._rotationX = angles.roll * 180.0 / Math.PI;
+        this._rotationY = angles.pitch * 180.0 / Math.PI;
+        this._rotationZ = angles.yaw * 180.0 / Math.PI;
+
+        // invoke change annotation
+        if (this._onChange) {
+            this._onChange();
+        }
+
+        // return true when clipping planes were interpreted as a section box
+        return true;
     }
 
     private getSize(plane: ClippingPlane, planes: ClippingPlane[]): number {
@@ -181,6 +204,33 @@ export class SectionBox {
 
         var distance = Math.abs(a * x + b * y + c * z + d) / vec3.length(opposite.direction);
         return distance;
+    }
+
+    private toEulerAngles(q: quat): { roll: number, pitch: number, yaw: number } {
+        const qx = q[0];
+        const qy = q[1];
+        const qz = q[2];
+        const qw = q[3];
+
+        // roll (x-axis rotation)
+        const sinr_cosp = 2 * (qw * qx + qy * qz);
+        const cosr_cosp = 1 - 2 * (qx * qx + qy * qy);
+        const roll = Math.atan2(sinr_cosp, cosr_cosp);
+
+        // pitch (y-axis rotation)
+        const sinp = 2 * (qw * qy - qz * qx);
+        let pitch: number = null;
+        if (Math.abs(sinp) >= 1)
+            pitch = Math.PI / 2 * Math.sign(sinp); // use 90 degrees if out of range
+        else
+            pitch = Math.asin(sinp);
+
+        // yaw (z-axis rotation)
+        const siny_cosp = 2 * (qw * qz + qx * qy);
+        const cosy_cosp = 1 - 2 * (qy * qy + qz * qz);
+        const yaw = Math.atan2(siny_cosp, cosy_cosp);
+
+        return { roll, pitch, yaw };
     }
 
     private isOpposite(a: number[], b: number[]) {

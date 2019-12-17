@@ -3,6 +3,7 @@ import { CameraType } from '../../src/camera';
 import { Viewpoint } from '../../src/bcf/viewpoint';
 import { vec3, mat4 } from 'gl-matrix';
 import { PerformanceRating } from '../../src/performance-rating';
+import { ClippingPlane } from '../../src/bcf';
 
 // tslint:disable-next-line: only-arrow-functions
 var QueryString = function() {
@@ -244,6 +245,41 @@ viewer.on("pick", (args) => {
 
     //viewer.zoomTo(id);
 });
+
+window['clipBox'] = () => {
+    var planes: ClippingPlane[] = [
+        {
+            direction: [1,0,0],
+            location: [3000, 0, 0]
+        },
+        {
+            direction: [0,1,0],
+            location: [0, 2000, 0]
+        },
+        {
+            direction: [0,0,1],
+            location: [0,0,1000]
+        },
+        {
+            direction: [-1,0,0],
+            location: [-3000, 0, 0]
+        },
+        {
+            direction: [0,-1,0],
+            location: [0, -2000, 0]
+        },
+        {
+            direction: [0,0,-1],
+            location: [0,0,-1000]
+        }
+    ];
+
+    viewer.sectionBox.setToPlanes(planes);
+};
+
+window['releaseClipBox'] = () => {
+    viewer.sectionBox.clear();
+};
 
 // restore init script if any is saved
 var script = localStorage.getItem('initScript-' + modelId);
