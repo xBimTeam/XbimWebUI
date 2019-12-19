@@ -12,6 +12,7 @@ export * from './src/common/message';
 export * from './src/common/viewer-event-map';
 export * from './src/viewer';
 export * from './src/camera';
+export * from './src/section-box';
 export { EasingType } from './src/navigation/animations';
 
 // Plugins
