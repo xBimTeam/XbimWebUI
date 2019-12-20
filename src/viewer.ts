@@ -37,7 +37,9 @@ export class Viewer {
     public gl: WebGLRenderingContext;
     public glVersion: number;
     public canvas: HTMLCanvasElement;
-    public changed: boolean = false;
+
+    private changed: boolean = true;
+
     /**
      * Switch between different navigation modes for left mouse button. Allowed values: <strong> 'pan', 'zoom', 'orbit' (or 'fixed-orbit') , 'free-orbit' and 'none'</strong>. Default value is <strong>'orbit'</strong>;
      * @member {String} Viewer#navigationMode
@@ -886,7 +888,7 @@ export class Viewer {
     * @function Viewer#set
     * @param {Object} settings - Object containing key - value pairs
     */
-    public set(settings: object): void {
+    public set(settings: Partial<Viewer>): void {
         Object.getOwnPropertyNames(settings).forEach((key) => {
             this[key] = settings[key];
         });
@@ -1982,8 +1984,8 @@ export class Viewer {
 
             if (this._handles.length !== 0 && (this.changed || this.activeHandles.filter((h) => h.changed).length != 0)) {
 
-                this.changed = false;
                 this.draw();
+                this.changed = false;
             }
             this._requestAnimationFrame(tick);
         };
