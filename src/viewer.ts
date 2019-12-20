@@ -28,6 +28,7 @@ import { mat4, vec3, mat3, quat, vec4 } from 'gl-matrix';
 import { PerformanceRating } from './performance-rating';
 import { CameraProperties, CameraType } from './camera';
 import { SectionBox } from './section-box';
+import { BBox } from './common/bbox';
 
 export type NavigationMode = 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none' | 'look-around' | 'walk' | 'look-at';
 
@@ -78,6 +79,14 @@ export class Viewer {
      */
     public get origin(): vec3 { return this._origin; }
     public set origin(value: vec3) { this._origin = value; this.changed = true; }
+
+    /**
+     * Coordinates of the orbit origin in model coordinates (including runtime WCS reduction). This value is
+     * stable over time, independent on the combination of the models.
+     * @member {Number[]} Viewer#originWCS
+     */
+    public get originWCS(): vec3 { return vec3.add(vec3.create(), this._origin, this.getCurrentWcs()); }
+    public set originWCS(value: vec3) { this._origin = vec3.add(vec3.create(), value, this.getCurrentWcs()); this.changed = true; }
 
     /**
      * World matrix
@@ -162,7 +171,16 @@ export class Viewer {
     public get activeHandles() { return this._handles.filter((h) => h != null && !h.stopped && !h.empty); }
 
     private _camera = new CameraProperties(() => { this.changed = true; });
-    private _sectionBox = new SectionBox(() => { this._sectionMatrix = this._sectionBox.matrix; this.changed = true; });
+    private _sectionBox = new SectionBox(() => { 
+        const wcs = this.getCurrentWcs();
+        const region = this.getMergedRegion().bbox;
+        const section = this._sectionBox.getBoundingBox(wcs);
+        if (BBox.areDisjoint(region, section)) {
+            console.warn('Section box is disjoint with the current content');
+        }
+        
+        this.changed = true; 
+    });
     private _width: number;
     private _height: number;
     private _background: number[] = [230, 230, 230, 255];
@@ -172,10 +190,6 @@ export class Viewer {
     private _pMatrix: mat4 = mat4.create();
     private _renderingMode: RenderingMode = RenderingMode.NORMAL;
     private _mvMatrixTimestamp: number = Date.now();
-    private _sectionMatrix = mat4.ortho(mat4.create(),
-        - Number.MAX_VALUE, Number.MAX_VALUE,
-        - Number.MAX_VALUE, Number.MAX_VALUE,
-        - Number.MAX_VALUE, Number.MAX_VALUE);
 
     private _isRunning: boolean = false;
     private _stateStyles: Uint8Array;
@@ -741,6 +755,25 @@ export class Viewer {
     }
 
     /**
+    * 
+    * @function Viewer#getProductBoundingBox
+    * @param {Number} prodID - Product ID. You can get this value either from semantic structure of the model or by listening to {@link Viewer#event:pick pick} event.
+    * @param {Number} [modelId] - Optional Model ID. If not defined first type of a product with certain ID will be returned. This might be ambiguous.
+    * @return {Float32Array} Bounding box of the product in model coordinates (not reduced by current WCS)
+    */
+   public getProductBoundingBox(prodId: number, modelId?: number): Float32Array {
+    return this.forHandleOrAll((handle: ModelHandle) => {
+        const wcs = this.getCurrentWcs();
+        let map = handle.getProductMap(prodId, wcs);
+        if (map) {
+            const bb = map.bBox;
+            // add current WCS displacement
+            return new Float32Array([bb[0] + wcs[0], bb[1] + wcs[1], bb[2]+ wcs[2], bb[3], bb[4], bb[5]]);
+        }
+    }, modelId);
+}
+
+    /**
     * Use this method to set position of camera. Use it after {@link Viewer#setCameraTarget setCameraTarget()} to get desired result.
     * 
     * @function Viewer#setCameraPosition
@@ -756,72 +789,11 @@ export class Viewer {
         this.animations.viewTo({ mv: mv, height: targetHeight }, duration);
     }
 
-    /**
-     * Transforms axis aligned bounding box into current model view and returns width and height
-     * @param bBox Axis aligned bounding box
-     * @param viewDirection Direction of the view
-     * @param upDirection Up direction of the camera
-     */
-    private getSizeInView(bBox: number[] | Float32Array, viewDirection: vec3, upDirection: vec3): { width: number, height: number, depth: number } {
-        // http://dev.theomader.com/transform-bounding-boxes/
 
-        // create transformation matrix from direction
-        viewDirection = vec3.normalize(vec3.create(), viewDirection);
-        upDirection = vec3.normalize(vec3.create(), upDirection);
-        const moveDirection = vec3.negate(vec3.create(), viewDirection);
-        const boxSize = Math.max(bBox[3], bBox[4], bBox[5]);
-        const boxPosition = vec3.fromValues(bBox[0] + bBox[3] / 2.0, bBox[1] + bBox[4] / 2.0, bBox[2] + bBox[5] / 2.0)
-        const move = vec3.scale(vec3.create(), moveDirection, boxSize);
-        const eye = vec3.add(vec3.create(), boxPosition, move);
-
-        const m = mat4.lookAt(mat4.create(), eye, boxPosition, upDirection);
-
-        const right = Array.prototype.slice.call(m.slice(0, 3));
-        const up = Array.prototype.slice.call(m.slice(4, 7));
-        const back = Array.prototype.slice.call(m.slice(8, 11));
-
-        const xa = vec3.scale(vec3.create(), right, bBox[0]);
-        const xb = vec3.scale(vec3.create(), right, (bBox[0] + bBox[3]));
-
-        const ya = vec3.scale(vec3.create(), up, bBox[1]);
-        const yb = vec3.scale(vec3.create(), up, (bBox[1] + bBox[4]));
-
-        const za = vec3.scale(vec3.create(), back, bBox[2]);
-        const zb = vec3.scale(vec3.create(), back, (bBox[2] + bBox[5]));
-
-
-        const min1 = vec3.min(vec3.create(), xa, xb);
-        const min2 = vec3.min(vec3.create(), ya, yb);
-        const min3 = vec3.min(vec3.create(), za, zb);
-
-        const max1 = vec3.max(vec3.create(), xa, xb);
-        const max2 = vec3.max(vec3.create(), ya, yb);
-        const max3 = vec3.max(vec3.create(), za, zb);
-
-        const min = [
-            min1[0] + min2[0] + min3[0],
-            min1[1] + min2[1] + min3[1],
-            min1[2] + min2[2] + min3[2]
-        ]
-
-        const max = [
-            max1[0] + max2[0] + max3[0],
-            max1[1] + max2[1] + max3[1],
-            max1[2] + max2[2] + max3[2]
-        ]
-
-        const size = vec3.sub(vec3.create(), max, min);
-
-        return {
-            width: size[0] * 1.0, // X => width
-            height: size[1] * 1.0,  // Y => height
-            depth: size[2]
-        };
-    }
 
     //helper function for setting of the distance based on camera field of view and size of the product's bounding box
     public getDistanceAndHeight(bBox: number[] | Float32Array, viewDirection: vec3, upDirection: vec3): { distance: number, height: number } {
-        const sizes = this.getSizeInView(bBox, viewDirection, upDirection);
+        const sizes = BBox.getSizeInView(bBox, viewDirection, upDirection);
         const subjectRatio = sizes.width / sizes.height;
 
         //set ratio to 1 if the viewer has no size (for example if canvas is not added to DOM yet)
@@ -858,8 +830,8 @@ export class Viewer {
     */
     public setCameraTarget(prodId?: number, modelId?: number): number[] | Float32Array {
         //set navigation origin and default distance to the product BBox
+        const wcs = this.getCurrentWcs();
         if (prodId != null) {
-            const wcs = this.getCurrentWcs();
             //get product BBox and set it's centre as a navigation origin
             let bbox = this.forHandleOrAll((handle: ModelHandle) => {
                 let map = handle.getProductMap(prodId, wcs);
@@ -879,8 +851,17 @@ export class Viewer {
         //from all models which are not stopped at the moment
         let region = this.getMergedRegion();
         if (region && region.population > 0) {
-            this.origin = vec3.fromValues(region.centre[0], region.centre[1], region.centre[2]);
-            return region.bbox;
+            let bbox: number[] | Float32Array = region.bbox;
+            if (this.sectionBox.isSet) {
+                // if section box is set, return intersection of the section box and region bounding box
+                bbox = BBox.intersection(region.bbox, this.sectionBox.getBoundingBox(wcs));
+                if (bbox == null) {
+                    console.debug('View will be empty because section box and actual content region are disjoint');
+                    return null;
+                }
+            }
+            this.origin = vec3.fromValues(bbox[0] + bbox[3] / 2.0, bbox[1] + bbox[4] / 2.0, bbox[2] + bbox[5] / 2.0);
+            return bbox;
         }
 
         return null;
@@ -1306,8 +1287,8 @@ export class Viewer {
         return wcs;
     }
     /**
-    * This is a static draw method. You can use it if you just want to render model once with no navigation and interaction.
-    * If you want interactive model call {@link Viewer#start start()} method. {@link Viewer#frame Frame event} is fired when draw call is finished.
+    * This is the main draw method. You can use it if you just want to render model once with no navigation and interaction.
+    * If you want interactive model, call {@link Viewer#start start()} method. {@link Viewer#frame Frame event} is fired when draw call is finished.
     * @function Viewer#draw
     * @fires Viewer#frame
     */
@@ -1366,7 +1347,8 @@ export class Viewer {
         // gamma, contrast and brightness are passed through in a single vector
         gl.uniform3fv(this._gammaContrastBrightnessUniform, new Float32Array([this.gamma, this.contrast, this.brightness]));
 
-        gl.uniformMatrix4fv(this._sectionBoxUniform, false, this._sectionMatrix);
+        // set section box matrix to be used to clip the model by the box
+        gl.uniformMatrix4fv(this._sectionBoxUniform, false, this.sectionBox.getMatrix(wcs));
 
         //use normal colour representation (1 would cause shader to use colour coding of IDs)
         gl.uniform1i(this._colorCodingUniformPointer, ColourCoding.NONE);
@@ -1540,7 +1522,7 @@ export class Viewer {
     public zoomTo(id?: number, model?: number, withAnimation: boolean = true): Promise<void> {
         var bBox = this.setCameraTarget(id, model);
         if (bBox == null) {
-            return new Promise<void>((a, r) => r());
+            return new Promise<void>((a, r) => r('There is no content to zoom to'));
         }
 
         const origin = vec3.fromValues(bBox[0] + bBox[3] / 2.0, bBox[1] + bBox[4] / 2.0, bBox[2] + bBox[5] / 2.0);

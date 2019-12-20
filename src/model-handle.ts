@@ -5,6 +5,7 @@ import { Product } from "./product-inheritance";
 import { Message, MessageType } from "./common/message";
 import { vec3 } from "gl-matrix";
 import { ProductMap } from "./common/product-map";
+import { BBox } from "./common/bbox";
 
 //this class holds pointers to textures, uniforms and data buffers which
 //make up a model in GPU
@@ -69,29 +70,15 @@ export class ModelHandle {
                 return null;
             }
             // aggregated bounding box
-            const bb = maps.reduce((prev: Float32Array, curr: ProductMap, idx: number, arr: ProductMap[]) => {
+            const bb = maps.reduce((prev: Float32Array, curr: ProductMap) => {
                 if (prev == null) {
                     return curr.bBox;
                 }
-
-                let x = Math.min(prev[0], curr.bBox[0]);
-                let y = Math.min(prev[1], curr.bBox[1]);
-                let z = Math.min(prev[2], curr.bBox[2]);
-
-                let x2 = Math.max(prev[0] + prev[3], curr.bBox[0] + curr.bBox[3]);
-                let y2 = Math.max(prev[1] + prev[4], curr.bBox[1] + curr.bBox[4]);
-                let z2 = Math.max(prev[2] + prev[5], curr.bBox[2] + curr.bBox[5]);
-
-                let sx = x2 - x;
-                let sy = y2 - y;
-                let sz = z2 - z;
-
-                return new Float32Array([x, y, z, sx, sy, sz]);
-
+                return BBox.union(prev, curr.bBox);
             }, null);
             result = new Region();
             result.population = maps.length;
-            result.bbox = bb;
+            result.bbox = new Float32Array(bb);
             result.centre = new Float32Array([
                 bb[0] + bb[3] / 2.0,
                 bb[1] + bb[4] / 2.0,

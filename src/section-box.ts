@@ -13,7 +13,15 @@ export class SectionBox {
 
     constructor(onChange: () => void) {
         this.setToInfinity();
-        this._onChange = onChange || (() => { });
+        this._onChange = () => {
+            // clear any cached objects
+            this._lastWcs = null;
+            this._lastBBox = null;
+
+            if (onChange) {
+                onChange();
+            }
+        };
     }
 
     public get location(): vec3 { return this._location; }
@@ -35,14 +43,17 @@ export class SectionBox {
     /**
      * Matrix representation of this box. Can be used for simple test of points.
      */
-    public get matrix(): mat4 {
+    public getMatrix(wcs: vec3): mat4 {
         let trans = mat4.create();
         trans = mat4.rotateX(mat4.create(), trans, - this.rotationX / 180.0 * Math.PI);
         trans = mat4.rotateY(mat4.create(), trans, - this.rotationY / 180.0 * Math.PI);
         trans = mat4.rotateZ(mat4.create(), trans, - this.rotationZ / 180.0 * Math.PI);
 
+        // move location to defined WCS (reduce)
+        const location = vec3.subtract(vec3.create(), this.location, wcs)
+
         // translation is to be applied as the last transformation
-        var move = vec3.scale(vec3.create(), this.location, -1.0);
+        var move = vec3.scale(vec3.create(), location, -1.0);
         trans = mat4.translate(mat4.create(), trans, move);
 
         var projection = mat4.ortho(mat4.create(),
@@ -52,6 +63,13 @@ export class SectionBox {
         );
 
         return mat4.multiply(mat4.create(), projection, trans);
+    }
+
+    /**
+     * True when section box is set, false otherwise
+     */
+    public get isSet(): boolean {
+        return Number.isFinite(this._lengthX);
     }
 
     /**
@@ -67,7 +85,7 @@ export class SectionBox {
     public setToInfinity(): void {
         this._location = vec3.fromValues(0, 0, 0);
         this._rotationX = this._rotationY = this._rotationZ = 0.0;
-        this._lengthX = this._lengthY = this._lengthZ = Number.MAX_VALUE;
+        this._lengthX = this._lengthY = this._lengthZ = Number.POSITIVE_INFINITY;
 
         if (this._onChange)
             this._onChange();
@@ -85,6 +103,18 @@ export class SectionBox {
         this._rotationX = box._rotationX;
         this._rotationY = box._rotationY;
         this._rotationZ = box._rotationZ;
+
+        if (this._onChange) this._onChange();
+    }
+
+    public setToBoundingBox(box: ArrayLike<number>) {
+        this._location = vec3.fromValues(box[0] + box[3] / 2.0, box[1] + box[4] / 2.0, box[2] + box[5] / 2.0);
+        this._lengthX = box[3];
+        this._lengthY = box[4];
+        this._lengthZ = box[5];
+        this._rotationX = 0;
+        this._rotationY = 0;
+        this._rotationZ = 0;
 
         if (this._onChange) this._onChange();
     }
@@ -262,5 +292,67 @@ export class SectionBox {
     private areOrthogonal(a: ClippingPlane, b: ClippingPlane): boolean {
         var angle = vec3.angle(a.direction, b.direction);
         return Math.abs(angle - Math.PI / 2.0) < 1e-6;
+    }
+
+    private _lastWcs: vec3;
+    private _lastBBox: Float32Array;
+
+    /**
+     * Returns bounding box of the section box. This is usefull for
+     * zooming and similar operations
+     */
+    public getBoundingBox(wcs: vec3): Float32Array {
+        // return cached value if available and if WCS hasn't changed
+        if (this._lastBBox && this._lastWcs && vec3.distance(this._lastWcs, wcs) < 1e-6) {
+            return this._lastBBox;
+        }
+
+        const dx = this.lengthX / 2.0;
+        const dy = this.lengthY / 2.0;
+        const dz = this.lengthZ / 2.0;
+
+        //create box vertices in local coordinates
+        const local = [
+            [- dx, - dy, - dz],
+            [- dx, - dy, + dz],
+            [- dx, + dy, - dz],
+            [- dx, + dy, + dz],
+            [+ dx, - dy, - dz],
+            [+ dx, - dy, + dz],
+            [+ dx, + dy, - dz],
+            [+ dx, + dy, + dz]
+        ];
+
+        // reduce by wcs displacement
+        const loc = vec3.subtract(vec3.create(), this.location, wcs);
+
+        // create transformation from rotation and translation
+        let m = mat4.create();
+        m = mat4.rotateX(mat4.create(), m, this.rotationX * Math.PI / 180.0);
+        m = mat4.rotateY(mat4.create(), m, this.rotationY * Math.PI / 180.0);
+        m = mat4.rotateZ(mat4.create(), m, this.rotationZ * Math.PI / 180.0);
+        m = mat4.translate(mat4.create(), m, loc);
+
+        // transform section box vertices to real placement and rotation
+        const vertices = local.map(v => vec3.transformMat4(vec3.create(), v, m));
+
+        // get minimumm and maximum coordinates
+        const min = vertices.reduce((previous, current) =>
+            vec3.fromValues(
+                Math.min(previous[0], current[0]),
+                Math.min(previous[1], current[1]),
+                Math.min(previous[2], current[2])
+            ));
+        const max = vertices.reduce((previous, current) =>
+            vec3.fromValues(
+                Math.max(previous[0], current[0]),
+                Math.max(previous[1], current[1]),
+                Math.max(previous[2], current[2])
+            ));
+
+        // return axis aligned bounding box of the section box
+        this._lastWcs = wcs;
+        this._lastBBox = new Float32Array([min[0], min[1], min[2], max[0] - min[0], max[1] - min[1], max[2] - min[2]]);
+        return this._lastBBox;
     }
 }

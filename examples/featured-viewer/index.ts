@@ -275,10 +275,12 @@ window['clipBox'] = () => {
     ];
 
     viewer.sectionBox.setToPlanes(planes);
+    viewer.zoomTo();
 };
 
 window['releaseClipBox'] = () => {
     viewer.sectionBox.clear();
+    viewer.zoomTo();
 };
 
 // restore init script if any is saved
