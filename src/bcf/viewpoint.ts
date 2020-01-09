@@ -88,7 +88,9 @@ export class Viewpoint {
                 camera_direction: toArray(viewer.getCameraDirection()),
                 camera_up_vector: toArray(viewer.getCameraHeading()),
                 camera_view_point: toArray(viewer.getCameraPositionWcs()),
-                field_of_view: viewer.cameraProperties.fov
+                field_of_view: viewer.cameraProperties.fov,
+                height: viewer.cameraProperties.height,
+                width: viewer.cameraProperties.height * aspect
             };
         } else {
             // width of view in meters
@@ -98,7 +100,9 @@ export class Viewpoint {
                 camera_direction: toArray(viewer.getCameraDirection()),
                 camera_up_vector: toArray(viewer.getCameraHeading()),
                 camera_view_point: toArray(viewer.getCameraPositionWcs()),
-                view_to_world_scale: viewportHeight / modelHeight
+                view_to_world_scale: viewportHeight / modelHeight,
+                height: viewer.cameraProperties.height,
+                width: viewer.cameraProperties.height * aspect
             }
         }
 
@@ -127,19 +131,27 @@ export class Viewpoint {
         };
 
         const wcs = viewer.getCurrentWcs();
+        const aspect = viewer.width / viewer.height;
 
-        let camViewPoint = viewpoint.perspective_camera != null ?
-            viewpoint.perspective_camera.camera_view_point :
-            viewpoint.orthogonal_camera.camera_view_point;
-        let camDir = viewpoint.perspective_camera != null ?
-            viewpoint.perspective_camera.camera_direction :
-            viewpoint.orthogonal_camera.camera_direction;
-        let camUpDir = viewpoint.perspective_camera != null ?
-            viewpoint.perspective_camera.camera_up_vector :
-            viewpoint.orthogonal_camera.camera_up_vector;
+        // common camera properties
+        const camera: {
+            camera_view_point: number[],
+            camera_direction: number[],
+            camera_up_vector: number[],
+            width: number,
+            height: number
+        } = viewpoint.perspective_camera || viewpoint.orthogonal_camera;
+
+        if (camera == null) {
+            return;
+        }
+
+        let camViewPoint = camera.camera_view_point;
+        let camDir = camera.camera_direction;
+        let camUpDir = camera.camera_up_vector;
 
         const eyeWcs = toVec3(camViewPoint);
-        const eye = vec3.subtract(vec3.create(), eyeWcs, wcs);
+        let eye = vec3.subtract(vec3.create(), eyeWcs, wcs);
         const dir = toVec3(camDir);
         const target = vec3.add(vec3.create(), eye, dir);
         let up = toVec3(camUpDir) || vec3.fromValues(0, 0, 1);
@@ -156,24 +168,47 @@ export class Viewpoint {
             }
         }
 
+        let isPositiveNumber = (v: number) => {
+            return v != null && typeof (v) === 'number' && v > 0;
+        };
+
         // set camera type and properties
         let orthCamHeight = viewer.cameraProperties.height;
         if (viewpoint.perspective_camera) {
-            viewer.camera = CameraType.PERSPECTIVE;            
-            if (viewpoint.perspective_camera.field_of_view != null && viewpoint.perspective_camera.field_of_view > 0) {
+            viewer.camera = CameraType.PERSPECTIVE;
+            if (isPositiveNumber(viewpoint.perspective_camera.field_of_view)) {
                 viewer.cameraProperties.fov = viewpoint.perspective_camera.field_of_view;
             }
         }
-        if (viewpoint.orthogonal_camera) {
+        else if (viewpoint.orthogonal_camera) {
             viewer.camera = CameraType.ORTHOGONAL;
-            if (viewpoint.orthogonal_camera.view_to_world_scale != null && viewpoint.orthogonal_camera.view_to_world_scale > 0) {
+            if (isPositiveNumber(viewpoint.orthogonal_camera.view_to_world_scale)) {
                 const scale = viewpoint.orthogonal_camera.view_to_world_scale;
                 const viewportHeight = viewer.height / Viewpoint.resolution;
                 const modelHeight = viewportHeight / scale;
                 orthCamHeight = modelHeight * viewer.unitsInMeter;
             }
         }
-        
+
+        // use width and height if available to set perspective and adjust ratio
+        if (isPositiveNumber(camera.width) && isPositiveNumber(camera.height)) {
+            let h = camera.height;
+            const w = camera.width;
+            const a = w / h;
+            // fix to fit the screen
+            if (a > aspect) {
+                // adjust distance - move eye more far away from the subject
+                const fov = viewer.cameraProperties.fov * Math.PI / 180.0;
+                const delta = h * (a / aspect - 1.0) / (2.0 * Math.tan(fov / 2.0));
+                const deltaDir = vec3.negate(vec3.create(), vec3.normalize(vec3.create(), dir));
+                const deltaTrans = vec3.scale(vec3.create(), deltaDir, delta);
+                eye = vec3.add(vec3.create(), eye, deltaTrans);
+                // adjust perspective camera height
+                h = h * a / aspect;
+            }
+            orthCamHeight = h;
+        }
+
         // set camera (MV matrix)
         const mv = mat4.lookAt(mat4.create(), eye, target, up);
         viewer.animations.viewTo({ mv: mv, height: orthCamHeight }, duration);

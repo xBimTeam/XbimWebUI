@@ -54,8 +54,9 @@ export class Animations {
     }
 
     private static viewQueue: Array<{ mv: mat4, height: number }> = [];
+
     /**
-     * Animates transition from the current view to target view
+     * Animates transition from the current view to target view. Animations are queued and execuded in sequence.
      * 
      * @param end Target model view matrix
      * @param duration Duration of the transition in milliseconds
@@ -72,8 +73,10 @@ export class Animations {
 
             let start: { mv: mat4, height: number } = null; 
             if (Animations.viewQueue.length > 0) {
+                // use last animation as a start to create a smooth animation
                 start = Animations.viewQueue[Animations.viewQueue.length - 1];
             } else {
+                // nothing on the queue, just use the current values
                 start = {
                     mv: mat4.copy(mat4.create(), this.viewer.mvMatrix),
                     height: this.viewer.cameraProperties.height
@@ -86,11 +89,13 @@ export class Animations {
                 return;
             }
 
+            // decompose the start matrix
             let startRotation: quat = mat4.getRotation(quat.create(), start.mv);
             let startScale: vec3 = mat4.getScaling(vec3.create(), start.mv);
             let startTranslation: vec3 = mat4.getTranslation(vec3.create(), start.mv);
             let startTime: number = null;
 
+            // decompose final matrix
             let endRotation = mat4.getRotation(quat.create(), end.mv);
             let endScale = mat4.getScaling(vec3.create(), end.mv);
             let endTranslation = mat4.getTranslation(vec3.create(), end.mv);
@@ -105,11 +110,14 @@ export class Animations {
                 if (startTime == null) { startTime = Date.now(); }
                 const now = Date.now();
                 if (now < (startTime + duration)) {
+
+                    // linear interpolation of the state
                     let state = (now - startTime) / duration;
 
                     // apply easing in and out
                     switch (easing) {
                         case EasingType.LINEAR:
+                            // linear is the default
                             break;
                         case EasingType.CIRCLE:
                             state = this.getCircleEasing(state);
@@ -125,17 +133,20 @@ export class Animations {
                             break;
                     }
 
+                    // interpolate transformation components
                     let rotation = quat.slerp(quat.create(), startRotation, endRotation, state);
                     let scale = vec3.lerp(vec3.create(), startScale, endScale, state);
                     let translation = vec3.lerp(vec3.create(), startTranslation, endTranslation, state);
+                    // interpolate orthogonal view height
                     let heightDelta = (end.height - start.height) * state;
 
+                    // recompose the matrix
                     let mv = mat4.fromRotationTranslationScaleOrigin(mat4.create(), rotation, translation, scale, vec3.create());
                     this.viewer.mvMatrix = mv;
                     this.viewer.cameraProperties.height = start.height + heightDelta;
 
                     this.requestAnimationFrame(step);
-                } else { // set exact value, remove from the queue and quit
+                } else { // set exact value, remove from the queue and resolve promise
                     this.viewer.mvMatrix = end.mv;
                     this.viewer.cameraProperties.height = end.height;
                     Animations.viewQueue.shift();
@@ -208,8 +219,10 @@ export class Animations {
                 if (Animations.zoomQueue[0] != end) {
                     // check we are in the queue
                     var exist = Animations.zoomQueue.filter(m => m == end).pop() != null;
-                    if (!exist)
+                    if (!exist) {
+                        reject('Zoom step was removed from the queue');
                         return;
+                    }
 
                     // not our run, just wait, try again later
                     this.requestAnimationFrame(step);
@@ -220,7 +233,7 @@ export class Animations {
                     startTime = Date.now();
                 const now = Date.now();
                 if (now < (startTime + duration)) {
-
+                    // we always use linear interpolation for zoom because it needs to be smooth when executed in sequence
                     let state = (now - startTime) / duration;
                     let translation = vec3.lerp(vec3.create(), vec3.create(), endTranslation, state);
                     let delta = deltaHeight * state;

@@ -88,7 +88,7 @@ export class Viewer {
      * @member {Number[]} Viewer#originWCS
      */
     public get originWCS(): vec3 { return vec3.add(vec3.create(), this._origin, this.getCurrentWcs()); }
-    public set originWCS(value: vec3) { this._origin = vec3.add(vec3.create(), value, this.getCurrentWcs()); this.changed = true; }
+    public set originWCS(value: vec3) { this._origin = vec3.subtract(vec3.create(), value, this.getCurrentWcs()); this.changed = true; }
 
     /**
      * World matrix
@@ -103,6 +103,7 @@ export class Viewer {
      */
     public get pMatrix(): mat4 { return this._pMatrix; }
     public set pMatrix(value: mat4) { this._pMatrix = value; this.changed = true; }
+
     /**
      * Switch between different rendering modes.
      * @member {String} Viewer#renderingMode
@@ -177,7 +178,7 @@ export class Viewer {
         const wcs = this.getCurrentWcs();
         const region = this.getMergedRegion().bbox;
         const section = this._sectionBox.getBoundingBox(wcs);
-        if (BBox.areDisjoint(region, section)) {
+        if (region != null && section != null && BBox.areDisjoint(region, section)) {
             console.warn('Section box is disjoint with the current content');
         }
         

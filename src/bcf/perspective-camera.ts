@@ -18,4 +18,14 @@ export class PerspectiveCamera {
      * field of view
      */
     public field_of_view: number;
+
+    /**
+     * Extension to BCF: Width of the viewport in the model space
+     */
+    public width: number;
+
+    /**
+     * Extension to BCF: Height of the viewport in the model space
+     */
+    public height: number;
 }

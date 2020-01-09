@@ -17,7 +17,7 @@ export class BBox {
     }
 
     public static intersection(a: ArrayLike<number>, b: ArrayLike<number>): number[] {
-        if (BBox.areDisjoint(a, b))
+        if (a == null || b == null || BBox.areDisjoint(a, b))
             return null;
 
         const minA = [a[0], a[1], a[2]];
@@ -38,6 +38,9 @@ export class BBox {
      * @returns {boolean} Returns true when bounding boxes are disjoint
      */
     public static areDisjoint(a: ArrayLike<number>, b: ArrayLike<number>): boolean {
+        if (a == null || b == null)
+            throw new Error('Bounding box is not defined');
+
         const minA = [a[0], a[1], a[2]];
         const minB = [b[0], b[1], b[2]];
         const maxA = [a[0] + a[3], a[1] + a[4], a[2] + a[5]];
