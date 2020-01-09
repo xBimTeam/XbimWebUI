@@ -1,7 +1,7 @@
 import { vec3 } from "gl-matrix";
 
 // tslint:disable-next-line: interface-name
-export interface ViewerEventMap {
+export interface ViewerInteractionEventMap {
     "click": ViewerInteractionEvent;
     "contextmenu": ViewerInteractionEvent;
     "dblclick": ViewerInteractionEvent;
@@ -36,7 +36,10 @@ export interface ViewerEventMap {
     "pointerup": ViewerInteractionEvent;
     "wheel": ViewerInteractionEvent;
     "pick": ViewerInteractionEvent;
+}
 
+// tslint:disable-next-line: interface-name
+export interface ViewerEventMap extends ViewerInteractionEventMap {
     "fps": number;
     "loaded": ViewerLoadedEvent;
     "unloaded": ViewerLoadedEvent;

@@ -2,7 +2,14 @@ import { Viewer, Product, State, ViewType, RenderingMode, ProductType, Navigatio
 import { Viewpoint } from '../../src/bcf';
 import { CameraType } from '../../src/camera';
 
-var viewer = new Viewer("viewer");
+const viewer = new Viewer("viewer");
+const cube = new NavigationCube();
+cube.ratio = 0.05;
+cube.stopped = false;
+cube.passiveAlpha = 1.0;
+cube.trueNorth = 30;
+viewer.addPlugin(cube);
+
 function baseToBlob(data: string): Blob {
     // convert base64 to raw binary data held in a string
     // doesn't handle URLEncoded DataURIs - see SO answer #6850276 for code that does this

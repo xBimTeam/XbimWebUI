@@ -4,8 +4,7 @@ import { cube_fshader } from "./cube_fshader";
 import { cube_vshader } from "./cube_vshader";
 import { CubeTextures } from "./navigation-cube-textures";
 import { ProductIdentity } from "../../common/product-identity";
-import { vec3, mat4, mat3 } from "gl-matrix";
-import { Animations } from "../../navigation/animations";
+import { vec3, mat4, mat3, quat } from "gl-matrix";
 import { Framebuffer } from "../../framebuffer";
 
 
@@ -76,6 +75,20 @@ export class NavigationCube implements IPlugin {
     * @member {Number} NavigationCube#ratio
     */
     public ratio = 0.15;
+
+
+    /**
+     * Minimum size of the cube when scaling the view. Default is 50px
+     * @member {Number} NavigationCube#minSize
+     */
+    public minSize = 50;
+
+    /**
+     * Maximum size of the cube when scaling the view. Default is 200px
+     * @member {Number} NavigationCube#maxSize
+     */
+    public maxSize = 200;
+
     /**
     * Active parts of the navigation cube are highlighted so that user can recognize which part is active. 
     * This should be a positive number between [0,2]. If the value is less than 1 active area is darker.
@@ -106,6 +119,12 @@ export class NavigationCube implements IPlugin {
     * @member {Enum} NavigationCube#position
     */
     public position = this.BOTTOM_RIGHT;
+
+    /**
+     * True north correction to be applied to navigation cube both for visualization and for navigation. Value should be in degrees. Default is 0.
+     * @member {Enum} NavigationCube#trueNorth
+     */
+    public trueNorth: number = 0;
 
     /**
     * Set this to true to stop rendering of this plugin
@@ -341,25 +360,29 @@ export class NavigationCube implements IPlugin {
 
             const id = this.getId(idArg);
             let dir = vec3.create();
+            let heading: vec3 = vec3.fromValues(0, 0, 1);
+
             switch (id) {
                 case this.TOP:
-                    this.viewer.show(ViewType.TOP);
-                    return true;
+                    dir = vec3.fromValues(0, 0, 1);
+                    heading = vec3.fromValues(0, 1, 0);
+                    break;
                 case this.BOTTOM:
-                    this.viewer.show(ViewType.BOTTOM);
-                    return true;
-                case this.LEFT:
-                    this.viewer.show(ViewType.LEFT);
-                    return true;
-                case this.RIGHT:
-                    this.viewer.show(ViewType.RIGHT);
-                    return true;
+                    dir = vec3.fromValues(0, 0, -1);
+                    heading = vec3.fromValues(0, -1, 0);
+                    break;
                 case this.FRONT:
-                    this.viewer.show(ViewType.FRONT);
-                    return true;
+                    dir = vec3.fromValues(0, -1, 0);
+                    break;
                 case this.BACK:
-                    this.viewer.show(ViewType.BACK);
-                    return true;
+                    dir = vec3.fromValues(0, 1, 0);
+                    break;
+                case this.LEFT:
+                    dir = vec3.fromValues(-1, 0, 0);
+                    break;
+                case this.RIGHT:
+                    dir = vec3.fromValues(1, 0, 0);
+                    break;
                 case this.TOP_LEFT_FRONT:
                     dir = vec3.fromValues(-1, -1, 1);
                     break;
@@ -426,17 +449,24 @@ export class NavigationCube implements IPlugin {
 
             const bbox = viewer.setCameraTarget();
             const origin = vec3.fromValues(bbox[0] + bbox[3] / 2.0, bbox[1] + bbox[4] / 2.0, bbox[2] + bbox[5] / 2.0);
-            const heading = vec3.fromValues(0, 0, 1);
+            dir = vec3.normalize(vec3.create(), dir);
+
+            // fix to true north if needed
+            if (this.trueNorth != 0) {
+                const angle = -this.trueNorth * Math.PI / 180.0;
+                const rotation = quat.rotateZ(quat.create(), quat.create(), angle);
+                dir = vec3.transformQuat(vec3.create(), dir, rotation);
+                heading = vec3.transformQuat(vec3.create(), heading, rotation);
+            }
 
             const widthAndDistance = viewer.getDistanceAndHeight(bbox, dir, heading);
 
-            dir = vec3.normalize(vec3.create(), dir);
-            var shift = vec3.scale(vec3.create(), dir, widthAndDistance.distance);
-            var camera = vec3.add(vec3.create(), origin, shift);
+            const shift = vec3.scale(vec3.create(), dir, widthAndDistance.distance);
+            const camera = vec3.add(vec3.create(), origin, shift);
 
-            //use look-at function to set up camera and target
-            const mv = mat4.lookAt(mat4.create(), camera, origin, heading);
-            this.viewer.animations.viewTo({mv: mv, height: widthAndDistance.height}, this.viewer.zoomDuration);
+            // use look-at function to set up camera and target
+            let mv = mat4.lookAt(mat4.create(), camera, origin, heading);
+            this.viewer.animations.viewTo({ mv: mv, height: widthAndDistance.height }, this.viewer.zoomDuration);
         });
 
         this._initialized = true;
@@ -525,10 +555,10 @@ export class NavigationCube implements IPlugin {
     }
 
     private isInRegion(x: number, y: number) {
-        let minX = this._region[0] * this.viewer.width;
-        let maxX = this._region[2] * this.viewer.width;
-        let minY = this._region[1] * this.viewer.height;
-        let maxY = this._region[3] * this.viewer.height;
+        const minX = this._region[0] * this.viewer.width;
+        const maxX = this._region[2] * this.viewer.width;
+        const minY = this._region[1] * this.viewer.height;
+        const maxY = this._region[3] * this.viewer.height;
 
         return !(x < minX || x > maxX || y < minY || y > maxY);
     }
@@ -542,15 +572,29 @@ export class NavigationCube implements IPlugin {
             return;
         }
 
-        var gl = this.viewer.gl;
+        const gl = this.viewer.gl;
+
+        const minDim = Math.min(viewerWidth, viewerHeight);
+        const minRatio = this.minSize / minDim;
+        const maxRatio = this.maxSize / minDim;
+        let ratio = this.ratio;
+        if (ratio < minRatio) {
+            ratio = minRatio;
+        } else if (ratio > maxRatio) {
+            ratio = maxRatio;
+        }
 
         //set navigation data from Viewer to this shader
-        var pMatrix = mat4.create();
-        var height = 1.0 / this.ratio;
-        var width = height / viewerHeight * viewerWidth;
+        let pMatrix = mat4.create();
+        let height = 1.0 / ratio;
+        let width = height / viewerHeight * viewerWidth;
+        if (viewerHeight > viewerWidth) {
+            width = 1.0 / ratio;
+            height = width / viewerWidth * viewerHeight;
+        }
 
-        var regionX = this.ratio * viewerHeight / viewerWidth * 2.0;
-        var regionY = this.ratio * 2.0;
+        var regionX = ratio * viewerHeight / viewerWidth * 2.0;
+        var regionY = ratio * 2.0;
 
         //create orthogonal projection matrix
         switch (this.position) {
@@ -598,9 +642,17 @@ export class NavigationCube implements IPlugin {
         }
 
         //extract just a rotation from model-view matrix
-        var rotation = mat3.fromMat4(mat3
+        let rotation = mat3.fromMat4(mat3
             .create(),
             this.viewer.mvMatrix);
+
+        // adjust to true north if needed
+        if (this.trueNorth != 0) {
+            const angle = -this.trueNorth * Math.PI / 180.0;
+            const northRotation = mat3.fromRotation(mat3.create(), angle);
+            rotation = mat3.multiply(mat3.create(), rotation, northRotation);
+        }
+
         gl.uniformMatrix4fv(this._pMatrixUniformPointer, false, pMatrix);
         gl.uniformMatrix3fv(this._rotationUniformPointer, false, rotation);
         gl.uniform1f(this._alphaUniformPointer, this._alpha);

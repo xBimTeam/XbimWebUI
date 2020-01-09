@@ -17,7 +17,7 @@ import { WebGLUtils } from './common/webgl-utils';
 import { Message, MessageType } from './common/message';
 import { ProductIdentity } from './common/product-identity';
 import { IPlugin } from './plugins/plugin';
-import { ViewerEventMap } from './common/viewer-event-map';
+import { ViewerEventMap, ViewerInteractionEventMap } from './common/viewer-event-map';
 import { MouseNavigation } from './navigation/mouse-navigation';
 import { KeyboardNavigation } from './navigation/keyboard-navigation';
 import { TouchNavigation } from './navigation/touch-navigation';
@@ -813,12 +813,11 @@ export class Viewer {
             width = height * viewRatio;
         }
 
-        height = height * 1.2; // make it little bit more far away so there is some space around the model
-        const distance = height / (Math.tan(this.cameraProperties.fov * Math.PI / 180.0 / 2.0) * 2.0);
+        const distance = height / (Math.tan(this.cameraProperties.fov * Math.PI / 180.0 / 2.0) * 2.0) + sizes.depth / 2.0;
 
         return {
             distance: distance,
-            height: height
+            height: height * 1.2 // make it little bit more far away so there is some space around the model
         };
     };
 
@@ -1587,10 +1586,10 @@ export class Viewer {
                 viewDirection = vec3.fromValues(0, -1, 0);
                 break;
             case ViewType.LEFT:
-                viewDirection = vec3.fromValues(-1, 0, 0);
+                viewDirection = vec3.fromValues(1, 0, 0);
                 break;
             case ViewType.RIGHT:
-                viewDirection = vec3.fromValues(1, 0, 0);
+                viewDirection = vec3.fromValues(-1, 0, 0);
                 break;
             case ViewType.DEFAULT:
                 viewDirection = vec3.normalize(vec3.create(), [1, 1, -1]);
@@ -2149,23 +2148,26 @@ export class Viewer {
         }
         events[eventName].push(handler);
 
+        // check if this should be a proxy for the canvas event
         const domEvtName = `on${eventName}`;
-        const isCanvEvt = (typeof (this.canvas[domEvtName]) !== 'undefined');
-        if (!isCanvEvt) {
+        if (!(typeof (this.canvas[domEvtName]) !== 'undefined')) {
             return;
         }
+
+        // we should only have one listener for any type of event to proxy the events
         const hasListener = this._canvasListeners[eventName] != null;
         if (hasListener) {
             return;
         }
         // bind to canvas events as a proxy dispatcher
         const listener = (event: Event) => {
+            const eName = eventName as keyof ViewerInteractionEventMap;
             // only forward mouse and touch events where we can enrich the event
             // with product and model ID from the model
             if (event instanceof MouseEvent) {
                 let data = this.getEventDataFromEvent(event as MouseEvent);
                 if (data != null) {
-                    this.fire(eventName, { event: event, id: data.id, model: data.model, xyz: data.xyz });
+                    this.fire(eName, { event: event, id: data.id, model: data.model, xyz: data.xyz });
                 }
                 return;
             }
@@ -2173,11 +2175,12 @@ export class Viewer {
                 // get ID from the last touch
                 let data = this.getEventDataFromEvent(event.touches[event.touches.length - 1]);
                 if (data != null) {
-                    this.fire(eventName, { event: event, id: data.id, model: data.model, xyz: data.xyz });
+                    this.fire(eName, { event: event, id: data.id, model: data.model, xyz: data.xyz });
                 }
                 return;
             }
         };
+        // add a proxy listener
         this.canvas.addEventListener(eventName, listener);
         // keep the reference to the listener so we can remove it when not needed any more
         this._canvasListeners[eventName] = listener;
