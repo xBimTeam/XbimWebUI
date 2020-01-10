@@ -116,10 +116,34 @@ export class Viewpoint {
         };
 
         // capture current clipping planes: We may have different clipping planes for different submodels
+        const planes = viewer.getClip();
+        if (planes != null) {
+            view.AddClippingPlane(planes.PlaneA);
+            view.AddClippingPlane(planes.PlaneB);
+        }
 
         // capture component styling (selection, overriden colours, visibility etc.) We should use IFC guids for this which is not in the scope of the viewer
 
         return view;
+    }
+
+    private AddClippingPlane(planeEquation: number[]): void {
+        if (planeEquation == null || planeEquation.length !== 4) {
+            return;
+        }
+        if (this.clipping_planes == null) {
+            this.clipping_planes = [];
+        }
+        const plane = new ClippingPlane();
+        plane.direction = planeEquation.slice(0, 3);
+
+        const p = planeEquation;
+        const x = -p[0] * p[3] / (p[0] * p[0] + p[1] * p[1] + p[2] * p[2])
+        const y = -p[1] * p[3] / (p[0] * p[0] + p[1] * p[1] + p[2] * p[2])
+        const z = -p[2] * p[3] / (p[0] * p[0] + p[1] * p[1] + p[2] * p[2])
+        plane.location = [x, y, z];
+
+        this.clipping_planes.push(plane);
     }
 
     public static SetViewpoint(viewer: Viewer, viewpoint: Viewpoint, duration: number = 0): void {
@@ -212,6 +236,36 @@ export class Viewpoint {
         // set camera (MV matrix)
         const mv = mat4.lookAt(mat4.create(), eye, target, up);
         viewer.animations.viewTo({ mv: mv, height: orthCamHeight }, duration);
+
+        // restore first two clipping planes
+        if (viewpoint.clipping_planes != null && viewpoint.clipping_planes.length > 0) {
+            // discard any current clipping
+            viewer.unclip();
+
+            const planeA = Viewpoint.getClippingEquation(viewpoint.clipping_planes[0]);
+            const planeB = Viewpoint.getClippingEquation(viewpoint.clipping_planes[1]);
+
+            if (planeA != null) {
+                viewer.setClippingPlaneA(planeA);
+            }
+
+            if (planeB != null) {
+                viewer.setClippingPlaneB(planeB);
+            }
+        }
+    }
+
+    private static getClippingEquation(plane: ClippingPlane): number[] {
+        if (plane == null || plane.direction == null || plane.location == null) {
+            return null;
+        }
+
+        const normal = plane.direction;
+        const point = plane.location;
+        //compute normal equation of the plane
+        var d = 0.0 - normal[0] * point[0] - normal[1] * point[1] - normal[2] * point[2];
+
+        return [normal[0], normal[1], normal[2], d];
     }
 
     // static cache for resolution

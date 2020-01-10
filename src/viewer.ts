@@ -2332,8 +2332,19 @@ export class Viewer {
         }
     }
 
-    public getClip(modelId: number): { PlaneA: number[], PlaneB: number[] } {
-        var handle = this.getHandle(modelId);
+    /**
+     * Gets clipping plane of the defined model or of the first clipping plane curently visible.
+     * Bare in mind that every model might have different clipping plane
+     * @param modelId Optional ID of the model which clipping plane we want to obtain
+     */
+    public getClip(modelId?: number): { PlaneA: number[], PlaneB: number[] } {
+        let handle: ModelHandle = null;
+        if (modelId == null) {
+            handle = this._handles.filter(h => h.clippable && !h.stopped && (h.clippingPlaneA != null || h.clippingPlaneB != null)).pop();
+        } else {
+            handle = this.getHandle(modelId);
+        }
+
         if (handle) {
             return {
                 PlaneA: handle.clippingPlaneA,
