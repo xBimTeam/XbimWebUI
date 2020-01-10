@@ -173,7 +173,7 @@ export class ModelHandle {
             throw 'WebGL context and geometry model must be specified';
         }
 
-        if (_gl instanceof WebGL2RenderingContext) {
+        if (typeof(WebGL2RenderingContext) !== 'undefined' && _gl instanceof WebGL2RenderingContext) {
             this._glVersion = 2;
         }
 
@@ -647,7 +647,7 @@ export class ModelHandle {
                 }
                 gl.texImage2D(gl.TEXTURE_2D, 0, type, size, size, 0, type, gl.FLOAT, image);
             }
-            if (gl instanceof WebGL2RenderingContext) {
+            if (typeof(WebGL2RenderingContext) !== 'undefined' && gl instanceof WebGL2RenderingContext) {
                 const gl2 = gl as WebGL2RenderingContext;
                 let internalFormat = null;
                 let format = null;

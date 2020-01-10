@@ -285,13 +285,7 @@ export class Viewer {
         if (errorHandler != null) {
             this.on('error', errorHandler);
         }
-
-        // make sure WebGL2RenderingContext is defined even if not implemented
-        if (!window['WebGL2RenderingContext']) {
-            // tslint:disable-next-line: no-empty
-            window['WebGL2RenderingContext'] = () => { };
-        }
-
+     
         this.cameraProperties.fov = 53;
         this.cameraProperties.near = 1;
         this.cameraProperties.far = 100;
