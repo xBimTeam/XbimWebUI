@@ -19,7 +19,7 @@
         return null;
     }
 
-    public static getAllSubTypes(root: number): number[] {
+    public static getAllSubTypes(root: number): {[id: number]: boolean} {
         // find roots
         const roots: Product[] = [];
         let toProcess: Product[] = [ProductInheritance];
@@ -35,11 +35,11 @@
 
         // collect all non-abstract sub types
         toProcess = roots.slice();
-        const result: number[] = [];
+        const result: {[id: number]: boolean} = {};
         while (toProcess.length !== 0) {
             const type = toProcess.shift();
             if (type.abs === false) {
-                result.push(type.id);
+                result[type.id] = true;
             }
             if (type.children) {
                 type.children.forEach((c) => { toProcess.push(c); });

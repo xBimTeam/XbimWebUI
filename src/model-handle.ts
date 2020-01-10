@@ -173,7 +173,7 @@ export class ModelHandle {
             throw 'WebGL context and geometry model must be specified';
         }
 
-        if (typeof(WebGL2RenderingContext) !== 'undefined' && _gl instanceof WebGL2RenderingContext) {
+        if (typeof (WebGL2RenderingContext) !== 'undefined' && _gl instanceof WebGL2RenderingContext) {
             this._glVersion = 2;
         }
 
@@ -647,7 +647,7 @@ export class ModelHandle {
                 }
                 gl.texImage2D(gl.TEXTURE_2D, 0, type, size, size, 0, type, gl.FLOAT, image);
             }
-            if (typeof(WebGL2RenderingContext) !== 'undefined' && gl instanceof WebGL2RenderingContext) {
+            if (typeof (WebGL2RenderingContext) !== 'undefined' && gl instanceof WebGL2RenderingContext) {
                 const gl2 = gl as WebGL2RenderingContext;
                 let internalFormat = null;
                 let format = null;
@@ -781,6 +781,25 @@ export class ModelHandle {
         this._changed = true;
     }
 
+    public clearHighlighting(): void {
+        const prodIds = Object.getOwnPropertyNames(this._model.productMaps);
+        prodIds.forEach((id) => {
+            const map = this._model.productMaps[+id];
+            ProductMap.removeState(map, State.HIGHLIGHTED);
+            const priorityState = ProductMap.getState(map);
+            map.spans.forEach((span) => {
+                //set state or style
+                for (var k = span[0]; k < span[1]; k++) {
+                    this._model.states[k * 2] = priorityState;
+                }
+            });
+        });
+
+        //buffer data to GPU
+        this.bufferData(this._stateBuffer, this._model.states);
+        this._changed = true;
+    }
+
     public removeState(state: State, args: number | number[]): void {
         if (this.empty) {
             return;
@@ -806,7 +825,7 @@ export class ModelHandle {
     }
 
     private checkStateArgs(state: State, args: number | number[]) {
-        if (typeof (state) != 'number' && state < 0 && state > 255) {
+        if (typeof (state) != 'number' || state < 0 || state > 255) {
             throw 'You have to specify state as an ID of state or index in style pallete.';
         }
         if (typeof (args) == 'undefined') {
@@ -851,6 +870,31 @@ export class ModelHandle {
         this._changed = true;
     }
 
+    public getProductsWithState(state: State): Array<{ id: number, model: number }> {
+        const result: Array<{ id: number, model: number }> = [];
+
+        // hashset of isolated products for fast lookup
+        const isolated: { [id: number]: boolean } = {};
+        const isolation = this.isolatedProducts != null && this.isolatedProducts.length > 0;
+        if (isolation) {
+            this.isolatedProducts.forEach(i => isolated[i] = true);
+        }
+
+        Object.getOwnPropertyNames(this._model.productMaps).forEach((n) => {
+            const map: ProductMap = this._model.productMaps[n];
+            if (map.states.indexOf(state) === -1) {
+                return;
+            }
+            // filter out products not isolated in the current state
+            if (isolation && !isolated[map.productID]) {
+                return;
+            }
+            // transform to result
+            result.push({ id: map.productID, model: this.id });
+        });
+        return result;
+    }
+
     public setStyle(styleId: number, args: number | number[]): void {
         if (this.empty) {
             return null;
@@ -888,8 +932,8 @@ export class ModelHandle {
             const subTypes = Product.getAllSubTypes(args);
 
             Object.getOwnPropertyNames(this._model.productMaps).forEach((n) => {
-                var map = this._model.productMaps[n];
-                if (subTypes.indexOf(map.type) > -1) {
+                const map: ProductMap = this._model.productMaps[n];
+                if (subTypes[map.type]) {
                     maps.push(map);
                 }
             });

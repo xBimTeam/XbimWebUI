@@ -192,9 +192,9 @@ document['takeSnapshot'] = () => {
     place.innerHTML = "";
     place.appendChild(img);
 
-    const view = Viewpoint.GetViewpoint(viewer);
+    const view = Viewpoint.GetViewpoint(viewer, null);
     img.onclick = () => {
-        Viewpoint.SetViewpoint(viewer, view, 1000);
+        Viewpoint.SetViewpoint(viewer, view, null, 1000);
         place.innerHTML = "";
     };
 

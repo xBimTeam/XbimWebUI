@@ -9,6 +9,9 @@ import { Components } from "./components";
 import { Viewer } from "../viewer";
 import { vec3, mat4 } from "gl-matrix";
 import { CameraType } from "../camera";
+import { State } from "../..";
+import { Visibility } from "./visibility";
+import { Component } from "./component";
 
 export class Viewpoint {
 
@@ -72,8 +75,10 @@ export class Viewpoint {
      * Creates BCF viewpoint from the current view
      * 
      * @param viewer viewer instance
+     * @param idMapper function to be used to transform viewer identity into external identity. Typically to GUID. Viewer operates on local identity where combination of productID and modelID is unique within the current scope.
+     * @param width  Optional width of the generated thumbnail in pixels. This is the current width of the viewer by default. Current aspect ratio is preserved.
      */
-    public static GetViewpoint(viewer: Viewer, width = viewer.width / 2.0): Viewpoint {
+    public static GetViewpoint(viewer: Viewer, idMapper: (productId: number, modelId: number) => string, width = viewer.width / 2.0): Viewpoint {
         const view = new Viewpoint();
         const aspect = viewer.width / viewer.height;
         const height = viewer.height / aspect;
@@ -118,21 +123,39 @@ export class Viewpoint {
         // capture current clipping planes: We may have different clipping planes for different submodels
         const planes = viewer.getClip();
         if (planes != null) {
-            view.AddClippingPlane(planes.PlaneA);
-            view.AddClippingPlane(planes.PlaneB);
+            Viewpoint.AddClippingPlane(view, planes.PlaneA);
+            Viewpoint.AddClippingPlane(view, planes.PlaneB);
         }
 
         // capture component styling (selection, overriden colours, visibility etc.) We should use IFC guids for this which is not in the scope of the viewer
+        const highlighted = viewer.getProductsWithState(State.HIGHLIGHTED);
+        if (highlighted != null && highlighted.length > 0) {
+            if (idMapper == null) {
+                console.warn('ID mapping function should be used to persist global identity of selected elements');
+                idMapper = (id, model) => `${model}_${id}`;
+            }
+            if (view.components == null) {
+                view.components = new Components();
+                view.components.coloring = [];
+                view.components.selection = [];
+                view.components.visibility = new Visibility();
+            }
+            const selection = view.components.selection;
+            highlighted.forEach(s => {
+                const identity = idMapper(s.id, s.model);
+                selection.push(new Component(identity));
+            });
+        }
 
         return view;
     }
 
-    private AddClippingPlane(planeEquation: number[]): void {
+    private static AddClippingPlane(view: Viewpoint, planeEquation: number[]): void {
         if (planeEquation == null || planeEquation.length !== 4) {
             return;
         }
-        if (this.clipping_planes == null) {
-            this.clipping_planes = [];
+        if (view.clipping_planes == null) {
+            view.clipping_planes = [];
         }
         const plane = new ClippingPlane();
         plane.direction = planeEquation.slice(0, 3);
@@ -143,10 +166,10 @@ export class Viewpoint {
         const z = -p[2] * p[3] / (p[0] * p[0] + p[1] * p[1] + p[2] * p[2])
         plane.location = [x, y, z];
 
-        this.clipping_planes.push(plane);
+        view.clipping_planes.push(plane);
     }
 
-    public static SetViewpoint(viewer: Viewer, viewpoint: Viewpoint, duration: number = 0): void {
+    public static SetViewpoint(viewer: Viewer, viewpoint: Viewpoint, idMapper: (guid: string) => { productId: number, modelId: number }, duration: number = 0): void {
         const toVec3 = (a: number[]) => {
             if (a == null || a.length < 3) {
                 return null;
@@ -237,10 +260,10 @@ export class Viewpoint {
         const mv = mat4.lookAt(mat4.create(), eye, target, up);
         viewer.animations.viewTo({ mv: mv, height: orthCamHeight }, duration);
 
+        // discard any current clipping
+        viewer.unclip();
         // restore first two clipping planes
         if (viewpoint.clipping_planes != null && viewpoint.clipping_planes.length > 0) {
-            // discard any current clipping
-            viewer.unclip();
 
             const planeA = Viewpoint.getClippingEquation(viewpoint.clipping_planes[0]);
             const planeB = Viewpoint.getClippingEquation(viewpoint.clipping_planes[1]);
@@ -252,6 +275,34 @@ export class Viewpoint {
             if (planeB != null) {
                 viewer.setClippingPlaneB(planeB);
             }
+        }
+
+        // clear current selection
+        viewer.clearHighlighting();
+        // restore selection
+        if (viewpoint.components != null && viewpoint.components.selection != null && viewpoint.components.selection.length > 0) {
+            const selection = viewpoint.components.selection;
+
+            // transform from global IDs to local ones
+            if (idMapper == null) {
+                console.warn('No function defined to map between global IDs and local product and model IDs');
+                idMapper = (id: string) => {
+                    const parts = id.split('_');
+                    const modelId = parseInt(parts[0]);
+                    const productId = parseInt(parts[1]);
+                    return { productId, modelId };
+                }
+            }
+            const productsByModel: { [id: number]: number[] } = {};
+            selection
+                .map(c => idMapper(c.ifc_guid))
+                .forEach(map => {
+                    const products = productsByModel[map.modelId] || (productsByModel[map.modelId] = []);
+                    products.push(map.productId);
+                });
+            Object.getOwnPropertyNames(productsByModel).forEach(mId => {
+                viewer.addState(State.HIGHLIGHTED, productsByModel[mId], parseInt(mId));
+            });
         }
     }
 

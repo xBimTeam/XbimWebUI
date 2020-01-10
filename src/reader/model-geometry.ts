@@ -134,6 +134,10 @@ export class ModelGeometry {
             map.spans = [];
             this.productMaps[productLabel] = map;
             this.productIdLookup[i + 1] = productLabel;
+
+            if (prodType == ProductType.IFCSPACE) {
+                map.states.push(State.HIDDEN);
+            }
         }
 
         //version 3 puts geometry in regions properly so it is possible to use this information for rendering
@@ -245,6 +249,7 @@ export class ModelGeometry {
                 map.type = ProductType.IFCOPENINGELEMENT;
                 map.bBox = new Float32Array(6);
                 map.spans = [];
+                map.states.push(State.HIDDEN);
                 this.productMaps[shape.pLabel] = map;
             }
 

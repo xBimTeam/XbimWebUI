@@ -174,15 +174,15 @@ export class Viewer {
     public get activeHandles() { return this._handles.filter((h) => h != null && !h.stopped && !h.empty); }
 
     private _camera = new CameraProperties(() => { this.changed = true; });
-    private _sectionBox = new SectionBox(() => { 
+    private _sectionBox = new SectionBox(() => {
         const wcs = this.getCurrentWcs();
         const region = this.getMergedRegion().bbox;
         const section = this._sectionBox.getBoundingBox(wcs);
         if (region != null && section != null && BBox.areDisjoint(region, section)) {
             console.warn('Section box is disjoint with the current content');
         }
-        
-        this.changed = true; 
+
+        this.changed = true;
     });
     private _width: number;
     private _height: number;
@@ -285,7 +285,7 @@ export class Viewer {
         if (errorHandler != null) {
             this.on('error', errorHandler);
         }
-     
+
         this.cameraProperties.fov = 53;
         this.cameraProperties.near = 1;
         this.cameraProperties.far = 100;
@@ -514,6 +514,8 @@ export class Viewer {
         this.changed = true;
     }
 
+
+
     public removeState(state: State, target: number | number[], modelId?: number) {
         if (typeof (state) == 'undefined' || !(state >= 225 && state <= 255)) {
             throw new Error('State has to be defined as 225 - 255. Use State enum.');
@@ -524,6 +526,18 @@ export class Viewer {
 
         this.forHandleOrAll((h: ModelHandle) => { h.removeState(state, target); }, modelId);
         this.changed = true;
+    }
+
+    public getProductsWithState(state: State): Array<{ id: number, model: number }> {
+        let result: Array<{ id: number, model: number }> = [];
+        const handles = this._handles.filter(h => !h.stopped && !h.empty);
+        handles.forEach(h => {
+            const products = h.getProductsWithState(state);
+            if (products != null && products.length > 0) {
+                result = result.concat(products);
+            }
+        });
+        return result;
     }
 
     /**
@@ -554,6 +568,15 @@ export class Viewer {
         }, modelId);
 
         this.changed = true;
+    }
+
+    /**
+     * Clears all highlighting in all visible models
+     */
+    public clearHighlighting(): void {
+        this._handles
+            .filter(h => !h.stopped && !h.empty)
+            .forEach(h => h.clearHighlighting());
     }
 
     /**
@@ -758,17 +781,17 @@ export class Viewer {
     * @param {Number} [modelId] - Optional Model ID. If not defined first type of a product with certain ID will be returned. This might be ambiguous.
     * @return {Float32Array} Bounding box of the product in model coordinates (not reduced by current WCS)
     */
-   public getProductBoundingBox(prodId: number, modelId?: number): Float32Array {
-    return this.forHandleOrAll((handle: ModelHandle) => {
-        const wcs = this.getCurrentWcs();
-        let map = handle.getProductMap(prodId, wcs);
-        if (map) {
-            const bb = map.bBox;
-            // add current WCS displacement
-            return new Float32Array([bb[0] + wcs[0], bb[1] + wcs[1], bb[2]+ wcs[2], bb[3], bb[4], bb[5]]);
-        }
-    }, modelId);
-}
+    public getProductBoundingBox(prodId: number, modelId?: number): Float32Array {
+        return this.forHandleOrAll((handle: ModelHandle) => {
+            const wcs = this.getCurrentWcs();
+            let map = handle.getProductMap(prodId, wcs);
+            if (map) {
+                const bb = map.bBox;
+                // add current WCS displacement
+                return new Float32Array([bb[0] + wcs[0], bb[1] + wcs[1], bb[2] + wcs[2], bb[3], bb[4], bb[5]]);
+            }
+        }, modelId);
+    }
 
     /**
     * Use this method to set position of camera. Use it after {@link Viewer#setCameraTarget setCameraTarget()} to get desired result.

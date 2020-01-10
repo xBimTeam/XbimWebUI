@@ -92,7 +92,7 @@ window['showTop'] = () => {
 };
 
 window['getView'] = () => {
-    const v = Viewpoint.GetViewpoint(viewer)
+    const v = Viewpoint.GetViewpoint(viewer, (id, model) => `${model}_${id}`)
     window['view'] = v;
     return v;
 };
@@ -101,7 +101,7 @@ window['setView'] = (v: Viewpoint) => {
     v = v || window['view'];
     if (v == null)
         return;
-    Viewpoint.SetViewpoint(viewer, v);
+    Viewpoint.SetViewpoint(viewer, v, null, 200);
 };
 
 
