@@ -261,21 +261,7 @@ export class Viewpoint {
         viewer.animations.viewTo({ mv: mv, height: orthCamHeight }, duration);
 
         // discard any current clipping
-        viewer.unclip();
-        // restore first two clipping planes
-        if (viewpoint.clipping_planes != null && viewpoint.clipping_planes.length > 0) {
-
-            const planeA = Viewpoint.getClippingEquation(viewpoint.clipping_planes[0]);
-            const planeB = Viewpoint.getClippingEquation(viewpoint.clipping_planes[1]);
-
-            if (planeA != null) {
-                viewer.setClippingPlaneA(planeA);
-            }
-
-            if (planeB != null) {
-                viewer.setClippingPlaneB(planeB);
-            }
-        }
+        Viewpoint.SetClipping(viewer, viewpoint);
 
         // clear current selection
         viewer.clearHighlighting();
@@ -303,6 +289,26 @@ export class Viewpoint {
             Object.getOwnPropertyNames(productsByModel).forEach(mId => {
                 viewer.addState(State.HIGHLIGHTED, productsByModel[mId], parseInt(mId));
             });
+        }
+    }
+
+    /**
+     * Applies the clipping planes for this viewpoint to the supplied viewer
+     * @param viewer 
+     * @param viewpoint 
+     */
+    public static SetClipping(viewer: Viewer, viewpoint: Viewpoint) {
+        viewer.unclip();
+        // restore first two clipping planes
+        if (viewpoint.clipping_planes != null && viewpoint.clipping_planes.length > 0) {
+            const planeA = Viewpoint.getClippingEquation(viewpoint.clipping_planes[0]);
+            const planeB = Viewpoint.getClippingEquation(viewpoint.clipping_planes[1]);
+            if (planeA != null) {
+                viewer.setClippingPlaneA(planeA);
+            }
+            if (planeB != null) {
+                viewer.setClippingPlaneB(planeB);
+            }
         }
     }
 
