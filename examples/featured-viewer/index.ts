@@ -101,6 +101,13 @@ viewer.on("fps", (fps) => {
     }
 });
 
+viewer.on("pointerlockchange", (arg) => {
+    console.log('canvas Pointer lock change', arg);
+});
+
+
+
+
 // viewer.on("loaded", () => {
 // let image = viewer.getCurrentImageHtml(2000, 1000);
 // image.style.width = '100%';
