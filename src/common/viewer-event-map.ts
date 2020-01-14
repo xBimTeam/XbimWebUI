@@ -34,6 +34,8 @@ export interface ViewerInteractionEventMap {
     "pointerout": ViewerInteractionEvent;
     "pointerover": ViewerInteractionEvent;
     "pointerup": ViewerInteractionEvent;
+    "pointerlockchange": ViewerInteractionEvent;
+    "pointerlockerror": ViewerInteractionEvent;
     "wheel": ViewerInteractionEvent;
     "pick": ViewerInteractionEvent;
 }
