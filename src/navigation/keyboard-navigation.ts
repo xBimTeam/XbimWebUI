@@ -16,11 +16,11 @@ export class KeyboardNavigation {
 
                 switch (event.code) {
                     case 'KeyW':
-                        viewer.navigate('walk', 2 * multiplier, 0);
+                        viewer.navigate('walk', 0, 2 * multiplier);
                         break;
 
                     case 'KeyS':
-                        viewer.navigate('walk', -2 * multiplier, 0);
+                        viewer.navigate('walk', 0, -2 * multiplier);
                         break;
 
                     case 'KeyA':

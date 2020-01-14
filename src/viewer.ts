@@ -1273,6 +1273,9 @@ export class Viewer {
                 break;
 
             case 'walk':
+                const walk = deltaY * distance / 20;
+                this.animations.addZoom(walk, 0);
+                return;
             case 'zoom':
                 // smooth zooming animation
                 const move = deltaY * distance / 20;
