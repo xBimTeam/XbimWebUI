@@ -182,7 +182,7 @@ export class MouseNavigation {
 
         // handle mouse movements when using PointerLock mode.
         var handlePointerLockChange = (event: Event) => {
-            const lockElement = document['pointerLockElement'] as HTMLElement;
+            const lockElement = document.pointerLockElement as HTMLElement;
             if (lockElement === viewer.canvas) {
                 if (!isPointerLocked) {
                     isPointerLocked = true;
@@ -195,11 +195,11 @@ export class MouseNavigation {
         };
 
         // handle pointer lock for walk mode to grab the mouse movement data
-        let requestPointerLock = viewer.canvas['requestPointerLock'] as () => void;
+        let requestPointerLock = viewer.canvas.requestPointerLock as () => void;
         if (requestPointerLock != null) {
             requestPointerLock = requestPointerLock.bind(viewer.canvas) as () => void;
             viewer.canvas.onclick = () => {
-                if (viewer.navigationMode === 'walk') {
+                if (viewer.navigationMode === 'walk' && !isPointerLocked) {
                     requestPointerLock();
                 }
             };

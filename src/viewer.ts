@@ -222,7 +222,7 @@ export class Viewer {
 
     // dictionary of named events which can be registered and unregistered by using '.on('eventname', callback)'
     // and '.off('eventname', callback)'. Registered call-backs are triggered by the viewer when important events occur.
-    private _events: { [entName: string]: Array<(args: { message: string } | { event: Event, id: number, model: number } | { model: number, tag: any } | number) => void>; } = {};
+    private _events: { [entName: string]: Array<(args: { message: string } | { event: Event, id: number, model: number } | { model: number, tag: any } | number | { target: Element }) => void>; } = {};
 
     private _canvasListeners: { [evtName: string]: (event: Event) => any } = {};
 
@@ -1275,6 +1275,9 @@ export class Viewer {
                 break;
 
             case 'walk':
+                const walk = deltaY * distance / 20;
+                this.animations.addZoom(walk, 0);
+                return;
             case 'zoom':
                 // smooth zooming animation
                 const move = deltaY * distance / 20;
@@ -2162,9 +2165,9 @@ export class Viewer {
         }
         events[eventName].push(handler);
 
-        // check if this should be a proxy for the canvas event
+        // check if this should be a proxy for the canvas event (or document event for pointerlocks)
         const domEvtName = `on${eventName}`;
-        if (!(typeof (this.canvas[domEvtName]) !== 'undefined')) {
+        if ((typeof (this.canvas[domEvtName]) === 'undefined') && (typeof (document[domEvtName]) === 'undefined')) {
             return;
         }
 
@@ -2175,6 +2178,10 @@ export class Viewer {
         }
         // bind to canvas events as a proxy dispatcher
         const listener = (event: Event) => {
+            if (event.type === 'pointerlockchange') {
+                this.fire(event.type, { target: document.pointerLockElement });
+                return;
+            }
             const eName = eventName as keyof ViewerInteractionEventMap;
             // only forward mouse and touch events where we can enrich the event
             // with product and model ID from the model
@@ -2195,7 +2202,11 @@ export class Viewer {
             }
         };
         // add a proxy listener
-        this.canvas.addEventListener(eventName, listener);
+        if (eventName === 'pointerlockchange' || eventName === 'pointerlockerror') {
+            document.addEventListener(eventName, listener, false);
+        } else {
+            this.canvas.addEventListener(eventName, listener);
+        }
         // keep the reference to the listener so we can remove it when not needed any more
         this._canvasListeners[eventName] = listener;
     }
@@ -2219,7 +2230,11 @@ export class Viewer {
             const listener = this._canvasListeners[eventName];
             // detach canvas listener if it is not needed anymore
             if (callbacks.length === 0 && listener !== null) {
-                this.canvas.removeEventListener(eventName, listener);
+                if (eventName === 'pointerlockchange' || eventName === 'pointerlockerror') {
+                    document.removeEventListener(eventName, listener);
+                } else {
+                    this.canvas.removeEventListener(eventName, listener);
+                }
                 this._canvasListeners[eventName] = null;
 
             }

@@ -40,6 +40,8 @@ export interface ViewerInteractionEventMap {
 
 // tslint:disable-next-line: interface-name
 export interface ViewerEventMap extends ViewerInteractionEventMap {
+    "pointerlockchange": ViewerPointerLockChangedEvent;
+    "pointerlockerror": ViewerPointerLockChangedEvent;
     "fps": number;
     "loaded": ViewerLoadedEvent;
     "unloaded": ViewerLoadedEvent;
@@ -85,4 +87,13 @@ export interface ViewerInteractionEvent {
      * Location in real 3D space of the model (excluding WCS)
      */
     xyz: vec3;
+}
+
+// tslint:disable-next-line: interface-name
+export interface ViewerPointerLockChangedEvent {
+
+    /**
+     * Element owning the pointer
+     */
+    target: Element;
 }
