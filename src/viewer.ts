@@ -2179,9 +2179,10 @@ export class Viewer {
         // bind to canvas events as a proxy dispatcher
         const listener = (event: Event) => {
             if (event.type === 'pointerlockchange') {
-                this.fire(event.type, { target: document.pointerLockElement });
+                this.fire('pointerlockchange', { target: document.pointerLockElement });
                 return;
             }
+
             const eName = eventName as keyof ViewerInteractionEventMap;
             // only forward mouse and touch events where we can enrich the event
             // with product and model ID from the model
