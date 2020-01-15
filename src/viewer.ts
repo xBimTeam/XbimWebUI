@@ -1318,6 +1318,12 @@ export class Viewer {
         let wcs = this.getCurrentWcs();
         let gl = this.gl;
 
+        // set background colour
+        gl.clearColor(this.background[0] / 255,
+            this.background[1] / 255,
+            this.background[2] / 255,
+            this.background[3] / 255);
+
         // clear previous data in buffers
         // tslint:disable-next-line: no-bitwise
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
@@ -1342,19 +1348,10 @@ export class Viewer {
 
         gl = this.setActive();
 
-
         // set styling texture
         gl.activeTexture(gl.TEXTURE4);
         gl.bindTexture(gl.TEXTURE_2D, this._stateStyleTexture);
         gl.uniform1i(this._stateStyleSamplerUniform, 4);
-
-
-        // set background colour
-        gl.clearColor(this.background[0] / 255,
-            this.background[1] / 255,
-            this.background[2] / 255,
-            this.background[3] / 255);
-
 
 
         //set uniforms (these may quickly change between calls to draw)
@@ -1723,10 +1720,9 @@ export class Viewer {
 
         // create and bind framebuffer
 
+        this._isRunning = false;
         let fb = new Framebuffer(gl, width, height, this.hasDepthSupport);
         try {
-            this._isRunning = false;
-
             // set viewport and generall settings
             this.setActive();
             gl.viewport(0, 0, width, height);
@@ -1750,7 +1746,6 @@ export class Viewer {
             //set uniform for colour coding
             this.setActive();
             gl.uniform1i(this._colorCodingUniformPointer, ColourCoding.PRODUCTS);
-            gl.bindFramebuffer(gl.FRAMEBUFFER, fb.framebuffer);
 
             //render colour coded image using latest buffered data
             this._handles.forEach((handle) => {
