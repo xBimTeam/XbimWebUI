@@ -286,7 +286,7 @@ export class Viewer {
             this.on('error', errorHandler);
         }
 
-        this.cameraProperties.fov = 53;
+        this.cameraProperties.fov = 60;
         this.cameraProperties.near = 1;
         this.cameraProperties.far = 100;
 
@@ -942,6 +942,8 @@ export class Viewer {
         //fall back to synchronous loading if worker is not available
         if (typeof (Worker) === 'undefined') {
             this.load(model, tag, headers, progress);
+            console.warn('Asynchronous model loading requires Web Worker support in the browser. Falling back to synchronous loading.')
+            return;
         }
 
         const blob = new Blob([LoaderWorker], { type: 'application/javascript' });
