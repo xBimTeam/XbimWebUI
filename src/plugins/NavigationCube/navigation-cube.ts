@@ -677,6 +677,8 @@ export class NavigationCube implements IPlugin {
             gl.enable(gl.CULL_FACE);
         }
 
+        gl.disable(gl.BLEND);
+
         //draw the cube as an element array
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
         gl.drawElements(gl.TRIANGLES, this.indices.length, gl.UNSIGNED_SHORT, 0);

@@ -129,15 +129,16 @@ viewer.loadAsync(model, "base", null, (msg) => {
     progress.innerHTML = `${msg.message} [${msg.percent}%]`;
 });
 
-var cube = new NavigationCube();
-cube.ratio = 0.05;
-cube.passiveAlpha = cube.activeAlpha = 0.85;
-viewer.addPlugin(cube);
 
 var grid = new Grid();
 grid.zFactor = 20;
 grid.colour = [0, 0, 0, 0.8];
 viewer.addPlugin(grid);
+
+var cube = new NavigationCube();
+cube.ratio = 0.05;
+cube.passiveAlpha = cube.activeAlpha = 1.0;
+viewer.addPlugin(cube);
 
 viewer.defineStyle(0, [255, 0, 0, 255]);  //red
 viewer.defineStyle(1, [0, 0, 255, 100]);  //semitransparent blue
