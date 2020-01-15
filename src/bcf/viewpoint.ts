@@ -142,8 +142,8 @@ export class Viewpoint {
             }
             const selection = view.components.selection;
             highlighted.forEach(s => {
-                const identity = idMapper(s.id, s.model);
-                selection.push(new Component(identity));
+                const guid = idMapper(s.id, s.model);
+                selection.push(new Component(guid));
             });
         }
 
@@ -319,7 +319,7 @@ export class Viewpoint {
         return [normal[0], normal[1], normal[2], d];
     }
 
-    // static cache for resolution
+    // static cache for resolution - it can't change for the device
     private static _resolution: number = null;
 
     /**
