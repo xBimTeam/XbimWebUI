@@ -1033,10 +1033,10 @@ export class Viewer {
         this.setNearAndFarFromCurrentModels();
 
         //only set camera parameters and the view if this is the first model
-        if (this.activeHandles.length === 1) {
-            //set default view
-            this.show(ViewType.DEFAULT, null, null, false);
-        }
+        // if (this.activeHandles.length === 1) {
+        //     //set default view
+        //     this.show(ViewType.DEFAULT, null, null, false);
+        // }
 
         // force redraw so when 'loaded' is called listeners can operate with current canvas.
         this.changed = true;
