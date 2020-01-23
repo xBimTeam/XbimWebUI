@@ -1361,9 +1361,9 @@ export class Viewer {
         gl.uniformMatrix4fv(this._pMatrixUniformPointer, false, this.pMatrix);
         gl.uniformMatrix4fv(this._mvMatrixUniformPointer, false, this.mvMatrix);
 
-        // set light source as a head light
-        var camera = this.getCameraPosition();
-        gl.uniform3fv(this._lightUniformPointer, camera);
+        // set light source as a head light with some offset (one meter top and right from camera)
+        var light = this.getLightPosition(this.meter * 1.0, this.meter * 1.0);
+        gl.uniform3fv(this._lightUniformPointer, light);
 
         // gamma, contrast and brightness are passed through in a single vector
         gl.uniform3fv(this._gammaContrastBrightnessUniform, new Float32Array([this.gamma, this.contrast, this.brightness]));
@@ -1426,6 +1426,20 @@ export class Viewer {
             }
             plugin.onAfterDraw(width, height);
         });
+    }
+
+    private getLightPosition(verticalOffset: number, horizontalOffset: number) : vec3{
+        const transform = mat4.getRotation(quat.create(), this.mvMatrix);
+        const inverse = quat.invert(quat.create(), transform);
+        const upDir = vec3.transformQuat(vec3.create(), [0,1,0], inverse);
+        const rightDir = vec3.transformQuat(vec3.create(), [1,0,0], inverse);
+        
+        const vertical = vec3.scale(vec3.create(), upDir, verticalOffset);
+        const horizontal = vec3.scale(vec3.create(), rightDir, horizontalOffset);
+        const move = vec3.add(vec3.create(), vertical, horizontal);
+        
+        const camera = this.getCameraPosition();
+        return vec3.add(vec3.create(), camera, move);
     }
 
     private drawXRAY(gl: WebGLRenderingContext) {
