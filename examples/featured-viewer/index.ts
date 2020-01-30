@@ -136,7 +136,7 @@ var progress = document.getElementById("progress");
 viewer.on('loaded', () => {
     viewer.start();
     overlay.hide();
-    viewer.show(ViewType.DEFAULT);
+    viewer.show(ViewType.DEFAULT, undefined, undefined, false);
 });
 
 

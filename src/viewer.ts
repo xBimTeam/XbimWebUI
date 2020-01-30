@@ -900,6 +900,20 @@ export class Viewer {
         return region;
     }
 
+    public getMergedRegionWcs(): Region {
+        let region = new Region();
+        const noWcs = vec3.create();
+        this.activeHandles
+            .forEach((h) => {
+                const r = h.getRegion(noWcs);
+                if (r != null) {
+                    region = region.merge(r);
+                }
+            });
+
+        return region;
+    }
+
     /**
     * This method can be used for batch setting of viewer members. It doesn't check validity of the input.
     * @function Viewer#set

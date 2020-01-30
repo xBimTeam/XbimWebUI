@@ -257,7 +257,7 @@ export class Viewpoint {
             orthCamHeight = h;
 
             // fix camera position if it is too far away
-            var region = viewer.getMergedRegion();
+            var region = viewer.getMergedRegionWcs();
             if (region && region.bbox && region.bbox.length > 0) {
                 // get closest point from the current region
                 const sizes = BBox.getSizeInView(region.bbox, toVec3(camera.camera_direction), toVec3(camera.camera_up_vector));
@@ -276,15 +276,15 @@ export class Viewpoint {
                     planeNormal[2] * closestPoint[2] - planeNormal[2] * cameraPosition[2];
 
                 // calculate optimal distance from height and field of view
-                const optimalDistance = h / (Math.tan(viewer.cameraProperties.fov * Math.PI / 180.0 / 2.0) * 2.0);
+                const maximalDistance = h / (Math.tan(viewer.cameraProperties.fov * Math.PI / 180.0 / 2.0) * 2.0);
 
                 // if we are too far away, adjust at least to be on the beginning of the region
-                if (Math.abs(distance) > optimalDistance) {
+                if (Math.abs(distance) > maximalDistance) {
                     const pointOnPlane = vec3.fromValues(
                         cameraPosition[0] + distance * planeNormal[0],
                         cameraPosition[1] + distance * planeNormal[1],
                         cameraPosition[2] + distance * planeNormal[2]);
-                    const move = vec3.scale(vec3.create(), planeNormal, optimalDistance);
+                    const move = vec3.scale(vec3.create(), planeNormal, maximalDistance);
                     eye = vec3.subtract(vec3.create(), pointOnPlane, move);
                 }
             }
