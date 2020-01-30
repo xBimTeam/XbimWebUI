@@ -4,6 +4,7 @@ import { Viewpoint } from '../../src/bcf/viewpoint';
 import { vec3, mat4 } from 'gl-matrix';
 import { PerformanceRating } from '../../src/performance-rating';
 import { ClippingPlane } from '../../src/bcf';
+import { LoaderOverlay } from '../../src/plugins/LoaderOverlay/loader-overlay';
 
 // tslint:disable-next-line: only-arrow-functions
 var QueryString = function() {
@@ -31,6 +32,10 @@ var QueryString = function() {
 
 
 var viewer = new Viewer("xBIM-viewer");
+var overlay = new LoaderOverlay();
+viewer.addPlugin(overlay);
+overlay.show();
+
 viewer.cameraProperties.fov = 53;
 var types = ProductType;
 var states = State;
@@ -45,6 +50,8 @@ window['product'] = Product;
 window['CameraType'] = CameraType;
 window['PerformanceRating'] = PerformanceRating;
 window['EasingType'] = EasingType;
+window['overlay'] = overlay;
+window['Viewpoint'] = Viewpoint;
 
 viewer.background = [0, 0, 0, 0];
 viewer.on("error", (arg) => {
@@ -128,6 +135,7 @@ var progress = document.getElementById("progress");
 
 viewer.on('loaded', () => {
     viewer.start();
+    overlay.hide();
     viewer.show(ViewType.DEFAULT);
 });
 

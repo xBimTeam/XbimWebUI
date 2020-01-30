@@ -18,6 +18,7 @@ export { EasingType } from './src/navigation/animations';
 // Plugins
 export * from "./src/plugins/NavigationCube/navigation-cube";
 export * from "./src/plugins/Grid/grid";
+export * from "./src/plugins/LoaderOverlay/loader-overlay";
 
 export * from './src/bcf';
 // export * from "./src/plugins/NavigationHome/navigation-home";
