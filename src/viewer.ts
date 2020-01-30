@@ -1074,7 +1074,7 @@ export class Viewer {
 
         const meter = this.activeHandles[0].meter;
         var maxSize = Math.max(region.bbox[3], region.bbox[4], region.bbox[5]);
-        this.cameraProperties.far = maxSize * 10;
+        this.cameraProperties.far = maxSize * 30;
         this.cameraProperties.near = meter / 4;
     }
 

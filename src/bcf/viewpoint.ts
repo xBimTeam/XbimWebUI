@@ -12,6 +12,7 @@ import { CameraType } from "../camera";
 import { State } from "../..";
 import { Visibility } from "./visibility";
 import { Component } from "./component";
+import { BBox } from "../common/bbox";
 
 export class Viewpoint {
 
@@ -170,7 +171,7 @@ export class Viewpoint {
     }
 
     public static SetViewpoint(viewer: Viewer, viewpoint: Viewpoint, idMapper: (guid: string) => { productId: number, modelId: number }, duration: number = 0): void {
-        const toVec3 = (a: number[]) => {
+        const toVec3 = (a: number[] | Float32Array) => {
             if (a == null || a.length < 3) {
                 return null;
             }
@@ -200,7 +201,6 @@ export class Viewpoint {
         const eyeWcs = toVec3(camViewPoint);
         let eye = vec3.subtract(vec3.create(), eyeWcs, wcs);
         const dir = toVec3(camDir);
-        const target = vec3.add(vec3.create(), eye, dir);
         let up = toVec3(camUpDir) || vec3.fromValues(0, 0, 1);
 
         // target abd heading are collinear. This is singular orientation and will screw the view up.
@@ -235,6 +235,7 @@ export class Viewpoint {
                 const modelHeight = viewportHeight / scale;
                 orthCamHeight = modelHeight * viewer.unitsInMeter;
             }
+            viewer.cameraProperties.fov = 60.0;
         }
 
         // use width and height if available to set perspective and adjust ratio
@@ -254,9 +255,43 @@ export class Viewpoint {
                 h = h * a / aspect;
             }
             orthCamHeight = h;
+
+            // fix camera position if it is too far away
+            var region = viewer.getMergedRegion();
+            if (region && region.bbox && region.bbox.length > 0) {
+                // get closest point from the current region
+                const sizes = BBox.getSizeInView(region.bbox, toVec3(camera.camera_direction), toVec3(camera.camera_up_vector));
+                const regionDepth = sizes.depth;
+                const regionCenter = region.centre;
+                const pointDir = vec3.normalize(vec3.create(), vec3.negate(vec3.create(), toVec3(camera.camera_direction)));
+                const pointMove = vec3.scale(vec3.create(), pointDir, regionDepth / 2.0);
+                const closestPoint = vec3.add(vec3.create(), toVec3(regionCenter), pointMove); // (d,e,f)
+
+                // get closest point on the plane
+                // https://math.stackexchange.com/questions/100761/how-do-i-find-the-projection-of-a-point-onto-a-plane
+                const planeNormal = vec3.normalize(vec3.create(), toVec3(camera.camera_direction)); // (a,b,c)
+                const cameraPosition = toVec3(camera.camera_view_point); // (x,y,z)
+                const distance = planeNormal[0] * closestPoint[0] - planeNormal[0] * cameraPosition[0] +
+                    planeNormal[1] * closestPoint[1] - planeNormal[1] * cameraPosition[1] +
+                    planeNormal[2] * closestPoint[2] - planeNormal[2] * cameraPosition[2];
+
+                // calculate optimal distance from height and field of view
+                const optimalDistance = h / (Math.tan(viewer.cameraProperties.fov * Math.PI / 180.0 / 2.0) * 2.0);
+
+                // if we are too far away, adjust at least to be on the beginning of the region
+                if (Math.abs(distance) > optimalDistance) {
+                    const pointOnPlane = vec3.fromValues(
+                        cameraPosition[0] + distance * planeNormal[0],
+                        cameraPosition[1] + distance * planeNormal[1],
+                        cameraPosition[2] + distance * planeNormal[2]);
+                    const move = vec3.scale(vec3.create(), planeNormal, optimalDistance);
+                    eye = vec3.subtract(vec3.create(), pointOnPlane, move);
+                }
+            }
         }
 
         // set camera (MV matrix)
+        const target = vec3.add(vec3.create(), eye, dir);
         const mv = mat4.lookAt(mat4.create(), eye, target, up);
         viewer.animations.viewTo({ mv: mv, height: orthCamHeight }, duration);
 
