@@ -834,7 +834,7 @@ export class Viewer {
 
         return {
             distance: distance,
-            height: height * 1.2 // make it little bit more far away so there is some space around the model
+            height: height * 1.0 // make it little bit more far away so there is some space around the model
         };
     };
 

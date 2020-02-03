@@ -189,10 +189,10 @@ export class Animations {
         const move = vec3.scale(vec3.create(), zoomDirection, distance);
         const fov = this.viewer.cameraProperties.fov * Math.PI / 180.0;
         let deltaHeight = 2.0 * distance * Math.tan(fov / 2.0);
-        const oneMeter = this.viewer.unitsInMeter;
+        const limit = 2.0 * this.viewer.cameraProperties.near * Math.tan(fov / 2.0);
 
         // avoid singularity where width is negative and image is flipped.
-        if ((currentHeight - deltaHeight) < oneMeter)
+        if ((currentHeight - deltaHeight) < limit)
             deltaHeight = 0;
 
         // final state

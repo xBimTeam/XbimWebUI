@@ -89,7 +89,7 @@ export class Viewpoint {
         };
 
         // capture camera
-        if (viewer.camera == CameraType.PERSPECTIVE) {
+        if (viewer.camera === CameraType.PERSPECTIVE) {
             view.perspective_camera = {
                 camera_direction: toArray(viewer.getCameraDirection()),
                 camera_up_vector: toArray(viewer.getCameraHeading()),
@@ -171,6 +171,10 @@ export class Viewpoint {
     }
 
     public static SetViewpoint(viewer: Viewer, viewpoint: Viewpoint, idMapper: (guid: string) => { productId: number, modelId: number }, duration: number = 0): void {
+        // threashold for distance and size of the view
+        const threasholdCoeficient = 4.0;
+
+        // helper function
         const toVec3 = (a: number[] | Float32Array) => {
             if (a == null || a.length < 3) {
                 return null;
@@ -178,10 +182,11 @@ export class Viewpoint {
             return vec3.fromValues(a[0], a[1], a[2]);
         };
 
+        // we have to consider current WCS for navigation
         const wcs = viewer.getCurrentWcs();
         const aspect = viewer.width / viewer.height;
 
-        // common camera properties
+        // common camera properties to be used for camera position
         const camera: {
             camera_view_point: number[],
             camera_direction: number[],
@@ -200,10 +205,10 @@ export class Viewpoint {
 
         const eyeWcs = toVec3(camViewPoint);
         let eye = vec3.subtract(vec3.create(), eyeWcs, wcs);
-        const dir = toVec3(camDir);
-        let up = toVec3(camUpDir) || vec3.fromValues(0, 0, 1);
+        const dir = vec3.normalize(vec3.create(), toVec3(camDir));
+        let up = vec3.normalize(vec3.create(), (toVec3(camUpDir) || vec3.fromValues(0, 0, 1)));
 
-        // target abd heading are collinear. This is singular orientation and will screw the view up.
+        // target and heading are collinear. This is a singular orientation and will screw the view up.
         let angle = vec3.angle(dir, up);
         if (Math.abs(angle) < 1e-6 || Math.abs(angle - Math.PI) < 1e-6) {
             console.warn('Collinear target and heading vectors for the view. Singularity will be fixed by guess.');
@@ -215,12 +220,31 @@ export class Viewpoint {
             }
         }
 
+        // helper function
         let isPositiveNumber = (v: number) => {
             return v != null && typeof (v) === 'number' && v > 0;
         };
 
         // set camera type and properties
         let orthCamHeight = viewer.cameraProperties.height;
+
+        // region sizes from the viewpoint direction
+        const region = viewer.getMergedRegion();
+        const optimum = (region && region.bbox) ? viewer.getDistanceAndHeight(region.bbox, dir, up) : null;
+
+        // move eye if the distance is too much
+        if (optimum != null) {
+            const distance = vec3.dist(toVec3(region.centre), eye);
+
+            // we are too far away, move to optimal distance, set optimal height for orthographic view
+            if (distance > optimum.distance * threasholdCoeficient) {
+                const moveDir = vec3.negate(vec3.create(), dir);
+                const move = vec3.scale(vec3.create(), moveDir, optimum.distance);
+                eye = vec3.add(vec3.create(), toVec3(region.centre), move);
+                orthCamHeight = optimum.height;
+            }
+        }
+
         if (viewpoint.perspective_camera) {
             viewer.camera = CameraType.PERSPECTIVE;
             if (isPositiveNumber(viewpoint.perspective_camera.field_of_view)) {
@@ -229,64 +253,41 @@ export class Viewpoint {
         }
         else if (viewpoint.orthogonal_camera) {
             viewer.camera = CameraType.ORTHOGONAL;
+            // set default FOV
+            viewer.cameraProperties.fov = 60.0;
+
             if (isPositiveNumber(viewpoint.orthogonal_camera.view_to_world_scale)) {
                 const scale = viewpoint.orthogonal_camera.view_to_world_scale;
                 const viewportHeight = viewer.height / Viewpoint.resolution;
                 const modelHeight = viewportHeight / scale;
                 orthCamHeight = modelHeight * viewer.unitsInMeter;
             }
-            viewer.cameraProperties.fov = 60.0;
-        }
 
-        // use width and height if available to set perspective and adjust ratio
-        if (isPositiveNumber(camera.width) && isPositiveNumber(camera.height)) {
-            let h = camera.height;
-            const w = camera.width;
-            const a = w / h;
-            // fix to fit the screen
-            if (a > aspect) {
-                // adjust distance - move eye more far away from the subject
-                const fov = viewer.cameraProperties.fov * Math.PI / 180.0;
-                const delta = h * (a / aspect - 1.0) / (2.0 * Math.tan(fov / 2.0));
-                const deltaDir = vec3.negate(vec3.create(), vec3.normalize(vec3.create(), dir));
-                const deltaTrans = vec3.scale(vec3.create(), deltaDir, delta);
-                eye = vec3.add(vec3.create(), eye, deltaTrans);
-                // adjust perspective camera height
-                h = h * a / aspect;
-            }
-            orthCamHeight = h;
+            // use width and height if available to set perspective and adjust ratio
+            if (isPositiveNumber(camera.width) && isPositiveNumber(camera.height)) {
+                // camera properties fom the data of the maximal values
+                let h = camera.height;
+                const w = camera.width;
+                const a = w / h;
 
-            // fix camera position if it is too far away
-            var region = viewer.getMergedRegionWcs();
-            if (region && region.bbox && region.bbox.length > 0) {
-                // get closest point from the current region
-                const sizes = BBox.getSizeInView(region.bbox, toVec3(camera.camera_direction), toVec3(camera.camera_up_vector));
-                const regionDepth = sizes.depth;
-                const regionCenter = region.centre;
-                const pointDir = vec3.normalize(vec3.create(), vec3.negate(vec3.create(), toVec3(camera.camera_direction)));
-                const pointMove = vec3.scale(vec3.create(), pointDir, regionDepth / 2.0);
-                const closestPoint = vec3.add(vec3.create(), toVec3(regionCenter), pointMove); // (d,e,f)
-
-                // get closest point on the plane
-                // https://math.stackexchange.com/questions/100761/how-do-i-find-the-projection-of-a-point-onto-a-plane
-                const planeNormal = vec3.normalize(vec3.create(), toVec3(camera.camera_direction)); // (a,b,c)
-                const cameraPosition = toVec3(camera.camera_view_point); // (x,y,z)
-                const distance = planeNormal[0] * closestPoint[0] - planeNormal[0] * cameraPosition[0] +
-                    planeNormal[1] * closestPoint[1] - planeNormal[1] * cameraPosition[1] +
-                    planeNormal[2] * closestPoint[2] - planeNormal[2] * cameraPosition[2];
-
-                // calculate optimal distance from height and field of view
-                const maximalDistance = h / (Math.tan(viewer.cameraProperties.fov * Math.PI / 180.0 / 2.0) * 2.0);
-
-                // if we are too far away, adjust at least to be on the beginning of the region
-                if (Math.abs(distance) > maximalDistance) {
-                    const pointOnPlane = vec3.fromValues(
-                        cameraPosition[0] + distance * planeNormal[0],
-                        cameraPosition[1] + distance * planeNormal[1],
-                        cameraPosition[2] + distance * planeNormal[2]);
-                    const move = vec3.scale(vec3.create(), planeNormal, maximalDistance);
-                    eye = vec3.subtract(vec3.create(), pointOnPlane, move);
+                // fix to fit the screen (aspect ratio)
+                if (a > aspect) {
+                    // adjust distance - move eye more far away from the subject
+                    const fov = viewer.cameraProperties.fov * Math.PI / 180.0;
+                    const delta = h * (a / aspect - 1.0) / (2.0 * Math.tan(fov / 2.0));
+                    const deltaDir = vec3.negate(vec3.create(), dir);
+                    const deltaTrans = vec3.scale(vec3.create(), deltaDir, delta);
+                    eye = vec3.add(vec3.create(), eye, deltaTrans);
+                    // adjust perspective camera height
+                    h = h * a / aspect;
                 }
+
+                // set to optimal view if it seems to be too far away
+                if (optimum != null && h > optimum.height * threasholdCoeficient) {
+                    h = optimum.height;
+                }
+
+                orthCamHeight = h;
             }
         }
 
@@ -309,8 +310,8 @@ export class Viewpoint {
                 console.warn('No function defined to map between global IDs and local product and model IDs');
                 idMapper = (id: string) => {
                     const parts = id.split('_');
-                    const modelId = parseInt(parts[0]);
-                    const productId = parseInt(parts[1]);
+                    const modelId = parseInt(parts[0], 10);
+                    const productId = parseInt(parts[1], 10);
                     return { productId, modelId };
                 }
             }
@@ -322,7 +323,7 @@ export class Viewpoint {
                     products.push(map.productId);
                 });
             Object.getOwnPropertyNames(productsByModel).forEach(mId => {
-                viewer.addState(State.HIGHLIGHTED, productsByModel[mId], parseInt(mId));
+                viewer.addState(State.HIGHLIGHTED, productsByModel[mId], parseInt(mId, 10));
             });
         }
     }

@@ -24,7 +24,8 @@
     "webpack": "^4.1.0",
     "webpack-cli": "^2.0.10",
     "webpack-dev-server": "^3.1.0",
-    "webpack-merge": "^4.1.2"
+    "webpack-merge": "^4.1.2",
+    "tslint": "^6.0.0"
   },
   "scripts": {
     "docs": "tsc&&jsdoc -c jsdoc.config.json&&node utilities/clean.js .",
@@ -34,8 +35,8 @@
     "build:dev": "webpack --config webpack.worker.js&&webpack --config webpack.dev.js"
   },
   "dependencies": {
-    "gl-matrix": "^3.0.0",
+    "@types/gl-matrix": "^2.4.5",
     "@types/webgl2": "0.0.3",
-    "@types/gl-matrix": "^2.4.5"
+    "gl-matrix": "^3.0.0"
   }
 }
