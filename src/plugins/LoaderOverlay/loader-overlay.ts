@@ -5,19 +5,19 @@ export class LoaderOverlay implements IPlugin {
     private viewer: Viewer;
     private overlay: HTMLDivElement;
 
-    init(viewer: Viewer): void {
+    public init(viewer: Viewer): void {
         this.viewer = viewer;
     }
 
-    onBeforeDraw(width: number, height: number): void {
+    public onBeforeDraw(width: number, height: number): void {
     }
-    onAfterDraw(width: number, height: number): void {
+    public onAfterDraw(width: number, height: number): void {
     }
-    onBeforeDrawId(): void {
+    public onBeforeDrawId(): void {
     }
-    onAfterDrawId(): void {
+    public onAfterDrawId(): void {
     }
-    onAfterDrawModelId(): void {
+    public onAfterDrawModelId(): void {
     }
 
 
@@ -77,8 +77,7 @@ export class LoaderOverlay implements IPlugin {
         this.overlay = div;
 
         const parent = this.viewer.canvas.parentElement;
-        if (parent.style.position !== 'relative' && parent.style.position !== 'absolute' )
-        {
+        if (parent.style.position !== 'relative' && parent.style.position !== 'absolute' ) {
             parent.style.position = 'relative';
         }
 
