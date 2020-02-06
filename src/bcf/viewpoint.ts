@@ -247,9 +247,24 @@ export class Viewpoint {
 
         if (viewpoint.perspective_camera) {
             viewer.camera = CameraType.PERSPECTIVE;
+            let fov = 60.0; // default value
             if (isPositiveNumber(viewpoint.perspective_camera.field_of_view)) {
-                viewer.cameraProperties.fov = viewpoint.perspective_camera.field_of_view;
+                fov = viewpoint.perspective_camera.field_of_view;
             }
+
+            if (isPositiveNumber(camera.width) && isPositiveNumber(camera.height)) {
+                // camera properties fom the data of the maximal values
+                const a = camera.width / camera.height;
+
+                // fix to fit the screen (aspect ratio)
+                if (a > aspect) {
+                    const current = fov * Math.PI / 180.0;
+                    // FOV is non-linear in relation to aspect ratio but can be calculated like this
+                    const extended = 2.0 * Math.atan(Math.tan(current / 2.0) * a / aspect);
+                    fov = extended * 180.0 / Math.PI;
+                }
+            }
+            viewer.cameraProperties.fov = fov;
         }
         else if (viewpoint.orthogonal_camera) {
             viewer.camera = CameraType.ORTHOGONAL;
@@ -272,12 +287,6 @@ export class Viewpoint {
 
                 // fix to fit the screen (aspect ratio)
                 if (a > aspect) {
-                    // adjust distance - move eye more far away from the subject
-                    const fov = viewer.cameraProperties.fov * Math.PI / 180.0;
-                    const delta = h * (a / aspect - 1.0) / (2.0 * Math.tan(fov / 2.0));
-                    const deltaDir = vec3.negate(vec3.create(), dir);
-                    const deltaTrans = vec3.scale(vec3.create(), deltaDir, delta);
-                    eye = vec3.add(vec3.create(), eye, deltaTrans);
                     // adjust perspective camera height
                     h = h * a / aspect;
                 }
