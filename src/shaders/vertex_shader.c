@@ -12,6 +12,9 @@ uniform mat4 uPMatrix;
 //Highlighting colour
 uniform vec4 uHighlightColour;
 
+// XRay colour. This has to be semitransparent
+uniform vec4 uXRayColour;
+
 //One meter
 uniform float uMeter;
 

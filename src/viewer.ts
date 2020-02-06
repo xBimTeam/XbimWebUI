@@ -76,6 +76,13 @@ export class Viewer {
     public set highlightingColour(value: number[]) { this._highlightingColour = value; this.changed = true; }
 
     /**
+     * Array of four integers between 0 and 255 representing RGBA colour components. This defines colour for xray mode rendering. You can change this value at any time with instant effect.
+     * @member {Number[]} Viewer#xrayColour
+     */
+    public get xrayColour(): number[] { return this._xrayColour; }
+    public set xrayColour(value: number[]) { this._xrayColour = value; this.changed = true; }
+
+    /**
      * Coordinates in the WCS of the origin used for orbiting and panning [x, y, z]
      * @member {Number[]} Viewer#origin
      */
@@ -188,6 +195,7 @@ export class Viewer {
     private _height: number;
     private _background: number[] = [230, 230, 230, 255];
     private _highlightingColour: number[] = [255, 173, 33, 255];
+    private _xrayColour: number[] = [80, 80, 80, 150];
     private _origin: vec3 = vec3.create();
     private _mvMatrix: mat4 = mat4.create();
     private _pMatrix: mat4 = mat4.create();
@@ -209,6 +217,7 @@ export class Viewer {
     private _colorCodingUniformPointer: WebGLUniformLocation;
     private _renderingModeUniformPointer: WebGLUniformLocation;
     private _highlightingColourUniformPointer: WebGLUniformLocation;
+    private _xrayColourUniformPointer: WebGLUniformLocation;
     private _stateStyleSamplerUniform: WebGLUniformLocation;
     private _gammaContrastBrightnessUniform: WebGLUniformLocation;
     private _sectionBoxUniform: WebGLUniformLocation;
@@ -1198,6 +1207,7 @@ export class Viewer {
         this._colorCodingUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uColorCoding');
         this._renderingModeUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uRenderingMode');
         this._highlightingColourUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uHighlightColour');
+        this._xrayColourUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uXRayColour');
         this._stateStyleSamplerUniform = gl.getUniformLocation(this._shaderProgram, 'uStateStyleSampler');
         this._gammaContrastBrightnessUniform = gl.getUniformLocation(this._shaderProgram, 'uGBC');
         this._sectionBoxUniform = gl.getUniformLocation(this._shaderProgram, 'uSectionBox');
@@ -1398,6 +1408,16 @@ export class Viewer {
                     this.highlightingColour[3] / 255.0
                 ]));
 
+        //update xray colour
+        gl.uniform4fv(this._xrayColourUniformPointer,
+            new Float32Array(
+                [
+                    this.xrayColour[0] / 255.0,
+                    this.xrayColour[1] / 255.0,
+                    this.xrayColour[2] / 255.0,
+                    this.xrayColour[3] / 255.0
+                ]));
+
         // bind buffer if defined
         if (framebuffer) {
             gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer.framebuffer);
@@ -1442,16 +1462,16 @@ export class Viewer {
         });
     }
 
-    private getLightPosition(verticalOffset: number, horizontalOffset: number) : vec3{
+    private getLightPosition(verticalOffset: number, horizontalOffset: number): vec3 {
         const transform = mat4.getRotation(quat.create(), this.mvMatrix);
         const inverse = quat.invert(quat.create(), transform);
-        const upDir = vec3.transformQuat(vec3.create(), [0,1,0], inverse);
-        const rightDir = vec3.transformQuat(vec3.create(), [1,0,0], inverse);
-        
+        const upDir = vec3.transformQuat(vec3.create(), [0, 1, 0], inverse);
+        const rightDir = vec3.transformQuat(vec3.create(), [1, 0, 0], inverse);
+
         const vertical = vec3.scale(vec3.create(), upDir, verticalOffset);
         const horizontal = vec3.scale(vec3.create(), rightDir, horizontalOffset);
         const move = vec3.add(vec3.create(), vertical, horizontal);
-        
+
         const camera = this.getCameraPosition();
         return vec3.add(vec3.create(), camera, move);
     }

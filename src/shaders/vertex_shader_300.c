@@ -13,6 +13,9 @@ uniform mat4 uPMatrix;
 //Highlighting colour
 uniform vec4 uHighlightColour;
 
+//XRay colour. This has to be semitransparent
+uniform vec4 uXRayColour;
+
 //One meter
 uniform float uMeter;
 
@@ -220,7 +223,7 @@ void main(void) {
 			}
 			//x-ray semitransparent light blue colour
 			else {
-				baseColor = vec4(0.0, 0.0, 0.3, 0.5); 
+				baseColor = uXRayColour; 
 			}
 		}
 		else {
