@@ -6,7 +6,7 @@ export class CameraProperties {
      * 
      */
     constructor(changeHandler: () => void) {
-        this.onChange = changeHandler || (() => {});
+        this.onChange = changeHandler || (() => { return; });
     }
 
     private _fov = 45;
@@ -16,18 +16,21 @@ export class CameraProperties {
     private _type: CameraType = CameraType.PERSPECTIVE;
 
     public get fov(): number { return this._fov; }
-    public get near(): number { return this._near; }
-    public get far(): number { return this._far; }
-    public get height(): number { return this._height; }
-    public get type(): CameraType {return this._type; }
+    public set fov( value: number) { this._fov = value; if (this.onChange && this.type === CameraType.PERSPECTIVE) { this.onChange() }}
 
-    public set fov( value: number) { this._fov = value; if (this.onChange) { this.onChange() }}
+    public get near(): number { return this._near; }
     public set near( value: number) { this._near = value; if (this.onChange) { this.onChange() }}
+
+    public get far(): number { return this._far; }
     public set far( value: number) { this._far = value; if (this.onChange) { this.onChange() }}
-    public set height( value: number) { this._height = value; if (this.onChange) { this.onChange() }}
+
+    public get height(): number { return this._height; }
+    public set height( value: number) { this._height = value; if (this.onChange  && this.type === CameraType.ORTHOGONAL) { this.onChange() }}
+
+    public get type(): CameraType {return this._type; }
     public set type(value: CameraType) { this._type = value; if (this.onChange) { this.onChange() }}
 
-    public onChange = () => {};
+    public onChange = () => { return; };
 
     public getProjectionMatrix(width: number, height: number): mat4 {
         const aspect = width / height;

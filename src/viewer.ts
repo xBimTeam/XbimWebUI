@@ -29,6 +29,7 @@ import { PerformanceRating } from './performance-rating';
 import { CameraProperties, CameraType } from './camera';
 import { SectionBox } from './section-box';
 import { BBox } from './common/bbox';
+import { CameraAdjustment } from './navigation/camera-adjustment';
 
 export type NavigationMode = 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none' | 'look-around' | 'walk' | 'look-at';
 
@@ -231,7 +232,7 @@ export class Viewer {
 
     // dictionary of named events which can be registered and unregistered by using '.on('eventname', callback)'
     // and '.off('eventname', callback)'. Registered call-backs are triggered by the viewer when important events occur.
-    private _events: { [entName: string]: Array<(args: { message: string } | { event: Event, id: number, model: number } | { model: number, tag: any } | number | { target: Element }) => void>; } = {};
+    private _events: { [entName: string]: ((args: { message: string } | { event: Event, id: number, model: number } | { model: number, tag: any } | number | { target: Element }) => void)[]; } = {};
 
     private _canvasListeners: { [evtName: string]: (event: Event) => any } = {};
 
@@ -246,6 +247,8 @@ export class Viewer {
      * Holds reference to Floating Point Texture extension needed for WebGL1 implementations
      */
     private _fptExtension: object;
+
+    private _cameraAdjustment: CameraAdjustment;
 
     /**
      * Holds reference to Depth Texture extension needed for WebGL2 implementations to get 3D coordinate of
@@ -413,6 +416,9 @@ export class Viewer {
         watchCanvasSize();
         this._watchFps();
         this._watchPerformance();
+
+        // watch current depth of view in a grid 20 x 20 and adjust camera if needed
+        this._cameraAdjustment = new CameraAdjustment(this, this._requestAnimationFrame, 20);
 
         this.animations = new Animations(this);
     }
@@ -1340,7 +1346,7 @@ export class Viewer {
     * @function Viewer#draw
     * @fires Viewer#frame
     */
-    public draw(framebuffer?: Framebuffer) {
+    public draw(framebuffer?: Framebuffer, disablePlugins = false) {
 
         let wcs = this.getCurrentWcs();
         let gl = this.gl;
@@ -1365,13 +1371,15 @@ export class Viewer {
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-        //call all before-draw plugins
-        this._plugins.forEach((plugin) => {
-            if (!plugin.onBeforeDraw) {
-                return;
-            }
-            plugin.onBeforeDraw(width, height);
-        });
+        if (!disablePlugins) {
+            //call all before-draw plugins
+            this._plugins.forEach((plugin) => {
+                if (!plugin.onBeforeDraw) {
+                    return;
+                }
+                plugin.onBeforeDraw(width, height);
+            });
+        }
 
         gl = this.setActive();
 
@@ -1453,13 +1461,15 @@ export class Viewer {
             });
         }
 
-        //call all after-draw plugins
-        this._plugins.forEach((plugin) => {
-            if (!plugin.onAfterDraw) {
-                return;
-            }
-            plugin.onAfterDraw(width, height);
-        });
+        if (!disablePlugins) {
+            //call all after-draw plugins
+            this._plugins.forEach((plugin) => {
+                if (!plugin.onAfterDraw) {
+                    return;
+                }
+                plugin.onAfterDraw(width, height);
+            });
+        }
     }
 
     private getLightPosition(verticalOffset: number, horizontalOffset: number): vec3 {

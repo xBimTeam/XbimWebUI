@@ -31,7 +31,7 @@ export class Framebuffer {
         this.width = width = Math.floor(width);
         this.height = height = Math.floor(height);
 
-        if (typeof (WebGL2RenderingContext) != 'undefined' && gl instanceof WebGL2RenderingContext) {
+        if (typeof (WebGL2RenderingContext) !== 'undefined' && gl instanceof WebGL2RenderingContext) {
             this._glVersion = 2;
         } else {
             this._glVersion = 1;
@@ -66,7 +66,7 @@ export class Framebuffer {
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-            if (this._glVersion == 1) {
+            if (this._glVersion === 1) {
                 gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, width, height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
             } else {
                 gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT16, width, height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
@@ -81,7 +81,7 @@ export class Framebuffer {
             gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this.renderbuffer);
         }
 
-        if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE) {
+        if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
             throw new Error('this combination of attachments does not work');
         }
     }
@@ -109,6 +109,36 @@ export class Framebuffer {
         }
     }
 
+    public getDepths(points: {x: number, y: number}[]): number[] {
+        if (this.withDepth) {
+            return this.depthReader.getDepths(points, this.depthTexture, this.width, this.height);
+        } else {
+            return null;
+        }
+    }
+
+    public getXYZArray(points: {x: number, y: number}[]): vec3[] {
+        if (!this.withDepth) {
+            return null;
+        }
+
+        const depths = this.getDepths(points);
+
+        return depths.map((depth, i) => {
+            if (depth === 255) { // infinity (= nothing, no value)
+                return null;
+            }
+            
+            // convert values to clip space where x and y are [-1, 1] and z is [0, 1]
+            const point = points[i];
+            const xc = point.x / this.width * 2.0 - 1.0;
+            const yc = point.y / this.height * 2.0 - 1.0;
+            const zc = (depth / 255.0 - 0.5) * 2.0;
+    
+            return vec3.fromValues(xc, yc, zc);
+        });
+    }
+
     /**
      * Computes normalised X, Y, Z of event in the clip space
      * 
@@ -120,17 +150,7 @@ export class Framebuffer {
             return null;
         }
 
-        const depth = this.getDepth(x, y);
-        if (depth == 255) { // infinity
-            return null;
-        }
-
-        // convert values to clip space where x and y are [-1, 1] and z is [0, 1]
-        const xc = x / this.width * 2.0 - 1.0;
-        const yc = y / this.height * 2.0 - 1.0;
-        const zc = (depth / 255.0 - 0.5) * 2.0;
-
-        return vec3.fromValues(xc, yc, zc);
+        return this.getXYZArray([{x,y}])[0];
     }
 
     /**
@@ -147,7 +167,7 @@ export class Framebuffer {
         }
 
         const depth = this.getDepth(x, y);
-        if (depth == 255) { // infinity
+        if (depth === 255) { // infinity
             return null;
         }
 
@@ -173,7 +193,7 @@ export class Framebuffer {
         const result = this.getPixel(x, y);
 
         //decode ID (bit shifting by multiplication)
-        var hasValue = result[3] != 0; //0 transparency is only for no-values
+        var hasValue = result[3] !== 0; //0 transparency is only for no-values
         if (hasValue) {
             var id = result[0] + result[1] * 256 + result[2] * 256 * 256;
             return id;

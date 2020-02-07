@@ -100,7 +100,7 @@ export class DepthReader {
         gl.drawArrays(gl.TRIANGLES, 0, 6);
     }
 
-    public getDepth(x: number, y: number, tex: WebGLTexture, width: number, height: number): number {
+    public getDepths( points: {x: number, y: number}[], tex: WebGLTexture, width: number, height: number): number[] {
         const gl = this.gl;
         gl.useProgram(this.program);
 
@@ -108,13 +108,20 @@ export class DepthReader {
         const fb = new Framebuffer(gl, width, height, false);
         gl.viewport(0, 0, width, height);
 
-        // draw and get result
+        // draw and get results
         this.draw(tex);
-        var depth = fb.getPixel(x, y);
 
+        // all components should be the same (therefore just using [0])
+        var depths = points.map(p => fb.getPixel(p.x, p.y)[0]) ;
+
+        // free resources
         fb.delete();
-        // all components should be the same
-        return depth[0];
+        return depths;
+    }
+
+    public getDepth(x: number, y: number, tex: WebGLTexture, width: number, height: number): number {
+        const depths = this.getDepths([{x,y}], tex, width, height);
+        return depths[0];
     }
 
     /**
