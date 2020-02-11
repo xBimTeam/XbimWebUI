@@ -15,12 +15,20 @@ export class CameraAdjustment {
         }
 
         let dirty = true;
+        let lastMvChange = 0;
         const watch = () => {
+            // this redraw is likely caused by us
+            if ((Date.now() - lastMvChange) < latency + 20) {
+                request(watch);
+                return;
+            }
+
             if (viewer.mvMatrixAge < latency) {
                 dirty = true;
                 request(watch);
                 return;
             }
+
 
             if (viewer.mvMatrixAge > latency && !dirty) {
                 request(watch);
@@ -103,6 +111,7 @@ export class CameraAdjustment {
                     const move = vec3.scale(vec3.create(), dir, delta);
 
                     viewer.mvMatrix = mat4.translate(mat4.create(), viewer.mvMatrix, move);
+                    lastMvChange = Date.now();
                 }
 
             }

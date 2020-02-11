@@ -31,6 +31,7 @@ viewer.on("pick", (arg) => {
 );
 viewer.on("loaded", (evt) => {
     models.push({ id: evt.model, name: evt.tag, stopped: false });
+    viewer.show(ViewType.DEFAULT);
     refreshModelsPanel();
 });
 viewer.on("fps", (fps) => {
