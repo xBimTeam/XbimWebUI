@@ -1,5 +1,5 @@
 {
-  "name": "@bimpress/viewer",
+  "name": "@xbim/viewer",
   "description": "WebGL 3D viewer for wexBIM files",
   "license": "CDDL-1.0",
   "repository": {
@@ -9,7 +9,7 @@
   "author": {
     "email": "info@xbim.net",
     "name": "xBIM Ltd.",
-    "url": "https://www.bimpress.net"
+    "url": "https://www.xbim.net"
   },
   "version": "1.0.3",
   "devDependencies": {
