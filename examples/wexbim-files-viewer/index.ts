@@ -1,5 +1,6 @@
 import { Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube } from '../..';
 import { Grid } from '../../src/plugins/Grid/grid';
+import { vec3 } from 'gl-matrix';
 
 var models = [];
 
@@ -25,13 +26,16 @@ viewer.on("error", (arg) => {
 });
 viewer.on("pick", (arg) => {
     if (arg.id) {
-        console.log(`Selected id: ${arg.id}`);
+        console.log(`Selected id: ${arg.id} model ${arg.model}`);
+        const wcs = viewer.getCurrentWcs();
+        const point = vec3.add(vec3.create(), wcs, arg.xyz);
+        console.log(point);
     }
 }
 );
 viewer.on("loaded", (evt) => {
     models.push({ id: evt.model, name: evt.tag, stopped: false });
-    viewer.show(ViewType.DEFAULT);
+    viewer.show(ViewType.DEFAULT, undefined, undefined, false);
     refreshModelsPanel();
 });
 viewer.on("fps", (fps) => {
