@@ -280,15 +280,15 @@ export class Viewer {
     * @param {string | HTMLCanvasElement} canvas - string ID of the canvas or HTML canvas element.
     */
     constructor(canvas: string | HTMLCanvasElement, errorHandler?: ({ message: string }) => void) {
-        if (typeof (canvas) == 'undefined') {
+        if (canvas == null) {
             throw new Error('Canvas has to be defined');
         }
 
-        if (typeof (canvas['nodeName']) != 'undefined' && canvas['nodeName'] === 'CANVAS') {
-            this.canvas = <HTMLCanvasElement>canvas;
+        if (typeof (canvas['nodeName']) !== 'undefined' && canvas['nodeName'] === 'CANVAS') {
+            this.canvas = canvas as HTMLCanvasElement;
         }
-        if (typeof (canvas) == 'string') {
-            this.canvas = <HTMLCanvasElement>document.getElementById(<string>canvas);
+        if (typeof (canvas) === 'string') {
+            this.canvas = document.getElementById(canvas) as HTMLCanvasElement;
         }
         if (this.canvas == null) {
             throw new Error('You have to specify canvas either as an ID of HTML element or the element itself');
@@ -473,10 +473,10 @@ export class Viewer {
     * @param {Number[]} colour - Array of four numbers in range 0 - 255 representing RGBA colour. If there are less or more numbers exception is thrown.
     */
     public defineStyle(index: number, colour: number[]) {
-        if (typeof (index) == 'undefined' || (index < 0 && index > 224)) {
+        if (typeof (index) === 'undefined' || (index < 0 && index > 224)) {
             throw new Error('Style index has to be defined as a number 0-224');
         }
-        if (typeof (colour) == 'undefined' || !colour.length || colour.length != 4) {
+        if (typeof (colour) === 'undefined' || !colour.length || colour.length !== 4) {
             throw new Error('Colour must be defined as an array of 4 bytes');
         }
 
@@ -506,7 +506,7 @@ export class Viewer {
     * @param {Number[] | Number} target - Target of the change. It can either be array of product IDs or product type from {@link xProductType xProductType}.
     */
     public addState(state: State, target: number | number[], modelId?: number) {
-        if (typeof (state) == 'undefined' || !(state >= 225 && state <= 255)) {
+        if (typeof (state) === 'undefined' || !(state >= 225 && state <= 255)) {
             throw new Error('State has to be defined as 225 - 255. Use State enum.');
         }
         if (typeof (target) === 'undefined' || target === null) {
@@ -518,7 +518,7 @@ export class Viewer {
     }
 
     public setState(state: State, target: number | number[], modelId?: number) {
-        if (typeof (state) == 'undefined' || !(state >= 225 && state <= 255)) {
+        if (typeof (state) === 'undefined' || !(state >= 225 && state <= 255)) {
             throw new Error('State has to be defined as 225 - 255. Use State enum.');
         }
         if (typeof (target) === 'undefined' || target === null) {
@@ -532,7 +532,7 @@ export class Viewer {
 
 
     public removeState(state: State, target: number | number[], modelId?: number) {
-        if (typeof (state) == 'undefined' || !(state >= 225 && state <= 255)) {
+        if (typeof (state) === 'undefined' || !(state >= 225 && state <= 255)) {
             throw new Error('State has to be defined as 225 - 255. Use State enum.');
         }
         if (typeof (target) === 'undefined' || target === null) {
@@ -543,8 +543,8 @@ export class Viewer {
         this.changed = true;
     }
 
-    public getProductsWithState(state: State): Array<{ id: number, model: number }> {
-        let result: Array<{ id: number, model: number }> = [];
+    public getProductsWithState(state: State): { id: number, model: number }[] {
+        let result: { id: number, model: number }[] = [];
         const handles = this._handles.filter(h => !h.stopped && !h.empty);
         handles.forEach(h => {
             const products = h.getProductsWithState(state);
@@ -622,7 +622,7 @@ export class Viewer {
     }
 
     private getHandle(id: number): ModelHandle {
-        return this._handles.filter((h) => h != null && h.id == id).pop();
+        return this._handles.filter((h) => h != null && h.id === id).pop();
     }
 
     public getCurrentImageHtml(width: number = this.width, height: number = this.height): HTMLImageElement {
@@ -662,7 +662,7 @@ export class Viewer {
     }
 
 
-    public getProductsStates(modelId: number): Array<{ id: number, states: State[] }> {
+    public getProductsStates(modelId: number): { id: number, states: State[] }[] {
         var handle = this.getHandle(modelId);
         if (handle == null) {
             throw new Error(`Model '${modelId}' doesn't exist`);
@@ -670,7 +670,7 @@ export class Viewer {
         return handle.getStates();
     }
 
-    public restoreProductsStates(modelId: number, stateMap: Array<{ id: number, states: State[] }>): void {
+    public restoreProductsStates(modelId: number, stateMap: { id: number, states: State[] }[]): void {
         var handle = this.getHandle(modelId);
         if (handle == null) {
             throw new Error(`Model '${modelId}' doesn't exist`);
@@ -690,7 +690,7 @@ export class Viewer {
      * @param {Number} modelId - Model ID which you can get from {@link Viewer#event:loaded loaded} event.
      * @returns {Array} - Array representing model state in compact form suitable for serialization
      */
-    public getModelState(modelId: number): Array<Array<number>> {
+    public getModelState(modelId: number): number[][] {
         var handle = this.getHandle(modelId);
         if (handle == null) {
             throw new Error(`Model '${modelId}' doesn't exist`);
@@ -703,7 +703,7 @@ export class Viewer {
      * @param {Number} modelId - ID of the model
      * @param {Array} state - State of the model as obtained from {@link Viewer#getModelState getModelState()} function
      */
-    public restoreModelState(modelId: number, state: Array<Array<number>>) {
+    public restoreModelState(modelId: number, state: number[][]) {
         var handle = this.getHandle(modelId);
         if (handle == null) {
             throw new Error(`Model '${modelId}' doesn't exist`);
@@ -734,7 +734,7 @@ export class Viewer {
             this._stateStyles[style * 4 + 2],
             this._stateStyles[style * 4 + 3]
         ];
-        if (c[0] == 0 && c[1] == 0 && c[2] == 0 && c[3] == 0 && console && console.warn) {
+        if (c[0] === 0 && c[1] === 0 && c[2] === 0 && c[3] === 0) {
             console.warn('You have used undefined colour for restyling. Elements with this style will have transparent black colour and hence will be invisible.');
         }
 
@@ -817,7 +817,7 @@ export class Viewer {
     * @param {Number} duration - milliseconds for animation.
     */
     public setCameraPosition(coordinates: number[], targetHeight: number, duration: number) {
-        if (typeof (coordinates) == 'undefined') {
+        if (typeof (coordinates) === 'undefined') {
             throw new Error('Parameter coordinates must be defined');
         }
         const mv = mat4.lookAt(mat4.create(), coordinates, this.origin, [0, 0, 1]);
@@ -952,10 +952,10 @@ export class Viewer {
     * @fires Viewer#loaded
     */
     public loadAsync(model: string | Blob | File, tag?: any, headers?: { [name: string]: string }, progress?: (message: Message) => void): void {
-        if (typeof (model) == 'undefined') {
+        if (typeof (model) === 'undefined') {
             throw new Error('You have to specify model to load.');
         }
-        if (typeof (model) != 'string' && !(model instanceof Blob)) {
+        if (typeof (model) !== 'string' && !(model instanceof Blob)) {
             throw new Error('Model has to be specified either as a URL to wexBIM file or Blob object representing the wexBIM file.');
         }
         const self = this;
@@ -1035,7 +1035,7 @@ export class Viewer {
         if (model == null) {
             throw new Error('You have to specify model to load.');
         }
-        if (typeof (model) != 'string' && !(model instanceof Blob)) {
+        if (typeof (model) !== 'string' && !(model instanceof Blob)) {
             throw new Error('Model has to be specified either as a URL to wexBIM file or Blob object representing the wexBIM file.');
         }
         var viewer = this;
@@ -1992,7 +1992,7 @@ export class Viewer {
             const fps = this._currentFps;
 
             // no movement and already having full performance flag
-            if (age > noMove && this.performance == PerformanceRating.HIGH) {
+            if (age > noMove && this.performance === PerformanceRating.HIGH) {
                 return;
             }
 
@@ -2057,7 +2057,7 @@ export class Viewer {
                 return;
             }
 
-            if (this._handles.length !== 0 && (this.changed || this.activeHandles.filter((h) => h.changed).length != 0)) {
+            if (this._handles.length !== 0 && (this.changed || this.activeHandles.filter((h) => h.changed).length !== 0)) {
 
                 this.draw();
                 this.changed = false;
@@ -2192,7 +2192,7 @@ export class Viewer {
     public startPicking(id: number) {
         var model = this.getHandle(id);
         if (typeof (model) === 'undefined') {
-            throw "Model doesn't exist.";
+            throw new Error('Model doesn\'t exist.');
         }
 
         model.pickable = true;

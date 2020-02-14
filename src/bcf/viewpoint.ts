@@ -344,16 +344,26 @@ export class Viewpoint {
      */
     public static SetClipping(viewer: Viewer, viewpoint: Viewpoint) {
         viewer.unclip();
-        // restore first two clipping planes
-        if (viewpoint.clipping_planes != null && viewpoint.clipping_planes.length > 0) {
-            const planeA = Viewpoint.getClippingEquation(viewpoint.clipping_planes[0]);
-            const planeB = Viewpoint.getClippingEquation(viewpoint.clipping_planes[1]);
-            if (planeA != null) {
-                viewer.setClippingPlaneA(planeA);
-            }
-            if (planeB != null) {
-                viewer.setClippingPlaneB(planeB);
-            }
+        if (viewpoint.clipping_planes == null || viewpoint.clipping_planes.length === 0) {
+            // no clipping instructions
+            return;
+        }
+
+        // restore as a section box
+        if (viewpoint.clipping_planes.length === 6) {
+            viewer.sectionBox.setToPlanes(viewpoint.clipping_planes);
+            return;
+        }
+
+        // restore first two clipping planes (we can't handle more)
+        const planeA = Viewpoint.getClippingEquation(viewpoint.clipping_planes[0]);
+        const planeB = Viewpoint.getClippingEquation(viewpoint.clipping_planes[1]);
+        
+        if (planeA != null) {
+            viewer.setClippingPlaneA(planeA);
+        }
+        if (planeB != null) {
+            viewer.setClippingPlaneB(planeB);
         }
     }
 

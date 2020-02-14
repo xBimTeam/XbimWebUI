@@ -44,6 +44,7 @@ void main(void) {
 		float distance = (dot(p.xyz, x) + p.w) / length(p.xyz);
 		if (distance < 0.0){
 			discard;
+			return;
 		}
 	}
 
@@ -56,8 +57,8 @@ void main(void) {
 		float distance = (dot(p.xyz, x) + p.w) / length(p.xyz);
 		if (distance < 0.0) {
 			discard;
+			return;
 		}
-
 	}
 	
 	// it is colour coding. Don't to shading and lighting or anything else

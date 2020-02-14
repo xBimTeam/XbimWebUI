@@ -47,6 +47,7 @@ void main(void) {
 		float distance = (dot(p.xyz, x) + p.w) / length(p.xyz);
 		if (distance < 0.0){
 			discard;
+			return;
 		}
 	}
 
@@ -58,9 +59,7 @@ void main(void) {
 		vec3 x = vPosition;
 		float distance = (dot(p.xyz, x) + p.w) / length(p.xyz);
 		if (distance < 0.0) {
-			//discard;
-			// PoC for ghosting of clipped areas
-			vFragColor = vec4(0.0, 0.0, 0.0, 0.1);
+			discard;
 			return;
 		}
 
