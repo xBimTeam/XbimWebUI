@@ -66,7 +66,7 @@ export class ModelHandle {
                     maps.push(map);
                 }
             });
-            if (maps.length == 0) {
+            if (maps.length === 0) {
                 return null;
             }
             // aggregated bounding box
@@ -169,8 +169,8 @@ export class ModelHandle {
         private _gl: WebGLRenderingContext | WebGL2RenderingContext,
         private _model: ModelGeometry, progress: (msg: Message) => void) {
 
-        if (typeof (_gl) == 'undefined' || typeof (_model) == 'undefined') {
-            throw 'WebGL context and geometry model must be specified';
+        if (typeof (_gl) === 'undefined' || typeof (_model) === 'undefined') {
+            throw new Error('WebGL context and geometry model must be specified');
         }
 
         if (typeof (WebGL2RenderingContext) !== 'undefined' && _gl instanceof WebGL2RenderingContext) {
@@ -508,12 +508,12 @@ export class ModelHandle {
         }
 
         const report = (percent: number): void => {
-            const msg: Message = {
+            const message: Message = {
                 message: 'Loading data into GPU',
                 percent: percent,
                 type: MessageType.PROGRESS
             };
-            progress(msg);
+            progress(message);
         };
         this._numberOfIndices = model.indices.length;
 
@@ -577,7 +577,7 @@ export class ModelHandle {
 
     public static bufferTexture(gl: WebGLRenderingContext | WebGL2RenderingContext, pointer: WebGLTexture, data: any, numberOfComponents?: number): number {
 
-        if (data.length == 0) {
+        if (data.length === 0) {
             let dummySize = 2;
             gl.bindTexture(gl.TEXTURE_2D, pointer);
             //2 x 2 transparent black dummy pixels texture
@@ -610,11 +610,11 @@ export class ModelHandle {
         }
 
 
-        if (size == 0) {
+        if (size === 0) {
             return 0;
         }
         if (size > maxSize) {
-            throw 'Too much data! It cannot fit into the texture.';
+            throw new Error('Too much data! It cannot fit into the texture.');
         }
 
         gl.bindTexture(gl.TEXTURE_2D, pointer);
@@ -625,7 +625,7 @@ export class ModelHandle {
         if (fp) {
             //create new data buffer and fill it in with data
             let image: Float32Array = null;
-            if (size * size * numberOfComponents != data.length) {
+            if (size * size * numberOfComponents !== data.length) {
                 image = new Float32Array(size * size * numberOfComponents);
                 image.set(data);
             } else {
@@ -689,8 +689,8 @@ export class ModelHandle {
         return this._model.states[span[0] * 2];
     }
 
-    public getStates(): Array<{ id: number, states: State[] }> {
-        const result: Array<{ id: number, states: State[] }> = [];
+    public getStates(): { id: number, states: State[] }[] {
+        const result: { id: number, states: State[] }[] = [];
         var prodIds = Object.getOwnPropertyNames(this._model.productMaps);
         prodIds.forEach((id) => {
             const map = this._model.productMaps[+id];
@@ -719,7 +719,7 @@ export class ModelHandle {
         }
 
         if (typeof (id) === 'undefined') {
-            throw 'id must be defined';
+            throw new Error('id must be defined');
         }
         var map = this.getProductMap(id);
         if (map === null) {
@@ -727,7 +727,7 @@ export class ModelHandle {
         }
 
         var span = map.spans[0];
-        if (typeof (span) == 'undefined') {
+        if (typeof (span) === 'undefined') {
             return null;
         }
 
@@ -825,11 +825,11 @@ export class ModelHandle {
     }
 
     private checkStateArgs(state: State, args: number | number[]) {
-        if (typeof (state) != 'number' || state < 0 || state > 255) {
-            throw 'You have to specify state as an ID of state or index in style pallete.';
+        if (typeof (state) !== 'number' || state < 0 || state > 255) {
+            throw new Error('You have to specify state as an ID of state or index in style pallete.');
         }
-        if (typeof (args) == 'undefined') {
-            throw 'You have to specify products as an array of product IDs or as a product type ID';
+        if (typeof (args) === 'undefined') {
+            throw new Error('You have to specify products as an array of product IDs or as a product type ID');
         }
     }
 
@@ -870,8 +870,8 @@ export class ModelHandle {
         this._changed = true;
     }
 
-    public getProductsWithState(state: State): Array<{ id: number, model: number }> {
-        const result: Array<{ id: number, model: number }> = [];
+    public getProductsWithState(state: State): { id: number, model: number }[] {
+        const result: { id: number, model: number }[] = [];
 
         // hashset of isolated products for fast lookup
         const isolated: { [id: number]: boolean } = {};
@@ -900,11 +900,11 @@ export class ModelHandle {
             return null;
         }
 
-        if (typeof (styleId) != 'number' && styleId < 0 && styleId > 255) {
-            throw 'You have to specify state as an ID of state or index in style pallete.';
+        if (typeof (styleId) !== 'number' && styleId < 0 && styleId > 255) {
+            throw new Error('You have to specify state as an ID of state or index in style pallete.');
         }
-        if (typeof (args) == 'undefined') {
-            throw 'You have to specify products as an array of product IDs or as a product type ID';
+        if (typeof (args) === 'undefined') {
+            throw new Error('You have to specify products as an array of product IDs or as a product type ID');
         }
 
         const maps = this.getMaps(args);
@@ -927,7 +927,7 @@ export class ModelHandle {
     private getMaps(args: number | number[]): ProductMap[] {
         var maps: ProductMap[] = [];
         //it is type
-        if (typeof (args) == 'number') {
+        if (typeof (args) === 'number') {
             // get all non-abstract subtypes
             const subTypes = Product.getAllSubTypes(args);
 
@@ -938,13 +938,12 @@ export class ModelHandle {
                 }
             });
         } else {         //it is a list of IDs
-            for (var l = 0; l < args.length; l++) {
-                var id = args[l];
-                var map = this.getProductMap(id);
+            args.forEach(id => {
+                const map = this.getProductMap(id);
                 if (map != null) {
                     maps.push(map);
                 }
-            }
+            });
         }
         return maps;
     }
@@ -962,7 +961,7 @@ export class ModelHandle {
         this._changed = true;
     }
 
-    public getModelState(): Array<Array<number>> {
+    public getModelState(): number[][] {
         var result = [];
         if (this.empty) {
             return result;
@@ -975,7 +974,7 @@ export class ModelHandle {
             }
             var map = products[i];
             var span = map.spans[0];
-            if (typeof (span) == 'undefined') {
+            if (typeof (span) === 'undefined') {
                 continue;
             }
 
@@ -988,16 +987,16 @@ export class ModelHandle {
         return result;
     }
 
-    public restoreModelState(state: Array<Array<number>>): void {
+    public restoreModelState(states: number[][]): void {
         if (this.empty) {
             return null;
         }
 
-        state.forEach((s) => {
-            var id = s[0];
+        states.forEach((s) => {
+            const id = s[0];
             // tslint:disable: no-bitwise
-            var style = s[1] >> 8;
-            var state = s[1] - (style << 8);
+            const style = s[1] >> 8;
+            const state = s[1] - (style << 8);
 
             var map = this.getProductMap(id);
             if (map != null) {
