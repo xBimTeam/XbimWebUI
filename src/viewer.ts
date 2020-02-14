@@ -910,9 +910,10 @@ export class Viewer {
             bbox = BBox.intersection(region.bbox, this.sectionBox.getBoundingBox(wcs));
             if (bbox == null) {
                 console.debug('View will be empty because section box and actual content region are disjoint');
+            } else {
+                region.bbox = new Float32Array(bbox);
+                region.centre = new Float32Array(BBox.centre(bbox));
             }
-            region.bbox = new Float32Array(bbox);
-            region.centre = new Float32Array(BBox.centre(bbox));
         }
 
         return region;
