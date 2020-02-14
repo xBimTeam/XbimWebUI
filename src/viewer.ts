@@ -885,15 +885,7 @@ export class Viewer {
         //from all models which are not stopped at the moment
         let region = this.getMergedRegion();
         if (region && region.population > 0) {
-            let bbox: number[] | Float32Array = region.bbox;
-            if (this.sectionBox.isSet) {
-                // if section box is set, return intersection of the section box and region bounding box
-                bbox = BBox.intersection(region.bbox, this.sectionBox.getBoundingBox(wcs));
-                if (bbox == null) {
-                    console.debug('View will be empty because section box and actual content region are disjoint');
-                    return null;
-                }
-            }
+            let bbox = region.bbox;
             this.origin = vec3.fromValues(bbox[0] + bbox[3] / 2.0, bbox[1] + bbox[4] / 2.0, bbox[2] + bbox[5] / 2.0);
             return bbox;
         }
@@ -911,6 +903,17 @@ export class Viewer {
                     region = region.merge(h.getRegion(wcs));
                 }
             });
+
+        let bbox: number[] | Float32Array = region.bbox;
+        if (this.sectionBox.isSet) {
+            // if section box is set, return intersection of the section box and region bounding box
+            bbox = BBox.intersection(region.bbox, this.sectionBox.getBoundingBox(wcs));
+            if (bbox == null) {
+                console.debug('View will be empty because section box and actual content region are disjoint');
+            }
+            region.bbox = new Float32Array(bbox);
+            region.centre = new Float32Array(BBox.centre(bbox));
+        }
 
         return region;
     }

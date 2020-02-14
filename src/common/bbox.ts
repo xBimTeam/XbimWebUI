@@ -4,6 +4,10 @@ import { vec3, mat4 } from "gl-matrix";
  * Static helper functions for bounding boxes
  */
 export class BBox {
+    public static centre(a: ArrayLike<number>): number[] {
+        return [a[0] + a[3] / 2.0, a[1] + a[4] / 2.0, a[2] + a[5] / 2.0];
+    }
+
     public static union(a: ArrayLike<number>, b: ArrayLike<number>): number[] {
         const minA = [a[0], a[1], a[2]];
         const minB = [b[0], b[1], b[2]];
