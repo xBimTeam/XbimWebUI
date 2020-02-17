@@ -8,7 +8,7 @@ export class CameraAdjustment {
      * This object can be used to keep orthographic height aligned with the current perspective view and to
      * keep camera position (distance) right for orthographic view
      */
-    constructor(private viewer: Viewer, request: (callback: FrameRequestCallback) => number, density: number, latency: number = 500) {
+    constructor(viewer: Viewer, request: (callback: FrameRequestCallback) => number, density: number, latency: number = 500) {
         if (!viewer.hasDepthSupport) {
             // without a depth support this doesn't make a sense
             return;
@@ -23,14 +23,21 @@ export class CameraAdjustment {
                 return;
             }
 
+            // user interaction
             if (viewer.mvMatrixAge < latency) {
                 dirty = true;
                 request(watch);
                 return;
             }
 
-
+            // handled already
             if (viewer.mvMatrixAge > latency && !dirty) {
+                request(watch);
+                return;
+            }
+
+            // no height means it is not in any interactive state, not rendering anything.
+            if (!viewer.height) {
                 request(watch);
                 return;
             }
@@ -45,7 +52,7 @@ export class CameraAdjustment {
             var fb = new Framebuffer(viewer.gl, width, height, true);
             viewer.draw(fb, true);
 
-            // create the analytical matrix of points
+            // create the analytical matrix of points based on density and current width and height
             const points: { x: number, y: number }[] = [];
             const dw = width / (density + 1);
             const dh = height / (density + 1);
