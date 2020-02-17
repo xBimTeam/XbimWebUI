@@ -82,10 +82,10 @@ export class CameraAdjustment {
             const pMatrix = viewer.cameraProperties.getProjectionMatrix(width, height);
             // const matrix = mat4.multiply(mat4.create(), pMatrix, viewer.mvMatrix);
             const inv = mat4.invert(mat4.create(), pMatrix);
-            const viewPoints = clipPoints.map(p => { return { point: vec3.transformMat4(vec3.create(), p.point, inv), weight: p.weight } });
+            const viewPoints = clipPoints.map(p => ({ point: vec3.transformMat4(vec3.create(), p.point, inv), weight: p.weight }));
 
             // z dimension is distance from camera in view space
-            const distances = viewPoints.map(p => { return { distance: -p.point[2], weight: p.weight } });
+            const distances = viewPoints.map(p => ({ distance: -p.point[2], weight: p.weight }));
 
             // average distance in the view
             const distance = this.trimmedMean(distances);

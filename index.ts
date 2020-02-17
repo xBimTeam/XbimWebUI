@@ -13,6 +13,7 @@ export * from './src/common/viewer-event-map';
 export * from './src/viewer';
 export * from './src/camera';
 export * from './src/section-box';
+export * from './src/framebuffer';
 export { EasingType } from './src/navigation/animations';
 
 // Plugins

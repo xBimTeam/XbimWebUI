@@ -724,7 +724,7 @@ export class Viewer {
     * @param {Number} [modelId] - Optional ID of a specific model.
     */
     public setStyle(style: number, target: number | number[], modelId?: number) {
-        if (typeof (style) == 'undefined' || !(style >= 0 && style <= 225)
+        if (typeof (style) === 'undefined' || !(style >= 0 && style <= 225)
         ) {
             throw new Error('Style has to be defined as 0 - 225 where 225 is for default style.');
         }

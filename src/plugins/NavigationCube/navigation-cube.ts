@@ -167,6 +167,7 @@ export class NavigationCube implements IPlugin {
 
     private _originalNavigation: any;
 
+
     public init(viewer: Viewer) {
         var self = this;
         this.viewer = viewer;
@@ -452,7 +453,7 @@ export class NavigationCube implements IPlugin {
             dir = vec3.normalize(vec3.create(), dir);
 
             // fix to true north if needed
-            if (this.trueNorth != 0) {
+            if (this.trueNorth !== 0) {
                 const angle = -this.trueNorth * Math.PI / 180.0;
                 const rotation = quat.rotateZ(quat.create(), quat.create(), angle);
                 dir = vec3.transformQuat(vec3.create(), dir, rotation);

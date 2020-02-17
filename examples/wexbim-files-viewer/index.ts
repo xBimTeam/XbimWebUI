@@ -51,6 +51,7 @@ input.addEventListener('change', () => {
         return;
     }
 
+    
     for (let i = 0; i < input.files.length; i++) {
         const file = input.files[i];
         viewer.load(file, file.name);
