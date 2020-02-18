@@ -186,6 +186,11 @@ export class Viewpoint {
         const wcs = viewer.getCurrentWcs();
         const aspect = viewer.width / viewer.height;
 
+        // discard any current clipping, set new clipping.
+        // this might affect current region size and position
+        // which has effect on camera adjustments later in the code
+        Viewpoint.SetClipping(viewer, viewpoint);
+
         // common camera properties to be used for camera position
         const camera: {
             camera_view_point: number[],
@@ -303,13 +308,22 @@ export class Viewpoint {
         // set camera (MV matrix)
         const target = vec3.add(vec3.create(), eye, dir);
         const mv = mat4.lookAt(mat4.create(), eye, target, up);
-        viewer.animations.viewTo({ mv: mv, height: orthCamHeight }, duration);
+        viewer.animations.viewTo({ mv: mv, height: orthCamHeight }, duration)
+            .then(() => {
+                // try to fix camera placement for generic orthographic views
+                if (!viewpoint.orthogonal_camera)
+                    return;
+                // don't do anything if this is a plan view
+                var delta = vec3.angle(toVec3(camera.camera_direction), vec3.fromValues(0, 0, -1));
+                if (delta > Math.PI / 180.0)
+                    return;
+                viewer.adjustments.adjust();
+            });
 
-        // discard any current clipping
-        Viewpoint.SetClipping(viewer, viewpoint);
 
         // clear current selection
         viewer.clearHighlighting();
+        
         // restore selection
         if (viewpoint.components != null && viewpoint.components.selection != null && viewpoint.components.selection.length > 0) {
             const selection = viewpoint.components.selection;
@@ -358,7 +372,7 @@ export class Viewpoint {
         // restore first two clipping planes (we can't handle more)
         const planeA = Viewpoint.getClippingEquation(viewpoint.clipping_planes[0]);
         const planeB = Viewpoint.getClippingEquation(viewpoint.clipping_planes[1]);
-        
+
         if (planeA != null) {
             viewer.setClippingPlaneA(planeA);
         }

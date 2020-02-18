@@ -166,6 +166,12 @@ export class Viewer {
     }
 
     /**
+     * This can be used to adjust ortgographic and perspective camera properties
+     * to be close. Particularly useful when restoring orthographic view with displaced camera.
+     */
+    public get adjustments(): CameraAdjustment { return this._cameraAdjustment; }
+
+    /**
      * Number of milliseconds for animated zooming
      */
     public zoomDuration: number = 1000;
