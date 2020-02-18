@@ -113,11 +113,11 @@ export class Viewpoint {
         }
 
         // capture image (good for preview for example)
-        const dataUrl = viewer.getCurrentImageDataUrl(width, height, 'jpeg');
+        const dataUrl = viewer.getCurrentImageDataUrl(width, height, 'png');
         // strip 'data:image/jpeg;base64,' from the data url
         const base64image = dataUrl.substring(23);
         view.snapshot = {
-            snapshot_type: 'jpg',
+            snapshot_type: 'png',
             snapshot_data: base64image
         };
 
@@ -323,7 +323,7 @@ export class Viewpoint {
 
         // clear current selection
         viewer.clearHighlighting();
-        
+
         // restore selection
         if (viewpoint.components != null && viewpoint.components.selection != null && viewpoint.components.selection.length > 0) {
             const selection = viewpoint.components.selection;
