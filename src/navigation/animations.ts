@@ -28,6 +28,19 @@ export class Animations {
             function (/* function FrameRequestCallback */ callback: () => void) {
                 window.setTimeout(callback, 1000 / 60);
             }).bind(window);
+
+        // stop animations when user starts any interaction
+        viewer.canvas.addEventListener('mousedown', () => this.clear());
+        viewer.canvas.addEventListener('touchstart', () => this.clear());
+    }
+
+    /**
+     * Stops all animations and clears the queues
+     */
+    public clear(): void {
+        Animations.viewQueue = [];
+        Animations.zoomQueue = [];
+        this._rotationOn = false;
     }
 
     private _rotationOn: boolean = false;
@@ -53,7 +66,7 @@ export class Animations {
         this._rotationOn = false;
     }
 
-    private static viewQueue: Array<{ mv: mat4, height: number }> = [];
+    private static viewQueue: { mv: mat4, height: number }[] = [];
 
     /**
      * Animates transition from the current view to target view. Animations are queued and execuded in sequence.
@@ -71,7 +84,7 @@ export class Animations {
                 return;
             }
 
-            let start: { mv: mat4, height: number } = null; 
+            let start: { mv: mat4, height: number } = null;
             if (Animations.viewQueue.length > 0) {
                 // use last animation as a start to create a smooth animation
                 start = Animations.viewQueue[Animations.viewQueue.length - 1];
@@ -102,7 +115,15 @@ export class Animations {
 
             Animations.viewQueue.push(end);
             let step = () => {
-                if (Animations.viewQueue[0] != end) {
+                if (Animations.viewQueue[0] !== end) {
+                    // check we are in the queue
+                    var exist = Animations.viewQueue.filter(m => m === end).pop() != null;
+                    if (!exist) {
+                        // navigation queue was cleared. stop animation
+                        resolve();
+                        return;
+                    }
+
                     // not our run, just wait, try again later
                     this.requestAnimationFrame(step);
                     return;
@@ -162,7 +183,7 @@ export class Animations {
 
     }
 
-    private static zoomQueue: Array<{ mv: mat4, height: number }> = [];
+    private static zoomQueue: { mv: mat4, height: number }[] = [];
     /**
      * Animates transition from the current view to target view
      * 
@@ -198,7 +219,7 @@ export class Animations {
         // final state
         const end = {
             mv: mat4.translate(mat4.create(), currentMv, move),
-            height: currentHeight- deltaHeight
+            height: currentHeight - deltaHeight
         };
 
 
@@ -216,11 +237,11 @@ export class Animations {
 
             Animations.zoomQueue.push(end);
             let step = () => {
-                if (Animations.zoomQueue[0] != end) {
+                if (Animations.zoomQueue[0] !== end) {
                     // check we are in the queue
-                    var exist = Animations.zoomQueue.filter(m => m == end).pop() != null;
+                    var exist = Animations.zoomQueue.filter(m => m === end).pop() != null;
                     if (!exist) {
-                        reject('Zoom step was removed from the queue');
+                        resolve();
                         return;
                     }
 

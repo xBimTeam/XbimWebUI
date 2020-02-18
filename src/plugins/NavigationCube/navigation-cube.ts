@@ -648,7 +648,7 @@ export class NavigationCube implements IPlugin {
             this.viewer.mvMatrix);
 
         // adjust to true north if needed
-        if (this.trueNorth != 0) {
+        if (this.trueNorth !== 0) {
             const angle = -this.trueNorth * Math.PI / 180.0;
             const northRotation = mat3.fromRotation(mat3.create(), angle);
             rotation = mat3.multiply(mat3.create(), rotation, northRotation);

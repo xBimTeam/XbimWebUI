@@ -103,7 +103,6 @@ export class CameraAdjustment {
                 const optimalHeight = 2.0 * distance * Math.tan(fov / 2.0);
                 // setting height when camera mode is 'PERSPECTIVE' doesn't cause redraw. This will not cause a redraw loop
                 viewer.cameraProperties.height = optimalHeight;
-                console.log(`Adjusted camera height to ${optimalHeight}`);
             }
 
             // in orthographic camera, adjust camera distance from subject
@@ -120,7 +119,6 @@ export class CameraAdjustment {
 
                     viewer.mvMatrix = mat4.translate(mat4.create(), viewer.mvMatrix, move);
                     lastMvChange = Date.now();
-                   console.log(`Adjusted camera position by [${move}]`);
             }
 
             }

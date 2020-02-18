@@ -173,7 +173,7 @@ export class Viewer {
     /**
      * Animations functionality
      */
-    public animations: Animations = new Animations(this);
+    public animations: Animations;
 
 
     /**
