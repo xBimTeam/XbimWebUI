@@ -89,14 +89,6 @@ viewer.on("pick", (arg) => {
         viewer.addState(State.HIGHLIGHTED, [arg.id], arg.model);
     }
 });
-viewer.on("mousedown", (args) => {
-    if (args.xyz) {
-        viewer.origin = args.xyz;
-    } else {
-        const c = viewer.getMergedRegion().centre;
-        viewer.origin = vec3.fromValues(c[0], c[1], c[2]);
-    }
-});
 
 viewer.on("dblclick", (arg) => {
     viewer.addState(State.HIDDEN, [arg.id], arg.model);

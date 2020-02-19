@@ -4,20 +4,22 @@ import { vec3 } from "gl-matrix";
 
 export class MouseNavigation {
     public static initMouseEvents(viewer: Viewer) {
-        var mouseDown = false;
-        var isShiftKeyDown = false;
-        var lastMouseX = null;
-        var lastMouseY = null;
-        var startX = null;
-        var startY = null;
-        var button = 'L';
-        var id = -1;
-        var modelId = -1;
-        var xyz: vec3 = null;
-        var isPointerLocked = false;
+        let mouseDown = false;
+        let isShiftKeyDown = false;
+        let lastMouseX = null;
+        let lastMouseY = null;
+        let startX = null;
+        let startY = null;
+        let button = 'L';
+        let id = -1;
+        let modelId = -1;
+        let xyz: vec3 = null;
+        let isPointerLocked = false;
+
+        let origin = vec3.create();
 
         //set initial conditions so that different gestures can be identified
-        var handleMouseDown = (event: MouseEvent) => {
+        const handleMouseDown = (event: MouseEvent) => {
             mouseDown = true;
             lastMouseX = event.clientX;
             lastMouseY = event.clientY;
@@ -25,9 +27,9 @@ export class MouseNavigation {
             startY = event.clientY;
 
             //get coordinates within canvas (with the right orientation)
-            var r = viewer.canvas.getBoundingClientRect();
-            var viewX = startX - r.left;
-            var viewY = viewer.height - (startY - r.top);
+            let r = viewer.canvas.getBoundingClientRect();
+            let viewX = startX - r.left;
+            let viewY = viewer.height - (startY - r.top);
 
             //this is for picking
             const data = viewer.getEventData(viewX, viewY);
@@ -35,6 +37,15 @@ export class MouseNavigation {
             modelId = data.model;
             xyz = data.xyz;
 
+            if (data == null || data.id == null || data.model == null) {
+                const region = viewer.getMergedRegion();
+                origin = vec3.fromValues(region.centre[0], region.centre[1], region.centre[2]);
+            } else if (data.xyz == null) {
+                const bb = viewer.getTargetBoundingBox(data.id, data.model);
+                origin = vec3.fromValues(bb[0] + bb[3] /2.0, bb[1] + bb[4] /2.0, bb[2] + bb[5] /2.0);
+            } else {
+                origin = data.xyz
+            }
 
             //keep information about the mouse button
             switch (event.button) {
@@ -58,14 +69,14 @@ export class MouseNavigation {
             viewer.disableTextSelection();
         };
 
-        var handleMouseUp = (event: MouseEvent) => {
+        const handleMouseUp = (event: MouseEvent) => {
             mouseDown = false;
 
-            var endX = event.clientX;
-            var endY = event.clientY;
+            const endX = event.clientX;
+            const endY = event.clientY;
 
-            var deltaX = Math.abs(endX - startX);
-            var deltaY = Math.abs(endY - startY);
+            const deltaX = Math.abs(endX - startX);
+            const deltaY = Math.abs(endY - startY);
 
             //if it was a longer movement do not perform picking
             if (deltaX < 3 && deltaY < 3 && button === 'left') {
@@ -81,7 +92,7 @@ export class MouseNavigation {
                 */
                 viewer.fire('pick', { id: id, model: modelId, event: event, xyz: xyz });
                 // Handle double-click
-                var time = (new Date()).getTime();
+                let time = (new Date()).getTime();
                 if (time - timer < 250) {
                     viewer.fire('dblclick', { id: id, model: modelId, event: event, xyz: xyz });
                 }
@@ -98,7 +109,7 @@ export class MouseNavigation {
                 return;
             }
 
-            viewer.navigate('look-at', event.movementX * sensitivity, event.movementY * sensitivity);
+            viewer.navigate('look-at', event.movementX * sensitivity, event.movementY * sensitivity, origin);
 
         };
 
@@ -122,28 +133,28 @@ export class MouseNavigation {
 
             if (button === 'left') {
                 if (isShiftKeyDown) {
-                    viewer.navigate('pan', deltaX, deltaY);
+                    viewer.navigate('pan', deltaX, deltaY, origin);
                 } else {
                     switch (viewer.navigationMode) {
                         case 'free-orbit':
-                            viewer.navigate('free-orbit', deltaX, deltaY);
+                            viewer.navigate('free-orbit', deltaX, deltaY, origin);
                             break;
 
                         case 'fixed-orbit':
                         case 'orbit':
-                            viewer.navigate('orbit', deltaX, deltaY);
+                            viewer.navigate('orbit', deltaX, deltaY, origin);
                             break;
 
                         case 'pan':
-                            viewer.navigate('pan', deltaX, deltaY);
+                            viewer.navigate('pan', deltaX, deltaY, origin);
                             break;
 
                         case 'zoom':
-                            viewer.navigate('zoom', deltaX, deltaY);
+                            viewer.navigate('zoom', deltaX, deltaY, origin);
                             break;
 
                         case 'look-around':
-                            viewer.navigate('look-around', deltaX, deltaY);
+                            viewer.navigate('look-around', deltaX, deltaY, origin);
                             break;
 
                         default:
@@ -152,7 +163,7 @@ export class MouseNavigation {
                 }
             }
             if (button === 'middle' || button === 'right') {
-                viewer.navigate('pan', deltaX, deltaY);
+                viewer.navigate('pan', deltaX, deltaY, origin);
             }
 
         };
@@ -177,7 +188,7 @@ export class MouseNavigation {
             };
 
             //deltaX and deltaY have very different values in different web browsers so fixed value is used for constant functionality.
-            viewer.navigate('zoom', sign(event.deltaX) * -1.0, sign(event.deltaY) * -1.0);
+            viewer.navigate('zoom', sign(event.deltaX) * -1.0, sign(event.deltaY) * -1.0, origin);
         };
 
         // handle mouse movements when using PointerLock mode.

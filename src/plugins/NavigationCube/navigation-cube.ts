@@ -448,7 +448,7 @@ export class NavigationCube implements IPlugin {
                     return false;
             }
 
-            const bbox = viewer.setCameraTarget();
+            const bbox = viewer.getTargetBoundingBox();
             const origin = vec3.fromValues(bbox[0] + bbox[3] / 2.0, bbox[1] + bbox[4] / 2.0, bbox[2] + bbox[5] / 2.0);
             dir = vec3.normalize(vec3.create(), dir);
 

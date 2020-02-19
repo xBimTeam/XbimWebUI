@@ -84,21 +84,6 @@ export class Viewer {
     public set xrayColour(value: number[]) { this._xrayColour = value; this.changed = true; }
 
     /**
-     * Coordinates in the WCS of the origin used for orbiting and panning [x, y, z]
-     * @member {Number[]} Viewer#origin
-     */
-    public get origin(): vec3 { return this._origin; }
-    public set origin(value: vec3) { this._origin = value; this.changed = true; }
-
-    /**
-     * Coordinates of the orbit origin in model coordinates (including runtime WCS reduction). This value is
-     * stable over time, independent on the combination of the models.
-     * @member {Number[]} Viewer#originWCS
-     */
-    public get originWCS(): vec3 { return vec3.add(vec3.create(), this._origin, this.getCurrentWcs()); }
-    public set originWCS(value: vec3) { this._origin = vec3.subtract(vec3.create(), value, this.getCurrentWcs()); this.changed = true; }
-
-    /**
      * World matrix
      * @member {Number[]} Viewer#mvMatrix
      */
@@ -203,7 +188,6 @@ export class Viewer {
     private _background: number[] = [230, 230, 230, 255];
     private _highlightingColour: number[] = [255, 173, 33, 255];
     private _xrayColour: number[] = [80, 80, 80, 150];
-    private _origin: vec3 = vec3.create();
     private _mvMatrix: mat4 = mat4.create();
     private _pMatrix: mat4 = mat4.create();
     private _renderingMode: RenderingMode = RenderingMode.NORMAL;
@@ -820,24 +804,6 @@ export class Viewer {
         }, modelId);
     }
 
-    /**
-    * Use this method to set position of camera. Use it after {@link Viewer#setCameraTarget setCameraTarget()} to get desired result.
-    * 
-    * @function Viewer#setCameraPosition
-    * @param {Number[]} coordinates - 3D coordinates of the camera in WCS
-    * @param {Number} targetHeight - Target width of orthogonal viewport
-    * @param {Number} duration - milliseconds for animation.
-    */
-    public setCameraPosition(coordinates: number[], targetHeight: number, duration: number) {
-        if (typeof (coordinates) === 'undefined') {
-            throw new Error('Parameter coordinates must be defined');
-        }
-        const mv = mat4.lookAt(mat4.create(), coordinates, this.origin, [0, 0, 1]);
-        this.animations.viewTo({ mv: mv, height: targetHeight }, duration);
-    }
-
-
-
     //helper function for setting of the distance based on camera field of view and size of the product's bounding box
     public getDistanceAndHeight(bBox: number[] | Float32Array, viewDirection: vec3, upDirection: vec3): { distance: number, height: number } {
         const sizes = BBox.getSizeInView(bBox, viewDirection, upDirection);
@@ -866,15 +832,13 @@ export class Viewer {
     };
 
     /**
-    * This method sets navigation origin to the centroid of specified product's bounding box or to the centre of model if no product ID is specified.
-    * This method doesn't affect the view itself but it has an impact on navigation. Navigation origin is used as a centre for orbiting and it is used
-    * if you call functions like {@link Viewer.show show()} or {@link Viewer#zoomTo zoomTo()}.
+    * This method returns specified product's bounding box or bbox of the current acite models if no product ID is specified.
     * @function Viewer#setCameraTarget
     * @param {Number} prodId [optional] Product ID. You can get ID either from semantic structure of the model or from {@link Viewer#event:pick pick event}.
     * @param {Number} [modelId] - Optional ID of a specific model.
     * @return {number[]} Returns bounding box of the target, null if not found
     */
-    public setCameraTarget(prodId?: number, modelId?: number): number[] | Float32Array {
+    public getTargetBoundingBox(prodId?: number, modelId?: number): number[] | Float32Array {
         //set navigation origin and default distance to the product BBox
         const wcs = this.getCurrentWcs();
         if (prodId != null) {
@@ -886,7 +850,6 @@ export class Viewer {
                 }
             }, modelId);
             if (bbox) {
-                this.origin = vec3.fromValues(bbox[0] + bbox[3] / 2.0, bbox[1] + bbox[4] / 2.0, bbox[2] + bbox[5] / 2.0);
                 return bbox;
             } else {
                 return null;
@@ -898,7 +861,6 @@ export class Viewer {
         let region = this.getMergedRegion();
         if (region && region.population > 0) {
             let bbox = region.bbox;
-            this.origin = vec3.fromValues(bbox[0] + bbox[3] / 2.0, bbox[1] + bbox[4] / 2.0, bbox[2] + bbox[5] / 2.0);
             return bbox;
         }
 
@@ -1256,13 +1218,16 @@ export class Viewer {
         return handle.meter;
     }
 
-    public navigate(type: NavigationMode, deltaX, deltaY) {
-        if (!this._handles || !this._handles[0]) {
+    public navigate(type: NavigationMode, deltaX: number, deltaY: number, origin: vec3) {
+
+        // don't to anything if there is nothing to render
+        if (this.activeHandles.length === 0) {
             return;
         }
+
         //translation in WCS is position from [0, 0, 0]
-        var origin = vec3.copy(vec3.create(), this.origin);
-        var camera = this.getCameraPosition();
+        const camera = this.getCameraPosition();
+        const distance = vec3.distance(camera, origin);
 
         if (type === 'look-around') {
             origin = camera;
@@ -1276,22 +1241,13 @@ export class Viewer {
         }
 
         //get origin coordinates in view space
-        var mvOrigin = vec3.transformMat4(vec3.create(), origin, this.mvMatrix);
-
-        //movement factor needs to be dependant on the distance but one meter is a minimum so that movement wouldn't stop when camera is in 0 distance from navigation origin
-        var distanceVec = vec3.subtract(vec3.create(), origin, camera);
-        var distance = Math.max(vec3.length(distanceVec), this.meter);
-
-        // Walking is at constant pace
-        if (type === 'walk') {
-            distance = this.meter * 0.5;
-        }
+        const mvOrigin = vec3.transformMat4(vec3.create(), origin, this.mvMatrix);
 
         //move to the navigation origin in view space
-        var transform = mat4.translate(mat4.create(), mat4.create(), mvOrigin);
+        let transform = mat4.translate(mat4.create(), mat4.create(), mvOrigin);
 
         //function for conversion from degrees to radians
-        const degToRad = (deg) => {
+        const degToRad = (deg: number) => {
             return deg * Math.PI / 180.0;
         };
 
@@ -1308,7 +1264,7 @@ export class Viewer {
                 mat4.rotate(transform, transform, degToRad(deltaY / 4), [1, 0, 0]);
 
                 //z rotation around model z axis
-                var mvZ = vec3.transformMat3(vec3.create(),
+                let mvZ = vec3.transformMat3(vec3.create(),
                     [0, 0, 1],
                     mat3.fromMat4(mat3.create(), this.mvMatrix));
                 mvZ = vec3.normalize(vec3.create(), mvZ);
@@ -1316,12 +1272,20 @@ export class Viewer {
                 break;
 
             case 'pan':
-                mat4.translate(transform, transform, [deltaX * distance / 150, 0, 0]);
-                mat4.translate(transform, transform, [0, (-1.0 * deltaY) * distance / 150, 0]);
+                let c = 0;
+                if (this.camera === CameraType.ORTHOGONAL) {
+                    c = this.cameraProperties.height / this.height;
+                } else {
+                    const fov = this.cameraProperties.fov * Math.PI / 180;
+                    const h = 2 * distance * Math.tan(fov / 2.0);
+                    c = h / this.height;
+                }
+                transform = mat4.translate(mat4.create(), transform, [c * deltaX, -c * deltaY, 0]);
                 break;
 
             case 'walk':
-                const walk = deltaY * distance / 20;
+                // Walking is at constant pace
+                const walk = deltaY * this.meter * 0.5 / 20;
                 this.animations.addZoom(walk, 0);
                 return;
             case 'zoom':
@@ -1615,7 +1579,7 @@ export class Viewer {
     * @return {Bool} True if target exists and zoom was successful, False otherwise
     */
     public zoomTo(id?: number, model?: number, withAnimation: boolean = true): Promise<void> {
-        var bBox = this.setCameraTarget(id, model);
+        var bBox = this.getTargetBoundingBox(id, model);
         if (bBox == null) {
             return new Promise<void>((a, r) => r('There is no content to zoom to'));
         }
@@ -1652,7 +1616,7 @@ export class Viewer {
     * @param {boolean} withAnimation - Optional parameter, default is 'true'. When true, transition to the view is animated. When false, view is changed imediately.
     */
     public show(type: ViewType, id?: number, model?: number, withAnimation: boolean = true): Promise<void> {
-        var bBox = this.setCameraTarget(id, model);
+        var bBox = this.getTargetBoundingBox(id, model);
         if (bBox == null) {
             return new Promise<void>((a, r) => r());
         }

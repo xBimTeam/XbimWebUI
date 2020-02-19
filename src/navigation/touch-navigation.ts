@@ -5,16 +5,18 @@ import { vec3 } from "gl-matrix";
 export class TouchNavigation {
     public static initTouchNavigationEvents(viewer: Viewer) {
 
-        var lastTouchX_1: number;
-        var lastTouchY_1: number;
-        var lastTouchX_2: number;
-        var lastTouchY_2: number;
-        var lastTouchX_3: number;
-        var lastTouchY_3: number;
+        let lastTouchX_1: number;
+        let lastTouchY_1: number;
+        let lastTouchX_2: number;
+        let lastTouchY_2: number;
+        let lastTouchX_3: number;
+        let lastTouchY_3: number;
 
+        let origin = vec3.create();
 
-        var handleTouchStart = (event: TouchEvent) => {
+        const handleTouchStart = (event: TouchEvent) => {
             event.preventDefault();
+
             if (event.touches.length >= 1) {
                 lastTouchX_1 = event.touches[0].clientX;
                 lastTouchY_1 = event.touches[0].clientY;
@@ -27,9 +29,20 @@ export class TouchNavigation {
                 lastTouchX_3 = event.touches[2].clientX;
                 lastTouchY_3 = event.touches[2].clientY;
             }
+
+            const data = viewer.getEventDataFromEvent(event.touches[0]);
+            if (data == null || data.id == null || data.model == null) {
+                const region = viewer.getMergedRegion();
+                origin = vec3.fromValues(region.centre[0], region.centre[1], region.centre[2]);
+            } else if (data.xyz == null) {
+                const bb = viewer.getTargetBoundingBox(data.id, data.model);
+                origin = vec3.fromValues(bb[0] + bb[3] /2.0, bb[1] + bb[4] /2.0, bb[2] + bb[5] /2.0);
+            } else {
+                origin = data.xyz
+            }
         };
 
-        var handleTouchMove = (event: TouchEvent) => {
+        const handleTouchMove = (event: TouchEvent) => {
             event.preventDefault();
             if (viewer.navigationMode === 'none' || !event.touches) {
                 return;
@@ -43,7 +56,7 @@ export class TouchNavigation {
                 // force-setting navigation mode to 'free-orbit' currently for touch navigation since regular orbit
                 // feels awkward and un-intuitive on touch devices
                 // MC: I prefer fixed orbit as it doesn't allow for wierd angles
-                viewer.navigate('orbit', deltaX, deltaY);
+                viewer.navigate('orbit', deltaX, deltaY, origin);
             } else if (event.touches.length === 2) {
                 // touch move with two fingers -> zoom
                 var distanceBefore = Math.sqrt((lastTouchX_1 - lastTouchX_2) * (lastTouchX_1 - lastTouchX_2) +
@@ -55,10 +68,10 @@ export class TouchNavigation {
                 var distanceAfter = Math.sqrt((lastTouchX_1 - lastTouchX_2) * (lastTouchX_1 - lastTouchX_2) +
                     (lastTouchY_1 - lastTouchY_2) * (lastTouchY_1 - lastTouchY_2));
                 if (distanceBefore > distanceAfter) {
-                    viewer.navigate('zoom', -1, -1); // Zooming out, fingers are getting closer together
+                    viewer.navigate('zoom', -1, -1, origin); // Zooming out, fingers are getting closer together
 
                 } else {
-                    viewer.navigate('zoom', 1, 1); // zooming in, fingers are getting further apart
+                    viewer.navigate('zoom', 1, 1, origin); // zooming in, fingers are getting further apart
                 }
             } else if (event.touches.length === 3) {
                 // touch move with three fingers -> pan
@@ -83,7 +96,7 @@ export class TouchNavigation {
                 // pan seems to be too fast, just adding a factor here
                 var panFactor = 0.2;
 
-                viewer.navigate('pan', panFactor * directionX, panFactor * directionY);
+                viewer.navigate('pan', panFactor * directionX, panFactor * directionY, origin);
             }
         }
 
