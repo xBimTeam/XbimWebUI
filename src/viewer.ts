@@ -638,6 +638,9 @@ export class Viewer {
     }
 
     public getCurrentImageDataUrl(width: number = this.width, height: number = this.height, type: 'png' | 'jpeg' = 'png'): string {
+        if (width === 0 || height === 0)
+            return null;
+
         //use background framebuffer
         let frame = new Framebuffer(this.gl, width, height, false);
 
@@ -651,6 +654,9 @@ export class Viewer {
     }
 
     public getCurrentImageDataArray(width: number = this.width, height: number = this.height): Uint8ClampedArray {
+        if (width === 0 || height === 0)
+            return null;
+
         //use background framebuffer
         let frame = new Framebuffer(this.gl, width, height, false);
 
@@ -1775,6 +1781,9 @@ export class Viewer {
      */
     public getEventDataRaw(x: number, y: number): { renderId: number, modelId: number, location: vec3 } {
 
+        if (this.width === 0 || this.height === 0)
+            return null;
+
         // it is not necessary to render the image in full resolution so this factor is used for less resolution. 
         const factor = 2;
         const gl = this.setActive();
@@ -1792,6 +1801,7 @@ export class Viewer {
         // create and bind framebuffer
 
         this._isRunning = false;
+
         let fb = new Framebuffer(gl, width, height, this.hasDepthSupport);
         try {
             // set viewport and generall settings

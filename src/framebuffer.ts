@@ -6,6 +6,7 @@ export class Framebuffer {
     public renderbuffer: WebGLRenderbuffer;
     public texture: WebGLTexture;
     public depthTexture: WebGLTexture;
+    public isReady = true;
 
     private _disposed: boolean = false;
     private _depthReader: DepthReader;
@@ -30,6 +31,11 @@ export class Framebuffer {
         // width and height should be whole numbers
         this.width = width = Math.floor(width);
         this.height = height = Math.floor(height);
+
+        if (width === 0 || height === 0) {
+            this.isReady = false;
+            return;
+        }
 
         if (typeof (WebGL2RenderingContext) !== 'undefined' && gl instanceof WebGL2RenderingContext) {
             this._glVersion = 2;
@@ -87,6 +93,8 @@ export class Framebuffer {
     }
 
     public bind(): void {
+        if (!this.isReady)
+            return;
         const gl = this.gl;
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
         gl.bindRenderbuffer(gl.RENDERBUFFER, this.renderbuffer);
@@ -96,12 +104,16 @@ export class Framebuffer {
      * Returns one pixel at defined position
      */
     public getPixel(x: number, y: number): Uint8Array {
+        if (!this.isReady)
+            return null;
         var result = new Uint8Array(4);
         this.gl.readPixels(x, y, 1, 1, this.gl.RGBA, this.gl.UNSIGNED_BYTE, result);
         return result;
     }
 
     public getDepth(x: number, y: number): number {
+        if (!this.isReady)
+            return null;
         if (this.withDepth) {
             return this.depthReader.getDepth(x, y, this.depthTexture, this.width, this.height);
         } else {
@@ -109,16 +121,16 @@ export class Framebuffer {
         }
     }
 
-    public getDepths(points: {x: number, y: number}[]): number[] {
-        if (this.withDepth) {
+    public getDepths(points: { x: number, y: number }[]): number[] {
+        if (this.withDepth && this.isReady) {
             return this.depthReader.getDepths(points, this.depthTexture, this.width, this.height);
         } else {
             return null;
         }
     }
 
-    public getXYZArray(points: {x: number, y: number}[]): vec3[] {
-        if (!this.withDepth) {
+    public getXYZArray(points: { x: number, y: number }[]): vec3[] {
+        if (!this.withDepth || !this.isReady) {
             return null;
         }
 
@@ -128,13 +140,13 @@ export class Framebuffer {
             if (depth === 255) { // infinity (= nothing, no value)
                 return null;
             }
-            
+
             // convert values to clip space where x and y are [-1, 1] and z is [0, 1]
             const point = points[i];
             const xc = point.x / this.width * 2.0 - 1.0;
             const yc = point.y / this.height * 2.0 - 1.0;
             const zc = (depth / 255.0 - 0.5) * 2.0;
-    
+
             return vec3.fromValues(xc, yc, zc);
         });
     }
@@ -146,11 +158,11 @@ export class Framebuffer {
      * @param y Y coordinate of the event
      */
     public getXYZ(x: number, y: number): vec3 {
-        if (!this.withDepth) {
+        if (!this.withDepth || !this.isReady) {
             return null;
         }
 
-        return this.getXYZArray([{x,y}])[0];
+        return this.getXYZArray([{ x, y }])[0];
     }
 
     /**
@@ -162,7 +174,7 @@ export class Framebuffer {
      * @param y Y coordinate of the event
      */
     public getXYZRange(x: number, y: number): { near: vec3, middle: vec3, far: vec3 } {
-        if (!this.withDepth) {
+        if (!this.withDepth || !this.isReady) {
             return null;
         }
 
@@ -190,6 +202,9 @@ export class Framebuffer {
     }
 
     public getId(x: number, y: number): number {
+        if (!this.isReady)
+            return null;
+
         const result = this.getPixel(x, y);
 
         //decode ID (bit shifting by multiplication)
@@ -203,6 +218,9 @@ export class Framebuffer {
     }
 
     public getImageDataArray(): Uint8ClampedArray {
+        if (!this.isReady)
+            return null;
+
         let gl = this.gl;
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
         gl.bindRenderbuffer(gl.RENDERBUFFER, this.renderbuffer);
@@ -224,9 +242,12 @@ export class Framebuffer {
     }
 
     public get2DCanvas(): HTMLCanvasElement {
+        if (!this.isReady)
+            return document.createElement('canvas');
+        
         // get transposed data
         const transData = this.getImageDataArray();
-
+        
         // Create a 2D canvas to store the result 
         var canvas = document.createElement('canvas');
         canvas.width = this.width;
@@ -245,6 +266,9 @@ export class Framebuffer {
      * Gets current image data from the framebuffer as Base64 string
      */
     public getImageDataUrl(type: 'png' | 'jpeg' = 'png'): string {
+        if (!this.isReady)
+            return null;
+
         let canvas = this.get2DCanvas();
         return canvas.toDataURL(`image/${type}`);
     }
@@ -254,6 +278,9 @@ export class Framebuffer {
      * @param callback Use callback to handle Blob
      */
     public getImageDataBlob(callback: (blob: Blob) => void, type: 'png' | 'jpeg' = 'png'): void {
+        if (!this.isReady)
+            return;
+
         let canvas = this.get2DCanvas();
         canvas.toBlob(callback, `image/${type}`);
     }
@@ -262,6 +289,9 @@ export class Framebuffer {
      * Deletes all WebGL objects it holds
      */
     public delete() {
+        if (this._disposed || !this.isReady)
+            return;
+
         this.gl.deleteFramebuffer(this.framebuffer);
         this.gl.deleteRenderbuffer(this.renderbuffer);
         this.gl.deleteTexture(this.texture);

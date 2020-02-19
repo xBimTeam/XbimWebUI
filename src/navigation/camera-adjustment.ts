@@ -13,8 +13,8 @@ export class CameraAdjustment {
      * keep camera position (distance) right for orthographic view
      */
     constructor(
-        private viewer: Viewer, 
-        private request: (callback: FrameRequestCallback) => number, 
+        private viewer: Viewer,
+        private request: (callback: FrameRequestCallback) => number,
         private density: number) {
     }
 
@@ -83,6 +83,10 @@ export class CameraAdjustment {
         // make it smaller (therefore lower the resolution)
         const width = viewer.width / 4.0;
         const height = viewer.height / 4.0;
+
+        if (width === 0 || height === 0) {
+            return;
+        }
 
         var fb = new Framebuffer(viewer.gl, width, height, true);
         viewer.draw(fb, true);
