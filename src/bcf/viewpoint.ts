@@ -310,13 +310,14 @@ export class Viewpoint {
         const mv = mat4.lookAt(mat4.create(), eye, target, up);
         viewer.animations.viewTo({ mv: mv, height: orthCamHeight }, duration)
             .then(() => {
-                // try to fix camera placement for generic orthographic views
-                if (!viewpoint.orthogonal_camera)
-                    return;
-                // don't do anything if this is a plan view
-                var delta = vec3.angle(toVec3(camera.camera_direction), vec3.fromValues(0, 0, -1));
-                if (delta > Math.PI / 180.0)
-                    return;
+                // try to fix camera placement for generic orthographic views or camera height for perspective views
+                // this improves interactive navigation and smooth switching between cameras
+                if (viewpoint.orthogonal_camera) {
+                    // don't do anything if this is a plan view
+                    var delta = vec3.angle(toVec3(camera.camera_direction), vec3.fromValues(0, 0, -1));
+                    if (delta > Math.PI / 180.0)
+                        return;
+                }
                 viewer.adjustments.adjust();
             });
 
