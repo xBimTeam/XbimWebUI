@@ -190,7 +190,7 @@ export class Animations {
      * @param end Target model view matrix
      * @param duration Duration of the transition in milliseconds
      */
-    public addZoom(distance: number, duration: number): Promise<void> {
+    public addZoom(distance: number, duration: number, direction?: vec3): Promise<void> {
         // current model view
         let currentMv = mat4.copy(mat4.create(), this.viewer.mvMatrix);
         let currentHeight = this.viewer.cameraProperties.height;
@@ -203,16 +203,24 @@ export class Animations {
         }
 
         // get zoom direction
-        const inv = mat4.invert(mat4.create(), currentMv);
-        const rotation = mat4.getRotation(quat.create(), inv);
-        const cameraDirection = vec3.transformQuat(vec3.create(), vec3.fromValues(0, 0, -1), rotation);
-        const zoomDirection = vec3.negate(vec3.create(), cameraDirection);
+        let zoomDirection = vec3.create();
+        if (direction) {
+            direction = vec3.normalize(vec3.create(), direction);
+            vec3.negate(zoomDirection, direction);
+        } else {
+            const inv = mat4.invert(mat4.create(), currentMv);
+            const rotation = mat4.getRotation(quat.create(), inv);
+            const cameraDirection = vec3.transformQuat(vec3.create(), vec3.fromValues(0, 0, -1), rotation);
+            vec3.negate(zoomDirection, cameraDirection);
+        }
+
+        // get movement and orthogonal view height
         const move = vec3.scale(vec3.create(), zoomDirection, distance);
         const fov = this.viewer.cameraProperties.fov * Math.PI / 180.0;
         let deltaHeight = 2.0 * distance * Math.tan(fov / 2.0);
         const limit = 2.0 * this.viewer.cameraProperties.near * Math.tan(fov / 2.0);
 
-        // avoid singularity where width is negative and image is flipped.
+        // avoid singularity where height is negative and image is flipped.
         if ((currentHeight - deltaHeight) < limit)
             deltaHeight = 0;
 

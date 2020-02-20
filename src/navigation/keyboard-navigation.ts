@@ -38,21 +38,21 @@ export class KeyboardNavigation {
                         break;
 
                     case 'KeyA':
-                        viewer.navigate('pan', 1 * multiplier, 0, origin);
+                        viewer.navigate('pan', 4 * multiplier, 0, origin);
                         break;
 
                     case 'KeyD':
-                        viewer.navigate('pan', -1 * multiplier, 0, origin);
+                        viewer.navigate('pan', -4 * multiplier, 0, origin);
                         break;
 
                     case 'KeyR':
                     case 'ArrowUp':
-                        viewer.navigate('pan', 0, 1 * multiplier, origin);
+                        viewer.navigate('pan', 0, 4 * multiplier, origin);
                         break;
 
                     case 'KeyF':
                     case 'ArrowDown':
-                        viewer.navigate('pan', 0, -1 * multiplier, origin);
+                        viewer.navigate('pan', 0, -4 * multiplier, origin);
                         break;
 
                     case 'KeyQ':

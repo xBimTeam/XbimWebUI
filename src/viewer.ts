@@ -1289,9 +1289,10 @@ export class Viewer {
                 this.animations.addZoom(walk, 0);
                 return;
             case 'zoom':
+                const direction = vec3.subtract(vec3.create(), origin, camera);
                 // smooth zooming animation
-                const move = deltaY * distance / 20;
-                this.animations.addZoom(move, 50);
+                const move = deltaY * Math.max(distance, this.meter * 2) / 20;
+                this.animations.addZoom(move, 50, direction);
                 return;
             default:
                 break;
@@ -1692,6 +1693,22 @@ export class Viewer {
         * @param {string} message - Error message
         */
         this.fire('error', { message: msg });
+    }
+
+    public getInteractionOrigin(event: MouseEvent | Touch): vec3 {
+        //this is for picking
+        const data = this.getEventDataFromEvent(event);
+        if (data == null || data.id == null || data.model == null) {
+            const region = this.getMergedRegion();
+            return vec3.fromValues(region.centre[0], region.centre[1], region.centre[2]);
+        }
+
+        if (data.xyz != null) {
+            return data.xyz;
+        } 
+
+        const bb = this.getTargetBoundingBox(data.id, data.model);
+        return vec3.fromValues(bb[0] + bb[3] / 2.0, bb[1] + bb[4] / 2.0, bb[2] + bb[5] / 2.0);
     }
 
     public getEventDataFromEvent(event: MouseEvent | Touch, raw: boolean = false): { id: number, model: number, xyz: vec3 } {

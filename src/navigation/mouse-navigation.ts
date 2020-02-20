@@ -5,7 +5,6 @@ import { vec3 } from "gl-matrix";
 export class MouseNavigation {
     public static initMouseEvents(viewer: Viewer) {
         let mouseDown = false;
-        let isShiftKeyDown = false;
         let lastMouseX = null;
         let lastMouseY = null;
         let startX = null;
@@ -132,7 +131,7 @@ export class MouseNavigation {
             lastMouseY = newY;
 
             if (button === 'left') {
-                if (isShiftKeyDown) {
+                if (event.shiftKey) {
                     viewer.navigate('pan', deltaX, deltaY, origin);
                 } else {
                     switch (viewer.navigationMode) {
@@ -179,6 +178,8 @@ export class MouseNavigation {
                 event.preventDefault();
             }
 
+            origin = viewer.getInteractionOrigin(event);
+
             var sign = (x: any) => {
                 x = +x; // convert to a number
                 if (x === 0 || isNaN(x)) {
@@ -224,20 +225,5 @@ export class MouseNavigation {
         viewer.canvas.addEventListener('wheel', (event) => handleMouseScroll(event), true);
         window.addEventListener('mouseup', (event) => handleMouseUp(event), true);
         window.addEventListener('mousemove', (event) => handleMouseMove(event), true);
-
-        //listen to key events to help navigation
-        document.addEventListener('keydown', (event: KeyboardEvent) => {
-            if (event.key === 'Shift' && viewer.navigationMode !== 'walk') {
-                isShiftKeyDown = true;
-                return;
-            }
-        }, false);
-
-        document.addEventListener('keyup', (event: KeyboardEvent) => {
-            if (event.key === 'Shift') {
-                isShiftKeyDown = false;
-                return;
-            }
-        }, false);
     }
 }
