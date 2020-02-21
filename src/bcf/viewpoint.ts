@@ -115,9 +115,10 @@ export class Viewpoint {
         // capture image (good for preview for example)
         const dataUrl = viewer.getCurrentImageDataUrl(width, height, 'png');
         // strip 'data:image/jpeg;base64,' from the data url
-        const base64image = dataUrl.substring(23);
+        const base64image = dataUrl.substring(22);
+        
         view.snapshot = {
-            snapshot_type: 'png',
+            snapshot_type: 'jpg',
             snapshot_data: base64image
         };
 
