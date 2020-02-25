@@ -1704,7 +1704,7 @@ export class Viewer {
 
         if (data.xyz != null) {
             return data.xyz;
-        } 
+        }
 
         const bb = this.getTargetBoundingBox(data.id, data.model);
         return vec3.fromValues(bb[0] + bb[3] / 2.0, bb[1] + bb[4] / 2.0, bb[2] + bb[5] / 2.0);
@@ -1752,6 +1752,8 @@ export class Viewer {
         return Viewer.noData;
     }
 
+    private _eventFB: Framebuffer;
+
     /**
      * This renders the colour coded model into the memory buffer
      * not to the canvas and use it to identify ID, model id and 3D location at canvas location [x,y]
@@ -1765,30 +1767,41 @@ export class Viewer {
             return null;
 
         // it is not necessary to render the image in full resolution so this factor is used for less resolution. 
-        const factor = 2;
+        const factor = 4;
         const gl = this.setActive();
-        const width = this.width / factor;
-        const height = this.height / factor;
+        const width = Math.floor(this.width / factor);
+        const height = Math.floor(this.height / factor);
         const wcs = this.getCurrentWcs();
         const near = this.cameraProperties.near;
         const far = this.cameraProperties.far;
         const running = this._isRunning;
 
         // normalise by factor
-        x = x / factor;
-        y = y / factor;
+        x = Math.floor(x / factor);
+        y = Math.floor(y / factor);
 
-        // create and bind framebuffer
-
+        // stop rendering loop temporarily
         this._isRunning = false;
 
-        let fb = new Framebuffer(gl, width, height, this.hasDepthSupport);
+        // reuse framebuffer if possible (same size)
+        if (this._eventFB == null)
+            this._eventFB = new Framebuffer(gl, width, height, this.hasDepthSupport);
+        if (Math.abs(width - this._eventFB.width) > 1 || Math.abs(height - this._eventFB.height) > 1) {
+            this._eventFB.delete();
+            this._eventFB = new Framebuffer(gl, width, height, this.hasDepthSupport);
+        }
+        const fb = this._eventFB;
+        fb.bind();
+
         try {
             // set viewport and generall settings
             this.setActive();
             gl.viewport(0, 0, width, height);
             gl.enable(gl.DEPTH_TEST); //we don't use any kind of blending or transparency
             gl.disable(gl.BLEND);
+
+            gl.enable(gl.SCISSOR_TEST);
+            gl.scissor(x, y, 1, 1);
 
             // ------ draw colour coded product ids ----------
             // clear all
@@ -1895,7 +1908,6 @@ export class Viewer {
             this.error(e);
         } finally {
             this.setActive();
-            fb.delete();
 
             //reset framebuffer to render into canvas again
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -1903,6 +1915,7 @@ export class Viewer {
             //set back blending
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
             gl.enable(gl.BLEND);
+            gl.disable(gl.SCISSOR_TEST);
 
             // reset near and far clipping planes in case we optimised them for depth reading
             this.cameraProperties.near = near;
