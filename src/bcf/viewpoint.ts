@@ -118,7 +118,7 @@ export class Viewpoint {
         const base64image = dataUrl.substring(22);
         
         view.snapshot = {
-            snapshot_type: 'jpg',
+            snapshot_type: 'png',
             snapshot_data: base64image
         };
 
