@@ -306,7 +306,7 @@ export class NavigationCube implements IPlugin {
                 var viewY = viewer.height - (startY - r.top);
 
                 // don't do anything if mousedown 
-                if (!self.isInRegion(viewX, viewY)) {
+                if (!this._region || !self.isInRegion(viewX, viewY)) {
                     return;
                 }
 
@@ -667,19 +667,19 @@ export class NavigationCube implements IPlugin {
         gl.vertexAttribPointer(this._idAttrPointer, 1, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer);
         gl.vertexAttribPointer(this._texCoordAttrPointer, 2, gl.FLOAT, false, 0, 0);
-
+        
         //bind texture
         gl.activeTexture(gl.TEXTURE1);
         gl.bindTexture(gl.TEXTURE_2D, this._texture);
         gl.uniform1i(this._textureUniformPointer, 1);
-
+        
         var cfEnabled = gl.getParameter(gl.CULL_FACE);
         if (!cfEnabled) {
             gl.enable(gl.CULL_FACE);
         }
-
+        
         gl.disable(gl.BLEND);
-
+        
         //draw the cube as an element array
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
         gl.drawElements(gl.TRIANGLES, this.indices.length, gl.UNSIGNED_SHORT, 0);

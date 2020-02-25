@@ -27,9 +27,11 @@ viewer.on("error", (arg) => {
 viewer.on("pick", (arg) => {
     if (arg.id) {
         console.log(`Selected id: ${arg.id} model ${arg.model}`);
-        const wcs = viewer.getCurrentWcs();
-        const point = vec3.add(vec3.create(), wcs, arg.xyz);
-        console.log(point);
+        if (arg.xyz != null) {
+            const wcs = viewer.getCurrentWcs();
+            const point = vec3.add(vec3.create(), wcs, arg.xyz);
+            console.log(point);
+        }
     }
 }
 );

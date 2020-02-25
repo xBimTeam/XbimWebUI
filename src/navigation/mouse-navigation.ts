@@ -1,6 +1,6 @@
 import { Viewer } from "../viewer";
 import { ProductIdentity } from "../common/product-identity";
-import { vec3 } from "gl-matrix";
+import { vec3, mat4, quat, vec2 } from "gl-matrix";
 
 export class MouseNavigation {
     public static initMouseEvents(viewer: Viewer) {
@@ -32,12 +32,22 @@ export class MouseNavigation {
 
             //this is for picking
             const data = viewer.getEventData(viewX, viewY);
+            if (data == null) {
+                mouseDown = false;
+                return;
+            }
+
             id = data.id;
             modelId = data.model;
             xyz = data.xyz;
 
             if (data == null || data.id == null || data.model == null) {
                 const region = viewer.getMergedRegion();
+                if (region == null || region.centre == null) {
+                    // there is nothing in the viewer
+                    mouseDown = false;
+                    return;
+                }
                 origin = vec3.fromValues(region.centre[0], region.centre[1], region.centre[2]);
             } else if (data.xyz == null) {
                 const bb = viewer.getTargetBoundingBox(data.id, data.model);
@@ -69,6 +79,9 @@ export class MouseNavigation {
         };
 
         const handleMouseUp = (event: MouseEvent) => {
+            if (!mouseDown)
+                return;
+                
             mouseDown = false;
 
             const endX = event.clientX;
@@ -167,6 +180,9 @@ export class MouseNavigation {
 
         };
 
+        let scrollOrigin: vec3 = null;
+        let lastScrollPoint: vec2 = null;
+        let scrollCounter = 0;
         var handleMouseScroll = (event: WheelEvent) => {
             if (viewer.navigationMode === 'none') {
                 return;
@@ -178,7 +194,27 @@ export class MouseNavigation {
                 event.preventDefault();
             }
 
-            origin = viewer.getInteractionOrigin(event);
+            scrollCounter++;
+            const scrollPoint = vec2.fromValues(event.clientX, event.clientY);
+            if (lastScrollPoint == null || vec2.dist(lastScrollPoint, scrollPoint) > 5 || scrollCounter > 10) {
+                scrollOrigin = viewer.getInteractionOrigin(event);
+                
+                if (scrollOrigin == null) {
+                    var region = viewer.getMergedRegion();
+                    var centre = vec3.fromValues(region.centre[0], region.centre[1], region.centre[2]);
+                    var eye = viewer.getCameraPosition();
+                    var distance = vec3.distance(centre,  eye);
+                    var trans = mat4.invert(mat4.create(), viewer.mvMatrix);
+                    var rotation = mat4.getRotation(quat.create(), trans);
+                    var dir = vec3.normalize(vec3.create(), vec3.transformQuat(vec3.create(), [0,0,-1], rotation));
+                    var move = vec3.scale(vec3.create(), dir, distance);
+                    scrollOrigin = vec3.add(vec3.create(), move, eye);
+                }
+
+                lastScrollPoint = scrollPoint;
+                scrollCounter = 0;
+            } 
+            
 
             var sign = (x: any) => {
                 x = +x; // convert to a number
@@ -189,7 +225,7 @@ export class MouseNavigation {
             };
 
             //deltaX and deltaY have very different values in different web browsers so fixed value is used for constant functionality.
-            viewer.navigate('zoom', sign(event.deltaX) * -1.0, sign(event.deltaY) * -1.0, origin);
+            viewer.navigate('zoom', sign(event.deltaX) * -1.0, sign(event.deltaY) * -1.0, scrollOrigin);
         };
 
         // handle mouse movements when using PointerLock mode.

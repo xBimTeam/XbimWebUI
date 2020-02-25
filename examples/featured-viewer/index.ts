@@ -191,7 +191,7 @@ document['startGrid'] = () => {
     grid.stopped = false;
 };
 document['takeSnapshot'] = () => {
-    viewer.removePlugin(cube);
+    cube.stopped = true;
     var img = viewer.getCurrentImageHtml(viewer.width / 2, viewer.height / 2);
     img.style.width = "100%";
     img.style.cursor = "pointer";
@@ -206,7 +206,7 @@ document['takeSnapshot'] = () => {
         place.innerHTML = "";
     };
 
-    viewer.addPlugin(cube);
+    cube.stopped = false;
 };
 
 document['updateGamma'] = (evt: Event) => {

@@ -1081,7 +1081,7 @@ export class Viewer {
 
         const meter = this.activeHandles[0].meter;
         var maxSize = Math.max(region.bbox[3], region.bbox[4], region.bbox[5]);
-        this.cameraProperties.far = maxSize * 30;
+        this.cameraProperties.far = maxSize * 20;
         this.cameraProperties.near = meter / 4;
     }
 
@@ -1699,8 +1699,7 @@ export class Viewer {
         //this is for picking
         const data = this.getEventDataFromEvent(event);
         if (data == null || data.id == null || data.model == null) {
-            const region = this.getMergedRegion();
-            return vec3.fromValues(region.centre[0], region.centre[1], region.centre[2]);
+            return null;
         }
 
         if (data.xyz != null) {
@@ -1734,11 +1733,11 @@ export class Viewer {
         return { id: result.renderId, model: result.modelId, xyz: result.location };
     }
 
+    private static noData = { id: null, model: null, xyz: null };
     public getEventData(x: number, y: number): { id: number, model: number, xyz: vec3 } {
         const eventData = this.getEventDataRaw(x, y);
-        const noData = { id: null, model: null, xyz: null };
         if (eventData == null) {
-            return noData;
+            return Viewer.noData;
         }
         const renderId = eventData.renderId;
         const modelId = eventData.modelId;
@@ -1750,7 +1749,7 @@ export class Viewer {
         }
 
         // most possibly plugin object
-        return noData;
+        return Viewer.noData;
     }
 
     /**
@@ -1762,7 +1761,7 @@ export class Viewer {
      */
     public getEventDataRaw(x: number, y: number): { renderId: number, modelId: number, location: vec3 } {
 
-        if (this.width === 0 || this.height === 0)
+        if (this.width === 0 || this.height === 0 || this.activeHandles.length === 0)
             return null;
 
         // it is not necessary to render the image in full resolution so this factor is used for less resolution. 
