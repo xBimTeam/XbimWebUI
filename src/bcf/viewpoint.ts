@@ -82,7 +82,7 @@ export class Viewpoint {
     public static GetViewpoint(viewer: Viewer, idMapper: (productId: number, modelId: number) => string, width = viewer.width / 2.0): Viewpoint {
         const view = new Viewpoint();
         const aspect = viewer.width / viewer.height;
-        const height = viewer.height / aspect;
+        const height = width / aspect;
 
         const toArray = (a: vec3) => {
             return Array.prototype.slice.call(a);

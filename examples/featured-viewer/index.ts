@@ -192,15 +192,19 @@ document['startGrid'] = () => {
 };
 document['takeSnapshot'] = () => {
     cube.stopped = true;
-    var img = viewer.getCurrentImageHtml(viewer.width / 2, viewer.height / 2);
+    
+    
+    const view = Viewpoint.GetViewpoint(viewer, null);
+    
+    var img = document.createElement('img');
+    img.src = 'data:image/png;base64,' + view.snapshot.snapshot_data;
     img.style.width = "100%";
     img.style.cursor = "pointer";
 
     var place = document.getElementById("snapshot");
     place.innerHTML = "";
     place.appendChild(img);
-
-    const view = Viewpoint.GetViewpoint(viewer, null);
+    
     img.onclick = () => {
         Viewpoint.SetViewpoint(viewer, view, null, 1000);
         place.innerHTML = "";

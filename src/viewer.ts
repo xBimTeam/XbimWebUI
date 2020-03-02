@@ -1303,11 +1303,7 @@ export class Viewer {
         transform = mat4.translate(mat4.create(), transform, translation);
 
         //apply transformation in right order
-        const mv = mat4.multiply(mat4.create(), transform, this.mvMatrix);
-        this.mvMatrix = mv;
-
-        // const duration = type === 'zoom' ? 100 : 0;
-        // this.animations.viewTo(mv, duration, EasingType.LINEAR);
+        this.mvMatrix = mat4.multiply(mat4.create(), transform, this.mvMatrix);
     }
 
     /**
