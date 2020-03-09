@@ -1306,16 +1306,23 @@ export class Viewer {
         this.mvMatrix = mat4.multiply(mat4.create(), transform, this.mvMatrix);
     }
 
+    // cache as this is used frequently
+    private _lastWcs: ModelHandle;
+
     /**
      * Gets current WCS displacement used for visualisation
      */
     public getCurrentWcs(): vec3 {
-        let wcs: vec3 = vec3.create();
-        let nonEmpty = this._handles.filter((h) => !h.empty);
-        if (nonEmpty.length > 0) {
-            wcs = nonEmpty[0].wcs;
+        const condition = (h: ModelHandle) => {return !h.empty && !h.stopped};
+        if (this._lastWcs != null && condition(this._lastWcs) === true)
+            return this._lastWcs.wcs;
+
+        let first = this._handles.filter(condition)[0];
+        if (first != null) {
+            this._lastWcs = first;
+            return this._lastWcs.wcs;
         }
-        return wcs;
+        return vec3.create();
     }
     /**
     * This is the main draw method. You can use it if you just want to render model once with no navigation and interaction.
