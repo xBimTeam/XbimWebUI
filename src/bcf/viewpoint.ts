@@ -236,9 +236,11 @@ export class Viewpoint {
 
         // region sizes from the viewpoint direction
         const region = viewer.getMergedRegion();
-        const optimum = (region && region.bbox) ? viewer.getDistanceAndHeight(region.bbox, dir, up) : null;
+        const optimum = (region && region.bbox && region.population > 0) ? 
+            viewer.getDistanceAndHeight(region.bbox, dir, up) : 
+            null;
 
-        // move eye if the distance is too much
+        // move the eye to optimal dostance if the current distance is too much
         if (optimum != null) {
             const distance = vec3.dist(toVec3(region.centre), eye);
 
