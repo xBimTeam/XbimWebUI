@@ -1311,7 +1311,7 @@ export class Viewer {
                 const direction = vec3.subtract(vec3.create(), origin, camera);
                 // smooth zooming animation
                 const move = deltaY * Math.max(distance, this.meter * 2) / 20;
-                this.animations.addZoom(move, 50, direction);
+                this.animations.addZoom(move, 0, direction);
                 return;
             default:
                 break;
