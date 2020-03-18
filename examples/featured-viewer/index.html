@@ -36,7 +36,7 @@
             background-color: lightgray;
         }
 
-        button:hover{
+        button:hover {
             cursor: pointer;
         }
 
@@ -218,14 +218,17 @@
                     <input type="radio" name="radioHiding" value="noHide" /> No hiding
                 </label>
             </form>
-            <button onclick="allTypes.forEach(t => { if (t !== types.IFCSPACE) {viewer.resetState(t)}})">
+            <button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.resetState(+types[i])}}">
                 Show all
             </button>
-            <button onclick="allTypes.forEach(t => { if (t !== types.IFCSPACE) {viewer.setStyle(1, t)}})"> Make all glass
+            <button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.setStyle(1, +types[i])}}">
+                Make all glass
             </button>
-            <button onclick="allTypes.forEach(t => { if (t !== types.IFCSPACE) {viewer.setStyle(2, t)}})"> Make all white
+            <button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.setStyle(2, +types[i])}}">
+                Make all white
             </button>
-            <button onclick="allTypes.forEach(t => { if (t !== types.IFCSPACE) { viewer.setStyle(states.UNSTYLED, t) } })">
+            <button
+                onclick="for (var i in types) { if (types[i] !== types.IFCSPACE) { viewer.setStyle(states.UNSTYLED, +types[i]) } }">
                 Make all default
             </button>
         </div>
@@ -233,34 +236,38 @@
             Rendering mode:
             <br />
             <label>
-                <input type="radio" name="radioRenderingMode" value="normal" checked="checked" onchange="viewer.renderingMode = RenderingMode.NORMAL;"
-                /> Normal
+                <input type="radio" name="radioRenderingMode" value="normal" checked="checked"
+                    onchange="viewer.renderingMode = RenderingMode.NORMAL;" /> Normal
             </label>
             <label>
-                <input type="radio" name="radioRenderingMode" value="xray" onchange="viewer.renderingMode = RenderingMode.XRAY;" /> X-Ray
+                <input type="radio" name="radioRenderingMode" value="xray"
+                    onchange="viewer.renderingMode = RenderingMode.XRAY;" /> X-Ray
             </label>
             <label>
-                <input type="radio" name="radioRenderingMode" value="xray" onchange="viewer.renderingMode = RenderingMode.XRAY_ULTRA;" /> Ultra X-Ray
+                <input type="radio" name="radioRenderingMode" value="xray"
+                    onchange="viewer.renderingMode = RenderingMode.XRAY_ULTRA;" /> Ultra X-Ray
             </label>
             <label>
-                <input type="radio" name="radioRenderingMode" value="gray" onchange="viewer.renderingMode = RenderingMode.GRAYSCALE;" /> Grayscale
+                <input type="radio" name="radioRenderingMode" value="gray"
+                    onchange="viewer.renderingMode = RenderingMode.GRAYSCALE;" /> Grayscale
             </label>
         </div>
         <div>
             Grid and navigation cube
-            <br/>
+            <br />
             <button onclick="stopCube()"> Stop cube </button>
             <button onclick="startCube()"> Start cube </button>
             <button onclick="stopGrid()"> Stop grid </button>
             <button onclick="startGrid()"> Start grid </button>
         </div>
         <div>
-            Gamma: 
+            Gamma:
             <input type="range" name="gamma" min="0" max="5" value="1.0" step="0.1" oninput="updateGamma(event)">
-            Contrast: 
+            Contrast:
             <input type="range" name="contrast" min="0" max="5" value="1.0" step="0.1" oninput="updateContrast(event)">
             Brightness:
-            <input type="range" name="brightness" min="-1" max="1" value="0.0" step="0.1" oninput="updateBrightness(event)">
+            <input type="range" name="brightness" min="-1" max="1" value="0.0" step="0.1"
+                oninput="updateBrightness(event)">
         </div>
         <div>
             Init script:
