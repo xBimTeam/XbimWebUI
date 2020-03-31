@@ -84,7 +84,7 @@ export class ModelGeometry {
         this.normals = new Uint8Array(numTriangles * 6);
         this.indices = new Float32Array(numTriangles * 3);
         this.styleIndices = new Uint16Array(numTriangles * 3);
-        this.styles = new Uint8Array(this.square(1, (numStyles + 1) * 4)); //+1 is for a default style
+        this.styles = new Uint8Array(this.square(1, (numStyles + 2) * 4)); //+2 is for a default style and spaces default style
         this.products = new Float32Array(numTriangles * 3);
         this.states = new Uint8Array(numTriangles * 3 * 2); //place for state and restyling
         this.transformations = new Float32Array(numTriangles * 3);
