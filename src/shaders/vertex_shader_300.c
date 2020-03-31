@@ -195,6 +195,20 @@ void main(void) {
 	vPosition = vec3(w * getVertexPosition(transform));
 	vNormal = getNormal(transform);
 
+	// normal colour (or overriding)
+	vec4 baseColor = getColor();
+
+	//offset semitransparent triangles by 2mm to avoid visual clashes
+	if (baseColor.a < 0.98)
+	{
+		float correction = -0.002;
+		if (uColorCoding == -2 || uColorCoding >= 0) {
+			correction = -0.02;
+		}
+		vec3 trans = correction * uMeter * normalize(vNormal);
+		vPosition = vPosition + trans;
+	}
+		
 	//product ID colour coding
 	if (uColorCoding == -2) {
 		float id = floor(aProduct + 0.5);
@@ -210,12 +224,11 @@ void main(void) {
 	// rendering
 	else {
 		// get base color or set highlighted colour
-		vec4 baseColor = vec4(1.0, 1.0, 1.0, 1.0);
 		// highlighted takes precedense
 		if (state == 253) {
 			baseColor = uHighlightColour;
-			// x-ray mode 
 		}
+		// x-ray mode 
 		else if (uRenderingMode == 2 || uRenderingMode == 3) {
 			//x-ray visible
 			if (state == 252) { 
@@ -226,18 +239,6 @@ void main(void) {
 				baseColor = uXRayColour; 
 			}
 		}
-		else {
-			// normal colour (or overriding)
-			baseColor = getColor();
-		}
-
-		//offset semitransparent triangles
-		if (baseColor.a < 0.98 && uRenderingMode == 0)
-		{
-			vec3 trans = -0.002 * uMeter * normalize(vNormal);
-			vPosition = vPosition + trans;
-		}
-
 		// pass colour to fragment thader
 		vColor = baseColor;
 	}

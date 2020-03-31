@@ -194,6 +194,20 @@ void main(void) {
 	vPosition = vec3(w * getVertexPosition(transform));
 	vNormal = getNormal(transform);
 
+	// normal colour (or overriding)
+	vec4 baseColor = getColor();
+
+	//offset semitransparent triangles by 2mm to avoid visual clashes
+	if (baseColor.a < 0.98)
+	{
+		float correction = -0.002;
+		if (uColorCoding == -2 || uColorCoding >= 0) {
+			correction = -0.02;
+		}
+		vec3 trans = correction * uMeter * normalize(vNormal);
+		vPosition = vPosition + trans;
+	}
+
 	//product ID colour coding
 	if (uColorCoding == -2) {
 		float id = floor(aProduct + 0.5);
@@ -224,17 +238,6 @@ void main(void) {
 			else {
 				baseColor = vec4(0.0, 0.0, 0.3, 0.5); 
 			}
-		}
-		else {
-			// normal colour (or overriding)
-			baseColor = getColor();
-		}
-
-		//offset semitransparent triangles
-		if (baseColor.a < 0.98 && uRenderingMode == 0)
-		{
-			vec3 trans = -0.002 * uMeter * normalize(vNormal);
-			vPosition = vPosition + trans;
 		}
 
 		// pass colour to fragment thader

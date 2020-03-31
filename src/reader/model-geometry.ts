@@ -59,8 +59,8 @@ export class ModelGeometry {
 
         let br = binReader;
         let magicNumber = br.readInt32();
-        if (magicNumber != 94132117) {
-            throw new Error('Magic number mismatch.');
+        if (magicNumber !== 94132117) {
+            throw new Error('Magic number mismatch. This is not a wexBIM file.');
         }
         let version = br.readByte();
         if (version > this._maxVersionSupported) {
@@ -117,9 +117,15 @@ export class ModelGeometry {
             this.styles.set([R, G, B, A], iStyle * 4);
             this._styleMap.Add({ id: styleId, index: iStyle, transparent: A < 254 });
         }
+
+        // default style
         this.styles.set([255, 255, 255, 255], iStyle * 4);
-        let defaultStyle: StyleRecord = { id: -1, index: iStyle, transparent: false };
-        this._styleMap.Add(defaultStyle);
+        this._styleMap.Add({ id: -1, index: iStyle, transparent: false });
+
+        // default space and opening style
+        iStyle++;
+        this.styles.set([0, 255, 255, 100], iStyle * 4);
+        this._styleMap.Add({ id: -2, index: iStyle, transparent: true });
 
         for (let i = 0; i < numProducts; i++) {
             let productLabel = br.readInt32();
@@ -135,7 +141,7 @@ export class ModelGeometry {
             this.productMaps[productLabel] = map;
             this.productIdLookup[i + 1] = productLabel;
 
-            if (prodType == ProductType.IFCSPACE) {
+            if (prodType === ProductType.IFCSPACE || prodType === ProductType.IFCOPENINGELEMENT) {
                 map.states.push(State.HIDDEN);
             }
         }
@@ -149,7 +155,7 @@ export class ModelGeometry {
                 for (let g = 0; g < geomCount; g++) {
 
                     //read shape information
-                    var shapes = this.readShape(version);
+                    const shapes = this.readShape(version);
 
                     //read geometry
                     let geomLength = br.readInt32();
@@ -176,7 +182,7 @@ export class ModelGeometry {
             for (let iShape = 0; iShape < numShapes; iShape++) {
 
                 //reed shape representations
-                let shapes = this.readShape(version);
+                const shapes = this.readShape(version);
 
                 //read shape geometry
                 let geometry = new TriangulatedShape();
@@ -213,23 +219,23 @@ export class ModelGeometry {
      * @param count
      */
     private square(arity: number, count: number): number {
-        if (typeof (arity) == 'undefined' || typeof (count) == 'undefined') {
+        if (arity == null || count == null) {
             throw new Error('Wrong arguments for "square" function.');
         }
-        if (count == 0) {
+        if (count === 0) {
             return 0;
         }
         let byteLength = count * arity;
         let imgSide = Math.ceil(Math.sqrt(byteLength / 4));
         //clamp to parity
-        while ((imgSide * 4) % arity != 0) {
+        while ((imgSide * 4) % arity !== 0) {
             imgSide++;
         }
         let result = imgSide * imgSide * 4 / arity;
         return result;
     }
 
-    private feedDataArrays(shapes: Array<ShapeRecord>, geometry: TriangulatedShape) {
+    private feedDataArrays(shapes: ShapeRecord[], geometry: TriangulatedShape) {
         //copy shape data into inner array and set to null so it can be garbage collected
         shapes.forEach((shape) => {
             let iIndex = 0;
@@ -256,21 +262,21 @@ export class ModelGeometry {
             this.normals.set(geometry.normals, iIndex * 2);
 
             //switch spaces and openings off by default 
-            let state = map.type == ProductType.IFCSPACE || map.type == ProductType.IFCOPENINGELEMENT
+            let state = map.type === ProductType.IFCSPACE || map.type === ProductType.IFCOPENINGELEMENT
                 ? State.HIDDEN
                 : 0xFF; //0xFF is for the default state
 
             //fix indices to right absolute position. It is relative to the shape.
-            for (let i = 0; i < geometry.indices.length; i++) {
-                this.indices[iIndex] = geometry.indices[i] + this._iVertex / 3;
+            geometry.indices.forEach(idx => {
+                this.indices[iIndex] = idx + this._iVertex / 3;
                 this.products[iIndex] = map.renderId;
                 this.styleIndices[iIndex] = shape.style;
                 this.transformations[iIndex] = shape.transform; //shape.pLabel == 33698 || shape.pLabel == 33815 ? -1 : shape.transform;
                 this.states[2 * iIndex] = state; //set state
                 this.states[2 * iIndex + 1] = 0xFF; //default style
-
+    
                 iIndex++;
-            }
+            });
 
             let end = iIndex;
             map.spans.push(new Int32Array([begin, end]));
@@ -289,7 +295,7 @@ export class ModelGeometry {
         this._iVertex += geometry.vertices.length;
     }
 
-    private readShape(version: number): Array<ShapeRecord> {
+    private readShape(version: number): ShapeRecord[] {
         let br = this._reader;
 
         let repetition = br.readInt32();
@@ -311,6 +317,11 @@ export class ModelGeometry {
             let styleItem = this._styleMap.GetStyle(styleId);
             if (styleItem === null) {
                 styleItem = this._styleMap.GetStyle(-1); //default style
+            }
+
+            const type = this.productMaps[prodLabel].type;
+            if (type === ProductType.IFCSPACE || type === ProductType.IFCOPENINGELEMENT) {
+                styleItem = this._styleMap.GetStyle(-2); //fixed space and opening style (semitransparent blue)
             }
 
             shapeList.push({

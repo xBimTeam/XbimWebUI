@@ -40,6 +40,8 @@ viewer.cameraProperties.fov = 53;
 var types = ProductType;
 var states = State;
 
+window['allTypes'] = Object.getOwnPropertyNames(types).filter(n => !isNaN(Number(n))).map(id => parseInt(id, 10));
+
 //make these global for the page
 window['viewer'] = viewer;
 window['types'] = types;
@@ -150,6 +152,8 @@ viewer.addPlugin(cube);
 viewer.defineStyle(0, [255, 0, 0, 255]);  //red
 viewer.defineStyle(1, [0, 0, 255, 100]);  //semitransparent blue
 viewer.defineStyle(2, [255, 255, 255, 255]); //white
+
+viewer.highlightingColour = [255, 173, 33, 200];
 document['makeWallsRed'] = () => {
     viewer.setStyle(0, types.IFCWALLSTANDARDCASE);
     viewer.setStyle(0, types.IFCCURTAINWALL);

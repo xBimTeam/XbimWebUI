@@ -217,14 +217,14 @@
                     <input type="radio" name="radioHiding" value="noHide" /> No hiding
                 </label>
             </form>
-            <button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.resetState(types[i])}}">
+            <button onclick="allTypes.forEach(t => { if (t !== types.IFCSPACE) {viewer.resetState(t)}})">
                 Show all
             </button>
-            <button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.setStyle(1, types[i])}}"> Make all glass
+            <button onclick="allTypes.forEach(t => { if (t !== types.IFCSPACE) {viewer.setStyle(1, t)}})"> Make all glass
             </button>
-            <button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.setStyle(2, types[i])}}"> Make all white
+            <button onclick="allTypes.forEach(t => { if (t !== types.IFCSPACE) {viewer.setStyle(2, t)}})"> Make all white
             </button>
-            <button onclick="for (var i in types) { if (types[i] !== types.IFCSPACE) { viewer.setStyle(states.UNSTYLED, types[i]) } }">
+            <button onclick="allTypes.forEach(t => { if (t !== types.IFCSPACE) { viewer.setStyle(states.UNSTYLED, t) } })">
                 Make all default
             </button>
         </div>

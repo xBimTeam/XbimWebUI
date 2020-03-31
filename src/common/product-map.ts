@@ -6,13 +6,13 @@ export class ProductMap {
     public renderId: number;
     public type: ProductType;
     public bBox: Float32Array;
-    public spans: Array<Int32Array>;
+    public spans: Int32Array[];
     public states: number[] = [];
 
     public static clone(o: ProductMap): ProductMap {
         const c = new ProductMap();
         c.productID = o.productID;
-        c.renderId - o.renderId;
+        c.renderId = o.renderId;
         c.type = o.type;
         c.bBox = new Float32Array(o.bBox);
         c.spans = o.spans;
@@ -21,7 +21,7 @@ export class ProductMap {
     }
 
     public static addState(p: ProductMap, state: State) {
-        if (p.states.find(s => s == state) != null) {
+        if (p.states.find(s => s === state) != null) {
             return;
         }
         p.states.push(state);
