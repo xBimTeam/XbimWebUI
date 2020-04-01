@@ -232,7 +232,7 @@ export class Viewpoint {
         };
 
         // set camera type and properties
-        let orthCamHeight = viewer.cameraProperties.height;
+        let orthCamHeight = viewer.cameraProperties.height || 100;
 
         // region sizes from the viewpoint direction
         const region = viewer.getMergedRegion();

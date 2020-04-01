@@ -1,6 +1,7 @@
 import { Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube } from '../..';
 import { Grid } from '../../src/plugins/Grid/grid';
 import { vec3 } from 'gl-matrix';
+import { Viewpoint } from '../../src/bcf';
 
 var models = [];
 
@@ -107,3 +108,5 @@ window['start'] = start;
 window['viewer'] = viewer;
 window['states'] = State;
 window['productType'] = ProductType;
+
+window['Viewpoint'] = Viewpoint;
