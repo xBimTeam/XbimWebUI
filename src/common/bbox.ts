@@ -8,6 +8,8 @@ export class BBox {
         return [a[0] + a[3] / 2.0, a[1] + a[4] / 2.0, a[2] + a[5] / 2.0];
     }
 
+    public static none: number[] = [Number.MAX_VALUE/2, Number.MAX_VALUE/2, Number.MAX_VALUE/2, -Number.MAX_VALUE, -Number.MAX_VALUE, -Number.MAX_VALUE]
+
     public static union(a: ArrayLike<number>, b: ArrayLike<number>): number[] {
         const minA = [a[0], a[1], a[2]];
         const minB = [b[0], b[1], b[2]];

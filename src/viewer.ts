@@ -867,6 +867,19 @@ export class Viewer {
         return null;
     }
 
+    public getTargetsBoundingBox(targets: { id: number, model: number }[]): number[] | Float32Array {
+        const wcs = this.getCurrentWcs();
+        return targets.reduce((a, b) => {
+            const bbox = this.forHandleOrAll((handle: ModelHandle) => {
+                let map = handle.getProductMap(b.id, wcs);
+                if (map) {
+                    return map.bBox;
+                }
+            }, b.model);
+            return BBox.union(bbox, a);
+        }, BBox.none);
+    }
+
     public getMergedRegion(): Region {
         let region = new Region();
         const wcs = this.getCurrentWcs();
@@ -874,7 +887,7 @@ export class Viewer {
             .forEach((h) => {
                 const r = h.getRegion(wcs);
                 if (r != null) {
-                    region = region.merge(h.getRegion(wcs));
+                    region = region.merge(r);
                 }
             });
 
@@ -1313,7 +1326,7 @@ export class Viewer {
      * Gets current WCS displacement used for visualisation
      */
     public getCurrentWcs(): vec3 {
-        const condition = (h: ModelHandle) => {return !h.empty && !h.stopped};
+        const condition = (h: ModelHandle) => { return !h.empty && !h.stopped };
         if (this._lastWcs != null && condition(this._lastWcs) === true)
             return this._lastWcs.wcs;
 
@@ -1582,10 +1595,18 @@ export class Viewer {
     * @param {boolean} withAnimation - Optional parameter, default is 'true'. When true, transition to the view is animated. When false, view is changed imediately.
     * @return {Bool} True if target exists and zoom was successful, False otherwise
     */
-    public zoomTo(id?: number, model?: number, withAnimation: boolean = true): Promise<void> {
-        var bBox = this.getTargetBoundingBox(id, model);
+    public zoomTo(id?: number | {id: number, model: number}[], model?: number, withAnimation: boolean = true): Promise<void> {
+        let bBox: number[] | Float32Array = null;
+        if (id == null || typeof(id) === 'number') {
+            // full extent or single product
+            bBox = this.getTargetBoundingBox(id as number, model);
+        } else {
+            // array of products
+            bBox = this.getTargetsBoundingBox(id as {id: number, model: number}[]);
+        }
+        
         if (bBox == null) {
-            return new Promise<void>((a, r) => r('There is no content to zoom to'));
+            return new Promise<void>((_, r) => r('There is no content to zoom to'));
         }
 
         const origin = vec3.fromValues(bBox[0] + bBox[3] / 2.0, bBox[1] + bBox[4] / 2.0, bBox[2] + bBox[5] / 2.0);
