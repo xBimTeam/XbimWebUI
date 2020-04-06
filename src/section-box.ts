@@ -25,20 +25,26 @@ export class SectionBox {
     }
 
     public get location(): vec3 { return this._location; }
-    public get rotationX(): number { return this._rotationX; }
-    public get rotationY(): number { return this._rotationY; }
-    public get rotationZ(): number { return this._rotationZ; }
-    public get lengthX(): number { return this._lengthX; }
-    public get lengthY(): number { return this._lengthY; }
-    public get lengthZ(): number { return this._lengthZ; }
-
     public set location(value: vec3) { this._location = value; this._onChange(); }
+
+    public get rotationX(): number { return this._rotationX; }
     public set rotationX(value: number) { this._rotationX = value; this._onChange(); }
+
+    public get rotationY(): number { return this._rotationY; }
     public set rotationY(value: number) { this._rotationY = value; this._onChange(); }
+
+    public get rotationZ(): number { return this._rotationZ; }
     public set rotationZ(value: number) { this._rotationZ = value; this._onChange(); }
+
+    public get lengthX(): number { return this._lengthX; }
     public set lengthX(value: number) { this._lengthX = value; this._onChange(); }
+
+    public get lengthY(): number { return this._lengthY; }
     public set lengthY(value: number) { this._lengthY = value; this._onChange(); }
+
+    public get lengthZ(): number { return this._lengthZ; }
     public set lengthZ(value: number) { this._lengthZ = value; this._onChange(); }
+
 
     /**
      * Matrix representation of this box. Can be used for simple test of points.
@@ -125,10 +131,10 @@ export class SectionBox {
      * @returns {boolean} true if succeeded, false if planes don't form a box
      */
     public setToPlanes(planes: ClippingPlane[]): boolean {
-        if (planes == null || planes.length != 6)
+        if (planes == null || planes.length !== 6)
             throw new Error('Invalid input: box has to be defined by 3 clipping planes');
 
-        var results: Array<{ plane: ClippingPlane, points: vec3[] }> = [];
+        var results: { plane: ClippingPlane, points: vec3[] }[] = [];
         const points: vec3[] = [];
 
         for (let i = 0; i < 6; i++) {
@@ -265,7 +271,7 @@ export class SectionBox {
 
     private isOpposite(a: number[], b: number[]) {
         var angle = vec3.angle(a, b);
-        return Math.abs(angle - Math.PI) < 1e-6;
+        return Math.abs(angle - Math.PI) < 1e-2; //tolerance of approx. 0.6 degree
     }
 
     private getCentroid(points: vec3[]): vec3 {
@@ -273,7 +279,7 @@ export class SectionBox {
         return vec3.scale(vec3.create(), sum, 1 / points.length);
     }
 
-    private addPointToResults(results: Array<{ plane: ClippingPlane, points: vec3[] }>, plane: ClippingPlane, point: vec3): void {
+    private addPointToResults(results: { plane: ClippingPlane, points: vec3[] }[], plane: ClippingPlane, point: vec3): void {
         var result = results.filter(r => r.plane === plane).pop();
         if (result == null) {
             result = {
@@ -291,7 +297,7 @@ export class SectionBox {
 
     private areOrthogonal(a: ClippingPlane, b: ClippingPlane): boolean {
         var angle = vec3.angle(a.direction, b.direction);
-        return Math.abs(angle - Math.PI / 2.0) < 1e-6;
+        return Math.abs(angle - Math.PI / 2.0) < 1e-2; 
     }
 
     private _lastWcs: vec3;
