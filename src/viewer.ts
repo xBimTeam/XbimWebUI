@@ -30,6 +30,7 @@ import { CameraProperties, CameraType } from './camera';
 import { SectionBox } from './section-box';
 import { BBox } from './common/bbox';
 import { CameraAdjustment } from './navigation/camera-adjustment';
+import { PreflightCheck } from './navigation/preflight-check';
 
 export type NavigationMode = 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none' | 'look-around' | 'walk' | 'look-at';
 
@@ -252,6 +253,11 @@ export class Viewer {
         }
         return this._depthTextureExtension != null;
     }
+
+    /**
+     * Indicates if the viewer is running the rendering loop
+     */
+    public get isRunning() {return this._isRunning; }
 
     /**
     * This is constructor of the xBIM Viewer. It gets HTMLCanvasElement or string ID as an argument. Viewer will than be initialized 
@@ -1591,27 +1597,39 @@ export class Viewer {
     * Use this method to zoom to specified element. If you don't specify a product ID it will zoom to full extent. If you specify list of products,
     * this function will zoom to grouped bounding box. You should use this only for elements which are close to each other (like aggregations)
     * @function Viewer#zoomTo
-    * @param {Number | {id: number, model: number}[]} [id] Product ID or a list of products in models
+    * @param {Number | {id: number, model: number}[]} [target] Product ID or a list of products in models
     * @param {Number} [model] Model ID
     * @param {boolean} withAnimation - Optional parameter, default is 'true'. When true, transition to the view is animated. When false, view is changed imediately.
     * @return {Bool} True if target exists and zoom was successful, False otherwise
     */
-    public zoomTo(id?: number | {id: number, model: number}[], model?: number, withAnimation: boolean = true): Promise<void> {
+    public zoomTo(target?: number | { id: number, model: number }[], model?: number, withAnimation: boolean = true, checkVisibility: boolean = true): Promise<void> {
+        const duration = withAnimation ? this.zoomDuration : 0;
         let bBox: number[] | Float32Array = null;
-        if (id == null || typeof(id) === 'number') {
+        if (target == null || typeof (target) === 'number') {
             // full extent or single product
-            bBox = this.getTargetBoundingBox(id as number, model);
+            bBox = this.getTargetBoundingBox(target as number, model);
+            if (checkVisibility === true && typeof(target) === 'number') {
+                const view = PreflightCheck.findView(this,[{ id: target, model: model || 1 }], 5);
+                if (view != null)
+                    return this.animations.viewTo(view, duration);
+            }
         } else {
-            // array of products
-            bBox = this.getTargetsBoundingBox(id as {id: number, model: number}[]);
+            if (checkVisibility === true && target.length > 0) {
+                const view = PreflightCheck.findView(this, target as { id: number, model: number }[], 5);
+                if (view != null)
+                    return this.animations.viewTo(view, duration);
+            }
+            if (target.length > 0)
+                bBox = this.getTargetsBoundingBox(target as { id: number, model: number }[]);
+            else 
+                bBox = this.getTargetBoundingBox();
         }
-        
+
         if (bBox == null) {
             return new Promise<void>((_, r) => r('There is no content to zoom to'));
         }
 
         const origin = vec3.fromValues(bBox[0] + bBox[3] / 2.0, bBox[1] + bBox[4] / 2.0, bBox[2] + bBox[5] / 2.0);
-        const duration = withAnimation ? this.zoomDuration : 0;
         const eye = this.getCameraPosition();
         let dir = vec3.subtract(vec3.create(), eye, origin);
         dir = vec3.normalize(vec3.create(), dir);
@@ -1949,7 +1967,119 @@ export class Viewer {
             gl.uniformMatrix4fv(this._pMatrixUniformPointer, false, this.pMatrix);
             this._isRunning = running;
         }
+    }
 
+    /**
+     * This renders the colour coded model into the memory buffer
+     * not to the canvas and use it to identify ID, model id and 3D location at canvas location [x,y]
+     * 
+     * @param {number} x - X coordinate on the canvas
+     * @param {number} y - Y coordinate on the canvas
+     */
+    public getData(points: { x: number, y: number }[]): { id: number, model: number }[] {
+
+        if (this.width === 0 || this.height === 0 || this.activeHandles.length === 0)
+            return null;
+
+        // it is not necessary to render the image in full resolution so this factor is used for less resolution. 
+        const factor = 4;
+        const gl = this.setActive();
+        const width = Math.floor(this.width / factor);
+        const height = Math.floor(this.height / factor);
+        const wcs = this.getCurrentWcs();
+        const running = this._isRunning;
+
+        // normalise by factor
+        points = points.map(p => ({ x: Math.floor(p.x / factor), y: Math.floor(p.y / factor) }));
+
+        // stop rendering loop temporarily
+        this._isRunning = false;
+
+        const fb = new Framebuffer(gl, width, height, false);
+        fb.bind();
+
+        try {
+            // set viewport and generall settings
+            this.setActive();
+            gl.viewport(0, 0, width, height);
+            gl.enable(gl.DEPTH_TEST); //we don't use any kind of blending or transparency
+            gl.disable(gl.BLEND);
+
+            // ------ draw colour coded product ids ----------
+            // clear all
+            gl.clearColor(0, 0, 0, 0); //zero colour for no-values
+            // tslint:disable-next-line: no-bitwise
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+            //set uniform for colour coding
+            this.setActive();
+            gl.uniform1i(this._colorCodingUniformPointer, ColourCoding.PRODUCTS);
+
+            // set current camera and transformation
+            this.updatePMatrix(width, height);
+            gl.uniformMatrix4fv(this._pMatrixUniformPointer, false, this.pMatrix);
+            gl.uniformMatrix4fv(this._mvMatrixUniformPointer, false, this.mvMatrix);
+
+            //render colour coded image using latest buffered data
+            this._handles.forEach((handle) => {
+                if (!handle.stopped) {
+                    handle.setActive(this._pointers, wcs);
+                    handle.draw();
+                }
+            });
+
+            //get colour in of the pixel [r,g,b,a]
+            const renderIds = fb.getIds(points);
+
+            //  --------------- render model ids ---------------------
+            this.setActive();
+            gl.bindFramebuffer(gl.FRAMEBUFFER, fb.framebuffer);
+
+            // clear
+            gl.clearColor(0, 0, 0, 0); //zero colour for no-values
+            // tslint:disable-next-line: no-bitwise
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+            //render colour coded image using latest buffered data
+            this._handles.forEach((handle) => {
+                if (!handle.stopped) {
+                    gl.uniform1i(this._colorCodingUniformPointer, handle.id);
+                    handle.setActive(this._pointers, wcs);
+                    handle.draw();
+                }
+            });
+
+            const modelIds = fb.getIds(points);
+
+            // return complete result
+            return renderIds.map((renderId, idx) => {
+                if (renderId == null)
+                    return null;
+                const model = modelIds[idx];
+                if (model == null)
+                    return null;
+
+                const handle = this.getHandle(model);
+                if (handle == null)
+                    return null;
+
+                const productId = handle.getProductId(renderId);
+                return { id: productId, model };
+            });
+        } catch (e) {
+            this.error(e);
+        } finally {
+            this.setActive();
+
+            //reset framebuffer to render into canvas again
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+            //set back blending
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+            gl.enable(gl.BLEND);
+
+            this._isRunning = running;
+        }
     }
 
     /**

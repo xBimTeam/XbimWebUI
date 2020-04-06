@@ -217,6 +217,24 @@ export class Framebuffer {
         }
     }
 
+    public getIds(points: { x: number, y: number }[]): number[] {
+        if (!this.isReady)
+            return null;
+
+        return points.map(p => {
+            const result = this.getPixel(p.x, p.y);
+
+            //decode ID (bit shifting by multiplication)
+            var hasValue = result[3] !== 0; //0 transparency is only for no-values
+            if (hasValue) {
+                var id = result[0] + result[1] * 256 + result[2] * 256 * 256;
+                return id;
+            } else {
+                return null;
+            }
+        });
+    }
+
     public getImageDataArray(): Uint8ClampedArray {
         if (!this.isReady)
             return null;
@@ -244,10 +262,10 @@ export class Framebuffer {
     public get2DCanvas(): HTMLCanvasElement {
         if (!this.isReady)
             return document.createElement('canvas');
-        
+
         // get transposed data
         const transData = this.getImageDataArray();
-        
+
         // Create a 2D canvas to store the result 
         var canvas = document.createElement('canvas');
         canvas.width = this.width;
