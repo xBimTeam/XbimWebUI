@@ -1609,13 +1609,13 @@ export class Viewer {
             // full extent or single product
             bBox = this.getTargetBoundingBox(target as number, model);
             if (checkVisibility === true && typeof(target) === 'number') {
-                const view = PreflightCheck.findView(this,[{ id: target, model: model || 1 }], 5);
+                const view = PreflightCheck.findView(this,[{ id: target, model: model || 1 }], 10);
                 if (view != null)
                     return this.animations.viewTo(view, duration);
             }
         } else {
             if (checkVisibility === true && target.length > 0) {
-                const view = PreflightCheck.findView(this, target as { id: number, model: number }[], 5);
+                const view = PreflightCheck.findView(this, target as { id: number, model: number }[], 10);
                 if (view != null)
                     return this.animations.viewTo(view, duration);
             }
