@@ -235,6 +235,11 @@ document['updateBrightness'] = (evt: Event) => {
     viewer.brightness = value;
 };
 
+document['zoomToSelection'] = () => {
+    const elements = viewer.getProductsWithState(State.HIGHLIGHTED);
+    viewer.zoomTo(elements);
+};
+
 viewer.on("pick", (args) => {
     viewer.stopRotation();
     var id = args.id;
