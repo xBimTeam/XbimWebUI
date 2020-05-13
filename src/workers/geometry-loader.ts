@@ -22,8 +22,9 @@ if (self && self instanceof DedicatedWorkerGlobalScope) {
 
         geometry.onloaded = () => {
             try {
+                // todo: use ImageBitmap to do more asynchronous work (https://stackoverflow.com/questions/51710067/webgl-async-operations)
                 let result = {};
-                let transferable = [];
+                let transferable: Transferable[] = [];
                 for (let i in geometry) {
                     if (!geometry.hasOwnProperty(i)) {
 
@@ -42,6 +43,8 @@ if (self && self instanceof DedicatedWorkerGlobalScope) {
                     //create array of transferable objects for all typed arrays. Browsers which support Transferable interface will speed this up massively
                     if (ArrayBuffer.isView(prop)) {
                         transferable.push(prop.buffer);
+                    } else if (prop instanceof ImageBitmap) {
+                        transferable.push(prop);
                     }
                 }
 

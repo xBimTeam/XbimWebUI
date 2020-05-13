@@ -361,9 +361,13 @@ export class Viewpoint {
      * @param viewpoint 
      */
     public static SetClipping(viewer: Viewer, viewpoint: Viewpoint) {
+
+        // reset to no clipping and no section box as a default
         viewer.unclip();
+        viewer.sectionBox.setToInfinity();
+
+        // no clipping instructions, return
         if (viewpoint.clipping_planes == null || viewpoint.clipping_planes.length === 0) {
-            // no clipping instructions
             return;
         }
 
@@ -373,7 +377,7 @@ export class Viewpoint {
             return;
         }
 
-        // restore first two clipping planes (we can't handle more)
+        // restore first two clipping planes (we can't handle more separately)
         const planeA = Viewpoint.getClippingEquation(viewpoint.clipping_planes[0]);
         const planeB = Viewpoint.getClippingEquation(viewpoint.clipping_planes[1]);
 
