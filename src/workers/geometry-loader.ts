@@ -1,6 +1,11 @@
 ﻿import { Message, MessageType } from '../common/message';
 import { ModelGeometry } from '../reader/model-geometry';
 
+function isImageBitmap(obj: any): boolean {
+    // this is an interface signature of ImageBitmap
+    return obj.width != null && obj.height != null && obj.close != null;
+}
+
 //only run following script if this is created as a Dedicated Worker
 if (self && self instanceof DedicatedWorkerGlobalScope) {
     var worker = self as DedicatedWorkerGlobalScope;
@@ -24,7 +29,7 @@ if (self && self instanceof DedicatedWorkerGlobalScope) {
             try {
                 // todo: use ImageBitmap to do more asynchronous work (https://stackoverflow.com/questions/51710067/webgl-async-operations)
                 let result = {};
-                let transferable: Transferable[] = [];
+                let transferable = [];
                 for (let i in geometry) {
                     if (!geometry.hasOwnProperty(i)) {
 
@@ -43,7 +48,7 @@ if (self && self instanceof DedicatedWorkerGlobalScope) {
                     //create array of transferable objects for all typed arrays. Browsers which support Transferable interface will speed this up massively
                     if (ArrayBuffer.isView(prop)) {
                         transferable.push(prop.buffer);
-                    } else if (prop instanceof ImageBitmap) {
+                    } else if (isImageBitmap(prop)) {
                         transferable.push(prop);
                     }
                 }
