@@ -116,7 +116,7 @@ export class Viewpoint {
         const dataUrl = viewer.getCurrentImageDataUrl(width, height, 'png');
         // strip 'data:image/jpeg;base64,' from the data url
         const base64image = dataUrl.substring(22);
-        
+
         view.snapshot = {
             snapshot_type: 'png',
             snapshot_data: base64image
@@ -236,8 +236,8 @@ export class Viewpoint {
 
         // region sizes from the viewpoint direction
         const region = viewer.getMergedRegion();
-        const optimum = (region && region.bbox && region.population > 0) ? 
-            viewer.getDistanceAndHeight(region.bbox, dir, up) : 
+        const optimum = (region && region.bbox && region.population > 0) ?
+            viewer.getDistanceAndHeight(region.bbox, dir, up) :
             null;
 
         // move the eye to optimal dostance if the current distance is too much
@@ -320,8 +320,9 @@ export class Viewpoint {
                     var delta = vec3.angle(toVec3(camera.camera_direction), vec3.fromValues(0, 0, -1));
                     if (delta > Math.PI / 180.0)
                         return;
+
+                    viewer.adjustments.adjust(10);
                 }
-                viewer.adjustments.adjust();
             });
 
 

@@ -310,10 +310,15 @@ export class Framebuffer {
         if (this._disposed || !this.isReady)
             return;
 
-        this.gl.deleteFramebuffer(this.framebuffer);
-        this.gl.deleteRenderbuffer(this.renderbuffer);
-        this.gl.deleteTexture(this.texture);
-        this.gl.deleteTexture(this.depthTexture);
+        const gl = this.gl;
+        if (gl instanceof WebGL2RenderingContext) {
+            gl.invalidateFramebuffer(gl.FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
+        }
+
+        gl.deleteFramebuffer(this.framebuffer);
+        gl.deleteRenderbuffer(this.renderbuffer);
+        gl.deleteTexture(this.texture);
+        gl.deleteTexture(this.depthTexture);
 
         if (this._depthReader != null) {
             this._depthReader.delete();

@@ -73,11 +73,15 @@ export class CameraAdjustment {
         request(step);
     }
 
-    public adjust(): void {
+    public adjust(density: number = null): void {
         const viewer = this.viewer;
-        const density = this.density;
+        density = density || this.density;
 
         if (!viewer.hasDepthSupport)
+            return;
+
+        // only run adjustment if there is something to see
+        if (!viewer.isRunning || viewer.activeHandles.length === 0)
             return;
 
         // make it smaller (therefore lower the resolution)
