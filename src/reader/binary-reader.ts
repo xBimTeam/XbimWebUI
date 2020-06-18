@@ -115,7 +115,7 @@ export class BinaryReader {
                 });
             }
             xhr.send();
-        } else if (source instanceof Blob || source instanceof File) {
+        } else if (source instanceof Blob || (typeof(File) !== 'undefined' && source instanceof File)) { 
             var fReader = new FileReader();
             fReader.onloadend = () => {
                 if (fReader.result && typeof(fReader.result) !== 'string') {
