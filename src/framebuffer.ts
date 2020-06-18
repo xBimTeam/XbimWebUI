@@ -311,7 +311,7 @@ export class Framebuffer {
             return;
 
         const gl = this.gl;
-        if (gl instanceof WebGL2RenderingContext) {
+        if (typeof (WebGL2RenderingContext) !== 'undefined' && gl instanceof WebGL2RenderingContext) {
             gl.invalidateFramebuffer(gl.FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
         }
 
