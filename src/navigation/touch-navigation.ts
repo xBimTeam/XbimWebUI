@@ -9,13 +9,12 @@ export class TouchNavigation {
         let lastTouchY_1: number;
         let lastTouchX_2: number;
         let lastTouchY_2: number;
-        let lastTouchX_3: number;
-        let lastTouchY_3: number;
 
         let origin = vec3.create();
 
         const handleTouchStart = (event: TouchEvent) => {
-            event.preventDefault();
+            if (event.cancelable)
+                event.preventDefault();
 
             if (event.touches.length >= 1) {
                 lastTouchX_1 = event.touches[0].clientX;
@@ -24,10 +23,6 @@ export class TouchNavigation {
             if (event.touches.length >= 2) {
                 lastTouchX_2 = event.touches[1].clientX;
                 lastTouchY_2 = event.touches[1].clientY;
-            }
-            if (event.touches.length >= 3) {
-                lastTouchX_3 = event.touches[2].clientX;
-                lastTouchY_3 = event.touches[2].clientY;
             }
 
             const data = viewer.getEventDataFromEvent(event.touches[0]);
@@ -43,7 +38,8 @@ export class TouchNavigation {
         };
 
         const handleTouchMove = (event: TouchEvent) => {
-            event.preventDefault();
+            if (event.cancelable)
+                event.preventDefault();
             if (viewer.navigationMode === 'none' || !event.touches) {
                 return;
             }
@@ -56,48 +52,35 @@ export class TouchNavigation {
                 // force-setting navigation mode to 'free-orbit' currently for touch navigation since regular orbit
                 // feels awkward and un-intuitive on touch devices
                 // MC: I prefer fixed orbit as it doesn't allow for wierd angles
-                viewer.navigate('orbit', deltaX, deltaY, origin);
-            } else if (event.touches.length === 2) {
+                viewer.navigate('orbit', deltaX / 1.5 , deltaY / 1.5, origin);
+            } else if (event.touches.length >= 2) {
                 // touch move with two fingers -> zoom
-                var distanceBefore = Math.sqrt((lastTouchX_1 - lastTouchX_2) * (lastTouchX_1 - lastTouchX_2) +
+                const distanceBefore = Math.sqrt((lastTouchX_1 - lastTouchX_2) * (lastTouchX_1 - lastTouchX_2) +
                     (lastTouchY_1 - lastTouchY_2) * (lastTouchY_1 - lastTouchY_2));
+                const middleBefore = [(lastTouchX_1 + lastTouchX_2) / 2.0, (lastTouchY_1 + lastTouchY_2) / 2.0]
                 lastTouchX_1 = event.touches[0].clientX;
                 lastTouchY_1 = event.touches[0].clientY;
                 lastTouchX_2 = event.touches[1].clientX;
                 lastTouchY_2 = event.touches[1].clientY;
-                var distanceAfter = Math.sqrt((lastTouchX_1 - lastTouchX_2) * (lastTouchX_1 - lastTouchX_2) +
+                const distanceAfter = Math.sqrt((lastTouchX_1 - lastTouchX_2) * (lastTouchX_1 - lastTouchX_2) +
                     (lastTouchY_1 - lastTouchY_2) * (lastTouchY_1 - lastTouchY_2));
-                if (distanceBefore > distanceAfter) {
-                    viewer.navigate('zoom', -1, -1, origin); // Zooming out, fingers are getting closer together
+                const middleAfter = [(lastTouchX_1 + lastTouchX_2) / 2.0, (lastTouchY_1 + lastTouchY_2) / 2.0]
 
-                } else {
-                    viewer.navigate('zoom', 1, 1, origin); // zooming in, fingers are getting further apart
+                // only zoom if there are exactly 2 fingers on the screen
+                if (event.touches.length === 2){
+                    const delta = distanceBefore - distanceAfter;
+                    if (delta > 10) {
+                        viewer.navigate('zoom', -1.5, -1.5, origin); // Zooming out, fingers are getting closer together
+                    } else if (delta < -10) {
+                        viewer.navigate('zoom', 1.5, 1.5, origin); // zooming in, fingers are getting further apart
+                    }
                 }
-            } else if (event.touches.length === 3) {
-                // touch move with three fingers -> pan
-                var directionX = ((event.touches[0]
-                    .clientX +
-                    event.touches[1].clientX +
-                    event.touches[2].clientX) /
-                    3) -
-                    ((lastTouchX_1 + lastTouchX_2 + lastTouchX_3) / 3);
-                var directionY = ((event.touches[0]
-                    .clientY +
-                    event.touches[1].clientY +
-                    event.touches[2].clientY) /
-                    3) -
-                    ((lastTouchY_1 + lastTouchY_2 + lastTouchY_3) / 3);
-                lastTouchX_1 = event.touches[0].clientX;
-                lastTouchY_1 = event.touches[0].clientY;
-                lastTouchX_2 = event.touches[1].clientX;
-                lastTouchY_2 = event.touches[1].clientY;
-                lastTouchY_3 = event.touches[2].clientX;
-                lastTouchY_3 = event.touches[2].clientY;
-                // pan seems to be too fast, just adding a factor here
-                var panFactor = 0.2;
 
-                viewer.navigate('pan', panFactor * directionX, panFactor * directionY, origin);
-            }
+                // also pan so it is possible to zoom and pan at the same time
+                const dX = middleAfter[0] - middleBefore[0];
+                const dY = middleAfter[1] - middleBefore[1];
+                viewer.navigate('pan', dX, dY, origin);
+            } 
         }
 
         viewer.canvas.addEventListener('touchstart', (event) => handleTouchStart(event), true);

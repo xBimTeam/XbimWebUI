@@ -147,6 +147,7 @@ viewer.addPlugin(grid);
 var cube = new NavigationCube();
 cube.ratio = 0.05;
 cube.passiveAlpha = cube.activeAlpha = 1.0;
+cube.minSize = 150;
 viewer.addPlugin(cube);
 
 viewer.defineStyle(0, [255, 0, 0, 255]);  //red
