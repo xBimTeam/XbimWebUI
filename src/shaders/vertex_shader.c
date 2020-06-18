@@ -223,7 +223,6 @@ void main(void) {
 	// rendering
 	else {
 		// get base color or set highlighted colour
-		vec4 baseColor = vec4(1.0, 1.0, 1.0, 1.0);
 		// highlighted takes precedense
 		if (state == 253) {
 			baseColor = uHighlightColour;
