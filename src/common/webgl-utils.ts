@@ -151,17 +151,21 @@ export class WebGLUtils {
                 done(context, 2);
                 return;
             }
-        } catch { }
+        } catch {
+                // we can ignore this, just trying to get anything usable here
+         }
 
         var names = ["webgl", "experimental-webgl", "webkit-3d", "moz-webgl"];
-        for (var ii = 0; ii < names.length; ++ii) {
+        names.forEach (name => {
+            if (context != null)
+                return;
+
             try {
-                context = canvas.getContext(names[ii], opt_attribs) as WebGLRenderingContext;
-            } catch (e) { }
-            if (context) {
-                break;
-            }
-        }
+                context = canvas.getContext(name, opt_attribs) as WebGLRenderingContext;
+            } catch (e) {
+                // we can ignore this, just trying to get anything usable here
+             }
+        });
         done(context, 1);
     }
 
