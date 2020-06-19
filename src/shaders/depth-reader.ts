@@ -27,7 +27,7 @@ export class DepthReader {
     /**
      *
      */
-    constructor(private gl: WebGLRenderingContext) {
+    constructor(private gl: WebGLRenderingContext, private glVersion: number) {
         const compile = (shader: WebGLShader, code: string): boolean => {
             gl.shaderSource(shader, code);
             gl.compileShader(shader);
@@ -105,7 +105,7 @@ export class DepthReader {
         gl.useProgram(this.program);
 
         //create framebuffer for off-screen rendering
-        const fb = new Framebuffer(gl, width, height, false);
+        const fb = new Framebuffer(gl, width, height, false, this.glVersion);
         gl.viewport(0, 0, width, height);
 
         // draw and get results

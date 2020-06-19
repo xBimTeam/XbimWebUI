@@ -92,7 +92,7 @@ export class CameraAdjustment {
             return;
         }
 
-        var fb = new Framebuffer(viewer.gl, width, height, true);
+        var fb = new Framebuffer(viewer.gl, width, height, true, this.viewer.glVersion);
         viewer.draw(fb, true);
 
         // create the analytical matrix of points based on density and current width and height

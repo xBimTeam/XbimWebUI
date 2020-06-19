@@ -18,7 +18,7 @@ export class Framebuffer {
             return this._depthReader;
         }
 
-        this._depthReader = new DepthReader(this.gl);
+        this._depthReader = new DepthReader(this.gl, this.glVersion);
         return this._depthReader;
     }
 
@@ -26,7 +26,8 @@ export class Framebuffer {
         private gl: WebGLRenderingContext,
         public width: number,
         public height: number,
-        private withDepth: boolean
+        private withDepth: boolean,
+        private glVersion: number
     ) {
         // width and height should be whole numbers
         this.width = width = Math.floor(width);
@@ -37,12 +38,8 @@ export class Framebuffer {
             return;
         }
 
-        if (typeof (WebGL2RenderingContext) !== 'undefined' && gl instanceof WebGL2RenderingContext) {
-            this._glVersion = 2;
-        } else {
-            this._glVersion = 1;
-        }
 
+        this._glVersion = glVersion;
         //create framebuffer
         this.framebuffer = gl.createFramebuffer();
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);

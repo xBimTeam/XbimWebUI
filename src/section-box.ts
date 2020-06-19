@@ -91,7 +91,7 @@ export class SectionBox {
     public setToInfinity(): void {
         this._location = vec3.fromValues(0, 0, 0);
         this._rotationX = this._rotationY = this._rotationZ = 0.0;
-        this._lengthX = this._lengthY = this._lengthZ = Number.POSITIVE_INFINITY;
+        this._lengthX = this._lengthY = this._lengthZ = Number.MAX_SAFE_INTEGER;
 
         if (this._onChange)
             this._onChange();

@@ -632,7 +632,7 @@ export class Viewer {
             return null;
 
         //use background framebuffer
-        let frame = new Framebuffer(this.gl, width, height, false);
+        let frame = new Framebuffer(this.gl, width, height, false, this.glVersion);
 
         //force draw into defined framebuffer
         this.draw(frame);
@@ -648,7 +648,7 @@ export class Viewer {
             return null;
 
         //use background framebuffer
-        let frame = new Framebuffer(this.gl, width, height, false);
+        let frame = new Framebuffer(this.gl, width, height, false, this.glVersion);
 
         //force draw into defined framebuffer
         this.draw(frame);
@@ -1393,6 +1393,7 @@ export class Viewer {
 
 
         //set uniforms (these may quickly change between calls to draw)
+
         gl.uniformMatrix4fv(this._pMatrixUniformPointer, false, this.pMatrix);
         gl.uniformMatrix4fv(this._mvMatrixUniformPointer, false, this.mvMatrix);
 
@@ -1404,6 +1405,7 @@ export class Viewer {
         gl.uniform3fv(this._gammaContrastBrightnessUniform, new Float32Array([this.gamma, this.contrast, this.brightness]));
 
         // set section box matrix to be used to clip the model by the box
+        
         gl.uniformMatrix4fv(this._sectionBoxUniform, false, this.sectionBox.getMatrix(wcs));
 
         //use normal colour representation (1 would cause shader to use colour coding of IDs)
@@ -1828,10 +1830,10 @@ export class Viewer {
 
         // reuse framebuffer if possible (same size)
         if (this._eventFB == null)
-            this._eventFB = new Framebuffer(gl, width, height, this.hasDepthSupport);
+            this._eventFB = new Framebuffer(gl, width, height, this.hasDepthSupport, this.glVersion);
         if (Math.abs(width - this._eventFB.width) > 1 || Math.abs(height - this._eventFB.height) > 1) {
             this._eventFB.delete();
-            this._eventFB = new Framebuffer(gl, width, height, this.hasDepthSupport);
+            this._eventFB = new Framebuffer(gl, width, height, this.hasDepthSupport, this.glVersion);
         }
         const fb = this._eventFB;
         fb.bind();
@@ -1995,7 +1997,7 @@ export class Viewer {
         // stop rendering loop temporarily
         this._isRunning = false;
 
-        const fb = new Framebuffer(gl, width, height, false);
+        const fb = new Framebuffer(gl, width, height, false, this.glVersion);
         fb.bind();
 
         try {
