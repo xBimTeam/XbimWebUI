@@ -257,7 +257,7 @@ export class Viewer {
     /**
      * Indicates if the viewer is running the rendering loop
      */
-    public get isRunning() {return this._isRunning; }
+    public get isRunning() { return this._isRunning; }
 
     /**
     * This is constructor of the xBIM Viewer. It gets HTMLCanvasElement or string ID as an argument. Viewer will than be initialized 
@@ -832,8 +832,8 @@ export class Viewer {
         const distance = height / (Math.tan(this.cameraProperties.fov * Math.PI / 180.0 / 2.0) * 2.0) + sizes.depth / 2.0;
 
         return {
-            distance: distance,
-            height: height * 1.0 // make it little bit more far away so there is some space around the model
+            distance: distance * 1.5,
+            height: height * 1.5 // make it little bit more far away so there is some space around the model
         };
     };
 
@@ -1405,7 +1405,7 @@ export class Viewer {
         gl.uniform3fv(this._gammaContrastBrightnessUniform, new Float32Array([this.gamma, this.contrast, this.brightness]));
 
         // set section box matrix to be used to clip the model by the box
-        
+
         gl.uniformMatrix4fv(this._sectionBoxUniform, false, this.sectionBox.getMatrix(wcs));
 
         //use normal colour representation (1 would cause shader to use colour coding of IDs)
@@ -1610,8 +1610,8 @@ export class Viewer {
         if (target == null || typeof (target) === 'number') {
             // full extent or single product
             bBox = this.getTargetBoundingBox(target as number, model);
-            if (checkVisibility === true && typeof(target) === 'number') {
-                const view = PreflightCheck.findView(this,[{ id: target, model: model || 1 }], 10);
+            if (checkVisibility === true && typeof (target) === 'number') {
+                const view = PreflightCheck.findView(this, [{ id: target, model: model || 1 }], 10);
                 if (view != null)
                     return this.animations.viewTo(view, duration);
             }
@@ -1623,7 +1623,7 @@ export class Viewer {
             }
             if (target.length > 0)
                 bBox = this.getTargetsBoundingBox(target as { id: number, model: number }[]);
-            else 
+            else
                 bBox = this.getTargetBoundingBox();
         }
 
