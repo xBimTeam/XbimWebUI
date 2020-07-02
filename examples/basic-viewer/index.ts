@@ -1,13 +1,16 @@
 import { Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube } from '../..';
 import { Viewpoint } from '../../src/bcf';
 import { CameraType } from '../../src/camera';
+import { Grid } from '../../src/plugins/Grid/grid';
 
 const viewer = new Viewer("viewer");
 const cube = new NavigationCube();
+const grid = new Grid();
 cube.ratio = 0.05;
 cube.stopped = false;
 cube.passiveAlpha = 1.0;
-cube.trueNorth = 30;
+cube.trueNorth = 0;
+viewer.addPlugin(grid);
 viewer.addPlugin(cube);
 
 function baseToBlob(data: string): Blob {

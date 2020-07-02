@@ -213,7 +213,7 @@ export class SectionBox {
         this._lengthZ = sizeZ;
         this._rotationX = angles.roll * 180.0 / Math.PI;
         this._rotationY = angles.pitch * 180.0 / Math.PI;
-        this._rotationZ = angles.yaw * 180.0 / Math.PI;
+        this._rotationZ = -angles.yaw * 180.0 / Math.PI;
 
         // invoke change annotation
         if (this._onChange) {
