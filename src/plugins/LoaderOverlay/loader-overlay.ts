@@ -22,6 +22,10 @@ export class LoaderOverlay implements IPlugin {
 
 
     public show(image?: HTMLImageElement) {
+
+        if (this.overlay)
+            return;
+
         // create an overlay
         const div = document.createElement('div');
         div.style.width = '100%';
@@ -31,7 +35,7 @@ export class LoaderOverlay implements IPlugin {
         div.style.position = 'absolute';
         div.style.top = '0';
         div.style.left = '0';
-        
+
         // semi-transparent layer
         const over = document.createElement('div');
         over.style.height = '100%';
@@ -51,7 +55,7 @@ export class LoaderOverlay implements IPlugin {
             imageContainer.style.alignItems = 'center';
             imageContainer.style.justifyContent = 'center';
             div.appendChild(imageContainer);
-    
+
             // blurred image
             image.style.height = '100%';
             image.style.filter = 'blur(15px)';
@@ -68,7 +72,7 @@ export class LoaderOverlay implements IPlugin {
         loaderContainer.style.display = 'flex';
         loaderContainer.style.alignItems = 'center';
         loaderContainer.style.justifyContent = 'center';
-        
+
         const loader = document.createElement('div');
         loader.className = 'xbim-viewer-loader';
         loaderContainer.appendChild(loader);
@@ -77,7 +81,7 @@ export class LoaderOverlay implements IPlugin {
         this.overlay = div;
 
         const parent = this.viewer.canvas.parentElement;
-        if (parent.style.position !== 'relative' && parent.style.position !== 'absolute' ) {
+        if (parent.style.position !== 'relative' && parent.style.position !== 'absolute') {
             parent.style.position = 'relative';
         }
 
