@@ -1,5 +1,5 @@
 import { WebGLUtils } from "./webgl-utils";
-import { CheckResult } from "./CheckResult";
+import { CheckResult } from "./checkresult";
 
 export class Abilities {
     public static check(): CheckResult {
@@ -69,7 +69,7 @@ export class Abilities {
         }
         //set boolean members for convenience
         if (result.errors.length == 0) {
-        result.noErrors = true;
+            result.noErrors = true;
         }
         if (result.warnings.length == 0) { result.noWarnings = true; }
         return result;
