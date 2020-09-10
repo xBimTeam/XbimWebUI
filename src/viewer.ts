@@ -223,7 +223,7 @@ export class Viewer {
 
     // dictionary of named events which can be registered and unregistered by using '.on('eventname', callback)'
     // and '.off('eventname', callback)'. Registered call-backs are triggered by the viewer when important events occur.
-    private _events: { [entName: string]: ((args: { message: string } | { event: Event, id: number, model: number } | { model: number, tag: any } | number | { target: Element }) => void)[]; } = {};
+    private _events: { [entName: string]: ((args: { message: string } | { event: Event, id: number, model: number } | { model: number, tag: any } | number | { target: Element } | boolean ) => void)[]; } = {};
 
     private _canvasListeners: { [evtName: string]: (event: Event) => any } = {};
 
@@ -1449,19 +1449,40 @@ export class Viewer {
             gl.disable(gl.CULL_FACE);
             gl.enable(gl.DEPTH_TEST);
 
+            // optimising performance
+            let percent = 100;
+            switch (this.performance) {
+                case PerformanceRating.VERY_LOW:
+                    percent = 30;
+                    break;
+                case PerformanceRating.LOW:
+                    percent = 50;
+                    break;
+                case PerformanceRating.MEDIUM:
+                    percent = 80;
+                    break;
+                case PerformanceRating.HIGH:
+                    percent = 100;
+                    break;
+                default:
+                    percent = 100;
+                    break;
+            }
+
             //two runs, first for solids from all models, second for transparent objects from all models
             //this makes sure that transparent objects are always rendered at the end.
             this._handles.forEach((handle) => {
                 if (!handle.stopped) {
                     handle.setActive(this._pointers, wcs);
-                    handle.draw(DrawMode.SOLID);
+
+                    handle.draw(DrawMode.SOLID, percent);
                 }
             });
 
             this._handles.forEach((handle) => {
                 if (!handle.stopped) {
                     handle.setActive(this._pointers, wcs);
-                    handle.draw(DrawMode.TRANSPARENT);
+                    handle.draw(DrawMode.TRANSPARENT, percent);
                 }
             });
         }
@@ -2155,22 +2176,31 @@ export class Viewer {
     private _watchPerformance() {
         const noMove = 1000; // number of milliseconds when we consider MV matrix to be stable
         const watchTime = 500;
+        let isMoving = false;
         const tick = () => {
             // number of milliseconds since last MV matrix change
             const age = this.mvMatrixAge;
             // framerate updated approx. every 0.5 second
             const fps = this._currentFps;
 
-            // no movement and already having full performance flag
-            if (age > noMove && this.performance === PerformanceRating.HIGH) {
+            // no movement and already fired event
+            if (age > noMove && !isMoving) {
                 return;
             }
 
             // no movement so render complete image
             if (age > noMove) {
+                isMoving = false;
                 this.performance = PerformanceRating.HIGH;
+                this.fire('navigationEnd', true);
+                // navigation ended and there is something to draw, so draw it
+                if (this.activeHandles.length > 0) {
+                    this.draw();
+                }
                 return;
             }
+
+            isMoving = true;
 
             if (fps < 10 && this.performance > PerformanceRating.VERY_LOW) {
                 this.performance = PerformanceRating.VERY_LOW;

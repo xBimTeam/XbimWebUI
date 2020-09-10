@@ -47,6 +47,19 @@ export class ModelGeometry {
     public regions: Region[];
     public transparentIndex: number;
 
+    public breaks: { [percent: number]: number[] } = {
+        10: [],
+        20: [],
+        40: [],
+        30: [],
+        50: [],
+        60: [],
+        70: [],
+        80: [],
+        90: [],
+        100: [],
+    }
+
     private _reader: BinaryReader;
     private _styleMap = new StyleMap();
 
@@ -208,9 +221,10 @@ export class ModelGeometry {
                 percent: 100
             });
         }
-
+        
         //set value of transparent index divider for two phase rendering (simplified ordering)
         this.transparentIndex = this._iIndexForward;
+        this.breaks[100] = [this.transparentIndex -1, this.transparentIndex]; 
     }
 
     /**
@@ -271,10 +285,10 @@ export class ModelGeometry {
                 this.indices[iIndex] = idx + this._iVertex / 3;
                 this.products[iIndex] = map.renderId;
                 this.styleIndices[iIndex] = shape.style;
-                this.transformations[iIndex] = shape.transform; //shape.pLabel == 33698 || shape.pLabel == 33815 ? -1 : shape.transform;
+                this.transformations[iIndex] = shape.transform;
                 this.states[2 * iIndex] = state; //set state
                 this.states[2 * iIndex + 1] = 0xFF; //default style
-    
+
                 iIndex++;
             });
 
@@ -286,6 +300,15 @@ export class ModelGeometry {
             } else {
                 this._iIndexForward += geometry.indices.length;
             }
+
+            // manage breakpoints
+            var percent = (this._iIndexForward + this.indices.length - this._iIndexBackward) / this.indices.length * 100;
+            Object.getOwnPropertyNames(this.breaks).forEach(bp => {
+                const breakPoint = +bp;
+                if (this.breaks[breakPoint].length === 0 && percent > breakPoint) {
+                    this.breaks[breakPoint] = [this._iIndexForward, this._iIndexBackward]
+                }
+            });
         },
             this);
 

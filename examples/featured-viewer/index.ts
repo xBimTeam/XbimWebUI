@@ -134,7 +134,7 @@ viewer.on('loaded', () => {
 });
 
 
-viewer.loadAsync(model, "base", null, (msg) => {
+viewer.load(model, "base", null, (msg) => {
     progress.innerHTML = `${msg.message} [${msg.percent}%]`;
 });
 

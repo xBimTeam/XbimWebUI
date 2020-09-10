@@ -46,6 +46,7 @@ export interface ViewerEventMap extends ViewerInteractionEventMap {
     "loaded": ViewerLoadedEvent;
     "unloaded": ViewerLoadedEvent;
     "error": { message: string };
+    "navigationEnd": boolean;
 }
 
 // tslint:disable-next-line: interface-name

@@ -343,7 +343,7 @@ export class ModelHandle {
     }
 
     //this function must be called AFTER 'setActive()' function which sets up active buffers and uniforms
-    public draw(mode?: DrawMode): void {
+    public draw(mode?: DrawMode, percent?: number): void {
         // reset flag because current state is drawn
         this._changed = false;
 
@@ -371,6 +371,13 @@ export class ModelHandle {
             // make sure depth testing is on for general rendering
             if (maps == null) {
                 gl.drawArrays(gl.TRIANGLES, 0, this._numberOfIndices);
+                // if (percent == null || percent === 100 || this._model.breaks[percent] == null) {
+                //     gl.drawArrays(gl.TRIANGLES, 0, this._numberOfIndices);
+                // } else {
+                //     const breaks = this._model.breaks[percent];
+                //     gl.drawArrays(gl.TRIANGLES, 0, breaks[0]);
+                //     gl.drawArrays(gl.TRIANGLES, breaks[1], this._numberOfIndices - breaks[1]);
+                // }
             } else {
                 maps.forEach((map) => {
                     map.spans.forEach((span) => {
@@ -384,7 +391,12 @@ export class ModelHandle {
         if (mode === DrawMode.SOLID && this._model.transparentIndex > 0) {
             // make sure depth testing is on for solid rendering
             if (maps == null) {
-                gl.drawArrays(gl.TRIANGLES, 0, this._model.transparentIndex);
+                if (percent == null || percent === 100 || this._model.breaks[percent] == null) {
+                    gl.drawArrays(gl.TRIANGLES, 0, this._model.transparentIndex);
+                } else {
+                    const breaks = this._model.breaks[percent];
+                    gl.drawArrays(gl.TRIANGLES, 0, breaks[0] + 1);
+                }
             } else {
                 maps.forEach((map) => {
                     map.spans
@@ -406,7 +418,12 @@ export class ModelHandle {
             //gl.blendFunc(gl.ZERO, gl.SRC_COLOR);
 
             if (maps == null) {
-                gl.drawArrays(gl.TRIANGLES, this._model.transparentIndex, this._numberOfIndices - this._model.transparentIndex);
+                if (percent == null || percent === 100 || this._model.breaks[percent] == null) {
+                    gl.drawArrays(gl.TRIANGLES, this._model.transparentIndex, this._numberOfIndices - this._model.transparentIndex);
+                } else {
+                    const breaks = this._model.breaks[percent];
+                    gl.drawArrays(gl.TRIANGLES, breaks[1], this._numberOfIndices - breaks[1]);
+                }
             } else {
                 maps.forEach((map) => {
                     map.spans
@@ -575,7 +592,7 @@ export class ModelHandle {
         return vec3.fromValues(a[0], a[1], a[2]);
     }
 
-    public static bufferTexture(gl: WebGLRenderingContext | WebGL2RenderingContext, pointer: WebGLTexture, data: any, numberOfComponents?: number): number {
+    public static bufferTexture(gl: WebGLRenderingContext | WebGL2RenderingContext, pointer: WebGLTexture, data: Float32Array | Uint8Array, numberOfComponents?: number): number {
 
         if (data.length === 0) {
             let dummySize = 2;
@@ -622,7 +639,7 @@ export class ModelHandle {
         gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 0); //this should preserve values of alpha
         //gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, 0); //this should preserve values of colours
 
-        if (fp) {
+        if (data instanceof Float32Array) {
             //create new data buffer and fill it in with data
             let image: Float32Array = null;
             if (size * size * numberOfComponents !== data.length) {
