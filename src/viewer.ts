@@ -2174,7 +2174,7 @@ export class Viewer {
      * rating to decide if complete model should be drawn or only a part.
      */
     private _watchPerformance() {
-        const noMove = 1000; // number of milliseconds when we consider MV matrix to be stable
+        const noMove = 500; // number of milliseconds when we consider MV matrix to be stable
         const watchTime = 500;
         let isMoving = false;
         const tick = () => {
@@ -2200,18 +2200,23 @@ export class Viewer {
                 return;
             }
 
+            // we are on the move. Set the performance indicator based on the current FPS
             isMoving = true;
-
             if (fps < 10 && this.performance > PerformanceRating.VERY_LOW) {
                 this.performance = PerformanceRating.VERY_LOW;
             } else if (fps < 20 && this.performance > PerformanceRating.LOW) {
                 this.performance = PerformanceRating.LOW;
             } else if (fps < 30 && this.performance > PerformanceRating.MEDIUM) {
                 this.performance = PerformanceRating.MEDIUM;
+            } else {
+                this.performance = PerformanceRating.HIGH;
             }
 
+            // monitor per-frame when navigation is in progress
             this._requestAnimationFrame(tick);
         };
+
+        // check regularly all the time
         setInterval(tick, watchTime);
     }
 
