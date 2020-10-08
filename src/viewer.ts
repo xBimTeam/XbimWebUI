@@ -1044,7 +1044,11 @@ export class Viewer {
         geometry.onerror = (msg) => {
             viewer.error(msg);
         };
-        geometry.load(model, headers, progress);
+        try {
+            geometry.load(model, headers, progress);
+        } catch (err) {
+            viewer.error(err)
+        }
     }
 
     //this is a private function used to add loaded geometry as a new handle and to set up camera and 
@@ -1459,7 +1463,7 @@ export class Viewer {
                     percent = 50;
                     break;
                 case PerformanceRating.MEDIUM:
-                    percent = 80;
+                    percent = 70;
                     break;
                 case PerformanceRating.HIGH:
                     percent = 100;
@@ -1759,6 +1763,10 @@ export class Viewer {
         * @param {string} message - Error message
         */
         this.fire('error', { message: msg });
+
+        if (typeof(console) !== 'undefined' && console.error != null) {
+            console.error(msg);
+        }
     }
 
     public getInteractionOrigin(event: MouseEvent | Touch): vec3 {
@@ -2174,7 +2182,7 @@ export class Viewer {
      * rating to decide if complete model should be drawn or only a part.
      */
     private _watchPerformance() {
-        const noMove = 500; // number of milliseconds when we consider MV matrix to be stable
+        const noMove = 1000; // number of milliseconds when we consider MV matrix to be stable
         const watchTime = 500;
         let isMoving = false;
         const tick = () => {
@@ -2208,8 +2216,6 @@ export class Viewer {
                 this.performance = PerformanceRating.LOW;
             } else if (fps < 30 && this.performance > PerformanceRating.MEDIUM) {
                 this.performance = PerformanceRating.MEDIUM;
-            } else {
-                this.performance = PerformanceRating.HIGH;
             }
 
             // monitor per-frame when navigation is in progress

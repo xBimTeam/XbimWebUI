@@ -4,6 +4,7 @@ import { State, StatePriorities } from "../common/state";
 import { ProductType } from "../product-type";
 import { Message, MessageType } from "../common/message";
 import { ProductMap } from "../common/product-map";
+import { WexBimShapeSingleInstance } from "../stream/wexbim-stream";
 
 export class ModelGeometry {
 
@@ -165,6 +166,7 @@ export class ModelGeometry {
                 let region = this.regions[r];
                 let geomCount = br.readInt32();
 
+                const data = new Array<{ shapes: ShapeRecord[], geometry: TriangulatedShape }>(geomCount);
                 for (let g = 0; g < geomCount; g++) {
 
                     //read shape information
@@ -186,8 +188,33 @@ export class ModelGeometry {
                         throw new Error(`Incomplete reading of geometry for shape instance ${shapes[0].iLabel}`);
                     }
 
+                    data[g] = { shapes, geometry };
+
+
+                }
+
+                // Sort to make performance optimization look better. Big things go in first (descending sorting).
+                // TODO: THIS should be done on the server. Once it is a standard, this code should be removed
+                // and data should be fed into data arrays straight away, saving in-memory sorting.
+                data.sort((a, b) => {
+                    const mapA = this.productMaps[a.shapes[0].pLabel];
+                    const mapB = this.productMaps[b.shapes[0].pLabel];
+
+                    if (mapA == null)
+                        return 1;
+                    if (mapB == null)
+                        return -1;
+                    
+                    const volA = mapA.bBox[3] * mapA.bBox[4] *mapA.bBox[5];
+                    const volB = mapB.bBox[3] * mapA.bBox[4] *mapA.bBox[5];
+
+                    return volB - volA;
+
+                });
+                for (let g = 0; g < geomCount; g++) {
+                    const d = data[g];
                     //add data to arrays prepared for GPU
-                    this.feedDataArrays(shapes, geometry);
+                    this.feedDataArrays(d.shapes, d.geometry);
                 }
             }
         } else {
@@ -221,10 +248,10 @@ export class ModelGeometry {
                 percent: 100
             });
         }
-        
+
         //set value of transparent index divider for two phase rendering (simplified ordering)
         this.transparentIndex = this._iIndexForward;
-        this.breaks[100] = [this.transparentIndex -1, this.transparentIndex]; 
+        this.breaks[100] = [this.transparentIndex - 1, this.transparentIndex];
     }
 
     /**
