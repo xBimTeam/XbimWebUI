@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>The Viewer</title>
+    <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+    <style>
+        html,
+        body {
+            height: 100%;
+            padding: 0;
+            margin: 0;
+            background: linear-gradient(white, lightgray);
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        canvas {
+            display: block;
+            border: none;
+            margin-left: auto;
+            margin-right: auto;
+            width: 100%;
+            height: 100%;
+        }
+
+        #info {
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            padding: 20px;
+            z-index: 2;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 0 10px lightgray;
+        }
+
+        #fps-container {
+            position: absolute;
+            top: 1em;
+            right: 1em;
+        }
+
+        button, label{
+            border-radius: 5px;
+            border-style: solid;
+            padding: 5px 15px;
+            margin: 0;
+            border-width: 1px;
+            border-color: darkgray;
+            background-color: lightgray;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 14px;
+        }
+
+        button:hover, label:hover{
+            cursor: pointer;
+        }
+
+        input[type=file]{
+            display: none;
+        }
+
+        #info>div{
+            padding: 5px 0;
+        }
+    </style>
+
+</head>
+
+
+<body>
+
+    <div id="info">
+        <div>
+            <input type="file" id="input" accept=".wexbim" multiple="multiple" />
+            <label for="input">Select wexbim files</label>
+        </div>
+        <div id="models">
+
+        </div>
+        <div id="errLog" style="color: red">
+
+        </div>
+    </div>
+    <div id="fps-container">
+        FPS: <span id="fps">60</span>
+    </div>
+    <canvas id="xBIM-viewer"></canvas>
+</body>
+
+</html>
