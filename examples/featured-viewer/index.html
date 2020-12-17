@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>The Viewer</title>
+    <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+    <style>
+        html,
+        body {
+            height: 100%;
+            padding: 0;
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 14px;
+            background: linear-gradient(to top, #E8E8E8, white);
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            border: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
+
+        button {
+            border-radius: 5px;
+            border-style: solid;
+            padding: 5px 15px;
+            margin: 0;
+            border-width: 1px;
+            border-color: darkgray;
+            background-color: lightgray;
+        }
+
+        button:hover {
+            cursor: pointer;
+        }
+
+        .left-panel,
+        .right-panel {
+            position: absolute;
+            top: 40px;
+            z-index: 1;
+            padding: 2em;
+            background-color: white;
+            box-shadow: 0 0 10px darkgray;
+            border-radius: 10px;
+        }
+
+        .left-panel {
+            left: 20px;
+            max-width: 300px;
+        }
+
+        .right-panel {
+            right: 20px;
+        }
+
+        .left-panel>div,
+        .right-panel>div {
+            margin-bottom: 0.8em;
+        }
+
+        #initScript {
+            display: block;
+            width: 100%;
+            height: 80px;
+        }
+    </style>
+</head>
+
+
+<body>
+    <canvas id="xBIM-viewer"></canvas>
+
+    <div class="left-panel">
+        <div id="progress">
+
+        </div>
+        <div>
+            Selected:
+            <span id="ids"></span> <br>
+            <span id="coords"></span>
+        </div>
+        <div>
+            Framerate (FPS):
+            <span id="fps"></span>
+        </div>
+        <div>
+            WebGL version:
+            <span id="webglVersion"></span>
+        </div>
+
+        <div>
+            Models:
+            <ul>
+                <li>
+                    <a href="?model=OneWallHigh"> One Wall </a>
+                </li>
+                <li>
+                    <a href="?model=OneWallTwoWindows"> One Wall Two Windows </a>
+                </li>
+                <li>
+                    <a href="?model=TwoProxy"> Two proxy objects </a>
+                </li>
+                <li>
+                    <a href="?model=TwoWallsTwoColour"> Two Walls Two Colour </a>
+                </li>
+                <li>
+                    <a href="?model=FourWalls"> Four Walls </a>
+                </li>
+                <li>
+                    <a href="?model=FourWallsDoorWindows"> Four Walls Door Windows </a>
+                </li>
+                <li>
+                    <a href="?model=FourWallsDoorWindowsRoof"> Four Walls Door Windows Roof </a>
+                </li>
+                <li>
+                    <a href="?model=LakesideRestaurant"> Lakeside Restaurant </a>
+                </li>
+                <li>
+                    <a href="?model=SampleHouseV3"> Sample House (wexBIM V3)</a>
+                </li>
+                <li>
+                    <a href="?model=windows-doors_duplex"> Duplex windows and doors (wexBIM V3)</a>
+                </li>
+                <li>
+                    <a href="?model=Barracks_envelope"> Barracks envelope</a>
+                </li>
+                <li>
+                    <a href="?model=v4/CubeA"> Cube A (V4)</a>
+                </li>
+                <li>
+                    <a href="?model=v4/feethams_envelope"> Feethams Envelope (V4)</a>
+                </li>
+            </ul>
+        </div>
+        <div>
+            <button onclick="takeSnapshot()">
+                Take snapshot
+            </button>
+            <br />
+            <div id="snapshot"></div>
+            <div id="initialSnapshot">
+
+            </div>
+        </div>
+        <div id="errLog" style="color: red">
+
+        </div>
+    </div>
+    <div class="right-panel">
+        <div>
+            <button onclick="viewer.navigationMode = 'orbit'">Orbit</button>
+            <button onclick="viewer.navigationMode = 'free-orbit'">Free orbit</button>
+            <button onclick="viewer.navigationMode = 'pan'">Pan</button>
+            <button onclick="viewer.navigationMode = 'zoom'">Zoom</button>
+            <button onclick="viewer.navigationMode = 'look-around'">Look around</button>
+            <button onclick="viewer.navigationMode = 'walk'">Walk</button>
+        </div>
+        <div>
+            <button onclick="viewer.show(ViewType.DEFAULT)">Default</button>
+            <button onclick="viewer.show(ViewType.FRONT)">Front</button>
+            <button onclick="viewer.show(ViewType.BACK)">Back</button>
+            <button onclick="viewer.show(ViewType.TOP)">Top</button>
+            <button onclick="viewer.show(ViewType.BOTTOM)">Bottom</button>
+            <button onclick="viewer.show(ViewType.LEFT)">Left</button>
+            <button onclick="viewer.show(ViewType.RIGHT)">Right</button>
+            <button onclick="zoomToSelection()">Zoom to selection</button>
+        </div>
+
+        <div>
+            <button onclick="clip();"> Clip model
+            </button>
+            <button onclick="unclip();"> Reset clipping
+            </button>
+            <button onclick="clipBox();"> Clip model with box
+            </button>
+            <button onclick="releaseClipBox();"> Release clip box
+            </button>
+        </div>
+        <div>
+            <button onclick="viewer.camera = CameraType.PERSPECTIVE;"> Perspective
+            </button>
+            <button onclick="viewer.camera = CameraType.ORTHOGONAL;"> Orthographic
+            </button>
+        </div>
+        <div>
+            <button onclick="makeWallsRed()"> Make all walls red
+            </button>
+            <button onclick="hideWalls()"> Hide all walls
+            </button>
+            <button onclick="resetWalls()"> Reset walls
+            </button>
+            <button onclick="selectAllWalls()">
+                Select
+            </button>
+        </div>
+        <div>
+            <button onclick="viewer.addState(states.HIDDEN, types.IFCSPACE)"> Hide spaces
+            </button>
+            <button onclick="viewer.resetState(types.IFCSPACE)"> Show spaces
+            </button>
+        </div>
+        <div>
+            <form>
+                <label>
+                    <input type="radio" name="radioHiding" value="hideOne" /> Hide on click
+                </label>
+                <label>
+                    <input type="radio" name="radioHiding" value="hideType" /> Hide by type
+                </label>
+                <label>
+                    <input type="radio" name="radioHiding" value="noHide" /> No hiding
+                </label>
+            </form>
+            <button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.resetState(+types[i])}}">
+                Show all
+            </button>
+            <button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.setStyle(1, +types[i])}}">
+                Make all glass
+            </button>
+            <button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.setStyle(2, +types[i])}}">
+                Make all white
+            </button>
+            <button
+                onclick="for (var i in types) { if (types[i] !== types.IFCSPACE) { viewer.setStyle(states.UNSTYLED, +types[i]) } }">
+                Make all default
+            </button>
+        </div>
+        <div>
+            Rendering mode:
+            <br />
+            <label>
+                <input type="radio" name="radioRenderingMode" value="normal" checked="checked"
+                    onchange="viewer.renderingMode = RenderingMode.NORMAL;" /> Normal
+            </label>
+            <label>
+                <input type="radio" name="radioRenderingMode" value="xray"
+                    onchange="viewer.renderingMode = RenderingMode.XRAY;" /> X-Ray
+            </label>
+            <label>
+                <input type="radio" name="radioRenderingMode" value="xray"
+                    onchange="viewer.renderingMode = RenderingMode.XRAY_ULTRA;" /> Ultra X-Ray
+            </label>
+            <label>
+                <input type="radio" name="radioRenderingMode" value="gray"
+                    onchange="viewer.renderingMode = RenderingMode.GRAYSCALE;" /> Grayscale
+            </label>
+        </div>
+        <div>
+            Grid and navigation cube
+            <br />
+            <button onclick="stopCube()"> Stop cube </button>
+            <button onclick="startCube()"> Start cube </button>
+            <button onclick="stopGrid()"> Stop grid </button>
+            <button onclick="startGrid()"> Start grid </button>
+        </div>
+        <div>
+            Gamma:
+            <input type="range" name="gamma" min="0" max="5" value="1.0" step="0.1" oninput="updateGamma(event)">
+            Contrast:
+            <input type="range" name="contrast" min="0" max="5" value="1.0" step="0.1" oninput="updateContrast(event)">
+            Brightness:
+            <input type="range" name="brightness" min="-1" max="1" value="0.0" step="0.1"
+                oninput="updateBrightness(event)">
+        </div>
+        <div>
+            Init script:
+            <textarea id="initScript"></textarea>
+            <button onclick="eval(initScript.value)" style="border-radius: 0 0 5px 5px">Run</button>
+        </div>
+    </div>
+</body>
+
+</html>
