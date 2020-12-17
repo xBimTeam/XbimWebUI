@@ -17,5 +17,15 @@
     "./src/workers/**/*",
     "dist",
     "examples"
-  ]
+  ],
+  "typedocOptions": {
+    "inputFiles": ["./src"],
+    "excludeExternals": true,
+    "excludePrivate": true,
+    "exclude": ["**/workers", "node_modules", "**/shaders", "**/bcf", "**/*shader*"],
+    "mode": "modules",
+    "out": "docs",
+    "entryPoint": "index.ts",
+    "ignoreCompilerErrors": true
+  }
 }

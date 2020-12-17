@@ -14,29 +14,29 @@
   "version": "2.0.1",
   "devDependencies": {
     "@types/node": "7.0.18",
+    "@types/gl-matrix": "^2.4.5",
+    "@types/webgl2": "0.0.3",
     "clean-webpack-plugin": "^0.1.18",
     "concurrently": "^3.5.1",
     "html-loader": "^0.5.5",
     "html-webpack-plugin": "^3.0.7",
-    "jsdoc": "^3.5.5",
     "ts-loader": "^4.0.1",
     "tslint": "^6.0.0",
-    "typescript": "^2.9.2",
+    "typedoc": "^0.19.2",
+    "typescript": "^4.0.5",
     "webpack": "^4.1.0",
     "webpack-cli": "^2.0.10",
     "webpack-dev-server": "^3.1.0",
     "webpack-merge": "^4.1.2"
   },
   "scripts": {
-    "docs": "tsc&&jsdoc -c jsdoc.config.json&&node utilities/clean.js .",
+    "docs": "typedoc --tsconfig ./tsconfig.json",
     "clean": "node utilities/clean.js .",
     "start": "concurrently \"webpack-dev-server --open chrome --config webpack.dev.js\" \"webpack --watch --config webpack.worker.js \"",
     "build": "webpack --config webpack.worker.js&&webpack --config webpack.prod.js&&node utilities/copy-package-json.js",
     "build:dev": "webpack --config webpack.worker.js&&webpack --config webpack.dev.js"
   },
   "dependencies": {
-    "@types/gl-matrix": "^2.4.5",
-    "@types/webgl2": "0.0.3",
     "gl-matrix": "^3.0.0"
   }
 }
