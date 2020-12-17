@@ -22,8 +22,8 @@ export class WexBimHeader {
     public static ReadFromStream(reader: BinaryReader): WexBimHeader {
         var header = new WexBimHeader();
         let magicNumber = reader.readInt32();
-        if (magicNumber != WexBimHeader.MagicNumber) {
-            throw "This is not a valid wexbim file. Magic number mismatch.";
+        if (magicNumber !== WexBimHeader.MagicNumber) {
+            throw new Error("This is not a valid wexbim file. Magic number mismatch.");
         }
 
         header.Version = reader.readByte();
@@ -46,7 +46,7 @@ export class WexBimRegion {
     public Population: number;
     public Centre: Float32Array;
     public BoundingBox: Float32Array;
-    public GeometryModels: Array<WexBimGeometryModel> = new Array<WexBimGeometryModel>();
+    public GeometryModels: WexBimGeometryModel[] = new Array<WexBimGeometryModel>();
 
     public MatrixCount(): number {
         var count = 0;
@@ -269,11 +269,11 @@ export class WexBimStream {
 
     public static Load(source: string | Blob | File | ArrayBuffer, callback: (wexbim: WexBimStream) => void): void {
         if (source == null) {
-            throw "Undefined source";
+            throw new Error("Undefined source");
         }
 
         if (callback == null) {
-            throw "You have to use callback to get the stream";
+            throw new Error("You have to use callback to get the stream");
         }
 
         var reader = new BinaryReader();
