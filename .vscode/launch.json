@@ -20,6 +20,16 @@
             "outFiles": [
                 "${workspaceFolder}/**/*.js"
             ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Clean Util",
+            "program": "${workspaceFolder}\\utilities\\clean.js",
+            "args": ["."],
+            "outFiles": [
+                "${workspaceFolder}/**/*.js"
+            ]
         }
     ]
 }
