@@ -1645,10 +1645,10 @@ export class Viewer {
     * Use this method to zoom to specified element. If you don't specify a product ID it will zoom to full extent. If you specify list of products,
     * this function will zoom to grouped bounding box. You should use this only for elements which are close to each other (like aggregations)
     * @function Viewer#zoomTo
-    * @param {Number | {id: number, model: number}[]} [target] Product ID or a list of products in models
-    * @param {Number} [model] Model ID
+    * @param {Number | Array<{id: number, model: number}>} [target] Optional product ID or a list of products in models
+    * @param {Number} [model] Optional model ID
     * @param {boolean} withAnimation - Optional parameter, default is 'true'. When true, transition to the view is animated. When false, view is changed imediately.
-    * @return {Bool} True if target exists and zoom was successful, False otherwise
+    * @return {boolean} True if target exists and zoom was successful, False otherwise
     */
     public zoomTo(target?: number | { id: number, model: number }[], model?: number, withAnimation: boolean = true, checkVisibility: boolean = true): Promise<void> {
         const duration = withAnimation ? this.zoomDuration : 0;

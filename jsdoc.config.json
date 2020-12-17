@@ -1,30 +1,30 @@
 {
-   "opts":{
-      "destination":"docs",
-      "tutorials":"resources/tutorials",
-      "template":"resources/doctemplate"
+   "opts": {
+      "destination": "docs",
+      "tutorials": "resources/tutorials",
+      "template": "resources/doctemplate"
    },
-   "tags":{
-      "allowUnknownTags":true
+   "tags": {
+      "allowUnknownTags": true
    },
-   "source":{
-      "include":[
-        "src\\viewer.js",
-        "src\\state.js",
-        "src\\product-type.js",
-		    "src\\plugins\\NavigationCube\\navigation-cube.js",
-		    "src\\plugins\\NavigationHome\\navigation-home.js",
-        "resources/README.md"
+   "source": {
+      "include": [
+         "src\\viewer.js",
+         "src\\common\\state.js",
+         "src\\product-type.js",
+         "src\\plugins\\NavigationCube\\navigation-cube.js",
+         "src\\plugins\\Grid\\grid.js",
+         "resources/README.md"
       ]
    },
-   "plugins":[
+   "plugins": [
       "plugins/markdown"
    ],
-   "templates":{
-      "cleverLinks":false,
-      "monospaceLinks":false,
-	  "default": {
-            "outputSourceFiles": false
-        }
+   "templates": {
+      "cleverLinks": false,
+      "monospaceLinks": false,
+      "default": {
+         "outputSourceFiles": false
+      }
    }
 }
