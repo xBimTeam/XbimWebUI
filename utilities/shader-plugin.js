@@ -5,7 +5,7 @@ function ShaderPlugin() { }
 
 
 ShaderPlugin.prototype.apply = function (compiler) {
-    compiler.plugin('before-run', function (compilation, callback) {
+    compiler.hooks.beforeRun.tapAsync('ShaderPlugin', function (compilation, callback) {
         var sc = new ShaderCompiler();
 
         // get all .c shader files

@@ -3,8 +3,8 @@ const path = require('path');
 function StringifyWorkerPlugin() { }
 
 
-StringifyWorkerPlugin.prototype.apply = function (compiler) {
-    compiler.plugin('after-emit', function (compilation, callback) {
+StringifyWorkerPlugin.prototype.apply = (compiler) => {
+    compiler.hooks.afterEmit.tapAsync('StringifyWorkerPlugin', (compilation, callback) => {
         var outDir = compilation.outputOptions.path;
         Object.getOwnPropertyNames(compilation.assets).forEach(a => {
             if (!a.endsWith('.js')) {

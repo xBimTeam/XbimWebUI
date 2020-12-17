@@ -7,7 +7,7 @@ function ShaderWatchPlugin() { }
 let files = null; 
 
 ShaderWatchPlugin.prototype.apply = function (compiler) {
-    compiler.plugin('watch-run', function (compilation, callback) {
+    compiler.hooks.watchRun.tapAsync('ShaderWatchPlugin', function (compilation, callback) {
  
         if (files == null) {
             let root = path.join(compilation.context, 'src');
