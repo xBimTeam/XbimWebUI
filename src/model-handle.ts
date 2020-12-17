@@ -6,6 +6,7 @@ import { Message, MessageType } from "./common/message";
 import { vec3 } from "gl-matrix";
 import { ProductMap } from "./common/product-map";
 import { BBox } from "./common/bbox";
+import { ProductType } from "./product-type";
 
 //this class holds pointers to textures, uniforms and data buffers which
 //make up a model in GPU
@@ -497,6 +498,23 @@ export class ModelHandle {
             }
         });
 
+        return result;
+    }
+
+    public getProductsOfType(type: ProductType): ProductMap[] {
+        let result: ProductMap[] = [];
+        if (this.empty) {
+            return result;
+        }
+
+        var typeIds = Product.getAllSubTypes(type);
+
+        Object.getOwnPropertyNames(this._model.productMaps).forEach(id => {
+            var map: ProductMap = this._model.productMaps[id];
+            if (typeIds[map.type]) {
+                result.push(map)
+            }
+        })
         return result;
     }
 
