@@ -3,9 +3,6 @@ Xbim WebUI
 
 Web components for xBIM Toolkit. [Documentation on GitHub Pages.](http://xbimteam.github.io/XbimWebUI/)
 
-Build Status (master branch): [ ![Build Status](http://xbimbuilds.cloudapp.net/app/rest/builds/buildType:(id:Xbim_XbimWebUi_XbimWebUi),branch:(name:master)/statusIcon "Build Status") ](http://xbimbuilds.cloudapp.net/project.html?projectId=Xbim_XbimWebUi&tab=projectOverview "Build Status")
-
-Build Status (develop branch): [ ![Build Status](http://xbimbuilds.cloudapp.net/app/rest/builds/buildType:(id:Xbim_XbimWebUi_XbimWebUi),branch:(name:develop)/statusIcon "Build Status") ](http://xbimbuilds.cloudapp.net/project.html?projectId=Xbim_XbimWebUi&tab=projectOverview "Build Status")
 
 ## Xbim toolkit
 
