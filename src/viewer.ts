@@ -41,12 +41,21 @@ export class Viewer {
     public canvas: HTMLCanvasElement;
 
     private changed: boolean = true;
+    private _navigationMode: NavigationMode = 'orbit';
 
     /**
      * Switch between different navigation modes for left mouse button. Allowed values: <strong> 'pan', 'zoom', 'orbit' (or 'fixed-orbit') , 'free-orbit' and 'none'</strong>. Default value is <strong>'orbit'</strong>;
      * @member {String} Viewer#navigationMode
      */
-    public navigationMode: NavigationMode = 'orbit';
+    public get navigationMode(): NavigationMode { return this._navigationMode };
+    public set navigationMode(value: NavigationMode) { 
+        this._navigationMode  = value;
+        if (value === 'walk' || value === 'look-around' || value === 'look-at') {
+            this.adaptivePerformanceOn = false;
+        } else {
+            this.adaptivePerformanceOn = true;
+        }
+    }
 
     public get cameraProperties(): CameraProperties { return this._camera; }
 
@@ -130,8 +139,19 @@ export class Viewer {
      */
     public get mvMatrixAge(): number { return Date.now() - this._mvMatrixTimestamp; }
 
+    /**
+     * Current performance based on FPS. Updated approx. every 500 ms
+     */
     public get performance(): PerformanceRating { return this._performance; }
     public set performance(value: PerformanceRating) { this._performance = value; this.changed = true; }
+
+    /**
+     * The viewer is watching the performance based on the FPS. When performance drops down, it can reduce amount
+     * of geometry to be rendered. This is usefull for some navigation and animations but might not be convenient in all scenarios
+     * like in a wals mode. This property can be used to switch the addaptive performance on and off.
+     */
+    public get adaptivePerformanceOn(): boolean { return this._adaptivePerformanceOn; }
+    public set adaptivePerformanceOn(value: boolean) { this._adaptivePerformanceOn = value; }
 
     /**
      * Returns readonly array of plugins
@@ -220,10 +240,11 @@ export class Viewer {
 
     private _currentFps: number = 60.0;
     private _performance: PerformanceRating = PerformanceRating.HIGH;
+    private _adaptivePerformanceOn: boolean = true;
 
     // dictionary of named events which can be registered and unregistered by using '.on('eventname', callback)'
     // and '.off('eventname', callback)'. Registered call-backs are triggered by the viewer when important events occur.
-    private _events: { [entName: string]: ((args: { message: string } | { event: Event, id: number, model: number } | { model: number, tag: any } | number | { target: Element } | boolean ) => void)[]; } = {};
+    private _events: { [entName: string]: ((args: { message: string } | { event: Event, id: number, model: number } | { model: number, tag: any } | number | { target: Element } | boolean) => void)[]; } = {};
 
     private _canvasListeners: { [evtName: string]: (event: Event) => any } = {};
 
@@ -1764,7 +1785,7 @@ export class Viewer {
         */
         this.fire('error', { message: msg });
 
-        if (typeof(console) !== 'undefined' && console.error != null) {
+        if (typeof (console) !== 'undefined' && console.error != null) {
             console.error(msg);
         }
     }
@@ -2186,6 +2207,12 @@ export class Viewer {
         const watchTime = 500;
         let isMoving = false;
         const tick = () => {
+            // don't do anything if performance is not to be watched
+            if (!this._adaptivePerformanceOn) {
+                this.performance = PerformanceRating.HIGH;
+                return;
+            }
+
             // number of milliseconds since last MV matrix change
             const age = this.mvMatrixAge;
             // framerate updated approx. every 0.5 second
