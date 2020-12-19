@@ -1,0 +1,1 @@
+export const depth_fragment_shader = " precision mediump float;\r\n \r\n varying vec2 position;\r\n \r\n uniform sampler2D texture;\r\n \r\n void main() {\r\n \r\n float depth = texture2D(texture, position).x; \r\n\r\n \r\n gl_FragColor = vec4(depth, depth, depth, 1.0);\r\n }"

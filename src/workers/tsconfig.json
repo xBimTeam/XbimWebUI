@@ -1,0 +1,31 @@
+/* 
+  This is an isolated configuration because background workers exist
+  in a different context so they need to use 'webworker' library for
+  intellisense and compilation checks where all the other code uses
+  'dom' library providing access to DOM elements, window, document and 
+  many other objects and interfaces. Any modules from elsewhere have to be
+  included explicitely in 'files' section. These will be inherently check 
+  to be safe to run in a worker context
+*/
+{
+  "compilerOptions": {
+    "declaration": false,
+    "moduleResolution": "node",
+    "target": "es5",
+    "module": "commonjs",
+    "sourceMap": false,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "skipDefaultLibCheck": true,
+    "lib": [ "es6", "webworker" ],
+    "types": [ "node" ]
+  },
+  "exclude": [
+    "node_modules",
+    "wwwroot"
+  ],
+  "include": [ "**/*" ],
+  "files": [
+    "../reader/model-geometry.ts"
+  ]
+}

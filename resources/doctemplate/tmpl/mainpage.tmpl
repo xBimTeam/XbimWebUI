@@ -1,0 +1,64 @@
+<?js
+var data = obj;
+var self = this;
+?>
+
+<?js if (data.kind === 'package') { ?>
+    <h3><?js= data.name ?> <?js= data.version ?></h3>
+<?js } ?>
+
+<?js if (data.readme) { ?>
+<section>
+  <article>
+    <?js= data.readme ?>
+  </article>
+  <div id="viewer-container">Your browser doesn't support WebGL</div>
+  <script src="../dist/commons.js"></script>
+  <script src="../dist/xbim-viewer.js"></script>
+  <script type="text/javascript">
+    var check = Viewer.check();
+    if (check.noErrors)
+    {
+      var canvas = document.createElement('canvas');
+      var container = document.getElementById('viewer-container');
+      container.innerHTML = '';
+      var errHtml = "<strong style='color:red;'> Ooops! I wanted to show you sample model :-( Your browser supports WebGL but it seems you are not running this page from web server but as a local file. That is absolutely all right but you are not able to see the model here and you won't be able to see any live examples from tutorials because of Cross Origin Resource Sharing (CORS) policy of your browser. </strong>";
+
+      //set container style
+      container.style['margin-left'] = 'auto';
+      container.style['margin-right'] = 'auto';
+      container.style['width'] = '100%';
+      container.style['height'] = '600px';
+
+      canvas.style.width = '100%';
+      canvas.style.height = '100%';
+      container.appendChild(canvas);
+
+      var viewer = new Viewer(canvas);
+
+      viewer.background = [0,0,0,0];
+
+      viewer.on('loaded', function(){
+        viewer.setCameraPosition([-15000, -15000, 15000]);
+        viewer.start();
+      });
+      viewer.on('error', function(){
+        container.innerHTML = errHtml;
+      });
+      try {
+        viewer.load('data/SampleHouse.wexbim');
+        var cube = new NavigationCube();
+        cube.passiveAlpha = cube.activeAlpha = 0.9;
+        cube.ratio = 0.1;
+        viewer.addPlugin(cube);
+      }
+      catch (e)
+      {
+        container.innerHTML = errHtml;
+      }
+    }
+  </script>
+</section>
+
+<?js } ?>
+
