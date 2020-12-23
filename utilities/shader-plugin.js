@@ -13,8 +13,9 @@ ShaderPlugin.prototype.apply = function (compiler) {
         var files = sc.getShadersSync(root);
         files.forEach(file => {
             sc.compile(file)
-            callback();
         });
+        
+        callback();
     })
 };
 

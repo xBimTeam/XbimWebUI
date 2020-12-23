@@ -8,7 +8,8 @@ entries['index'] = './index.ts';
 
 var tsLoader = 'ts-loader?' + JSON.stringify({
     compilerOptions: {
-        declaration: true
+        declaration: true,
+        declarationDir: 'dist'
     }
 });
 
@@ -34,5 +35,9 @@ module.exports = {
     },
     resolve: {
         extensions: ['.ts', '.js']
+    },
+    performance: {
+        maxAssetSize: 300000,
+        maxEntrypointSize: 300000
     }
 };
