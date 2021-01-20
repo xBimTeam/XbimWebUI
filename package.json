@@ -31,7 +31,7 @@
   },
   "scripts": {
     "docs": "typedoc --tsconfig ./tsconfig.json",
-    "start": "concurrently \"webpack-dev-server --open chrome --config webpack.dev.js\" \"webpack --watch --config webpack.worker.js \"",
+    "start": "concurrently \"webpack serve --config webpack.dev.js --mode development\" \"webpack --watch --config webpack.worker.js \"",
     "build": "webpack --config webpack.worker.js&&webpack --config webpack.prod.js&&node utilities/copy-package-json.js",
     "build:dev": "webpack --config webpack.worker.js&&webpack --config webpack.dev.js"
   },

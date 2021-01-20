@@ -1,4 +1,4 @@
-const merge = require('webpack-merge');
+const { merge } = require('webpack-merge');
 const common = require('./webpack.common.js');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -13,7 +13,6 @@ module.exports = merge(common, {
     mode: "development",
     devtool: 'inline-source-map',
     plugins: [
-        new webpack.NamedModulesPlugin(),
         new webpack.HotModuleReplacementPlugin(),
         new HtmlWebpackPlugin({
             filename: 'featured-viewer/index.html',
@@ -41,6 +40,7 @@ module.exports = merge(common, {
         host: "localhost",
         publicPath: "/dist/",
         port: 9001,
+        open: "Chrome",
         hot: true,
         overlay: {
             warnings: true,
