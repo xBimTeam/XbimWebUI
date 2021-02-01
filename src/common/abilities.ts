@@ -1,5 +1,5 @@
 import { WebGLUtils } from "./webgl-utils";
-import { CheckResult } from "./checkresult";
+import { CheckResult } from "./checkResult";
 
 export class Abilities {
     public static check(): CheckResult {
