@@ -36,6 +36,7 @@ export interface ViewerInteractionEventMap {
     "pointerup": ViewerInteractionEvent;
     "wheel": ViewerInteractionEvent;
     "pick": ViewerInteractionEvent;
+    "hoverpick": ViewerInteractionEvent;
 }
 
 // tslint:disable-next-line: interface-name
