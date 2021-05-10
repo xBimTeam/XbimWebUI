@@ -36,6 +36,7 @@
     "build:dev": "webpack --config webpack.worker.js&&webpack --config webpack.dev.js"
   },
   "dependencies": {
-    "gl-matrix": "^3.0.0"
+    "gl-matrix": "^3.0.0",
+    "handlebars": "^4.7.7"
   }
 }
