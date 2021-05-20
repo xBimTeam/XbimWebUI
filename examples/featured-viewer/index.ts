@@ -7,7 +7,7 @@ import { ClippingPlane } from '../../src/bcf';
 import { LoaderOverlay } from '../../src/plugins/LoaderOverlay/loader-overlay';
 
 // tslint:disable-next-line: only-arrow-functions
-var QueryString = function() {
+var QueryString = function () {
     // This function is anonymous, is executed immediately and 
     // the return value is assigned to QueryString!
     var queryString = {};
@@ -56,6 +56,7 @@ window['overlay'] = overlay;
 window['Viewpoint'] = Viewpoint;
 
 viewer.background = [0, 0, 0, 0];
+viewer.hoverPickEnabled = true;
 viewer.on("error", (arg) => {
     var container = viewer.canvas.parentNode as HTMLElement;
     if (container) {
@@ -90,6 +91,23 @@ viewer.on("pick", (arg) => {
     } else {
         viewer.addState(State.HIGHLIGHTED, [arg.id], arg.model);
     }
+});
+
+viewer.on("hoverpick", (arg) => {
+
+    var span = document.getElementById("hoverid");
+
+    if (arg && arg.id) {
+        span.innerHTML = `Product id: ${arg.id}, model: ${arg.model}`;
+        if (arg.xyz) {
+            var span = document.getElementById("hovercoords");
+            const c = arg.xyz;
+            span.innerHTML = `[${c[0].toFixed(2)}, ${c[1].toFixed(2)}, ${c[2].toFixed(2)}]`;
+        }
+    } else {
+        span.innerHTML = "";
+    }
+
 });
 
 viewer.on("dblclick", (arg) => {
@@ -154,7 +172,7 @@ viewer.defineStyle(0, [255, 0, 0, 255]);  //red
 viewer.defineStyle(1, [0, 0, 255, 100]);  //semitransparent blue
 viewer.defineStyle(2, [255, 255, 255, 255]); //white
 
-viewer.highlightingColour = [255, 173, 33, 200];
+viewer.highlightingColour = [0, 0, 225, 200];
 document['makeWallsRed'] = () => {
     viewer.setStyle(0, types.IFCWALLSTANDARDCASE);
     viewer.setStyle(0, types.IFCCURTAINWALL);
@@ -197,10 +215,10 @@ document['startGrid'] = () => {
 };
 document['takeSnapshot'] = () => {
     cube.stopped = true;
-    
-    
+
+
     const view = Viewpoint.GetViewpoint(viewer, null);
-    
+
     var img = document.createElement('img');
     img.src = 'data:image/png;base64,' + view.snapshot.snapshot_data;
     img.style.width = "100%";
@@ -209,7 +227,7 @@ document['takeSnapshot'] = () => {
     var place = document.getElementById("snapshot");
     place.innerHTML = "";
     place.appendChild(img);
-    
+
     img.onclick = () => {
         Viewpoint.SetViewpoint(viewer, view, null, 1000);
         place.innerHTML = "";
@@ -271,28 +289,28 @@ viewer.on("pick", (args) => {
 window['clipBox'] = () => {
     var planes: ClippingPlane[] = [
         {
-            direction: [1,0,0],
+            direction: [1, 0, 0],
             location: [3000, 0, 0]
         },
         {
-            direction: [0,1,0],
+            direction: [0, 1, 0],
             location: [0, 2000, 0]
         },
         {
-            direction: [0,0,1],
-            location: [0,0,1000]
+            direction: [0, 0, 1],
+            location: [0, 0, 1000]
         },
         {
-            direction: [-1,0,0],
+            direction: [-1, 0, 0],
             location: [-3000, 0, 0]
         },
         {
-            direction: [0,-1,0],
+            direction: [0, -1, 0],
             location: [0, -2000, 0]
         },
         {
-            direction: [0,0,-1],
-            location: [0,0,-1000]
+            direction: [0, 0, -1],
+            location: [0, 0, -1000]
         }
     ];
 

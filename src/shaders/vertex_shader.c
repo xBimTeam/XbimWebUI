@@ -12,6 +12,9 @@ uniform mat4 uPMatrix;
 //Highlighting colour
 uniform vec4 uHighlightColour;
 
+//Hover-over colour
+uniform vec4 uHoverPickColour;
+
 // XRay colour. This has to be semitransparent
 uniform vec4 uXRayColour;
 
@@ -173,8 +176,8 @@ void main(void) {
 	if (state == 254 || // HIDDEN state
 		(uColorCoding == -1 && state == 251) || // xray rendering and no selection or 'x-ray visible' state
 		(uColorCoding == -1 && (
-		(uRenderingMode == 2 && state != 253 && state != 252) || // first of pass x-ray, only highlighted and x-ray visible objects should render
-			(uRenderingMode == 3 && (state == 253 || state == 252))) // first of pass x-ray, highlighted and x-ray visible objects should not render
+		(uRenderingMode == 2 && state != 253 && state != 252 && state != 250) || // first of pass x-ray, only highlighted and x-ray visible objects should render
+			(uRenderingMode == 3 && (state == 253 || state == 252 || state == 250))) // first of pass x-ray, highlighted and x-ray visible objects should not render
 			))
 	{
 		vDiscard = 1.0;
@@ -223,11 +226,15 @@ void main(void) {
 	// rendering
 	else {
 		// get base color or set highlighted colour
-		// highlighted takes precedense
-		if (state == 253) {
-			baseColor = uHighlightColour;
-			// x-ray mode 
+		// hoverpick, then highlighted takes precedence over base. Then Xray
+		
+		if (state == 250) {
+			baseColor = uHoverPickColour;
 		}
+		else if (state == 253) {
+			baseColor = uHighlightColour;
+		}
+		// x-ray mode 
 		else if (uRenderingMode == 2 || uRenderingMode == 3) {
 			//x-ray visible
 			if (state == 252) { 

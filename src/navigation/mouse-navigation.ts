@@ -51,7 +51,7 @@ export class MouseNavigation {
                 origin = vec3.fromValues(region.centre[0], region.centre[1], region.centre[2]);
             } else if (data.xyz == null) {
                 const bb = viewer.getTargetBoundingBox(data.id, data.model);
-                origin = vec3.fromValues(bb[0] + bb[3] /2.0, bb[1] + bb[4] /2.0, bb[2] + bb[5] /2.0);
+                origin = vec3.fromValues(bb[0] + bb[3] / 2.0, bb[1] + bb[4] / 2.0, bb[2] + bb[5] / 2.0);
             } else {
                 origin = data.xyz
             }
@@ -81,7 +81,7 @@ export class MouseNavigation {
         const handleMouseUp = (event: MouseEvent) => {
             if (!mouseDown)
                 return;
-                
+
             mouseDown = false;
 
             const endX = event.clientX;
@@ -126,6 +126,17 @@ export class MouseNavigation {
         };
 
         var handleMouseMove = (event: MouseEvent) => {
+            if (viewer.hoverPickEnabled && !mouseDown) {
+
+                //get coordinates within canvas (with the right orientation)
+                let r = viewer.canvas.getBoundingClientRect();
+                let viewX = event.clientX - r.left;
+                let viewY = viewer.height - (event.clientY - r.top);
+                const data = viewer.getEventData(viewX, viewY);
+
+                viewer.setHoverPick(data.id, data.model);
+                viewer.fire('hoverpick', { id: data.id, model: data.model, event: event, xyz: data.xyz });
+            }
             if (!mouseDown) {
                 return;
             }
@@ -198,23 +209,23 @@ export class MouseNavigation {
             const scrollPoint = vec2.fromValues(event.clientX, event.clientY);
             if (lastScrollPoint == null || vec2.dist(lastScrollPoint, scrollPoint) > 5 || scrollCounter > 10) {
                 scrollOrigin = viewer.getInteractionOrigin(event);
-                
+
                 if (scrollOrigin == null) {
                     var region = viewer.getMergedRegion();
                     var centre = vec3.fromValues(region.centre[0], region.centre[1], region.centre[2]);
                     var eye = viewer.getCameraPosition();
-                    var distance = vec3.distance(centre,  eye);
+                    var distance = vec3.distance(centre, eye);
                     var trans = mat4.invert(mat4.create(), viewer.mvMatrix);
                     var rotation = mat4.getRotation(quat.create(), trans);
-                    var dir = vec3.normalize(vec3.create(), vec3.transformQuat(vec3.create(), [0,0,-1], rotation));
+                    var dir = vec3.normalize(vec3.create(), vec3.transformQuat(vec3.create(), [0, 0, -1], rotation));
                     var move = vec3.scale(vec3.create(), dir, distance);
                     scrollOrigin = vec3.add(vec3.create(), move, eye);
                 }
 
                 lastScrollPoint = scrollPoint;
                 scrollCounter = 0;
-            } 
-            
+            }
+
 
             var sign = (x: any) => {
                 x = +x; // convert to a number

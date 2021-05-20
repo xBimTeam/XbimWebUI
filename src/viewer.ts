@@ -48,8 +48,8 @@ export class Viewer {
      * @member {String} Viewer#navigationMode
      */
     public get navigationMode(): NavigationMode { return this._navigationMode };
-    public set navigationMode(value: NavigationMode) { 
-        this._navigationMode  = value;
+    public set navigationMode(value: NavigationMode) {
+        this._navigationMode = value;
         if (value === 'walk' || value === 'look-around' || value === 'look-at') {
             this.adaptivePerformanceOn = false;
         } else {
@@ -85,6 +85,13 @@ export class Viewer {
      */
     public get highlightingColour(): number[] { return this._highlightingColour; }
     public set highlightingColour(value: number[]) { this._highlightingColour = value; this.changed = true; }
+
+    /**
+     * Array of four integers between 0 and 255 representing RGBA colour components. This defines colour for elements when hovered over. You can change this value at any time with instant effect.
+     * @member {Number[]} Viewer#hoverPickColour
+     */
+    public get hoverPickColour(): number[] { return this._hoverPickColour; }
+    public set hoverPickColour(value: number[]) { this._hoverPickColour = value; this.changed = true; }
 
     /**
      * Array of four integers between 0 and 255 representing RGBA colour components. This defines colour for xray mode rendering. You can change this value at any time with instant effect.
@@ -154,6 +161,15 @@ export class Viewer {
     public set adaptivePerformanceOn(value: boolean) { this._adaptivePerformanceOn = value; }
 
     /**
+     * Determines whether the viewer raised 'hoverpick' events when the mouse hovers over an element. 
+     * When enabled the currently hovered item will be be highlighted. The 'hoverpicked' event can be
+     * used to provide tooltips/context menus etc.
+     */
+    public get hoverPickEnabled(): boolean { return this._hoverPickEnabled; }
+    public set hoverPickEnabled(value: boolean) { this._hoverPickEnabled = value; }
+
+
+    /**
      * Returns readonly array of plugins
      * @member {IPlugin[]} Viewer#plugins
      */
@@ -208,6 +224,7 @@ export class Viewer {
     private _height: number;
     private _background: number[] = [230, 230, 230, 255];
     private _highlightingColour: number[] = [255, 173, 33, 255];
+    private _hoverPickColour: number[] = [0, 255, 0, 255];
     private _xrayColour: number[] = [80, 80, 80, 150];
     private _mvMatrix: mat4 = mat4.create();
     private _pMatrix: mat4 = mat4.create();
@@ -229,6 +246,7 @@ export class Viewer {
     private _colorCodingUniformPointer: WebGLUniformLocation;
     private _renderingModeUniformPointer: WebGLUniformLocation;
     private _highlightingColourUniformPointer: WebGLUniformLocation;
+    private _hoverPickColourUniformPointer: WebGLUniformLocation;
     private _xrayColourUniformPointer: WebGLUniformLocation;
     private _stateStyleSamplerUniform: WebGLUniformLocation;
     private _gammaContrastBrightnessUniform: WebGLUniformLocation;
@@ -241,6 +259,7 @@ export class Viewer {
     private _currentFps: number = 60.0;
     private _performance: PerformanceRating = PerformanceRating.HIGH;
     private _adaptivePerformanceOn: boolean = true;
+    private _hoverPickEnabled: boolean = false;
 
     // dictionary of named events which can be registered and unregistered by using '.on('eventname', callback)'
     // and '.off('eventname', callback)'. Registered call-backs are triggered by the viewer when important events occur.
@@ -558,6 +577,29 @@ export class Viewer {
 
         this.forHandleOrAll((h: ModelHandle) => { h.removeState(state, target); }, modelId);
         this.changed = true;
+    }
+
+    /**
+     * Sets state of the given item to be hovered over, unsetting an previous 
+     * item. Setting the id to undefined will clear the current.
+     * @param id The product Id
+     * @param model Id of the model
+     */
+    public setHoverPick(id: number, model: number) {
+        var current = this.getProductsWithState(State.HOVEROVER);
+        if (id) {
+            if (current.some(c => c.id === id && c.model === model)) {
+                // already hovered over
+                return;
+            }
+            this.addState(State.HOVEROVER, [id], model);
+        }
+        // Only one item can be hovered at a time. Reset all others
+        current.forEach(o => {
+            if (id != o.id || model != o.model) {
+                this.removeState(State.HOVEROVER, [o.id], o.model);
+            }
+        });
     }
 
     public getProductsWithState(state: State): { id: number, model: number }[] {
@@ -1235,6 +1277,7 @@ export class Viewer {
         this._colorCodingUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uColorCoding');
         this._renderingModeUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uRenderingMode');
         this._highlightingColourUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uHighlightColour');
+        this._hoverPickColourUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uHoverPickColour');
         this._xrayColourUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uXRayColour');
         this._stateStyleSamplerUniform = gl.getUniformLocation(this._shaderProgram, 'uStateStyleSampler');
         this._gammaContrastBrightnessUniform = gl.getUniformLocation(this._shaderProgram, 'uGBC');
@@ -1444,6 +1487,16 @@ export class Viewer {
                     this.highlightingColour[1] / 255.0,
                     this.highlightingColour[2] / 255.0,
                     this.highlightingColour[3] / 255.0
+                ]));
+
+        //update hoverpick colour
+        gl.uniform4fv(this._hoverPickColourUniformPointer,
+            new Float32Array(
+                [
+                    this.hoverPickColour[0] / 255.0,
+                    this.hoverPickColour[1] / 255.0,
+                    this.hoverPickColour[2] / 255.0,
+                    this.hoverPickColour[3] / 255.0
                 ]));
 
         //update xray colour
