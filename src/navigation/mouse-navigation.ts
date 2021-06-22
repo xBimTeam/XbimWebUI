@@ -126,7 +126,7 @@ export class MouseNavigation {
         };
 
         var handleMouseMove = (event: MouseEvent) => {
-            if (viewer.hoverPickEnabled && !mouseDown) {
+            if (viewer.hoverPickEnabled && !mouseDown && viewer.navigationMode !== 'walk') {
 
                 //get coordinates within canvas (with the right orientation)
                 let r = viewer.canvas.getBoundingClientRect();

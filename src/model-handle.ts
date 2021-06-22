@@ -586,7 +586,7 @@ export class ModelHandle {
         model.matrices = null;
 
         const msg: Message = {
-            message: 'Loading data into GPU',
+            message: 'Model loaded',
             percent: 100,
             type: MessageType.COMPLETED
         };

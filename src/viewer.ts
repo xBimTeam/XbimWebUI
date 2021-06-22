@@ -31,6 +31,7 @@ import { SectionBox } from './section-box';
 import { BBox } from './common/bbox';
 import { CameraAdjustment } from './navigation/camera-adjustment';
 import { PreflightCheck } from './navigation/preflight-check';
+import { ProductType } from './product-type';
 
 export type NavigationMode = 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none' | 'look-around' | 'walk' | 'look-at';
 
@@ -592,9 +593,13 @@ export class Viewer {
                 // already hovered over
                 return;
             }
-            this.addState(State.HOVEROVER, [id], model);
+            const type = this.getProductType(id, model);
+            if (type !== ProductType.IFCSITE) {
+                // We don't hover-pick Site as it generally looks distracting due to size.
+                this.addState(State.HOVEROVER, [id], model);
+            }
         }
-        // Only one item can be hovered at a time. Reset all others
+        // At most one item can be hovered at a time. Reset all others
         current.forEach(o => {
             if (id != o.id || model != o.model) {
                 this.removeState(State.HOVEROVER, [o.id], o.model);
