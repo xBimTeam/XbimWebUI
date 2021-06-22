@@ -1,4 +1,4 @@
-﻿import { Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube, Grid, EasingType } from '../..';
+﻿import { Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube, Grid, EasingType, MessageProgress } from '../..';
 import { CameraType } from '../../src/camera';
 import { Viewpoint } from '../../src/bcf/viewpoint';
 import { vec3, mat4 } from 'gl-matrix';
@@ -152,8 +152,8 @@ viewer.on('loaded', () => {
 });
 
 
-viewer.load(model, "base", null, (msg) => {
-    progress.innerHTML = `${msg.message} [${msg.percent}%]`;
+viewer.loadAsync(model, "base", null, (msg) => {
+    progress.innerHTML = `[${MessageProgress(msg).toFixed(2)}%] ${msg.message}`;
 });
 
 

@@ -1,4 +1,4 @@
-﻿import { Message, MessageType } from '../common/message';
+﻿import { LoadingPhase, Message, MessageType } from '../common/message';
 import { ModelGeometry } from '../reader/model-geometry';
 
 function isImageBitmap(obj: any): boolean {
@@ -19,6 +19,7 @@ if (self && self instanceof DedicatedWorkerGlobalScope) {
                 type: MessageType.FAILED,
                 message: msg,
                 percent: 0,
+                phase: LoadingPhase.DOWNLOADING
             };
             worker.postMessage(message);
             console.error(msg);
@@ -56,9 +57,10 @@ if (self && self instanceof DedicatedWorkerGlobalScope) {
                 //post the object and pass through all transferable objects
                 const message: Message = {
                     type: MessageType.COMPLETED,
-                    message: "Completed",
+                    message: "Read Completed",
                     percent: 100,
-                    result: result
+                    result: result,
+                    phase: LoadingPhase.READING
                 };
                 worker.postMessage(message, transferable);
                 worker.close();
@@ -67,6 +69,7 @@ if (self && self instanceof DedicatedWorkerGlobalScope) {
                     type: MessageType.FAILED,
                     message: e,
                     percent: 0,
+                    phase: LoadingPhase.READING
                 };
                 worker.postMessage(message);
                 console.error(e);

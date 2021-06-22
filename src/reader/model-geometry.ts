@@ -2,7 +2,7 @@
 import { TriangulatedShape } from "./triangulated-shape";
 import { State, StatePriorities } from "../common/state";
 import { ProductType } from "../product-type";
-import { Message, MessageType } from "../common/message";
+import { LoadingPhase, Message, MessageType } from "../common/message";
 import { ProductMap } from "../common/product-map";
 import { WexBimShapeSingleInstance } from "../stream/wexbim-stream";
 
@@ -204,9 +204,9 @@ export class ModelGeometry {
                         return 1;
                     if (mapB == null)
                         return -1;
-                    
-                    const volA = mapA.bBox[3] * mapA.bBox[4] *mapA.bBox[5];
-                    const volB = mapB.bBox[3] * mapA.bBox[4] *mapA.bBox[5];
+
+                    const volA = mapA.bBox[3] * mapA.bBox[4] * mapA.bBox[5];
+                    const volB = mapB.bBox[3] * mapA.bBox[4] * mapA.bBox[5];
 
                     return volB - volA;
 
@@ -237,15 +237,17 @@ export class ModelGeometry {
         if (!br.isEOF()) {
             this.progress({
                 type: MessageType.FAILED,
-                message: "Processing data",
-                percent: 0
+                message: "Processed data",
+                percent: 0,
+                phase: LoadingPhase.READING
             });
             throw new Error('Binary reader is not at the end of the file.');
         } else {
             this.progress({
                 type: MessageType.PROGRESS,
-                message: "Processing data",
-                percent: 100
+                message: "Processed data",
+                percent: 100,
+                phase: LoadingPhase.READING
             });
         }
 

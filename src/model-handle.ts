@@ -2,7 +2,7 @@
 import { State, StatePriorities } from "./common/state";
 import { ModelPointers } from "./model-pointers";
 import { Product } from "./product-inheritance";
-import { Message, MessageType } from "./common/message";
+import { LoadingPhase, Message, MessageType } from "./common/message";
 import { vec3 } from "gl-matrix";
 import { ProductMap } from "./common/product-map";
 import { BBox } from "./common/bbox";
@@ -546,7 +546,8 @@ export class ModelHandle {
             const message: Message = {
                 message: 'Loading data into GPU',
                 percent: percent,
-                type: MessageType.PROGRESS
+                type: MessageType.PROGRESS,
+                phase: LoadingPhase.LOADING
             };
             progress(message);
         };
@@ -588,7 +589,8 @@ export class ModelHandle {
         const msg: Message = {
             message: 'Model loaded',
             percent: 100,
-            type: MessageType.COMPLETED
+            type: MessageType.COMPLETED,
+            phase: LoadingPhase.LOADING
         };
         progress(msg);
     }

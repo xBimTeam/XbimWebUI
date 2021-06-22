@@ -14,7 +14,7 @@ import { vertex_shader_300 } from './shaders/vertex_shader_300';
 
 //ported libraries
 import { WebGLUtils } from './common/webgl-utils';
-import { Message, MessageType } from './common/message';
+import { LoadingPhase, Message, MessageType } from './common/message';
 import { ProductIdentity } from './common/product-identity';
 import { IPlugin } from './plugins/plugin';
 import { ViewerEventMap, ViewerInteractionEventMap } from './common/viewer-event-map';
@@ -1057,10 +1057,11 @@ export class Viewer {
                 // report completed
                 if (progress) {
                     progress({
-                        message: 'Model loaded',
+                        message: 'Model load complete',
                         type: MessageType.COMPLETED,
                         percent: 100,
-                        wexbimId: wexBimId
+                        wexbimId: wexBimId,
+                        phase: LoadingPhase.LOADING
                     });
                 }
             } else {

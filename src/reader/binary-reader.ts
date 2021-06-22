@@ -1,5 +1,4 @@
-﻿import { freemem } from "os";
-import { Message, MessageType } from "../common/message";
+﻿import { LoadingPhase, Message, MessageType } from "../common/message";
 
 /**
  * Convenient class for binary reading. Arrays are read as new views on slices of the original data buffer,
@@ -70,7 +69,7 @@ export class BinaryReader {
                 if (xhr.readyState == 4 && xhr.status == 200) {
                     var fReader = new FileReader();
                     fReader.onloadend = () => {
-                        if (fReader.result && typeof(fReader.result) !== 'string') {
+                        if (fReader.result && typeof (fReader.result) !== 'string') {
                             //set data buffer for next processing
                             self._buffer = fReader.result as ArrayBuffer;
                             self._view = new DataView(self._buffer);
@@ -84,7 +83,8 @@ export class BinaryReader {
                         progress({
                             message: 'Downloading geometry',
                             percent: Math.floor(evt.loaded / evt.total * 100.0),
-                            type: MessageType.PROGRESS
+                            type: MessageType.PROGRESS,
+                            phase: LoadingPhase.DOWNLOADING
                         });
                     };
                     fReader.readAsArrayBuffer(xhr.response);
@@ -95,12 +95,13 @@ export class BinaryReader {
                         xhr.status +
                         '. This might be due to CORS policy of your browser if you run this as a local file.';
                     progress(
-                            {
-                                message: 'Downloading geometry',
-                                percent: 0,
-                                type: MessageType.FAILED
-                            }
-                        );
+                        {
+                            message: 'Downloading geometry',
+                            percent: 0,
+                            type: MessageType.FAILED,
+                            phase: LoadingPhase.DOWNLOADING
+                        }
+                    );
                     if (self.onerror) {
                         self.onerror(msg);
                     }
@@ -115,10 +116,10 @@ export class BinaryReader {
                 });
             }
             xhr.send();
-        } else if (source instanceof Blob || (typeof(File) !== 'undefined' && source instanceof File)) { 
+        } else if (source instanceof Blob || (typeof (File) !== 'undefined' && source instanceof File)) {
             var fReader = new FileReader();
             fReader.onloadend = () => {
-                if (fReader.result && typeof(fReader.result) !== 'string') {
+                if (fReader.result && typeof (fReader.result) !== 'string') {
                     //set data buffer for next processing
                     self._buffer = fReader.result as ArrayBuffer;
                     self._view = new DataView(self._buffer);
@@ -132,7 +133,8 @@ export class BinaryReader {
                 progress({
                     message: 'Loading binary data',
                     percent: Math.floor(evt.loaded / evt.total * 100.0),
-                    type: MessageType.PROGRESS
+                    type: MessageType.PROGRESS,
+                    phase: LoadingPhase.DOWNLOADING
                 });
             };
             fReader.readAsArrayBuffer(source);
@@ -191,8 +193,9 @@ export class BinaryReader {
             this._lastProgress = this._position;
             this._progress({
                 type: MessageType.PROGRESS,
-                message: "Processing data",
-                percent: Math.floor(100.0 * this._position / this._buffer.byteLength)
+                message: "Reading data",
+                percent: Math.floor(100.0 * this._position / this._buffer.byteLength),
+                phase: LoadingPhase.READING
             });
         }
     }
