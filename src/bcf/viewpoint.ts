@@ -129,6 +129,8 @@ export class Viewpoint {
             Viewpoint.AddClippingPlane(view, planes.PlaneB);
         }
 
+        // TODO: capture section box
+
         // capture component styling (selection, overriden colours, visibility etc.) We should use IFC guids for this which is not in the scope of the viewer
         const highlighted = viewer.getProductsWithState(State.HIGHLIGHTED);
         if (highlighted != null && highlighted.length > 0) {
