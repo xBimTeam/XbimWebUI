@@ -9,7 +9,7 @@ import { Components } from "./components";
 import { Viewer } from "../viewer";
 import { vec3, mat4 } from "gl-matrix";
 import { CameraType } from "../camera";
-import { State } from "../..";
+import { State } from "../common/state";
 import { Visibility } from "./visibility";
 import { Component } from "./component";
 import { BBox } from "../common/bbox";
