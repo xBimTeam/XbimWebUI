@@ -21,6 +21,6 @@ export * from "./src/plugins/NavigationCube/navigation-cube";
 export * from "./src/plugins/Grid/grid";
 export * from "./src/plugins/LoaderOverlay/loader-overlay";
 
-export * from './src/bcf/viewpoint';
+export * from './src/bcf';
 // export * from "./src/plugins/NavigationHome/navigation-home";
 // export * from "./src/plugins/InteractiveClipping/interactive-clipping";
