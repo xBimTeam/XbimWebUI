@@ -822,11 +822,14 @@ export class Viewer {
     * @function Viewer#getStyle
     * @param {Number} id - Id of the product. You would typically get the id from {@link Viewer#event:pick pick event} or similar event.
     * @param {Number} [modelId] - Optional Model ID. If not defined first style available for a product with certain ID will be returned. This might be ambiguous.
+    * @returns {Number} Returns style index or 255 (State.UNDEFINED) if there is no overriding style defined for the product. Use `viewer.defineStyle()` to define overriding style and `viewer.setStyle()` to set it for a product.
     */
     public getStyle(id: number, modelId?: number) {
+        let result: number = null;
         this.forHandleOrAll((handle: ModelHandle) => {
-            return handle.getStyle(id);
+            result = handle.getStyle(id);
         }, modelId);
+        return result;
     }
 
     /**
