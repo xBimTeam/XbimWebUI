@@ -5,6 +5,7 @@ import { vec3, mat4 } from 'gl-matrix';
 import { PerformanceRating } from '../../src/performance-rating';
 import { ClippingPlane } from '../../src/bcf';
 import { LoaderOverlay } from '../../src/plugins/LoaderOverlay/loader-overlay';
+import { ProductAnalyticalResult } from '../../src/common/product-analytical-result';
 
 // tslint:disable-next-line: only-arrow-functions
 var QueryString = function () {
@@ -337,5 +338,3 @@ if (script) {
 window.addEventListener("beforeunload", (event) => {
     localStorage.setItem('initScript-' + modelId, scriptArea.value);
 });
-
-

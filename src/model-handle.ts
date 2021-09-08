@@ -7,6 +7,7 @@ import { vec3 } from "gl-matrix";
 import { ProductMap } from "./common/product-map";
 import { BBox } from "./common/bbox";
 import { ProductType } from "./product-type";
+import { ProductAnalyticalResult } from "./common/product-analytical-result";
 
 //this class holds pointers to textures, uniforms and data buffers which
 //make up a model in GPU
@@ -1051,6 +1052,32 @@ export class ModelHandle {
         //buffer data to GPU
         this.bufferData(this._stateBuffer, this._model.states);
         this._changed = true;
+    }
+
+    /**
+     * Counts number of triangles for every product. This might be usefull to understand 
+     * performance of certain models.
+     * @returns List of product analytical results
+     */
+    public getProductAnalysis(results: ProductAnalyticalResult[]): ProductAnalyticalResult[] {
+        if (results == null) results = [];
+        Object.getOwnPropertyNames(this._model.productMaps).forEach((n) => {
+            const map: ProductMap = this._model.productMaps[n];
+            const indexCount = map.spans.reduce((p, c) => {
+                return p + c[1] - c[0];
+            }, 0);
+            const boxSize = Math.max(map.bBox[3], map.bBox[4], map.bBox[5]);
+            const volume = Math.sqrt(map.bBox[3] * map.bBox[3] + map.bBox[4] * map.bBox[4] + map.bBox[5] * map.bBox[5]);
+            results.push({
+                modelId: this.id,
+                numberOfTriangles: indexCount/3,
+                productId: map.productID,
+                size: boxSize,
+                volume: volume,
+                density: indexCount / 3 / volume
+            });
+        });
+        return results;
     }
 }
 

@@ -98,9 +98,14 @@ export class PreflightCheck {
 
             return maxRating > 0 ? { mv: mvs[maxIdx], height: optimal[maxIdx].height } : null;
         }
+        catch(ex)
+        {
+console.error(ex);
+        }
         finally {
             viewer.mvMatrix = originalMv;
-            viewer.cameraProperties.height = originalHeight;
+            if (originalHeight != null && originalHeight > 0)
+                viewer.cameraProperties.height = originalHeight;
             if (isRunning) viewer.start();
         }
 

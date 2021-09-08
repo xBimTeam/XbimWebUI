@@ -15,6 +15,7 @@ export * from './src/camera';
 export * from './src/section-box';
 export * from './src/framebuffer';
 export { EasingType } from './src/navigation/animations';
+export * from './src/common/product-analytical-result';
 
 // Plugins
 export * from "./src/plugins/NavigationCube/navigation-cube";

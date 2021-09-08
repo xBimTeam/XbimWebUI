@@ -235,16 +235,17 @@ window['a10'] = () => {
 
 window['a11'] = () => {
     const run = () => {
-        const points: vec3[] = [];
+        let points: vec3[] = [];
         const m = (args: ViewerInteractionEvent) => {
             if (args == null || args.xyz == null) {
                 return;
             }
             points.push(args.xyz);
             if (points.length === 2) {
-                viewer.off('pick', m);
                 const length = vec3.dist(points[0], points[1]);
                 console.log(`Measured distance: ${length}`);
+                viewer.off('pick', m);
+                points = [];
             }
         };
         viewer.on('pick', m);

@@ -32,6 +32,7 @@ import { BBox } from './common/bbox';
 import { CameraAdjustment } from './navigation/camera-adjustment';
 import { PreflightCheck } from './navigation/preflight-check';
 import { ProductType } from './product-type';
+import { ProductAnalyticalResult } from './common/product-analytical-result';
 
 export type NavigationMode = 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none' | 'look-around' | 'walk' | 'look-at';
 
@@ -1145,6 +1146,7 @@ export class Viewer {
         // force redraw so when 'loaded' is called listeners can operate with current canvas.
         this.changed = true;
 
+
         /**
          * Occurs when geometry model is loaded into the viewer. This event returns object containing ID of the model.
          * This ID can later be used to unload or temporarily stop the model.
@@ -2202,11 +2204,17 @@ export class Viewer {
      * @param {Number} modelId Model ID
      */
     public isolate(productIds: number[], modelId: number) {
-        const handle = this.getHandle(modelId);
-        if (!handle) {
-            throw new Error(`Model with id ${modelId} doesn't exist.`);
+        if (modelId == null) {
+            this._handles.forEach(h => {
+                h.isolatedProducts = productIds;
+            })
+        } else {
+            const handle = this.getHandle(modelId);
+            if (!handle) {
+                throw new Error(`Model with id ${modelId} doesn't exist.`);
+            }
+            handle.isolatedProducts = productIds;
         }
-        handle.isolatedProducts = productIds;
     }
 
     /**
@@ -2746,6 +2754,65 @@ export class Viewer {
             };
         }
         return null;
+    }
+
+    /**
+     * Counts number of triangles for every product. This is usefull to understand 
+     * performance of certain models. The default sort order is by number of triangles,
+     * but density of triangles (number of triangles per a volume unit) might also be a good measure
+     * to find the most expensive products to draw.
+     * @param orderBy Measure to use for the default ascending sort order. Default value: 'triangles'
+     * @returns List of product analytical results sorted in descendent order by number of triangles or density (number of triangles per volumetric unit of the product bounding box)
+     */
+     public getProductAnalysis(orderBy: 'triangles' | 'density' = 'triangles'): ProductAnalyticalResult[] {
+        const getMeasure = orderBy === 'triangles' ? 
+            (r: ProductAnalyticalResult) => { return r.numberOfTriangles} :
+            (r: ProductAnalyticalResult) => { return r.density} 
+         const initial: ProductAnalyticalResult[] = [];
+         const result = this.activeHandles.reduce((p, c) => {
+             return c.getProductAnalysis(p);
+         }, initial)
+         return result.sort((a, b) => getMeasure(b) - getMeasure(a));
+     }
+
+     /**
+      * Isolates products which have most geometry (number of triangles).
+      * This function is meant for data debugging, identifying products which are likely to be over-detailed or poorly modeled.
+      * @param measure Measure to use for sorting and selection. Defaul value: 'triangles'
+      * @param ratio Top ratio to isolate. Should be a number between 0.0 - 1.0. Default value is 0.2 which means top 20% of the geometry
+      */
+     public isolateHeavyProducts(measure: 'triangles' | 'density' = 'triangles', ratio: number = 0.2) {
+         const getMeasure = measure === 'triangles' ? 
+         (r: ProductAnalyticalResult) => { return r.numberOfTriangles} :
+         (r: ProductAnalyticalResult) => { return r.density} 
+
+        const products = this.getProductAnalysis(measure);
+        const complete = products.reduce((p, c) => { return p + getMeasure(c) }, 0);
+        const stop = complete * ratio;
+        let current = 0;
+        const toIsolate: ProductAnalyticalResult[] = [];
+        for (let i = 0; current < stop; i++) {
+            const product = products[i];
+            current += getMeasure(product);
+            toIsolate.push(product);
+        }
+    
+        const modelGroups: { [id: number]: number[] } = {};
+        toIsolate.reduce((g, c) => {
+            let group = g[c.modelId];
+            if (group == null) {
+                group = [];
+                g[c.modelId] = group;
+            }
+            group.push(c.productId);
+            return g;
+        }, modelGroups)
+    
+        Object.getOwnPropertyNames(modelGroups).forEach(idStr => {
+            const productIds = modelGroups[idStr];
+            const modelId: number = +idStr;
+            this.isolate(productIds, modelId);
+        });
     }
 }
 
