@@ -153,9 +153,21 @@ viewer.on('loaded', () => {
 });
 
 
-viewer.loadAsync(model, "base", null, (msg) => {
-    progress.innerHTML = `[${MessageProgress(msg).toFixed(2)}%] ${msg.message}`;
-});
+if (modelId == 'large') {
+    // load context (mostly large objects)
+    viewer.loadAsync('/tests/data/large/context/roofing.wexbim');
+    viewer.loadAsync('/tests/data/large/context/site-overall site.wexbim');
+    viewer.loadAsync('/tests/data/large/context/spec wall ceiling.wexbim');
+    viewer.loadAsync('/tests/data/large/context/steel-cladding.wexbim');
+
+    // load heavy detailed model
+    viewer.loadAsync('/tests/data/large/steel-deck&scuppers.wexbim');
+} else {
+    viewer.loadAsync(model, "base", null, (msg) => {
+        progress.innerHTML = `[${MessageProgress(msg).toFixed(2)}%] ${msg.message}`;
+    });
+}
+
 
 
 var grid = new Grid();

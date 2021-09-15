@@ -33,6 +33,7 @@ import { CameraAdjustment } from './navigation/camera-adjustment';
 import { PreflightCheck } from './navigation/preflight-check';
 import { ProductType } from './product-type';
 import { ProductAnalyticalResult } from './common/product-analytical-result';
+import { FpsWatch } from './common/fps-watch';
 
 export type NavigationMode = 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none' | 'look-around' | 'walk' | 'look-at';
 
@@ -232,6 +233,7 @@ export class Viewer {
     private _pMatrix: mat4 = mat4.create();
     private _renderingMode: RenderingMode = RenderingMode.NORMAL;
     private _mvMatrixTimestamp: number = Date.now();
+    private _fpsWatch: FpsWatch;
 
     private _isRunning: boolean = false;
     private _stateStyles: Uint8Array;
@@ -360,7 +362,7 @@ export class Viewer {
         // asynchronous call and it would cause Angular to refresh constantly. That would innecessary increase
         // CPU load.
         this._requestAnimationFrame = (window.requestAnimationFrame ||
-            window.webkitRequestAnimationFrame ||
+            window["webkitRequestAnimationFrame"] ||
             window["mozRequestAnimationFrame"] ||
             window["oRequestAnimationFrame"] ||
             window["msRequestAnimationFrame"] ||
@@ -452,13 +454,15 @@ export class Viewer {
             this._requestAnimationFrame(watchCanvasSize);
         };
         watchCanvasSize();
-        this._watchFps();
-        this._watchPerformance();
-
+        
         // watch current depth of view in a grid 20 x 20 and adjust camera if needed
         this._cameraAdjustment = new CameraAdjustment(this, this._requestAnimationFrame, 20);
-
+        
         this.animations = new Animations(this);
+        
+        this._fpsWatch = new FpsWatch(this._requestAnimationFrame);
+        this.setupFpsReporting();
+        this._watchPerformance();
     }
 
     /**
@@ -1542,13 +1546,13 @@ export class Viewer {
             let percent = 100;
             switch (this.performance) {
                 case PerformanceRating.VERY_LOW:
-                    percent = 30;
+                    percent = 10;
                     break;
                 case PerformanceRating.LOW:
-                    percent = 50;
+                    percent = 30;
                     break;
                 case PerformanceRating.MEDIUM:
-                    percent = 70;
+                    percent = 50;
                     break;
                 case PerformanceRating.HIGH:
                     percent = 100;
@@ -2233,35 +2237,20 @@ export class Viewer {
      * Starts the loop watching animation frames and keeping record of the
      * Frames per Second (FPS) rate. This should only be called once in the constructor.
      */
-    private _watchFps() {
-        // FPS counting infrastructure
-        let lastTime = Date.now();
-        let count = 0;
-
+    private setupFpsReporting() {
         const tick = () => {
-            count++;
-            const now = Date.now();
-            const lapsed = now - lastTime;
-            // compute and report FPS every 0.5s
-            if (lapsed >= 500) {
-                const fps = 1000 / lapsed * count;
-
-                // reset counter and timer
-                lastTime = now;
-                count = 0;
-
-                // only report change if there is any difference
-                if (Math.abs(this._currentFps - fps) >= 1.0) {
-                    this._currentFps = fps;
-                    /**
-                    * Occurs after every 30th frame in animation. Use this event if you want 
-                    * to report FPS to the user. It might also be an interesting performance measure.
-                    *
-                    * @event Viewer#fps 
-                    * @type {Number}
-                    */
-                    this.fire('fps', Math.floor(fps));
-                }
+            const fps = this._fpsWatch.fps;
+            // only report change if there is any difference
+            if (Math.abs(this._currentFps - fps) >= 1.0) {
+                this._currentFps = fps;
+                /**
+                * Occurs after every 30th frame in animation. Use this event if you want 
+                * to report FPS to the user. It might also be an interesting performance measure.
+                *
+                * @event Viewer#fps 
+                * @type {Number}
+                */
+                this.fire('fps', Math.floor(fps));
             }
             this._requestAnimationFrame(tick);
         };
@@ -2273,23 +2262,24 @@ export class Viewer {
      * rating to decide if complete model should be drawn or only a part.
      */
     private _watchPerformance() {
-        const noMove = 1000; // number of milliseconds when we consider MV matrix to be stable
-        const watchTime = 500;
+        const noMove = 2000; // number of milliseconds when we consider MV matrix to be stable
         let isMoving = false;
         const tick = () => {
             // don't do anything if performance is not to be watched
             if (!this._adaptivePerformanceOn) {
                 this.performance = PerformanceRating.HIGH;
+                this._requestAnimationFrame(tick);
                 return;
             }
 
             // number of milliseconds since last MV matrix change
             const age = this.mvMatrixAge;
             // framerate updated approx. every 0.5 second
-            const fps = this._currentFps;
+            const fps = this._fpsWatch.fps;
 
             // no movement and already fired event
             if (age > noMove && !isMoving) {
+                this._requestAnimationFrame(tick);
                 return;
             }
 
@@ -2302,6 +2292,7 @@ export class Viewer {
                 if (this.activeHandles.length > 0) {
                     this.draw();
                 }
+                this._requestAnimationFrame(tick);
                 return;
             }
 
@@ -2319,8 +2310,8 @@ export class Viewer {
             this._requestAnimationFrame(tick);
         };
 
-        // check regularly all the time
-        setInterval(tick, watchTime);
+        // start
+        tick();
     }
 
     /**
@@ -2764,27 +2755,27 @@ export class Viewer {
      * @param orderBy Measure to use for the default ascending sort order. Default value: 'triangles'
      * @returns List of product analytical results sorted in descendent order by number of triangles or density (number of triangles per volumetric unit of the product bounding box)
      */
-     public getProductAnalysis(orderBy: 'triangles' | 'density' = 'triangles'): ProductAnalyticalResult[] {
-        const getMeasure = orderBy === 'triangles' ? 
-            (r: ProductAnalyticalResult) => { return r.numberOfTriangles} :
-            (r: ProductAnalyticalResult) => { return r.density} 
-         const initial: ProductAnalyticalResult[] = [];
-         const result = this.activeHandles.reduce((p, c) => {
-             return c.getProductAnalysis(p);
-         }, initial)
-         return result.sort((a, b) => getMeasure(b) - getMeasure(a));
-     }
+    public getProductAnalysis(orderBy: 'triangles' | 'density' = 'triangles'): ProductAnalyticalResult[] {
+        const getMeasure = orderBy === 'triangles' ?
+            (r: ProductAnalyticalResult) => { return r.numberOfTriangles } :
+            (r: ProductAnalyticalResult) => { return r.density }
+        const initial: ProductAnalyticalResult[] = [];
+        const result = this.activeHandles.reduce((p, c) => {
+            return c.getProductAnalysis(p);
+        }, initial)
+        return result.sort((a, b) => getMeasure(b) - getMeasure(a));
+    }
 
-     /**
-      * Isolates products which have most geometry (number of triangles).
-      * This function is meant for data debugging, identifying products which are likely to be over-detailed or poorly modeled.
-      * @param measure Measure to use for sorting and selection. Defaul value: 'triangles'
-      * @param ratio Top ratio to isolate. Should be a number between 0.0 - 1.0. Default value is 0.2 which means top 20% of the geometry
-      */
-     public isolateHeavyProducts(measure: 'triangles' | 'density' = 'triangles', ratio: number = 0.2) {
-         const getMeasure = measure === 'triangles' ? 
-         (r: ProductAnalyticalResult) => { return r.numberOfTriangles} :
-         (r: ProductAnalyticalResult) => { return r.density} 
+    /**
+     * Isolates products which have most geometry (number of triangles).
+     * This function is meant for data debugging, identifying products which are likely to be over-detailed or poorly modeled.
+     * @param measure Measure to use for sorting and selection. Defaul value: 'triangles'
+     * @param ratio Top ratio to isolate. Should be a number between 0.0 - 1.0. Default value is 0.2 which means top 20% of the geometry
+     */
+    public isolateHeavyProducts(measure: 'triangles' | 'density' = 'triangles', ratio: number = 0.2) {
+        const getMeasure = measure === 'triangles' ?
+            (r: ProductAnalyticalResult) => { return r.numberOfTriangles } :
+            (r: ProductAnalyticalResult) => { return r.density }
 
         const products = this.getProductAnalysis(measure);
         const complete = products.reduce((p, c) => { return p + getMeasure(c) }, 0);
@@ -2796,7 +2787,7 @@ export class Viewer {
             current += getMeasure(product);
             toIsolate.push(product);
         }
-    
+
         const modelGroups: { [id: number]: number[] } = {};
         toIsolate.reduce((g, c) => {
             let group = g[c.modelId];
@@ -2807,7 +2798,7 @@ export class Viewer {
             group.push(c.productId);
             return g;
         }, modelGroups)
-    
+
         Object.getOwnPropertyNames(modelGroups).forEach(idStr => {
             const productIds = modelGroups[idStr];
             const modelId: number = +idStr;
