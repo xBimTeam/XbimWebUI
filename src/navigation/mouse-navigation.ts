@@ -199,6 +199,12 @@ export class MouseNavigation {
                 return;
             }
             if (event.stopPropagation) {
+                viewer.fire('wheel', {
+                    event: event,
+                    id: null,
+                    model: null,
+                    xyz: null
+                });
                 event.stopPropagation();
             }
             if (event.preventDefault) {

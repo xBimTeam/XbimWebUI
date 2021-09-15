@@ -363,3 +363,25 @@ window['a15'] = () => {
     console.log(run);
     run();
 }
+
+window['track'] = (id: number, model: number) => {
+    var cube = document.createElement('div');
+    document.body.append(cube);
+    cube.style.backgroundColor = 'red';
+    cube.style.position = 'absolute';
+    cube.style.width = '30px';
+    cube.style.height = '30px';
+    cube.style.borderRadius = '30px';
+    cube.style.left = `0px`;
+    cube.style.top = `0px`;
+
+    const adjust = () => {
+        const c = viewer.getHTMLPositionOfProductCentroid(id, model);
+        cube.style.left = `${c[0] - 15}px`;
+        cube.style.top = `${c[1] - 15}px`;
+    };
+
+    viewer.on('pointermove', adjust);
+    viewer.on('wheel', adjust);
+    adjust();
+}

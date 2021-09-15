@@ -454,12 +454,12 @@ export class Viewer {
             this._requestAnimationFrame(watchCanvasSize);
         };
         watchCanvasSize();
-        
+
         // watch current depth of view in a grid 20 x 20 and adjust camera if needed
         this._cameraAdjustment = new CameraAdjustment(this, this._requestAnimationFrame, 20);
-        
+
         this.animations = new Animations(this);
-        
+
         this._fpsWatch = new FpsWatch(this._requestAnimationFrame);
         this.setupFpsReporting();
         this._watchPerformance();
@@ -2804,6 +2804,28 @@ export class Viewer {
             const modelId: number = +idStr;
             this.isolate(productIds, modelId);
         });
+    }
+
+    /**
+     * This function can be used to place HTML markup relative to the centroid of a product
+     * @param productId ID of the product
+     * @param modelId ID of the model
+     * @returns HTML foordinates of the centroid of the product bounding box
+     */
+    public getHTMLPositionOfProductCentroid(productId: number, modelId: number): number[] {
+        const map = this.getHandle(modelId).getProductMap(productId, this.getCurrentWcs());
+        const bbox = map.bBox;
+        const position = vec3.fromValues(bbox[0] + bbox[3] / 2, bbox[1] + bbox[4] / 2, bbox[2] + bbox[5] / 2);
+        const transform = mat4.multiply(mat4.create(), this.pMatrix, this.mvMatrix);
+        const glPosition = vec3.transformMat4(vec3.create(), position, transform);
+
+        const glX = glPosition[0];
+        const glY = glPosition[1];
+
+        const htmlX = (glX + 1) / 2.0 * this.width;
+        const htmlY = this.height - (glY + 1) / 2.0 * this.height;
+
+        return [htmlX, htmlY]
     }
 }
 
