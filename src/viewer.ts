@@ -2769,10 +2769,13 @@ export class Viewer {
     /**
      * Isolates products which have most geometry (number of triangles).
      * This function is meant for data debugging, identifying products which are likely to be over-detailed or poorly modeled.
+     * 
+     * Use {@link Viewer#isolate isolate()} to cancel this operation
      * @param measure Measure to use for sorting and selection. Defaul value: 'triangles'
      * @param ratio Top ratio to isolate. Should be a number between 0.0 - 1.0. Default value is 0.2 which means top 20% of the geometry
+     * @returns The set of product analytical results isolated, sorted in descendent order by number of triangles or density (number of triangles per volumetric unit of the product bounding box)
      */
-    public isolateHeavyProducts(measure: 'triangles' | 'density' = 'triangles', ratio: number = 0.2) {
+    public isolateHeavyProducts(measure: 'triangles' | 'density' = 'triangles', ratio: number = 0.2): ProductAnalyticalResult[] {
         const getMeasure = measure === 'triangles' ?
             (r: ProductAnalyticalResult) => { return r.numberOfTriangles } :
             (r: ProductAnalyticalResult) => { return r.density }
@@ -2799,11 +2802,19 @@ export class Viewer {
             return g;
         }, modelGroups)
 
+        // Some models may not have products above the threshold so we never call isolate on them. 
+        // Hide everything in all models by setting an invalid product before we isolate the products that are to be shown
+        this.activeHandles
+            .forEach((h) => {
+                this.isolate([0], h.id);
+            });
+
         Object.getOwnPropertyNames(modelGroups).forEach(idStr => {
             const productIds = modelGroups[idStr];
             const modelId: number = +idStr;
             this.isolate(productIds, modelId);
         });
+        return toIsolate;
     }
 
     /**
