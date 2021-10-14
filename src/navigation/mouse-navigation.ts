@@ -41,7 +41,9 @@ export class MouseNavigation {
             modelId = data.model;
             xyz = data.xyz;
 
-            if (data == null || data.id == null || data.model == null) {
+            if (viewer.navigationMode === 'locked-orbit') {
+                origin = viewer.lockedOrbitOrigin;
+            } else  if (data == null || data.id == null || data.model == null) {
                 const region = viewer.getMergedRegion();
                 if (region == null || region.centre == null) {
                     // there is nothing in the viewer
@@ -163,6 +165,8 @@ export class MouseNavigation {
                             viewer.navigate('free-orbit', deltaX, deltaY, origin);
                             break;
 
+                        case 'locked-orbit':
+                            viewer.navigate('locked-orbit', deltaX, deltaY, origin);
                         case 'fixed-orbit':
                         case 'orbit':
                             viewer.navigate('orbit', deltaX, deltaY, origin);

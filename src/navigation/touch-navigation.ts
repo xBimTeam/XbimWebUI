@@ -52,7 +52,11 @@ export class TouchNavigation {
                 // force-setting navigation mode to 'free-orbit' currently for touch navigation since regular orbit
                 // feels awkward and un-intuitive on touch devices
                 // MC: I prefer fixed orbit as it doesn't allow for wierd angles
-                viewer.navigate('orbit', deltaX / 1.5 , deltaY / 1.5, origin);
+                if (viewer.navigationMode === 'locked-orbit') {
+                    viewer.navigate('locked-orbit', deltaX / 1.5 , deltaY / 1.5, viewer.lockedOrbitOrigin);
+                } else {
+                    viewer.navigate('orbit', deltaX / 1.5 , deltaY / 1.5, origin);
+                }
             } else if (event.touches.length >= 2) {
                 // touch move with two fingers -> zoom
                 const distanceBefore = Math.sqrt((lastTouchX_1 - lastTouchX_2) * (lastTouchX_1 - lastTouchX_2) +

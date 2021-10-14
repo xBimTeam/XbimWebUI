@@ -35,7 +35,7 @@ import { ProductType } from './product-type';
 import { ProductAnalyticalResult } from './common/product-analytical-result';
 import { FpsWatch } from './common/fps-watch';
 
-export type NavigationMode = 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none' | 'look-around' | 'walk' | 'look-at';
+export type NavigationMode = 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none' | 'look-around' | 'walk' | 'look-at' | 'locked-orbit';
 
 export class Viewer {
 
@@ -302,6 +302,8 @@ export class Viewer {
      * Indicates if the viewer is running the rendering loop
      */
     public get isRunning() { return this._isRunning; }
+
+    public lockedOrbitOrigin: vec3;
 
     /**
     * This is constructor of the xBIM Viewer. It gets HTMLCanvasElement or string ID as an argument. Viewer will than be initialized 
@@ -1327,6 +1329,9 @@ export class Viewer {
             return;
         }
 
+        if (type === 'locked-orbit')
+            origin = this.lockedOrbitOrigin || origin;
+
         //translation in WCS is position from [0, 0, 0]
         const camera = this.getCameraPosition();
         const distance = vec3.distance(camera, origin);
@@ -1359,6 +1364,7 @@ export class Viewer {
                 transform = mat4.rotate(mat4.create(), transform, degToRad(deltaX / 4), [0, 1, 0]);
                 break;
 
+            case 'locked-orbit':
             case 'fixed-orbit':
             case 'look-around':
             case 'look-at':
@@ -2838,6 +2844,17 @@ export class Viewer {
 
         return [htmlX, htmlY]
     }
+
+    public setLockedOrbitOrigin(productId: number, modelId: number) {
+        const handle = this.getHandle(modelId);
+        if (handle == null) throw new Error('Invalid model ID');
+
+        const map = handle.getProductMap(productId, this.getCurrentWcs());
+        const bb = map.bBox;
+
+        this.lockedOrbitOrigin = vec3.fromValues(bb[0] + bb[3] / 2.0, bb[1] + bb[4] / 2.0, bb[2] + bb[5] / 2.0)
+    }
+
 }
 
 enum ColourCoding {
