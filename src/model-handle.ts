@@ -51,6 +51,11 @@ export class ModelHandle {
     public clippable: boolean = true;
 
     /**
+     * indicates this model should never have drop items from rendering when Adaptive Performance is enabled
+     */
+    public pinned: boolean = false
+
+    /**
      * If drawProductId is defined, only this single product is drawn
      */
     public get isolatedProducts(): number[] { return this._drawProductIds; }
@@ -1070,7 +1075,7 @@ export class ModelHandle {
             const volume = Math.sqrt(map.bBox[3] * map.bBox[3] + map.bBox[4] * map.bBox[4] + map.bBox[5] * map.bBox[5]);
             results.push({
                 modelId: this.id,
-                numberOfTriangles: indexCount/3,
+                numberOfTriangles: indexCount / 3,
                 productId: map.productID,
                 size: boxSize,
                 volume: volume,

@@ -1,5 +1,6 @@
 export class FpsWatch {
     private buffer: CircularBuffer = new CircularBuffer(20);
+
     /**
      *
      */
@@ -11,13 +12,14 @@ export class FpsWatch {
         frameRequest(watch)
     }
 
-    public get fps():number {
+    public get fps(): number {
+
         const first = this.buffer.first;
         const last = this.buffer.last;
         if (first == null || last == null)
-            return 0;
+            return 60;  // Before the buffer is filled assume 60FPS. 
 
-        return this.buffer.size/ (last - first) * 1000;
+        return this.buffer.size / (last - first) * 1000;
     }
 }
 

@@ -1584,17 +1584,19 @@ export class Viewer {
             this._handles.forEach((handle) => {
                 if (!handle.stopped) {
                     handle.setActive(this._pointers, wcs);
-
-                    handle.draw(DrawMode.SOLID, percent);
+                    handle.draw(DrawMode.SOLID, handle.pinned ? 100 : percent);
                 }
             });
 
-            this._handles.forEach((handle) => {
-                if (!handle.stopped) {
-                    handle.setActive(this._pointers, wcs);
-                    handle.draw(DrawMode.TRANSPARENT, percent);
-                }
-            });
+            if (this.performance > PerformanceRating.LOW) {
+                // Draw the transparent items, but only if performance is Medium or above
+                this._handles.forEach((handle) => {
+                    if (!handle.stopped) {
+                        handle.setActive(this._pointers, wcs);
+                        handle.draw(DrawMode.TRANSPARENT, handle.pinned ? 100 : percent);
+                    }
+                });
+            }
         }
 
         if (!disablePlugins) {
@@ -2321,6 +2323,8 @@ export class Viewer {
                 this.performance = PerformanceRating.LOW;
             } else if (fps < 30 && this.performance > PerformanceRating.MEDIUM) {
                 this.performance = PerformanceRating.MEDIUM;
+            } else if (fps >= 30 && this.performance <= PerformanceRating.MEDIUM) {
+                this.performance = PerformanceRating.HIGH;
             }
 
             // monitor per-frame when navigation is in progress
