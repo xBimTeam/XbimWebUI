@@ -152,7 +152,7 @@ viewer.on('loaded', () => {
     viewer.show(ViewType.DEFAULT, undefined, undefined, false);
 });
 
-
+viewer.readerOptions.orderGeometryBySize = true;
 if (modelId == 'large') {
     // load context (mostly large objects)
     viewer.loadAsync('/tests/data/large/context/roofing.wexbim');

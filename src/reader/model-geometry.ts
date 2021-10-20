@@ -6,6 +6,19 @@ import { LoadingPhase, Message, MessageType } from "../common/message";
 import { ProductMap } from "../common/product-map";
 import { WexBimShapeSingleInstance } from "../stream/wexbim-stream";
 
+export type ReaderOptions = {
+
+    /** Determines whether the viewer loaded will attempt to sort the geometry by size, during the load
+    *
+    * Size-sorted geometry provides a better experience when adaptive rendering is enabled,
+    * since the smaller items are dropped from rendering first.
+    *
+    * For performance reasons, it is preferable to sort the geometry during wexbim generation,
+    * but enabling this option will perform the sorting in the browser.
+    */
+    orderGeometryBySize?: boolean
+}
+
 export class ModelGeometry {
 
     private progress: (message: Message) => void;
@@ -26,6 +39,7 @@ export class ModelGeometry {
 
     public meter = 1000;
     public wcs = [0, 0, 0];
+
 
     //this will be used to change appearance of the objects
     //map objects have a format: 
@@ -64,7 +78,7 @@ export class ModelGeometry {
     private _reader: BinaryReader;
     private _styleMap = new StyleMap();
 
-    private parse(binReader: BinaryReader) {
+    private parse(binReader: BinaryReader, options: Partial<ReaderOptions>) {
         if (!binReader || binReader.isEOF()) {
             // don't do anything if there is no data
             return;
@@ -193,24 +207,26 @@ export class ModelGeometry {
 
                 }
 
-                // Sort to make performance optimization look better. Big things go in first (descending sorting).
-                // TODO: THIS should be done on the server. Once it is a standard, this code should be removed
-                // and data should be fed into data arrays straight away, saving in-memory sorting.
-                data.sort((a, b) => {
-                    const mapA = this.productMaps[a.shapes[0].pLabel];
-                    const mapB = this.productMaps[b.shapes[0].pLabel];
+                if (options.orderGeometryBySize) {
+                    // Sort to make performance optimization look better. Big things go in first (descending sorting).
+                    // Because of the performance impact of doing this each load it is preferable to pre-sort the geometry in wexbim
+                    data.sort((a, b) => {
+                        const mapA = this.productMaps[a.shapes[0].pLabel];
+                        const mapB = this.productMaps[b.shapes[0].pLabel];
 
-                    if (mapA == null)
-                        return 1;
-                    if (mapB == null)
-                        return -1;
+                        if (mapA == null)
+                            return 1;
+                        if (mapB == null)
+                            return -1;
 
-                    const volA = mapA.bBox[3] * mapA.bBox[4] * mapA.bBox[5];
-                    const volB = mapB.bBox[3] * mapA.bBox[4] * mapA.bBox[5];
+                        const volA = mapA.bBox[3] * mapA.bBox[4] * mapA.bBox[5];
+                        const volB = mapB.bBox[3] * mapA.bBox[4] * mapA.bBox[5];
 
-                    return volB - volA;
+                        return volB - volA;
 
-                });
+                    });
+                }
+
                 for (let g = 0; g < geomCount; g++) {
                     const d = data[g];
                     //add data to arrays prepared for GPU
@@ -388,14 +404,14 @@ export class ModelGeometry {
     }
 
     //Source has to be either URL of wexBIM file or Blob representing wexBIM file
-    public load(source, headers: { [name: string]: string }, progress: (message: Message) => void) {
+    public load(source, headers: { [name: string]: string }, progress: (message: Message) => void, options: Partial<ReaderOptions> = {}) {
         // tslint:disable-next-line: no-empty
         this.progress = progress ? progress : (m) => { };
         //binary reading
         let br = new BinaryReader();
         let self = this;
         br.onloaded = () => {
-            self.parse(br);
+            self.parse(br, options);
             if (self.onloaded) {
                 self.onloaded(this);
             }

@@ -1,5 +1,5 @@
 ﻿import { State } from './common/state';
-import { ModelGeometry, Region } from './reader/model-geometry';
+import { ModelGeometry, ReaderOptions, Region } from './reader/model-geometry';
 import { ModelHandle, DrawMode } from './model-handle';
 import { Framebuffer } from './framebuffer';
 import { ModelPointers } from './model-pointers';
@@ -284,6 +284,17 @@ export class Viewer {
     private _fptExtension: object;
 
     private _cameraAdjustment: CameraAdjustment;
+
+    private _readerOptions: ReaderOptions = {
+        orderGeometryBySize: false
+    }
+
+    /**
+     * Options that can control the behaviour of the geometry loader
+     */
+    public get readerOptions(): ReaderOptions {
+        return this._readerOptions
+    };
 
     /**
      * Holds reference to Depth Texture extension needed for WebGL2 implementations to get 3D coordinate of
@@ -1090,7 +1101,7 @@ export class Viewer {
             a.href = model;
             model = a.href;
         }
-        worker.postMessage({ model: model, headers: headers });
+        worker.postMessage({ model: model, headers: headers, options: this.readerOptions });
         return;
     }
 
@@ -1124,7 +1135,7 @@ export class Viewer {
             viewer.error(msg);
         };
         try {
-            geometry.load(model, headers, progress);
+            geometry.load(model, headers, progress, this.readerOptions);
         } catch (err) {
             viewer.error(err)
         }

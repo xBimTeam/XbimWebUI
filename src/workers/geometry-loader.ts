@@ -1,5 +1,5 @@
 ﻿import { LoadingPhase, Message, MessageType } from '../common/message';
-import { ModelGeometry } from '../reader/model-geometry';
+import { ModelGeometry, ReaderOptions } from '../reader/model-geometry';
 
 function isImageBitmap(obj: any): boolean {
     // this is an interface signature of ImageBitmap
@@ -12,6 +12,7 @@ if (self && self instanceof DedicatedWorkerGlobalScope) {
     worker.onmessage = (e: MessageEvent) => {
         let model = e.data.model;
         let headers = e.data.headers;
+        let options: ReaderOptions = e.data.options;
         let geometry = new ModelGeometry();
 
         geometry.onerror = (msg) => {
@@ -78,6 +79,6 @@ if (self && self instanceof DedicatedWorkerGlobalScope) {
         };
         geometry.load(model, headers, (message) => {
             worker.postMessage(message);
-        });
+        }, options);
     };
 }
