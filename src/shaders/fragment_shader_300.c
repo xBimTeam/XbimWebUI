@@ -1,5 +1,7 @@
 #version 300 es
-precision mediump float;
+// medium precission was causing a failure on Android devices. Normalization didn't work (vec3 L = normalize(uLight - vPosition);)
+// which resulted in a bright white image when model was in millimeters
+precision highp float;
 
 uniform vec4 uClippingPlaneA;
 uniform vec4 uClippingPlaneB;
@@ -94,11 +96,10 @@ void main(void) {
 	// default is no specular colour
   	float specular = 0.0;
 
-	// only set reflection is the angle between light and surface normal is between 0 and 90DEG
+	// only set reflection if the angle between light and surface normal is between 0 and 90DEG
   	if (lambertian > 0.0) {
-  	  vec3 R = reflect(-L, N);        // Reflected light vector
-  	  //vec3 V = normalize(-vPosition); // Vector to viewer
-  	  vec3 V = L; // Vector to viewer
+  	  vec3 R = reflect(-L, N);  // Reflected light vector
+  	  vec3 V = L;  				// Vector to viewer (head light)
 
   	  // Compute the specular term
   	  float specAngle = max(dot(R, V), 0.0);
@@ -106,7 +107,7 @@ void main(void) {
   	}
 
 vec4 fragColor = vec4(
-		  			  Ka * ambientColor +
+		  			  Ka * ambientColor  +
                       Kd * lambertian * diffuseColor +
                       Ks * specular * specularColor
 					 , vColor.a
