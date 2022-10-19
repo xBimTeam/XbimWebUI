@@ -3,6 +3,7 @@ Xbim WebUI
 
 Web components for xBIM Toolkit. [Documentation on GitHub Pages.](http://xbimteam.github.io/XbimWebUI/)
 
+![image](https://user-images.githubusercontent.com/773078/196723331-f2f1ee2f-b302-4275-8123-7bbe2c8c1dfd.png)
 
 ## Xbim toolkit
 
