@@ -7,6 +7,7 @@ var entries = {};
 entries['featured-viewer'] = './examples/featured-viewer/index.ts';
 entries['basic-viewer'] = './examples/basic-viewer/index.ts';
 entries['wexbim-files-viewer'] = './examples/wexbim-files-viewer/index.ts';
+entries['pins'] = './examples/pins/index.ts';
 
 module.exports = merge(common, {
     entry: entries,
@@ -28,6 +29,11 @@ module.exports = merge(common, {
             filename: 'wexbim-files-viewer/index.html',
             template: './examples/wexbim-files-viewer/index.html',
             chunks: ['wexbim-files-viewer', 'commons']
+        }),
+        new HtmlWebpackPlugin({
+            filename: 'pins/index.html',
+            template: './examples/pins/index.html',
+            chunks: ['pins', 'commons']
         })
     ],
     module: {

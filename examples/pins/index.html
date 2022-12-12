@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>3D annotations example</title>
+    <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+
+    <style>
+        html,
+        body {
+            height: 100%;
+            padding: 0;
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            border: none;
+        }
+
+        #viewer-container {
+            flex: 6;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .flex-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+
+
+        .pin {
+            position: absolute;
+            display: none;
+            top: 0;
+            left: 0;
+            
+        }
+        .pin .icon {
+            pointer-events: fill;
+            cursor: pointer;
+        }
+
+        #annotation {
+            position: absolute;
+            pointer-events: none;
+            overflow-x: hidden;
+            /* user-select: none; */
+        }
+        #floatdetails {
+            display: none;
+            position: absolute;
+            background: #ffffffd0;
+            box-shadow: 0 0 10px darkgray;
+            border-radius: 10px;
+            padding: 0.5em;
+            max-width: 20em;
+            color: black;
+            z-index: 100;
+        }
+        
+        #floatdetails .title {
+            font-weight: 700;
+        }
+        
+        #floatdetails .content {
+            background-color: #f1f1f1d0;
+            margin-top: 4px;
+            margin-bottom: 4px;
+            padding: 12px;
+            line-height: 21px;
+            font-size: 13px;
+            min-width: 15em;
+            pointer-events: none;
+        }
+
+        #floatdetails .actions{
+            display: flex;
+            justify-content: space-between;
+            pointer-events: all;
+        }
+
+        #floatdetails .actions a {
+            cursor: pointer;
+        }
+
+        
+        .floatpointer {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            filter: drop-shadow(0 4px 1px rgba(178,178,178,.4));
+            height: 12px;
+        }
+        
+        .floatpointer::after
+        {
+            background: #ffffffd0;;
+            clip-path: polygon(0% 0%,50% 100%,100% 0%);
+            content: '';
+            height: 12px;
+            left: -12px;
+            position: relative;
+            width: 25px;
+            top: 38px;
+        }
+
+        .left-panel {
+            position: absolute;
+            top: 40px;
+            z-index: 1;
+            padding: 2em;
+            background-color: white;
+            box-shadow: 0 0 10px darkgray;
+            border-radius: 10px;
+            left: 20px;
+            max-width: 300px;
+            user-select: none;
+            pointer-events: none;
+        }
+        .left-panel div {
+            font-weight: 600;
+            padding-top: 1em;
+        }
+    </style>
+
+</head>
+
+
+<body>
+    <div class="flex-container">
+        <div id="viewer-container">
+            <canvas id="viewer"></canvas>
+        </div>
+        <div class="left-panel">
+            Click to tag tasks to elements in the model.
+            <div id="tasks"></div>
+        </div>  
+        <div id="annotation">
+            <div id = "pin" class="pin">
+                <img class="icon" src="/examples/pins/pin.svg" height="32"/>
+            </div>
+            <div id="floatdetails">
+                <div class="title">Defect</div>
+                <div class="content">
+                    <div class="image"></div>
+                </div>
+                <div class="floatpointer"></div>
+                <div class="actions"><a onclick="deleteItem()">Delete</a><a onclick="closeItem()">Close</a></div>
+            </div>
+        </div>
+        
+    </div>
+</body>
+
+</html>

@@ -2842,12 +2842,25 @@ export class Viewer {
      * This function can be used to place HTML markup relative to the centroid of a product
      * @param productId ID of the product
      * @param modelId ID of the model
-     * @returns HTML foordinates of the centroid of the product bounding box
+     * @returns HTML coordinates of the centroid of the product bounding box
      */
     public getHTMLPositionOfProductCentroid(productId: number, modelId: number): number[] {
         const map = this.getHandle(modelId).getProductMap(productId, this.getCurrentWcs());
         const bbox = map.bBox;
         const position = vec3.fromValues(bbox[0] + bbox[3] / 2, bbox[1] + bbox[4] / 2, bbox[2] + bbox[5] / 2);
+        return this.getHtmlCoordinatesOfVector(position);
+    }
+
+    /**
+     * This function can be used to identify the XY location on the canvas for a given
+     * 3D WCS vector. 
+     * For example this can be used to identity the XY location of a pick event in 3D space. 
+     * @param position a {@link vec3 vec3}
+     * @returns HTML coordinates of the provided WCS vector
+     */
+    public getHtmlCoordinatesOfVector(position: vec3): number[] {
+        if(!position) return [];
+        
         const transform = mat4.multiply(mat4.create(), this.pMatrix, this.mvMatrix);
         const glPosition = vec3.transformMat4(vec3.create(), position, transform);
 
@@ -2860,6 +2873,11 @@ export class Viewer {
         return [htmlX, htmlY]
     }
 
+    /**
+     * Sets the provided product as the center of rotation
+     * @param productId ID of the product
+     * @param modelId ID of the model
+     */
     public setLockedOrbitOrigin(productId: number, modelId: number) {
         const handle = this.getHandle(modelId);
         if (handle == null) throw new Error('Invalid model ID');
