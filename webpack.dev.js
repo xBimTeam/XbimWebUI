@@ -2,6 +2,7 @@ const { merge } = require('webpack-merge');
 const common = require('./webpack.common.js');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const path = require('path');
 
 var entries = {};
 entries['featured-viewer'] = './examples/featured-viewer/index.ts';
@@ -14,7 +15,6 @@ module.exports = merge(common, {
     mode: "development",
     devtool: 'inline-source-map',
     plugins: [
-        new webpack.HotModuleReplacementPlugin(),
         new HtmlWebpackPlugin({
             filename: 'featured-viewer/index.html',
             template: './examples/featured-viewer/index.html',
@@ -42,15 +42,24 @@ module.exports = merge(common, {
         ]
     },
     devServer: {
-        contentBase: ".",
+        
         host: "localhost",
-        publicPath: "/dist/",
         port: 9001,
-        open: "Chrome",
+        open: "/",
         hot: true,
-        overlay: {
-            warnings: true,
-            errors: true
+        devMiddleware: {
+            publicPath: "/dist/",
+
+        },
+        static: {
+            directory: path.join(__dirname, './'),
+            serveIndex: true,
+        },
+        client: {
+            overlay: {
+                warnings: true,
+                errors: true
+            }
         }
     },
     optimization: {

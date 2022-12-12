@@ -1,5 +1,5 @@
 const path = require('path');
-const CleanWebpackPlugin = require('clean-webpack-plugin');
+const {CleanWebpackPlugin}  = require('clean-webpack-plugin');
 const ShaderPlugin = require('./utilities/shader-plugin');
 const ShaderWatchPlugin = require('./utilities/shader-watch-plugin');
 
@@ -16,7 +16,7 @@ var tsLoader = 'ts-loader?' + JSON.stringify({
 module.exports = {
     entry: entries,
     plugins: [
-        new CleanWebpackPlugin(['dist']),
+        new CleanWebpackPlugin({cleanOnceBeforeBuildPatterns: ['dist']}),
         new ShaderPlugin(),
         new ShaderWatchPlugin()
     ],

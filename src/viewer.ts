@@ -331,8 +331,9 @@ export class Viewer {
     * certain kinds of user interaction. This means that it won't work with obsolete and non-standard-compliant browsers like IE10 and less.
     *
     * @param {string | HTMLCanvasElement} canvas - string ID of the canvas or HTML canvas element.
+    * @param {({string})} errorHandler - an error handler
     */
-    constructor(canvas: string | HTMLCanvasElement, errorHandler?: ({ message: string }) => void) {
+    constructor(canvas: string | HTMLCanvasElement, errorHandler?: ({ message }) => void ) {
         if (canvas == null) {
             throw new Error('Canvas has to be defined');
         }

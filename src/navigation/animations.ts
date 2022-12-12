@@ -21,7 +21,7 @@ export class Animations {
         // monkey patching protection
         this.setTimeout = window.setTimeout.bind(window);
         this.requestAnimationFrame = (window.requestAnimationFrame ||
-            window.webkitRequestAnimationFrame ||
+            window["webkitRequestAnimationFrame"] ||
             window["mozRequestAnimationFrame"] ||
             window["oRequestAnimationFrame"] ||
             window["msRequestAnimationFrame"] ||
