@@ -2,6 +2,9 @@ import { IPlugin } from '../plugin';
 import { Viewer } from '../../viewer';
 import { vshader } from './vshader';
 
+/**
+ * @category Plugins
+ */
 export class Grid implements IPlugin {
 
     private viewer: Viewer;

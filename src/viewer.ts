@@ -15,7 +15,6 @@ import { vertex_shader_300 } from './shaders/vertex_shader_300';
 //ported libraries
 import { WebGLUtils } from './common/webgl-utils';
 import { LoadingPhase, Message, MessageType } from './common/message';
-import { ProductIdentity } from './common/product-identity';
 import { IPlugin } from './plugins/plugin';
 import { ViewerEventMap, ViewerInteractionEventMap } from './common/viewer-event-map';
 import { MouseNavigation } from './navigation/mouse-navigation';
@@ -37,6 +36,23 @@ import { FpsWatch } from './common/fps-watch';
 
 export type NavigationMode = 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none' | 'look-around' | 'walk' | 'look-at' | 'locked-orbit';
 
+/**
+ * The xbim 3D viewer component enabling _*.wexbim_ files to be viewed with WebGL.
+ * 
+ * * A minimal example of using the viewer would be
+ * ```
+ *   <canvas id="viewer" width="500" height="300"></canvas>
+ *   <script type="text/javascript">
+ *       var viewer = new Viewer('viewer');
+ *       viewer.on('loaded', () => {
+ *           viewer.show(ViewType.DEFAULT);
+ *       });
+ *       viewer.load('../data/SampleHouse.wexbim');
+ *       viewer.start();
+ *   </script>
+ * ```
+ * @category Core
+ */
 export class Viewer {
 
     public gl: WebGLRenderingContext;
@@ -481,11 +497,11 @@ export class Viewer {
 
     /**
     * This is a static function which should always be called before Viewer is instantiated.
-    * It will check all prerequisites of the viewer and will report all issues. If Prerequisities.errors contain
-    * any messages viewer won't work. If Prerequisities.warnings contain any messages it will work but some
+    * It will check all prerequisites of the viewer and will report all issues. If CheckResult.errors contains
+    * any messages viewer won't work. If CheckResult.warnings contain any messages it will work but some
     * functions may be restricted or may not work or it may have poor performance.
     * @function Viewer.check
-    * @return {Prerequisites}
+    * @return {CheckResult}
     */
     public static check(): CheckResult {
         return Abilities.check();
@@ -495,7 +511,7 @@ export class Viewer {
     * Adds plugin to the viewer. Plugins can implement certain methods which get called in certain moments in time like
     * before draw, after draw etc. This makes it possible to implement functionality tightly integrated into Viewer like navigation cube or others. 
     * @function Viewer#addPlugin
-    * @param {object} plugin - plug-in object
+    * @param {IPlugin} plugin - plug-in object
     */
     public addPlugin(plugin: IPlugin) {
         if (!plugin.init) {
@@ -553,13 +569,13 @@ export class Viewer {
     }
 
     /**
-    * You can use this function to change state of products in the model. State has to have one of values from {@link xState xState} enumeration. 
-    * Target is either enumeration from {@link xProductType xProductType} or array of product IDs. If you specify type it will effect all elements of the type.
+    * You can use this function to change state of products in the model. State has to have one of values from {@link State State} enumeration. 
+    * Target is either enumeration from {@link ProductType ProductType} or array of product IDs. If you specify type it will effect all elements of the type.
     *
     * @function Viewer#setState
     * @param {State} state - One of {@link State State} enumeration values.
     * @param {Number} [modelId] - Id of the model
-    * @param {Number[] | Number} target - Target of the change. It can either be array of product IDs or product type from {@link xProductType xProductType}.
+    * @param {Number[] | Number} target - Target of the change. It can either be array of product IDs or product type from {@link ProductType ProductType}.
     */
     public addState(state: State, target: number | number[], modelId?: number) {
         if (typeof (state) === 'undefined' || !(state >= 225 && state <= 255)) {
@@ -640,10 +656,10 @@ export class Viewer {
 
     /**
    * Use this function to get state of the products in the model. You can compare result of this function 
-   * with one of values from {@link xState xState} enumeration. 0xFF is the default value.
+   * with one of values from {@link State State} enumeration. 0xFF is the default value.
    *
    * @function Viewer#getState
-   * @param {Number} id - Id of the product. You would typically get the id from {@link Viewer#event:pick pick event} or similar event.
+   * @param {Number} id - Id of the product. You would typically get the id from {@link ViewerEventMap#pick pick} event or similar event.
    * @param {Number} [modelId] - Id of the model
    */
     public getState(id: number, modelId?: number): number {
@@ -657,7 +673,7 @@ export class Viewer {
     * You can use optional hideSpaces parameter if you also want to show spaces. They will be hidden by default.
     * 
     * @function Viewer#resetStates
-    * @param {Number[] | Number} target - Target of the change. It can either be array of product IDs or product type from {@link xProductType xProductType}.
+    * @param {Number[] | Number} target - Target of the change. It can either be array of product IDs or product type from {@link ProductType ProductType}.
     * @param {Number} [modelId = null] - Optional Model ID. Id no ID is specified states are reset for all models.
     */
     public resetState(target: number | number[], modelId?: number) {
@@ -776,7 +792,7 @@ export class Viewer {
     /**
      * Gets complete model state and style. Resulting object can be used to restore the state later on.
      * 
-     * @param {Number} modelId - Model ID which you can get from {@link Viewer#event:loaded loaded} event.
+     * @param {Number} modelId - Model ID which you can get from {@link ViewerEventMap#loaded loaded} event.
      * @returns {Array} - Array representing model state in compact form suitable for serialization
      */
     public getModelState(modelId: number): number[][] {
@@ -809,7 +825,7 @@ export class Viewer {
     * 
     * @function Viewer#setStyle
     * @param style - style defined in {@link Viewer#defineStyle defineStyle()} method
-    * @param {Number[] | Number} target - Target of the change. It can either be array of product IDs or product type from {@link xProductType xProductType}.
+    * @param {Number[] | Number} target - Target of the change. It can either be array of product IDs or product type from {@link ProductType ProductType}.
     * @param {Number} [modelId] - Optional ID of a specific model.
     */
     public setStyle(style: number, target: number | number[], modelId?: number) {
@@ -839,7 +855,7 @@ export class Viewer {
     * your custom colour which you have defined in {@link Viewer#defineStyle defineStyle()} function. 0xFF is the default value.
     *
     * @function Viewer#getStyle
-    * @param {Number} id - Id of the product. You would typically get the id from {@link Viewer#event:pick pick event} or similar event.
+    * @param {Number} id - Id of the product. You would typically get the id from {@link ViewerEventMap#pick pick event} or similar event.
     * @param {Number} [modelId] - Optional Model ID. If not defined first style available for a product with certain ID will be returned. This might be ambiguous.
     * @returns {Number} Returns style index or 255 (State.UNDEFINED) if there is no overriding style defined for the product. Use `viewer.defineStyle()` to define overriding style and `viewer.setStyle()` to set it for a product.
     */
@@ -868,9 +884,9 @@ export class Viewer {
     /**
     * 
     * @function Viewer#getProductType
-    * @param {Number} prodID - Product ID. You can get this value either from semantic structure of the model or by listening to {@link Viewer#event:pick pick} event.
+    * @param {Number} prodID - Product ID. You can get this value either from semantic structure of the model or by listening to {@link ViewerEventMap#pick pick} event.
     * @param {Number} [modelId] - Optional Model ID. If not defined first type of a product with certain ID will be returned. This might be ambiguous.
-    * @return {Number} Product type ID. This is either null if no type is identified or one of {@link xProductType type ids}.
+    * @return {Number} Product type ID. This is either null if no type is identified or one of {@link ProductType type ids}.
     */
     public getProductType(prodId: number, modelId?: number): number {
         return this.forHandleOrAll((handle: ModelHandle) => {
@@ -884,7 +900,7 @@ export class Viewer {
     /**
     * 
     * @function Viewer#getProductBoundingBox
-    * @param {Number} prodID - Product ID. You can get this value either from semantic structure of the model or by listening to {@link Viewer#event:pick pick} event.
+    * @param {Number} prodID - Product ID. You can get this value either from semantic structure of the model or by listening to {@link ViewerEventMap#pick pick} event.
     * @param {Number} [modelId] - Optional Model ID. If not defined first type of a product with certain ID will be returned. This might be ambiguous.
     * @return {Float32Array} Bounding box of the product in model coordinates (not reduced by current WCS)
     */
@@ -930,7 +946,7 @@ export class Viewer {
     /**
     * This method returns specified product's bounding box or bbox of the current acite models if no product ID is specified.
     * @function Viewer#setCameraTarget
-    * @param {Number} prodId [optional] Product ID. You can get ID either from semantic structure of the model or from {@link Viewer#event:pick pick event}.
+    * @param {Number} prodId [optional] Product ID. You can get ID either from semantic structure of the model or from {@link ViewerEventMap#pick pick event}.
     * @param {Number} [modelId] - Optional ID of a specific model.
     * @return {number[]} Returns bounding box of the target, null if not found
     */
@@ -1034,7 +1050,7 @@ export class Viewer {
     * visualization itself but would cause unexpected user interaction (picking, zooming, ...).
     * @function Viewer#load
     * @param {String | Blob | File} model - Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data.
-    * @param {Any} tag [optional] - Tag to be used to identify the model in {@link Viewer#event:loaded loaded} event.
+    * @param {Any} tag [optional] - Tag to be used to identify the model in {@link ViewerEventMap#loaded loaded} event.
     * @param {Object} headers [optional] - Headers to be used for request. This can be used for authorized access for example.
     * @fires Viewer#loaded
     */
@@ -1109,12 +1125,12 @@ export class Viewer {
     /**
     * This method is used to load model data into viewer. Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data. Any other type of argument will throw an exception.
     * Region extend is determined based on the region of the model
-    * Default view if 'front'. If you want to define different view you have to set it up in handler of {@link Viewer#event:loaded loaded} event. <br>
+    * Default view if 'front'. If you want to define different view you have to set it up in handler of {@link ViewerEventMap#loaded loaded} event. <br>
     * You can load more than one model if they occupy the same space, use the same scale and have unique product IDs. Duplicated IDs won't affect 
     * visualization itself but would cause unexpected user interaction (picking, zooming, ...)
     * @function Viewer#load
     * @param {String | Blob | File} model - Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data.
-    * @param {Any} tag [optional] - Tag to be used to identify the model in {@link Viewer#event:loaded loaded} event.
+    * @param {Any} tag [optional] - Tag to be used to identify the model in {@link ViewerEventMap#loaded loaded} event.
     * @param {Object} headers [optional] - Headers to be used for request. This can be used for authorized access for example.
     * @param {Function} progress [optional] - Progress reporting delegate
     * @fires Viewer#loaded
@@ -1203,7 +1219,7 @@ export class Viewer {
     /**
      * Unloads model from the GPU. This action is not reversible.
      * 
-     * @param {Number} modelId - ID of the model which you can get from {@link Viewer#event:loaded loaded} event.
+     * @param {Number} modelId - ID of the model which you can get from {@link ViewerEventMap#loaded loaded} event.
      */
     public unload(modelId: number) {
         var handle = this.getHandle(modelId);
@@ -1235,7 +1251,7 @@ export class Viewer {
 
     //this function should be only called once during initialization
     //or when shader set-up changes
-    public _initShaders(): boolean {
+    private _initShaders(): boolean {
         const gl = this.gl;
         const compile = (shader: WebGLShader, code: string): boolean => {
             gl.shaderSource(shader, code);
@@ -1446,7 +1462,7 @@ export class Viewer {
     }
     /**
     * This is the main draw method. You can use it if you just want to render model once with no navigation and interaction.
-    * If you want interactive model, call {@link Viewer#start start()} method. {@link Viewer#frame Frame event} is fired when draw call is finished.
+    * If you want interactive model, call {@link Viewer#start start()} method. 
     * @function Viewer#draw
     * @fires Viewer#frame
     */
@@ -1791,8 +1807,9 @@ export class Viewer {
     *
     * @function Viewer#show
     * @param {ViewType} type - Type of view. Allowed values are <strong>'top', 'bottom', 'front', 'back', 'left', 'right'</strong>. 
-    * Directions of this views are defined by the coordinate system. Target and distance are defined by {@link Viewer#setCameraTarget setCameraTarget()} method to certain product ID
-    * or to the model extent if {@link Viewer#setCameraTarget setCameraTarget()} is called with no arguments.
+    * Directions of this views are defined by the coordinate system. The camera target and distance is determined by 'id' param, if present, or the full model extent when omitted
+    * @param {number} id - Optional parameter indicating the product ID to target the camera at
+    * @param {number} model - Optional parameter indicating the model ID the product is in
     * @param {boolean} withAnimation - Optional parameter, default is 'true'. When true, transition to the view is animated. When false, view is changed imediately.
     */
     public show(type: ViewType, id?: number, model?: number, withAnimation: boolean = true): Promise<void> {
@@ -2341,7 +2358,7 @@ export class Viewer {
      * This function is bound to browser framerate of the screen so it will stop consuming any resources if you switch to another tab.
      *
      * @function Viewer#start
-     * @param {Number} modelId [optional] - Optional ID of the model to be stopped. You can get this ID from {@link Viewer#event:loaded loaded} event.
+     * @param {Number} modelId [optional] - Optional ID of the model to be stopped. You can get this ID from {@link ViewerEventMap#loaded loaded} event.
      * @param {Number} productId [optional] - Optional ID of the product. If specified, only this product will be presented.
      *                                        This is highly optimal because it doesn't even touch other data in the model
      */
@@ -2393,7 +2410,7 @@ export class Viewer {
     * switch animation of the model on again by calling {@link Viewer#start start()}.
     *
     * @function Viewer#stop
-    * @param {Number} id [optional] - Optional ID of the model to be stopped. You can get this ID from {@link Viewer#event:loaded loaded} event.
+    * @param {Number} id [optional] - Optional ID of the model to be stopped. You can get this ID from {@link ViewerEventMap#loaded loaded} event.
     */
     public stop(id?: number) {
         if (id == null) {
@@ -2492,7 +2509,7 @@ export class Viewer {
     * All models are pickable by default when loaded.
     *
     * @function Viewer#stopPicking
-    * @param {Number} id - ID of the model to be stopped. You can get this ID from {@link Viewer#event:loaded loaded} event.
+    * @param {Number} id - ID of the model to be stopped. You can get this ID from {@link ViewerEventMap#loaded loaded} event.
     */
     public stopPicking(id: number) {
         var model = this.getHandle(id);
@@ -2508,7 +2525,7 @@ export class Viewer {
     * All models are pickable by default when loaded. You can stop the model from being pickable using {@link Viewer#stopPicking} function.
     *
     * @function Viewer#startPicking
-    * @param {Number} id - ID of the model to be stopped. You can get this ID from {@link Viewer#event:loaded loaded} event.
+    * @param {Number} id - ID of the model to be stopped. You can get this ID from {@link ViewerEventMap#loaded loaded} event.
     */
     public startPicking(id: number) {
         var model = this.getHandle(id);
@@ -2529,8 +2546,8 @@ export class Viewer {
     }
 
     /**
-     * Use this method to register to events of the viewer like {@link Viewer#event:pick pick}, {@link Viewer#event:mouseDown mouseDown}, 
-     * {@link Viewer#event:loaded loaded} and others. You can define arbitrary number
+     * Use this method to register to events of the viewer like {@link ViewerEventMap#pick:pick}, {@link ViewerInteractionEventMap#mousedown}, 
+     * {@link ViewerInteractionEventMap:loaded} and others. You can define arbitrary number
      * of event handlers for any event. You can remove handler by calling {@link Viewer#off off()} method.
      *
      * @function Viewer#on
@@ -2661,7 +2678,7 @@ export class Viewer {
    * Use this method to clip the model with A plane. Use {@link Viewer#unclip unclip()} method to 
    * unset clipping plane.
    *
-   * @function Viewer#setClippingPlaneA
+   * @function Viewer#clip
    * @param {Number[]} point - point in clipping plane
    * @param {Number[]} normal - normal pointing to the half space which will be hidden
    * @param {Number} [modelId] - Optional ID of the model to be clipped. All models are clipped otherwise.
@@ -2704,7 +2721,7 @@ export class Viewer {
     }
 
     /**
-   * Use this method to clip the model with A plane. Use {@link Viewer#unclip unclip()} method to 
+   * Use this method to clip the model with B plane. Use {@link Viewer#unclip unclip()} method to 
    * unset clipping plane.
    *
    * @function Viewer#setClippingPlaneB
@@ -2856,7 +2873,7 @@ export class Viewer {
      * This function can be used to identify the XY location on the canvas for a given
      * 3D WCS vector. 
      * For example this can be used to identity the XY location of a pick event in 3D space. 
-     * @param position a {@link vec3 vec3}
+     * @param position a vec3 - see https://glmatrix.net/docs/module-vec3.html
      * @returns HTML coordinates of the provided WCS vector
      */
     public getHtmlCoordinatesOfVector(position: vec3): number[] {
@@ -2904,6 +2921,9 @@ export enum RenderingMode {
     XRAY_ULTRA = 4,
 }
 
+/**
+ * * @category Core
+ */
 export enum ViewType {
     TOP,
     BOTTOM,

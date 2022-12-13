@@ -7,7 +7,9 @@ import { ProductIdentity } from "../../common/product-identity";
 import { vec3, mat4, mat3, quat } from "gl-matrix";
 import { Framebuffer } from "../../framebuffer";
 
-
+/**
+ * @category Plugins
+ */
 export class NavigationCube implements IPlugin {
 
     /**

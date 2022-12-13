@@ -2,6 +2,7 @@
  * Enumeration of product types.
  * @readonly
  * @enum {number}
+ * @category Core
  */
 export enum ProductType {
     IFCPRODUCT = 20,

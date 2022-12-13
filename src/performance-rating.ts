@@ -1,3 +1,6 @@
+/**
+ * @category Core
+ */
 export enum PerformanceRating {
     VERY_LOW = 0,
     LOW = 1,

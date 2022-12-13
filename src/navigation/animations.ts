@@ -1,7 +1,9 @@
 import { Viewer } from "../viewer";
 import { mat4, vec3, quat } from "gl-matrix";
-import { stat } from "fs";
 
+/**
+ * @category Core
+ */
 export enum EasingType {
     LINEAR,
     SINUS,
@@ -9,6 +11,9 @@ export enum EasingType {
     CIRCLE
 }
 
+/**
+ * @category Core
+ */
 export class Animations {
 
     private requestAnimationFrame: (callback: FrameRequestCallback) => number;

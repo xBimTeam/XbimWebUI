@@ -1,3 +1,8 @@
+
+
+/**
+ * @category BCF
+ */
 export class OrthogonalCamera {
     /**
      * viewpoint of the camera

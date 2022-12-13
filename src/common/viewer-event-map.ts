@@ -1,5 +1,8 @@
 import { vec3 } from "gl-matrix";
 
+/**
+ * @category Core
+ */
 // tslint:disable-next-line: interface-name
 export interface ViewerInteractionEventMap {
     "click": ViewerInteractionEvent;
@@ -39,6 +42,9 @@ export interface ViewerInteractionEventMap {
     "hoverpick": ViewerInteractionEvent;
 }
 
+/**
+ * @category Core
+ */
 // tslint:disable-next-line: interface-name
 export interface ViewerEventMap extends ViewerInteractionEventMap {
     "pointerlockchange": ViewerPointerLockChangedEvent;
@@ -50,6 +56,9 @@ export interface ViewerEventMap extends ViewerInteractionEventMap {
     "navigationEnd": boolean;
 }
 
+/**
+ * @category Core
+ */
 // tslint:disable-next-line: interface-name
 export interface ViewerLoadedEvent {
     /**
@@ -66,6 +75,7 @@ export interface ViewerLoadedEvent {
 /**
  * Interaction events forward original canvas events
  * and retrieves product and model ID
+ * @category Core
  */
 // tslint:disable-next-line: interface-name
 export interface ViewerInteractionEvent {
@@ -91,6 +101,9 @@ export interface ViewerInteractionEvent {
     xyz: vec3;
 }
 
+/**
+ * @category Core
+ */
 // tslint:disable-next-line: interface-name
 export interface ViewerPointerLockChangedEvent {
 

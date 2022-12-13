@@ -1,3 +1,7 @@
+
+/**
+ * @category BCF
+ */
 export class Snapshot {
     /**
      * Format of the snapshot

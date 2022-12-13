@@ -1,5 +1,5 @@
 ﻿import { ModelGeometry, Region } from "./reader/model-geometry";
-import { State, StatePriorities } from "./common/state";
+import { State } from "./common/state";
 import { ModelPointers } from "./model-pointers";
 import { Product } from "./product-inheritance";
 import { LoadingPhase, Message, MessageType } from "./common/message";
@@ -11,6 +11,8 @@ import { ProductAnalyticalResult } from "./common/product-analytical-result";
 
 //this class holds pointers to textures, uniforms and data buffers which
 //make up a model in GPU
+
+
 export class ModelHandle {
 
     /**

@@ -1,6 +1,9 @@
 import { vec3, mat4, mat3, quat } from "gl-matrix";
 import { ClippingPlane } from "./bcf";
 
+/**
+ * @category Core
+ */
 export class SectionBox {
     private _location: vec3;
     private _lengthX: number;

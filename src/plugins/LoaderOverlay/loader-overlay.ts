@@ -1,6 +1,9 @@
 import { IPlugin } from "../plugin";
 import { Viewer } from "../../viewer";
 
+/**
+ * @category Plugins
+ */
 export class LoaderOverlay implements IPlugin {
     private viewer: Viewer;
     private overlay: HTMLDivElement;

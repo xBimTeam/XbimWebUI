@@ -1,5 +1,8 @@
 import { mat4 } from "gl-matrix";
 
+/**
+ * @category Core
+ */
 export class CameraProperties {
 
     /**
@@ -64,6 +67,9 @@ export class CameraProperties {
     }
 }
 
+/**
+ * @category Core
+ */
 export enum CameraType {
     PERSPECTIVE = 0,
     ORTHOGONAL = 1

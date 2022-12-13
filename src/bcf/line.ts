@@ -1,3 +1,7 @@
+
+/**
+ * @category BCF
+ */
 export class Line {
     /**
      * start point of the line

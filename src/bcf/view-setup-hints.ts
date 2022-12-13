@@ -1,3 +1,7 @@
+
+/**
+ * @category BCF
+ */
 export class ViewSetupHints {
     /**
      * Visibility of spaces

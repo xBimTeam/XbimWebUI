@@ -1,4 +1,7 @@
-﻿export class Product {
+﻿/**
+ * @category Core
+ */
+export class Product {
     public name: string;
     public id: number;
     public abs: boolean;

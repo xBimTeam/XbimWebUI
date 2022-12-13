@@ -1,3 +1,6 @@
+/**
+ * @category Core
+ */
 export class ProductAnalyticalResult {
     public modelId: number;
     public productId: number;

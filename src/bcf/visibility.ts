@@ -1,6 +1,10 @@
 import { Component } from "./component";
 import { ViewSetupHints } from "./view-setup-hints";
 
+
+/**
+ * @category BCF
+ */
 export class Visibility {
     /**
      * If true: Show all components, and hide the exceptions. If false: Hide all components and show exceptions;

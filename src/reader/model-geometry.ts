@@ -4,8 +4,10 @@ import { State, StatePriorities } from "../common/state";
 import { ProductType } from "../product-type";
 import { LoadingPhase, Message, MessageType } from "../common/message";
 import { ProductMap } from "../common/product-map";
-import { WexBimShapeSingleInstance } from "../stream/wexbim-stream";
 
+/**
+ * @category Core
+ */
 export type ReaderOptions = {
 
     /** Determines whether the viewer loaded will attempt to sort the geometry by size, during the load
@@ -18,6 +20,7 @@ export type ReaderOptions = {
     */
     orderGeometryBySize?: boolean
 }
+
 
 export class ModelGeometry {
 

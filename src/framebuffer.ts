@@ -1,6 +1,7 @@
 ﻿import { DepthReader } from "./shaders/depth-reader";
 import { vec3 } from "gl-matrix";
 
+
 export class Framebuffer {
     public framebuffer: WebGLFramebuffer;
     public renderbuffer: WebGLRenderbuffer;

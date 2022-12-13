@@ -1,3 +1,7 @@
+
+/**
+ * @category BCF
+ */
 export class Component {
     /**
      * IFC guid of the component

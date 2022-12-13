@@ -1,3 +1,7 @@
+
+/**
+ * @category BCF
+ */
 export class ClippingPlane {
     /**
      * [Point] Origin of the clipping plane 

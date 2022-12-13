@@ -1,5 +1,9 @@
 import { Component } from "./component";
 
+
+/**
+ * @category BCF
+ */
 export class Coloring {
     /**
      *  Color of the components

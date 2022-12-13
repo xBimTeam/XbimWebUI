@@ -2,6 +2,9 @@
     * Enumeration for object states.
     * @readonly
     * @enum {number}
+    * 
+    * 
+    * @category Core
     */
 export enum State {
     UNDEFINED = 255,

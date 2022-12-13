@@ -12,8 +12,16 @@ import { CameraType } from "../camera";
 import { State } from "../common/state";
 import { Visibility } from "./visibility";
 import { Component } from "./component";
-import { BBox } from "../common/bbox";
 
+
+/**
+ * Class representing a BCF viewpoint
+ * 
+ * A Viewpoint can capture and restore the state of the viewer's current state using
+ * buildingSmart BCF-API schema
+ * 
+ * @category BCF
+ */
 export class Viewpoint {
 
     /**

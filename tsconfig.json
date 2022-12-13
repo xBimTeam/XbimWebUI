@@ -19,13 +19,15 @@
     "examples"
   ],
   "typedocOptions": {
-    "inputFiles": ["./src"],
     "excludeExternals": true,
     "excludePrivate": true,
+    "excludeInternal": true,
     "exclude": ["**/workers", "node_modules", "**/shaders",  "**/*shader*"],
-    "mode": "modules",
     "out": "docs",
-    "entryPoint": "./index.ts",
-    "ignoreCompilerErrors": true
+    "entryPoints": ["./index.ts"],
+    "includeVersion": true,
+    "categorizeByGroup": false,
+    "categoryOrder": ["Core", "BCF", "Plugins", "*"],
+    "sort": ["alphabetical"],
   }
 }
