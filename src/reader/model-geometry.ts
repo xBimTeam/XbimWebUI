@@ -4,6 +4,7 @@ import { State, StatePriorities } from "../common/state";
 import { ProductType } from "../product-type";
 import { LoadingPhase, Message, MessageType } from "../common/message";
 import { ProductMap } from "../common/product-map";
+import { vec3 } from "gl-matrix";
 
 /**
  * @category Core
@@ -435,7 +436,7 @@ export class ModelGeometry {
 // tslint:disable: max-classes-per-file
 export class Region {
     public population: number = -1;
-    public centre: Float32Array = null;
+    public centre: vec3 = null;
     public bbox: Float32Array = null;
 
     constructor(region?: Region) {

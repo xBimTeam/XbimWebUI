@@ -1,5 +1,6 @@
 import { vec3, mat4, mat3, quat } from "gl-matrix";
 import { ClippingPlane } from "./bcf";
+import { VectorUtils } from "./common/vector-utils";
 
 /**
  * @category Core
@@ -200,9 +201,9 @@ export class SectionBox {
             return false;
         }
 
-        const Xdir = vec3.normalize(vec3.create(), results[0].plane.direction);
-        const Ydir = vec3.normalize(vec3.create(), results[1].plane.direction);
-        const Zdir = vec3.normalize(vec3.create(), results[2].plane.direction);
+        const Xdir = vec3.normalize(vec3.create(), VectorUtils.getVec3(results[0].plane.direction));
+        const Ydir = vec3.normalize(vec3.create(), VectorUtils.getVec3(results[1].plane.direction));
+        const Zdir = vec3.normalize(vec3.create(), VectorUtils.getVec3(results[2].plane.direction));
         const rotation = quat.setAxes(quat.create(), vec3.negate(vec3.create(), Zdir), Xdir, Ydir);
 
         // get roll (X), pitch (Y) and yaw (Z) euler angles
@@ -228,7 +229,7 @@ export class SectionBox {
     }
 
     private getSize(plane: ClippingPlane, planes: ClippingPlane[]): number {
-        const opposite = planes.filter(p => this.isOpposite(plane.direction, p.direction)).pop();
+        const opposite = planes.filter(p => this.isOpposite(VectorUtils.getVec3(plane.direction), VectorUtils.getVec3(p.direction))).pop();
         if (opposite == null)
             return null;
 
@@ -241,7 +242,7 @@ export class SectionBox {
         const y = plane.location[1];
         const z = plane.location[2];
 
-        var distance = Math.abs(a * x + b * y + c * z + d) / vec3.length(opposite.direction);
+        var distance = Math.abs(a * x + b * y + c * z + d) / vec3.length(VectorUtils.getVec3(opposite.direction));
         return distance;
     }
 
@@ -272,7 +273,7 @@ export class SectionBox {
         return { roll, pitch, yaw };
     }
 
-    private isOpposite(a: number[], b: number[]) {
+    private isOpposite(a: vec3, b: vec3) {
         var angle = vec3.angle(a, b);
         return Math.abs(angle - Math.PI) < 1e-2; //tolerance of approx. 0.6 degree
     }
@@ -299,7 +300,7 @@ export class SectionBox {
     }
 
     private areOrthogonal(a: ClippingPlane, b: ClippingPlane): boolean {
-        var angle = vec3.angle(a.direction, b.direction);
+        var angle = vec3.angle(VectorUtils.getVec3(a.direction), VectorUtils.getVec3(b.direction));
         return Math.abs(angle - Math.PI / 2.0) < 1e-2; 
     }
 
@@ -343,7 +344,7 @@ export class SectionBox {
         m = mat4.translate(mat4.create(), m, loc);
 
         // transform section box vertices to real placement and rotation
-        const vertices = local.map(v => vec3.transformMat4(vec3.create(), v, m));
+        const vertices = local.map(v => vec3.transformMat4(vec3.create(), VectorUtils.getVec3(v), m));
 
         // get minimumm and maximum coordinates
         const min = vertices.reduce((previous, current) =>

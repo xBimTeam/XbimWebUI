@@ -1,5 +1,6 @@
 import { Viewer } from "../viewer";
 import { vec3, mat4 } from "gl-matrix";
+import { VectorUtils } from "../common/vector-utils";
 
 export class PreflightCheck {
     public static findView(viewer: Viewer, elements: { id: number, model: number }[], density: number): { mv: mat4, height: number } {
@@ -21,7 +22,7 @@ export class PreflightCheck {
             // top view
             // { dir: [0, 0, -1], up: [0, 1, 0] }
         ]
-            .map(d => ({ dir: vec3.normalize(vec3.create(), d.dir), up: vec3.normalize(vec3.create(), d.up) }));
+            .map(d => ({ dir: vec3.normalize(vec3.create(), VectorUtils.getVec3(d.dir)), up: vec3.normalize(vec3.create(), VectorUtils.getVec3(d.up)) }));
 
         // only add top view for elements which have significant horizontal dimensions (roof, slab)
         const boxHorizontalArea = bBox[3] * bBox[4];

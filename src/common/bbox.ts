@@ -98,17 +98,17 @@ export class BBox {
         const max2 = vec3.max(vec3.create(), ya, yb);
         const max3 = vec3.max(vec3.create(), za, zb);
 
-        const min = [
+        const min = vec3.fromValues(
             min1[0] + min2[0] + min3[0],
             min1[1] + min2[1] + min3[1],
             min1[2] + min2[2] + min3[2]
-        ]
+        );
 
-        const max = [
+        const max = vec3.fromValues(
             max1[0] + max2[0] + max3[0],
             max1[1] + max2[1] + max3[1],
             max1[2] + max2[2] + max3[2]
-        ]
+        );
 
         const size = vec3.sub(vec3.create(), max, min);
 

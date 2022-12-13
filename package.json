@@ -13,7 +13,7 @@
   },
   "version": "2.1.0",
   "devDependencies": {
-    "@types/gl-matrix": "^2.4.5",
+    "@types/gl-matrix": "^3.2.0",
     "@types/node": "18.11.14",
     "@types/webgl2": "0.0.6",
     "clean-webpack-plugin": "^4.0.0",
@@ -36,7 +36,7 @@
     "build:dev": "webpack --config webpack.worker.js&&webpack --config webpack.dev.js"
   },
   "dependencies": {
-    "gl-matrix": "^3.0.0",
+    "gl-matrix": "^3.4.3",
     "handlebars": "^4.7.7"
   }
 }

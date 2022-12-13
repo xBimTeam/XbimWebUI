@@ -8,6 +8,7 @@ import { ProductMap } from "./common/product-map";
 import { BBox } from "./common/bbox";
 import { ProductType } from "./product-type";
 import { ProductAnalyticalResult } from "./common/product-analytical-result";
+import { VectorUtils } from "./common/vector-utils";
 
 //this class holds pointers to textures, uniforms and data buffers which
 //make up a model in GPU
@@ -98,8 +99,8 @@ export class ModelHandle {
 
         // fix local displacement
         const shift = vec3.subtract(vec3.create(), this.wcs, wcs);
-        result.centre = vec3.add(vec3.create(), shift, this.getVec3(result.centre));
-        let bboxOrigin = vec3.add(vec3.create(), shift, this.getVec3(result.bbox.subarray(0, 3)));
+        result.centre = vec3.add(vec3.create(), shift, VectorUtils.getVec3(result.centre));
+        let bboxOrigin = vec3.add(vec3.create(), shift, VectorUtils.getVec3(result.bbox.subarray(0, 3)));
         result.bbox.set(new Float32Array(bboxOrigin), 0);
         return result;
     }
@@ -191,7 +192,7 @@ export class ModelHandle {
         this.id = ModelHandle._instancesNum++;
 
         this.meter = _model.meter;
-        this.wcs = this.getVec3(_model.wcs);
+        this.wcs = VectorUtils.getVec3(_model.wcs);
 
         // handle the case when there is actually nothing in the model
         if (_model.indices.length === 0) {
@@ -318,16 +319,16 @@ export class ModelHandle {
         gl.uniform1i(pointers.ClippingAUniform, this._clippingA ? 1 : 0);
         gl.uniform1i(pointers.ClippingBUniform, this._clippingB ? 1 : 0);
         if (this._clippingA) {
-            const c = this.transformPlane(this._clippingPlaneA, wcs);
+            const c = this.transformPlane(VectorUtils.getVec3(this._clippingPlaneA), wcs);
             gl.uniform4fv(pointers.ClippingPlaneAUniform, c);
         }
         if (this._clippingB) {
-            const c = this.transformPlane(this._clippingPlaneB, wcs);
+            const c = this.transformPlane(VectorUtils.getVec3(this._clippingPlaneB), wcs);
             gl.uniform4fv(pointers.ClippingPlaneBUniform, c);
         }
     }
 
-    private transformPlane(plane: number[], transform: vec3): Float32Array {
+    private transformPlane(plane: vec3, transform: vec3): Float32Array {
         const normalLength = vec3.len(plane);
         // plane components
         const a = plane[0];
@@ -483,7 +484,7 @@ export class ModelHandle {
             if (wcs != null) {
                 // create clone before we start changing it
                 map = ProductMap.clone(map);
-                const origin = this.getVec3(map.bBox.subarray(0, 3));
+                const origin = VectorUtils.getVec3(map.bBox.subarray(0, 3));
                 const shift = vec3.subtract(vec3.create(), this.wcs, wcs);
                 const position = vec3.add(vec3.create(), origin, shift);
                 map.bBox.set(position, 0);
@@ -616,9 +617,7 @@ export class ModelHandle {
         }
     }
 
-    private getVec3(a: ArrayLike<number>) {
-        return vec3.fromValues(a[0], a[1], a[2]);
-    }
+
 
     public static bufferTexture(gl: WebGLRenderingContext | WebGL2RenderingContext, pointer: WebGLTexture, data: Float32Array | Uint8Array, numberOfComponents?: number): number {
 
