@@ -4,7 +4,7 @@ import { vec3 } from 'gl-matrix';
 import { Snapshot, Viewpoint } from '../../src/bcf';
 import { LoaderOverlay } from '../../src/plugins/LoaderOverlay/loader-overlay';
 
-var models = [];
+var models: any[] = [];
 
 var viewer = new Viewer("xBIM-viewer");
 viewer.background = [0, 0, 0, 0];
@@ -66,7 +66,7 @@ input.addEventListener('change', () => {
         viewer.start();
     }
 
-    input.value = null;
+    input.value = '';
 });
 
 function refreshModelsPanel() {

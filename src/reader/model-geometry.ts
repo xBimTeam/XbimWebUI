@@ -215,8 +215,15 @@ export class ModelGeometry {
                     // Sort to make performance optimization look better. Big things go in first (descending sorting).
                     // Because of the performance impact of doing this each load it is preferable to pre-sort the geometry in wexbim
                     data.sort((a, b) => {
-                        const mapA = this.productMaps[a.shapes[0].pLabel];
-                        const mapB = this.productMaps[b.shapes[0].pLabel];
+                        const labelA = a.shapes[0]?.pLabel;
+                        const labelB = b.shapes[0]?.pLabel;
+
+                        if (labelA == null || labelB == null){
+                            return 0
+                        }
+
+                        const mapA = this.productMaps[labelA];
+                        const mapB = this.productMaps[labelB];
 
                         if (mapA == null)
                             return 1;

@@ -1752,6 +1752,7 @@ export class Viewer {
     * @param {Number | Array<{id: number, model: number}>} [target] Optional product ID or a list of products in models
     * @param {Number} [model] Optional model ID
     * @param {boolean} withAnimation - Optional parameter, default is 'true'. When true, transition to the view is animated. When false, view is changed imediately.
+    * @param {boolean} checkVisibility - Optional parameter, default is 'true'. When true, viewer tries attempts to fing the best view angle where the target is most visible.
     * @return {boolean} True if target exists and zoom was successful, False otherwise
     */
     public zoomTo(target?: number | { id: number, model: number }[], model?: number, withAnimation: boolean = true, checkVisibility: boolean = true): Promise<void> {

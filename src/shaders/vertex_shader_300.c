@@ -189,13 +189,10 @@ void main(void) {
 		return;
 	}
 
-	// apply world coordinate translation to align all models
-	mat4 w = mat4(1.0);
-	w[3] = w[3] + vec4(uWcs, 0.0);
-
 	//transform data to simulate camera perspective and position
 	mat4 transform = getTransform();
-	vPosition = vec3(w * getVertexPosition(transform));
+	// apply world coordinate translation to align all models
+	vPosition = vec3(getVertexPosition(transform)) + uWcs;
 	vNormal = getNormal(transform);
 
 	// normal colour (or overriding)

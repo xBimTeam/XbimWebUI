@@ -126,7 +126,20 @@ viewer.on("pointerlockchange", (arg) => {
 });
 
 
-
+var viewer2 = new Viewer("viewer2");
+var sync = () => {
+    viewer2.mvMatrix = viewer.mvMatrix;
+    window.requestAnimationFrame(sync);
+};
+window.requestAnimationFrame(sync);
+viewer.on('navigationEnd', () => {
+    cube.stopped = true;
+    let d = document.getElementById('snapshot');
+    let img = viewer.getCurrentImageHtml(400, 200);
+    d.innerHTML = '';
+    d.appendChild(img);
+    cube.stopped = false;
+})
 
 // viewer.on("loaded", () => {
 // let image = viewer.getCurrentImageHtml(2000, 1000);
@@ -148,6 +161,7 @@ var progress = document.getElementById("progress");
 
 viewer.on('loaded', () => {
     viewer.start();
+    viewer2.start();
     overlay.hide();
     viewer.show(ViewType.DEFAULT, undefined, undefined, false);
 });
@@ -166,6 +180,7 @@ if (modelId == 'large') {
     viewer.loadAsync(model, "base", null, (msg) => {
         progress.innerHTML = `[${MessageProgress(msg).toFixed(2)}%] ${msg.message}`;
     });
+    viewer2.loadAsync(model);
 }
 
 
