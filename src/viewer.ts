@@ -1342,7 +1342,7 @@ export class Viewer {
     }
 
     private get meter(): number {
-        const handle = this._handles.find((h) => !h.stopped);
+        const handle = this._handles.find((h) => !h.stopped && !h.empty);
         if (!handle) {
             return 1.0;
         }
