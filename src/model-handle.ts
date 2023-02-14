@@ -3,7 +3,7 @@ import { State } from "./common/state";
 import { ModelPointers } from "./model-pointers";
 import { Product } from "./product-inheritance";
 import { LoadingPhase, Message, MessageType } from "./common/message";
-import { vec3 } from "gl-matrix";
+import { vec3, vec4 } from "gl-matrix";
 import { ProductMap } from "./common/product-map";
 import { BBox } from "./common/bbox";
 import { ProductType } from "./product-type";
@@ -319,17 +319,17 @@ export class ModelHandle {
         gl.uniform1i(pointers.ClippingAUniform, this._clippingA ? 1 : 0);
         gl.uniform1i(pointers.ClippingBUniform, this._clippingB ? 1 : 0);
         if (this._clippingA) {
-            const c = this.transformPlane(VectorUtils.getVec3(this._clippingPlaneA), wcs);
+            const c = this.transformPlane(this._clippingPlaneA, wcs);
             gl.uniform4fv(pointers.ClippingPlaneAUniform, c);
         }
         if (this._clippingB) {
-            const c = this.transformPlane(VectorUtils.getVec3(this._clippingPlaneB), wcs);
+            const c = this.transformPlane(this._clippingPlaneB, wcs);
             gl.uniform4fv(pointers.ClippingPlaneBUniform, c);
         }
     }
 
-    private transformPlane(plane: vec3, transform: vec3): Float32Array {
-        const normalLength = vec3.len(plane);
+    private transformPlane(plane: number[], transform: vec3): Float32Array {
+        const normalLength = vec3.len(VectorUtils.getVec3(plane));
         // plane components
         const a = plane[0];
         const b = plane[1];
