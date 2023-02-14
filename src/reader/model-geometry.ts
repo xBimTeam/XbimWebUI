@@ -398,7 +398,7 @@ export class ModelGeometry {
                 styleItem = this._styleMap.GetStyle(-1); //default style
             }
 
-            const type = this.productMaps[prodLabel].type;
+            const type = this.productMaps[prodLabel] ? this.productMaps[prodLabel].type : ProductType.IFCPRODUCT;
             if (type === ProductType.IFCSPACE || type === ProductType.IFCOPENINGELEMENT) {
                 styleItem = this._styleMap.GetStyle(-2); //fixed space and opening style (semitransparent blue)
             }
