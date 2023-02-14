@@ -69,6 +69,13 @@ input.addEventListener('change', () => {
     input.value = '';
 });
 
+document.addEventListener('keydown', keyEvent => {
+    if (keyEvent.ctrlKey && keyEvent.key == 'o') {
+        keyEvent.preventDefault();
+        input.click();
+    }
+});
+
 function refreshModelsPanel() {
     var html = "<table>";
     models.forEach((m) => {

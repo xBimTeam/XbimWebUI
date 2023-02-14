@@ -56,6 +56,10 @@ export class BBox {
             minB[0] > maxA[0] || minB[1] > maxA[1] || minB[2] > maxA[2];
     }
 
+    public static getDiagonalSize(bBox: number[] | Float32Array): number {
+        return Math.sqrt(bBox[3]*bBox[3] + bBox[4]*bBox[4] + bBox[5]*bBox[5])
+    }
+
     /**
      * Transforms axis aligned bounding box into current model view and returns width and height
      * @param bBox Axis aligned bounding box

@@ -349,7 +349,7 @@ export class Viewer {
     * @param {string | HTMLCanvasElement} canvas - string ID of the canvas or HTML canvas element.
     * @param {({string})} errorHandler - an error handler
     */
-    constructor(canvas: string | HTMLCanvasElement, errorHandler?: ({ message }) => void ) {
+    constructor(canvas: string | HTMLCanvasElement, errorHandler?: ({ message }) => void) {
         if (canvas == null) {
             throw new Error('Canvas has to be defined');
         }
@@ -1211,8 +1211,8 @@ export class Viewer {
         }
 
         const meter = this.activeHandles[0].meter;
-        var maxSize = Math.max(region.bbox[3], region.bbox[4], region.bbox[5]);
-        this.cameraProperties.far = maxSize * 20;
+        var maxSize = BBox.getDiagonalSize(region.bbox);
+        this.cameraProperties.far = maxSize * 10;
         this.cameraProperties.near = meter / 4;
     }
 
@@ -1483,6 +1483,16 @@ export class Viewer {
         let width = framebuffer ? framebuffer.width : this.width;
         let height = framebuffer ? framebuffer.height : this.height;
 
+        // this will minimize z-fighting when zoomed far away from the model with thin layers
+        var {near, far, size} = this.getCameraDistanceFromRegion();
+        if (near > 0 && far > 0) {
+            this.cameraProperties.near = near;
+            this.cameraProperties.far = far;
+        } else {
+            this.cameraProperties.near = this.meter * 0.2;
+            this.cameraProperties.far = size * 5;
+        }
+        
         // set right size of viewport
         gl.viewport(0, 0, width, height);
         this.updatePMatrix(width, height);
@@ -1698,6 +1708,26 @@ export class Viewer {
     private updatePMatrix(width: number, height: number) {
         this.pMatrix = this.cameraProperties.getProjectionMatrix(width, height);
     }
+
+    private getCameraDistanceFromRegion(): {near: number, far: number, size: number} {
+        let region = this.getMergedRegion();
+        let camera = this.getCameraPosition();
+        let viewDir = vec3.normalize(vec3.create(), this.getCameraDirection());
+        let size = BBox.getDiagonalSize(region.bbox);
+
+        let regionVec = vec3.subtract(vec3.create(), region.centre, camera);
+        let regionDir = vec3.normalize(vec3.create(), regionVec);
+        let regionDist = vec3.length(regionVec);
+
+        let nearVec = vec3.scale(vec3.create(), regionDir, regionDist - size / 2.0);
+        let farVec = vec3.scale(vec3.create(), regionDir, regionDist + size / 2.0); 
+
+        let near = vec3.dot(viewDir, nearVec);
+        let far = vec3.dot(viewDir, farVec);
+        
+        return { near, far, size};
+    }
+
 
     /**
     * Use this method to get actual camera position.
@@ -2878,8 +2908,8 @@ export class Viewer {
      * @returns HTML coordinates of the provided WCS vector
      */
     public getHtmlCoordinatesOfVector(position: vec3): number[] {
-        if(!position) return [];
-        
+        if (!position) return [];
+
         const transform = mat4.multiply(mat4.create(), this.pMatrix, this.mvMatrix);
         const glPosition = vec3.transformMat4(vec3.create(), position, transform);
 
