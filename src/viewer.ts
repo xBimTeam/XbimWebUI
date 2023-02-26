@@ -1711,6 +1711,11 @@ export class Viewer {
 
     private getCameraDistanceFromRegion(): {near: number, far: number, size: number} {
         let region = this.getMergedRegion();
+
+        if (!region.bbox || region.bbox.length === 0) {
+            return { near: 0, far: 0, size: 0};
+        }
+
         let camera = this.getCameraPosition();
         let viewDir = vec3.normalize(vec3.create(), this.getCameraDirection());
         let size = BBox.getDiagonalSize(region.bbox);
