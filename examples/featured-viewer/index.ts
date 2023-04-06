@@ -1,4 +1,4 @@
-﻿import { Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube, Grid, EasingType, MessageProgress } from '../..';
+﻿import { Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube, Grid, EasingType, MessageProgress, InteractiveClippingPlane } from '../..';
 import { CameraType } from '../../src/camera';
 import { Viewpoint } from '../../src/bcf/viewpoint';
 import { vec3, mat4 } from 'gl-matrix';
@@ -196,6 +196,9 @@ cube.passiveAlpha = cube.activeAlpha = 1.0;
 cube.minSize = 150;
 viewer.addPlugin(cube);
 
+var plane = new InteractiveClippingPlane();
+viewer.addPlugin(plane);
+
 viewer.defineStyle(0, [255, 0, 0, 255]);  //red
 viewer.defineStyle(1, [0, 0, 255, 100]);  //semitransparent blue
 viewer.defineStyle(2, [255, 255, 255, 255]); //white
@@ -223,11 +226,11 @@ document['resetWalls'] = () => {
 };
 
 document['clip'] = () => {
-    viewer.setClippingPlaneA([0, 0, -1, 2000]);
-    viewer.setClippingPlaneB([0, 0, 1, 100]);
+    plane.stopped = false;
 };
 document['unclip'] = () => {
     viewer.unclip();
+    plane.stopped = true;
 };
 document['stopCube'] = () => {
     cube.stopped = true;
