@@ -339,8 +339,86 @@ export class InteractiveClippingPlane implements IPlugin {
             return;
         }
 
-        // TODO: get position and rotations from plane equation. Point needs to be reduced by the current WCS
-        // if current position (from transformation matrix) fits the plane, use it.
+        // noraml, tangent and binormal of the plane
+        const normal = vec3.normalize(vec3.create(), vec3.fromValues(plane[0], plane[1], plane[2]));
+        const tangent = this.getTangent(normal);
+        var binormal = vec3.cross(vec3.create(), normal, tangent);
+        vec3.normalize(binormal, binormal);
+
+        // plane point
+        const planePoint = this.getPlanePoint(normal, plane[3]); 
+
+        // build transformation
+        const transform = mat4.fromValues(
+            normal[0], normal[1], normal[2], 0,
+            tangent[0], tangent[1], tangent[2], 0,
+            binormal[0], binormal[1], binormal[2], 0,
+            planePoint[0], planePoint[1], planePoint[2], 1);
+          
+            
+        if(this.transformation && this.isTransformationsHasSameOrientation(this.transformation, transform, plane)){
+            return;
+        }
+        
+        this.transformation = transform;
+        
+    }
+
+    private  isTransformationsHasSameOrientation (transform1 :mat4, transform2: mat4, plane: number[]) : boolean{
+        const tolerance = 0.0001; 
+        // if two planes has same normal
+        if (Math.abs(transform1[0] - transform2[0]) < tolerance && Math.abs(transform1[1] - transform2[1]) < tolerance && 
+            Math.abs(transform1[2] - transform2[2]) < tolerance && Math.abs(transform1[3] - transform2[3]) < tolerance) {
+                // if new point is on older plane
+                return Math.abs((plane[0] * transform2[12]) + (plane[1] * transform2[13]) + (plane[2] * transform2[14]) + plane[3]) < tolerance;
+            }
+    }
+
+    private getPlanePoint(normal: vec3, dval: number): vec3 {
+
+        const regionCentre = this.viewer.getMergedRegion()?.centre ?? vec3.create();
+        
+        let planePoint : vec3 = null;
+        if(normal[2] != 0){
+            const acc = (normal[0] * regionCentre[0]) + (normal[1] * regionCentre[1]) + dval;
+            planePoint = vec3.fromValues(regionCentre[0], regionCentre[1], -1 * (acc / normal[2]));
+        }
+        else if(normal[1] != 0){
+            const acc = (normal[0] * regionCentre[0]) + (normal[2] * regionCentre[2]) + dval;
+            planePoint = vec3.fromValues(regionCentre[0], -1 * (acc / normal[1]), regionCentre[2]);
+        }
+        else if(normal[0] != 0){
+            const acc = (normal[1] * regionCentre[1]) + (normal[2] * regionCentre[2]) + dval;
+            planePoint = vec3.fromValues(-1 * (acc/ normal[0]), regionCentre[1], regionCentre[2]);
+        }
+
+        return planePoint;
+    }
+
+    private getTangent(normal: vec3): vec3 { 
+
+        const between = (x: number, min: number, max: number) => {
+            return x > min && x < max;
+        }
+
+        const x = vec3.fromValues(1, 0, 0);
+        const y = vec3.fromValues(0, 1, 0);
+        const z = vec3.fromValues(0, 0, 1);
+        
+        let tangent : vec3 = null;
+        if(between(vec3.angle(normal, z), 0, Math.PI)) {
+            tangent = vec3.cross(vec3.create(), normal, z);
+        }
+        else if(between(vec3.angle(normal, x), 0, Math.PI)){
+             tangent = vec3.cross(vec3.create(), normal, x);
+        }
+        else if(between(vec3.angle(normal, y), 0, Math.PI)){
+            tangent = vec3.cross(vec3.create(), normal, y);
+        }
+
+        vec3.normalize(tangent, tangent);
+    
+        return tangent;
     }
 
     private applyCurrentPlane(): void {
