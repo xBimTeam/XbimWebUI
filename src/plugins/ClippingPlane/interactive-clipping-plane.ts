@@ -336,69 +336,12 @@ export class InteractiveClippingPlane implements IPlugin {
          
         // we use this projected screen normal to map mouse movement
         // to actual drag axis
-        const rotation2 = mat4.getRotation(quat.create(), this.mvMatrix); 
-        const projectedNormal = vec3.transformQuat(vec3.create(), dragAxis, rotation2);
+        const modelViewRotation = mat4.getRotation(quat.create(), this.mvMatrix); 
+        const projectedNormal = vec3.transformQuat(vec3.create(), dragAxis, modelViewRotation);
         vec3.normalize(projectedNormal, projectedNormal)
         
-        var xComponent = projectedNormal[0];
-        var yComponent = projectedNormal[1];
-        let offset:number = 0;
-        
-        // decide if we add or subtract the x and y derivatives
-        // of the mouse movement
-        if( xComponent >= 0 && yComponent >= 0){
-            if(deltaX > 0) {
-                offset += deltaX;
-            }
-            else{
-                offset -= Math.abs(deltaX);
-            }
-            if(deltaY > 0) {
-                offset -= deltaY;
-            }
-            else{
-                offset += Math.abs(deltaY);
-            }
-        } else if( xComponent < 0 && yComponent > 0){
-            if(deltaX > 0) {
-                offset -= deltaX;
-            }
-            else{
-                offset += Math.abs(deltaX);
-            }
-            if(deltaY > 0) {
-                offset -= deltaY;
-            }
-            else{
-                offset += Math.abs(deltaY);
-            }
-        } else if( xComponent < 0 && yComponent < 0){
-            if(deltaX > 0) {
-                offset -= deltaX;
-            }
-            else{
-                offset += Math.abs(deltaX);
-            }
-            if(deltaY > 0) {
-                offset += deltaY;
-            }
-            else{
-                offset -= Math.abs(deltaY);
-            }
-        } else if( xComponent > 0 && yComponent < 0){
-            if(deltaX > 0) {
-                offset += deltaX;
-            }
-            else{
-                offset -= Math.abs(deltaX);
-            }
-            if(deltaY > 0) {
-                offset += deltaY;
-            }
-            else{
-                offset -= Math.abs(deltaY);
-            }
-        }
+        // calculate offset based on the projected axis orientation
+        const offset = (deltaX * projectedNormal[0]) - (deltaY * projectedNormal[1]);
 
         // scale the dragging axis with the deduced offset and speed factor
         vec3.scale(dragAxis, dragAxis, offset * speed);
