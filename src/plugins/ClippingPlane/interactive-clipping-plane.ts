@@ -253,7 +253,7 @@ export class InteractiveClippingPlane implements IPlugin {
         let lastMouseY: number = null;
         let lastNavigation: NavigationMode;
         let origin: vec3;
-
+       
         this.viewer.canvas.addEventListener('pointerdown', event => {
             // don't do anything if this plugin is not active
             if (this.stopped || this.viewer.plugins.indexOf(this) < 0) {
@@ -301,6 +301,7 @@ export class InteractiveClippingPlane implements IPlugin {
                 return deg * Math.PI / 180.0;
             };
 
+            
             // TODO: the direction of these navigations needs to reflect relative position to the origin
             switch (action) {
                 case this.ARROW:
@@ -312,18 +313,97 @@ export class InteractiveClippingPlane implements IPlugin {
                         const h = 2 * distance * Math.tan(fov / 2.0);
                         c = h / this.viewer.height;
                     }
-                    mat4.translate(this.transformation, this.transformation, vec3.fromValues(c * (deltaX + deltaY), 0, 0));
+
+                    const draggingOffset = this.getDragOffset(c, deltaX, deltaY);
+                    mat4.translate(this.transformation, this.transformation, draggingOffset);
+
                     break;
                 case this.HORIZONTAL:
-                    mat4.rotate(this.transformation, this.transformation, degToRad((deltaX + deltaY) / 4), [0, 0, 1]);
+                    mat4.rotateZ(this.transformation, this.transformation, degToRad((deltaX + deltaY) / 4));
                     break;
                 case this.VERTICAL:
-                    mat4.rotate(this.transformation, this.transformation, degToRad(-(deltaX + deltaY) / 4), [0, 1, 0]);
+                    mat4.rotateY(this.transformation, this.transformation, degToRad(-(deltaX + deltaY) / 4));
                     break;
             }
 
             this.applyCurrentPlane();
         });
+    }
+
+    private getDragOffset(speed: number, deltaX: number, deltaY: number) : vec3{
+         
+        var dragAxis = vec3.fromValues(1, 0, 0); 
+         
+        // we use this projected screen normal to map mouse movement
+        // to actual drag axis
+        const rotation2 = mat4.getRotation(quat.create(), this.mvMatrix); 
+        const projectedNormal = vec3.transformQuat(vec3.create(), dragAxis, rotation2);
+        vec3.normalize(projectedNormal, projectedNormal)
+        
+        var xComponent = projectedNormal[0];
+        var yComponent = projectedNormal[1];
+        let offset:number = 0;
+        
+        // decide if we add or subtract the x and y derivatives
+        // of the mouse movement
+        if( xComponent >= 0 && yComponent >= 0){
+            if(deltaX > 0) {
+                offset += deltaX;
+            }
+            else{
+                offset -= Math.abs(deltaX);
+            }
+            if(deltaY > 0) {
+                offset -= deltaY;
+            }
+            else{
+                offset += Math.abs(deltaY);
+            }
+        } else if( xComponent < 0 && yComponent > 0){
+            if(deltaX > 0) {
+                offset -= deltaX;
+            }
+            else{
+                offset += Math.abs(deltaX);
+            }
+            if(deltaY > 0) {
+                offset -= deltaY;
+            }
+            else{
+                offset += Math.abs(deltaY);
+            }
+        } else if( xComponent < 0 && yComponent < 0){
+            if(deltaX > 0) {
+                offset -= deltaX;
+            }
+            else{
+                offset += Math.abs(deltaX);
+            }
+            if(deltaY > 0) {
+                offset += deltaY;
+            }
+            else{
+                offset -= Math.abs(deltaY);
+            }
+        } else if( xComponent > 0 && yComponent < 0){
+            if(deltaX > 0) {
+                offset += deltaX;
+            }
+            else{
+                offset -= Math.abs(deltaX);
+            }
+            if(deltaY > 0) {
+                offset += deltaY;
+            }
+            else{
+                offset -= Math.abs(deltaY);
+            }
+        }
+
+        // scale the dragging axis with the deduced offset and speed factor
+        vec3.scale(dragAxis, dragAxis, offset * speed);
+
+        return dragAxis;
     }
 
     private updateTransformationFromPlane() {
@@ -333,12 +413,12 @@ export class InteractiveClippingPlane implements IPlugin {
 
         const plane = this.viewer.getClip()?.PlaneA;
         // no plane is defined, so we shall place it in the middle
-        if (plane == null || plane.reduce((prev, curr) => prev || curr !== 0, false)) {
+        if (plane == null) {
             const region = this.viewer.getMergedRegion();
             this.transformation = mat4.translate(mat4.create(), mat4.create(), region.centre);
             return;
-        }
-
+        } 
+ 
         // noraml, tangent and binormal of the plane
         const normal = vec3.normalize(vec3.create(), vec3.fromValues(plane[0], plane[1], plane[2]));
         const tangent = this.getTangent(normal);
@@ -449,12 +529,16 @@ export class InteractiveClippingPlane implements IPlugin {
     private getPlaneEquation(): number[] {
         const wcs = this.viewer.getCurrentWcs();
         const point = vec3.transformMat4(vec3.create(), vec3.create(), this.transformation);
-        const rotation = mat4.getRotation(quat.create(), this.transformation);
-        const normal = vec3.transformQuat(vec3.create(), vec3.fromValues(1, 0, 0), rotation);
-
+        const normal = this.getPlaneNormal();
         //compute normal equation of the plane
         const d = 0.0 - normal[0] * (point[0] + wcs[0]) - normal[1] * (point[1] + wcs[1]) - normal[2] * (point[2] + wcs[2]);
         return [normal[0], normal[1], normal[2], d];
+    }
+
+    private getPlaneNormal(): vec3 {
+        const rotation = mat4.getRotation(quat.create(), this.transformation);
+        const normal = vec3.transformQuat(vec3.create(), vec3.fromValues(1, 0, 0), rotation);
+        return normal;
     }
 
     private initShader(): void {
