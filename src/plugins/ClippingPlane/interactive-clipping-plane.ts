@@ -388,7 +388,7 @@ export class InteractiveClippingPlane implements IPlugin {
     }
 
     private  isTransformationsHasSameOrientation (transform1 :mat4, transform2: mat4, plane: number[]) : boolean{
-        const tolerance = 0.0001; 
+        const tolerance = 0.001; 
         // if two planes has same normal
         if (Math.abs(transform1[0] - transform2[0]) < tolerance && Math.abs(transform1[1] - transform2[1]) < tolerance && 
             Math.abs(transform1[2] - transform2[2]) < tolerance && Math.abs(transform1[3] - transform2[3]) < tolerance) {
