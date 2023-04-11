@@ -989,7 +989,7 @@ export class Viewer {
                 }
             }, b.model);
             return BBox.union(bbox, a);
-        }, BBox.none);
+        }, <number[]>null);
     }
 
     public getMergedRegion(): Region {
@@ -1814,7 +1814,8 @@ export class Viewer {
         }
 
         if (bBox == null) {
-            return new Promise<void>((_, r) => r('There is no content to zoom to'));
+            // Ignore zooming to invalid items. This is often when element is in another model.
+            return new Promise<void>((a, r) => a());
         }
 
         const origin = vec3.fromValues(bBox[0] + bBox[3] / 2.0, bBox[1] + bBox[4] / 2.0, bBox[2] + bBox[5] / 2.0);
