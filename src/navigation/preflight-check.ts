@@ -9,6 +9,9 @@ export class PreflightCheck {
 
         // merged bounding box
         const bBox = viewer.getTargetsBoundingBox(elements);
+        if(bBox == null) {
+            return null; // element not in model;
+        }
         const directions = [
             // 8 base horizontal view directions
             { dir: [1, 0, 0], up: [0, 0, 1] },
