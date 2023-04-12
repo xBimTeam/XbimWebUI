@@ -23,7 +23,7 @@ export class InteractiveClippingPlane implements IPlugin {
     private arrowColour = [1.0, 0.0, 0.0, 1.0];
     private horizontalColour = [0.0, 1.0, 0.0, 1.0];
     private verticalColour = [0.0, 0.0, 1.0, 1.0];
-    private planeColour = [0.0, 0.0, 0.8, 0.2];
+    private planeColour = [0.0, 0.0, 0.8, 0.3];
 
     private program: WebGLProgram;
     private vertex_buffer: WebGLBuffer;
@@ -350,8 +350,6 @@ export class InteractiveClippingPlane implements IPlugin {
 
     private getRotatingAngle(deltaX: number, deltaY: number, originInPlaneSpace: vec3, vertical: boolean = false) : number {
 
-        const speed = 10;
-
         // project the rotating point origin to screen to work with 
         // screen mouse movemnt vectors 
         const modelViewRotation = mat4.getRotation(quat.create(), this.mvMatrix);
@@ -370,6 +368,8 @@ export class InteractiveClippingPlane implements IPlugin {
 
         // calculate the angle bwteen the original vector and the rotated one
         const angle = vec3.angle(screenProjectedOrigin, displacedOrigin);
+
+        const speed = (displacmentVector.length * this.viewer.unitsInMeter) / 100 ;
 
         // we use the vector perpendicular to the plane of rotation to determine 
         // if we are rotating clockwise or anti-clockwise 
