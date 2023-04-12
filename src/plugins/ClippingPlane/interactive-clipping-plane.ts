@@ -55,7 +55,8 @@ export class InteractiveClippingPlane implements IPlugin {
             var region = this.viewer.getMergedRegion();
             var size = Math.sqrt(region.bbox[3] * region.bbox[3] + region.bbox[4] * region.bbox[4] + region.bbox[5] * region.bbox[5])
             this.setActive();
-            this.bufferGeometry(this.viewer.unitsInMeter * 2, size)
+            const controlsSize = Math.min(this.viewer.unitsInMeter * 2, size * 0.1);
+            this.bufferGeometry(controlsSize, size)
 
             this.updateTransformationFromPlane();
             this.applyCurrentPlane();
