@@ -23,7 +23,7 @@ export class InteractiveClippingPlane implements IPlugin {
     private arrowColour = [1.0, 0.0, 0.0, 1.0];
     private horizontalColour = [0.0, 1.0, 0.0, 1.0];
     private verticalColour = [0.0, 0.0, 1.0, 1.0];
-    private planeColour = [0.0, 0.0, 0.8, 0.5];
+    private planeColour = [0.0, 0.0, 0.8, 0.2];
 
     private program: WebGLProgram;
     private vertex_buffer: WebGLBuffer;
@@ -38,9 +38,12 @@ export class InteractiveClippingPlane implements IPlugin {
     private mvUniformPointer: WebGLUniformLocation;
     private pUniformPointer: WebGLUniformLocation;
     private idCodingUniformPointer: WebGLUniformLocation;
+    private idSelectedIdUniformPointer: WebGLUniformLocation;
+    private hoverPickColourUniformPointer: WebGLUniformLocation;
     private initialized = false;
     private transformation: mat4 = mat4.create();
     private mvMatrix: mat4 = mat4.create();
+    private _hoverPickColour: number[] = [10, 150, 112, 255];
 
     /**
      * Set to true to stop rendering of this plugin
@@ -104,6 +107,8 @@ export class InteractiveClippingPlane implements IPlugin {
         this.pUniformPointer = gl.getUniformLocation(this.program, "uPMatrix");
         this.mvUniformPointer = gl.getUniformLocation(this.program, "uMvMatrix");
         this.idCodingUniformPointer = gl.getUniformLocation(this.program, "uColorCoding");
+        this.idSelectedIdUniformPointer = gl.getUniformLocation(this.program, "uSelectedId");
+        this.hoverPickColourUniformPointer = gl.getUniformLocation(this.program, 'uHoverPickColour');
 
         this.bufferGeometry(1, 1);
 
@@ -141,7 +146,7 @@ export class InteractiveClippingPlane implements IPlugin {
         var gl = this.setActive();
 
         // UI control identity colour coding
-        gl.uniform1f(this.idCodingUniformPointer, 1);
+        gl.uniform1f(this.idCodingUniformPointer, 1);   
         this.draw(gl);
     }
 
@@ -169,6 +174,14 @@ export class InteractiveClippingPlane implements IPlugin {
         mat4.multiply(this.mvMatrix, this.viewer.mvMatrix, this.transformation)
         gl.uniformMatrix4fv(this.pUniformPointer, false, this.viewer.pMatrix);
         gl.uniformMatrix4fv(this.mvUniformPointer, false, this.mvMatrix);
+        gl.uniform4fv(this.hoverPickColourUniformPointer,
+            new Float32Array(
+                [
+                    this._hoverPickColour[0] / 255.0,
+                    this._hoverPickColour[1] / 255.0,
+                    this._hoverPickColour[2] / 255.0,
+                    this._hoverPickColour[3] / 255.0
+                ]));
 
         //bind data buffers
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertex_buffer);
@@ -263,7 +276,7 @@ export class InteractiveClippingPlane implements IPlugin {
 
             const data = this.viewer.getEventDataFromEvent(event, true);
             // not an interaction with this UI control
-            if (data.model !== 1000010 || data.id === this.PLANE) {
+            if (data.model !== 1000010 || data.id == this.PLANE) {
                 return;
             }
 
@@ -284,16 +297,22 @@ export class InteractiveClippingPlane implements IPlugin {
             action = -1;
             this.viewer.navigationMode = lastNavigation;
         });
-
+        
         window.addEventListener('pointermove', event => {
-            if (action === -1) return;
-
+             
+            if (action === -1) {
+                this.viewer.gl.uniform1f(this.idSelectedIdUniformPointer, action);
+                return;
+            }
+            this.viewer.gl.uniform1f(this.idSelectedIdUniformPointer, action);
+             
             var newX = event.clientX;
             var newY = event.clientY;
 
             var deltaX = newX - lastMouseX;
             var deltaY = newY - lastMouseY;
-
+ 
+ 
             lastMouseX = newX;
             lastMouseY = newY;
             const camera = this.viewer.getCameraPosition();
