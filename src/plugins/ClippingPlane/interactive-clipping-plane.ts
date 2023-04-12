@@ -253,7 +253,7 @@ export class InteractiveClippingPlane implements IPlugin {
         let lastMouseY: number = null;
         let lastNavigation: NavigationMode;
         let origin: vec3; 
-        let projectedOrigin: vec3;
+        let originInPlaneSpace: vec3;
         
         this.viewer.canvas.addEventListener('pointerdown', event => {
             // don't do anything if this plugin is not active
@@ -274,7 +274,7 @@ export class InteractiveClippingPlane implements IPlugin {
             origin = data.xyz;
             this.viewer.navigationMode = 'none'; 
  
-            projectedOrigin = vec3.transformMat4(vec3.create(), origin, mat4.invert(mat4.create(), this.transformation));
+            originInPlaneSpace = vec3.transformMat4(vec3.create(), origin, mat4.invert(mat4.create(), this.transformation));
         });
 
         window.addEventListener('pointerup', event => {
@@ -316,12 +316,12 @@ export class InteractiveClippingPlane implements IPlugin {
 
                     break;
                 case this.HORIZONTAL:
-                    let angle = this.getHorizontalAngel(deltaX, deltaY, projectedOrigin, false);
+                    let angle = this.getRotatingAngle(deltaX, deltaY, originInPlaneSpace);
                     mat4.rotateZ(this.transformation, this.transformation, angle);
                     break;
                 case this.VERTICAL: 
-                    angle = this.getHorizontalAngel(deltaX, deltaY, projectedOrigin, true);
-                    mat4.rotateY(this.transformation, this.transformation, -angle);
+                    angle = this.getRotatingAngle(deltaX, deltaY, originInPlaneSpace, true);
+                    mat4.rotateY(this.transformation, this.transformation, angle);
                     break;
             }
 
@@ -329,22 +329,35 @@ export class InteractiveClippingPlane implements IPlugin {
         });
     }
 
-    private getHorizontalAngel(deltaX: number, deltaY: number, projectedOrigin: vec3, vertical: boolean) : number {
+    private getRotatingAngle(deltaX: number, deltaY: number, originInPlaneSpace: vec3, vertical: boolean = false) : number {
 
+        const speed = 10;
+
+        // project the rotating point origin to screen to work with 
+        // screen mouse movemnt vectors 
         const modelViewRotation = mat4.getRotation(quat.create(), this.mvMatrix);
-        const screenProjectedOrigin = vec3.transformQuat(vec3.create(), projectedOrigin, modelViewRotation);
-        screenProjectedOrigin[2] = 0;
+        const screenProjectedOrigin = vec3.transformQuat(vec3.create(), originInPlaneSpace, modelViewRotation);
+        
+        // reverse the angle according to if we are top or bottom of the plane of rotation 
         const camera = this.viewer.getCameraPosition();
         const planeOfRevert = vertical? this.getTangentPlaneEquation() : this.getPrependicularPlaneEquation();
         const topOrBottom = (planeOfRevert[0]*camera[0]) + (planeOfRevert[1]*camera[1]) + (planeOfRevert[2]*camera[2]) + (planeOfRevert[3]);
- 
+        
+        // mouse movement vector
         const displacmentVector = vec3.fromValues(deltaX, -deltaY, 0);
+
+        // move the rotating origin point with the displacement vector
         const displacedOrigin = vec3.add(vec3.create(), screenProjectedOrigin, displacmentVector);
+
+        // calculate the angle bwteen the original vector and the rotated one
         const angle = vec3.angle(screenProjectedOrigin, displacedOrigin);
+
+        // we use the vector perpendicular to the plane of rotation to determine 
+        // if we are rotating clockwise or anti-clockwise 
         const signVector = vec3.cross(vec3.create(), displacedOrigin, screenProjectedOrigin);
         vec3.normalize(signVector, signVector);
       
-        return  (topOrBottom > 0 ? 1 : -1)* -10 * signVector[2] * angle;
+        return (vertical? -1 : 1) * (topOrBottom > 0 ? -1 : 1) * signVector[2] * speed * angle;
     }
     
     private getDragOffset(speed: number, deltaX: number, deltaY: number) : vec3{
@@ -406,10 +419,10 @@ export class InteractiveClippingPlane implements IPlugin {
 
     private  isTransformationsHasSameOrientation (transform1 :mat4, transform2: mat4, plane: number[]) : boolean{
         const tolerance = 0.001; 
-        // if two planes has same normal
+        // if the two planes has same normal
         if (Math.abs(transform1[0] - transform2[0]) < tolerance && Math.abs(transform1[1] - transform2[1]) < tolerance && 
             Math.abs(transform1[2] - transform2[2]) < tolerance && Math.abs(transform1[3] - transform2[3]) < tolerance) {
-                // if new point is on older plane
+                // if the new transform placment lies on the older plane
                 return Math.abs((plane[0] * transform2[12]) + (plane[1] * transform2[13]) + (plane[2] * transform2[14]) + plane[3]) < tolerance;
             }
     }
