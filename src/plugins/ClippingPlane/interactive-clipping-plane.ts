@@ -23,7 +23,7 @@ export class InteractiveClippingPlane implements IPlugin {
     private arrowColour = [1.0, 0.0, 0.0, 1.0];
     private horizontalColour = [0.0, 1.0, 0.0, 1.0];
     private verticalColour = [0.0, 0.0, 1.0, 1.0];
-    private planeColour = [0.0, 0.0, 0.8, 0.3];
+    private planeColour = [0.0, 0.0, 0.8, 0.2];
 
     private program: WebGLProgram;
     private vertex_buffer: WebGLBuffer;

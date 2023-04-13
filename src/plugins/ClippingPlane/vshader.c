@@ -54,12 +54,11 @@ void main(void) {
 		{
 			if(uSelectedId > 0.0) // there is a selection
 			{
-				if(aId != 4.0){
-					vColor = getTransparentColor(aColour, 0.0);
+				if(aId != 4.0){ // hide other controls but leave the plane
 					ignoreVec = true;
 				}
 				else
-					vColor = getTransparentColor(aColour, 0.5);
+					vColor = getTransparentColor(aColour, 1.5);
 			}
 			else 
 				vColor = aColour;
