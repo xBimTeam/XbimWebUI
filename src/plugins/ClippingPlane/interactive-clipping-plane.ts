@@ -5,8 +5,6 @@ import { fshader } from "./fshader";
 import { vshader } from "./vshader";
 import { CameraType } from "../../camera";
 import { quat } from "gl-matrix";
-import { quat2 } from "gl-matrix";
-import { VectorUtils } from "../../common/vector-utils";
 
 export class InteractiveClippingPlane implements IPlugin {
     private viewer: Viewer;
@@ -23,7 +21,7 @@ export class InteractiveClippingPlane implements IPlugin {
     private arrowColour = [1.0, 0.0, 0.0, 1.0];
     private horizontalColour = [0.0, 1.0, 0.0, 1.0];
     private verticalColour = [0.0, 0.0, 1.0, 1.0];
-    private planeColour = [0.0, 0.0, 0.8, 0.2];
+    private planeColour = [0.5, 0.5, 0.5, 0.3];
 
     private program: WebGLProgram;
     private vertex_buffer: WebGLBuffer;
