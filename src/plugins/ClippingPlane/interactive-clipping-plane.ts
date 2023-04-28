@@ -22,6 +22,7 @@ export class InteractiveClippingPlane implements IPlugin {
     private horizontalColour = [0.0, 1.0, 0.0, 1.0];
     private verticalColour = [0.0, 0.0, 1.0, 1.0];
     private planeColour = [0.5, 0.5, 0.5, 0.3];
+    private currentInteraction: number = -1;
 
     private program: WebGLProgram;
     private vertex_buffer: WebGLBuffer;
@@ -182,6 +183,8 @@ export class InteractiveClippingPlane implements IPlugin {
                     this._hoverPickColour[3] / 255.0
                 ]));
 
+        this.viewer.gl.uniform1f(this.idSelectedIdUniformPointer, this.currentInteraction);
+
         //bind data buffers
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertex_buffer);
         gl.vertexAttribPointer(this.coordinatesAttributePointer, 3, gl.FLOAT, false, 0, 0);
@@ -260,7 +263,6 @@ export class InteractiveClippingPlane implements IPlugin {
     }
 
     private initEvents(): void {
-        let action = -1;
         let lastMouseX: number = null;
         let lastMouseY: number = null;
         let lastNavigation: NavigationMode;
@@ -279,7 +281,7 @@ export class InteractiveClippingPlane implements IPlugin {
                 return;
             }
 
-            action = data.id;
+            this.currentInteraction = data.id;
             lastMouseX = event.clientX;
             lastMouseY = event.clientY;
             lastNavigation = this.viewer.navigationMode;
@@ -290,20 +292,18 @@ export class InteractiveClippingPlane implements IPlugin {
         });
 
         window.addEventListener('pointerup', event => {
-            if (action === -1) return;
+            if (this.currentInteraction === -1) return;
             this.snapToMainAxes();
             this.applyCurrentPlane();
-            action = -1;
+            this.currentInteraction = -1;
             this.viewer.navigationMode = lastNavigation;
         });
         
         window.addEventListener('pointermove', event => {
              
-            if (action === -1) {
-                this.viewer.gl.uniform1f(this.idSelectedIdUniformPointer, action);
+            if (this.currentInteraction === -1) {
                 return;
             }
-            this.viewer.gl.uniform1f(this.idSelectedIdUniformPointer, action);
              
             var newX = event.clientX;
             var newY = event.clientY;
@@ -318,7 +318,7 @@ export class InteractiveClippingPlane implements IPlugin {
             
             const distance = vec3.distance(camera, origin);
              
-            switch (action) {
+            switch (this.currentInteraction) {
                 case this.ARROW:
                     let c = 0;
                     if (this.viewer.camera === CameraType.ORTHOGONAL) {
