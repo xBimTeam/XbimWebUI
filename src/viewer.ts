@@ -1484,7 +1484,7 @@ export class Viewer {
         let height = framebuffer ? framebuffer.height : this.height;
 
         // this will minimize z-fighting when zoomed far away from the model with thin layers
-        var {near, far, size} = this.getCameraDistanceFromRegion();
+        var { near, far, size } = this.getCameraDistanceFromRegion();
         if (near > 0 && far > 0) {
             this.cameraProperties.near = near;
             this.cameraProperties.far = far;
@@ -1492,7 +1492,7 @@ export class Viewer {
             this.cameraProperties.near = this.meter * 0.2;
             this.cameraProperties.far = size * 5;
         }
-        
+
         // set right size of viewport
         gl.viewport(0, 0, width, height);
         this.updatePMatrix(width, height);
@@ -1709,7 +1709,7 @@ export class Viewer {
         this.pMatrix = this.cameraProperties.getProjectionMatrix(width, height);
     }
 
-    private getCameraDistanceFromRegion(): {near: number, far: number, size: number} {
+    private getCameraDistanceFromRegion(): { near: number, far: number, size: number } {
         let region = this.getMergedRegion();
 
         if (!region.bbox || region.bbox.length === 0) {
@@ -1725,12 +1725,12 @@ export class Viewer {
         let regionDist = vec3.length(regionVec);
 
         let nearVec = vec3.scale(vec3.create(), regionDir, regionDist - size / 2.0);
-        let farVec = vec3.scale(vec3.create(), regionDir, regionDist + size / 2.0); 
+        let farVec = vec3.scale(vec3.create(), regionDir, regionDist + size / 2.0);
 
         let near = vec3.dot(viewDir, nearVec);
         let far = vec3.dot(viewDir, farVec);
-        
-        return { near, far, size};
+
+        return { near, far, size };
     }
 
 
@@ -2408,7 +2408,9 @@ export class Viewer {
 
             handle.stopped = false;
             //set perspective camera near and far based on 1 meter dimension and size of the model
-            this.setNearAndFarFromCurrentModels();
+            if (!handle.empty) {
+                this.setNearAndFarFromCurrentModels();
+            }
 
             // if the viewer is running already we can return from here
             if (this._isRunning) {
