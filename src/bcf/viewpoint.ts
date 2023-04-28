@@ -6,7 +6,7 @@ import { Line } from "./line";
 import { PerspectiveCamera } from "./perspective-camera";
 import { OrthogonalCamera } from "./orthogonal-camera";
 import { Components } from "./components";
-import { Viewer } from "../viewer";
+import { RenderingMode, ViewType, Viewer } from "../viewer";
 import { vec3, mat4 } from "gl-matrix";
 import { CameraType } from "../camera";
 import { State } from "../common/state";
@@ -211,130 +211,128 @@ export class Viewpoint {
             height: number
         } = viewpoint.perspective_camera || viewpoint.orthogonal_camera;
 
-        if (camera == null) {
-            return;
-        }
+        if (camera != null) {
 
-        let camViewPoint = camera.camera_view_point;
-        let camDir = camera.camera_direction;
-        let camUpDir = camera.camera_up_vector;
+            let camViewPoint = camera.camera_view_point;
+            let camDir = camera.camera_direction;
+            let camUpDir = camera.camera_up_vector;
 
-        const eyeWcs = toVec3(camViewPoint);
-        let eye = vec3.subtract(vec3.create(), eyeWcs, wcs);
-        const dir = vec3.normalize(vec3.create(), toVec3(camDir));
-        let up = vec3.normalize(vec3.create(), (toVec3(camUpDir) || vec3.fromValues(0, 0, 1)));
+            const eyeWcs = toVec3(camViewPoint);
+            let eye = vec3.subtract(vec3.create(), eyeWcs, wcs);
+            const dir = vec3.normalize(vec3.create(), toVec3(camDir));
+            let up = vec3.normalize(vec3.create(), (toVec3(camUpDir) || vec3.fromValues(0, 0, 1)));
 
-        // target and heading are collinear. This is a singular orientation and will screw the view up.
-        let angle = vec3.angle(dir, up);
-        if (Math.abs(angle) < 1e-6 || Math.abs(angle - Math.PI) < 1e-6) {
-            console.warn('Collinear target and heading vectors for the view. Singularity will be fixed by guess.');
-
-            // looking up or down is most likely scenario for singularity
-            angle = vec3.angle(dir, vec3.fromValues(0, 0, 1));
+            // target and heading are collinear. This is a singular orientation and will screw the view up.
+            let angle = vec3.angle(dir, up);
             if (Math.abs(angle) < 1e-6 || Math.abs(angle - Math.PI) < 1e-6) {
-                up = vec3.fromValues(0, 1, 0);
-            }
-        }
+                console.warn('Collinear target and heading vectors for the view. Singularity will be fixed by guess.');
 
-        // helper function
-        let isPositiveNumber = (v: number) => {
-            return v != null && typeof (v) === 'number' && v > 0;
-        };
-
-        // set camera type and properties
-        let orthCamHeight = viewer.cameraProperties.height || 100;
-
-        // region sizes from the viewpoint direction
-        const region = viewer.getMergedRegion();
-        const optimum = (region && region.bbox && region.population > 0) ?
-            viewer.getDistanceAndHeight(region.bbox, dir, up) :
-            null;
-
-        // move the eye to optimal dostance if the current distance is too much
-        if (optimum != null) {
-            const distance = vec3.dist(toVec3(region.centre), eye);
-
-            // we are too far away, move to optimal distance, set optimal height for orthographic view
-            if (distance > optimum.distance * threasholdCoeficient) {
-                const moveDir = vec3.negate(vec3.create(), dir);
-                const move = vec3.scale(vec3.create(), moveDir, optimum.distance);
-                eye = vec3.add(vec3.create(), toVec3(region.centre), move);
-                orthCamHeight = optimum.height;
-            }
-        }
-
-        if (viewpoint.perspective_camera) {
-            viewer.camera = CameraType.PERSPECTIVE;
-            let fov = 60.0; // default value
-            if (isPositiveNumber(viewpoint.perspective_camera.field_of_view)) {
-                fov = viewpoint.perspective_camera.field_of_view;
-            }
-
-            if (isPositiveNumber(camera.width) && isPositiveNumber(camera.height)) {
-                // camera properties fom the data of the maximal values
-                const a = camera.width / camera.height;
-
-                // fix to fit the screen (aspect ratio)
-                if (a > aspect) {
-                    const current = fov * Math.PI / 180.0;
-                    // FOV is non-linear in relation to aspect ratio but can be calculated like this
-                    const extended = 2.0 * Math.atan(Math.tan(current / 2.0) * a / aspect);
-                    fov = extended * 180.0 / Math.PI;
+                // looking up or down is most likely scenario for singularity
+                angle = vec3.angle(dir, vec3.fromValues(0, 0, 1));
+                if (Math.abs(angle) < 1e-6 || Math.abs(angle - Math.PI) < 1e-6) {
+                    up = vec3.fromValues(0, 1, 0);
                 }
             }
-            viewer.cameraProperties.fov = fov;
-        }
-        else if (viewpoint.orthogonal_camera) {
-            viewer.camera = CameraType.ORTHOGONAL;
-            // set default FOV
-            viewer.cameraProperties.fov = 60.0;
 
-            if (isPositiveNumber(viewpoint.orthogonal_camera.view_to_world_scale)) {
-                const scale = viewpoint.orthogonal_camera.view_to_world_scale;
-                const viewportHeight = viewer.height / Viewpoint.resolution;
-                const modelHeight = viewportHeight / scale;
-                orthCamHeight = modelHeight * viewer.unitsInMeter;
+            // helper function
+            let isPositiveNumber = (v: number) => {
+                return v != null && typeof (v) === 'number' && v > 0;
+            };
+
+            // set camera type and properties
+            let orthCamHeight = viewer.cameraProperties.height || 100;
+
+            // region sizes from the viewpoint direction
+            const region = viewer.getMergedRegion();
+            const optimum = (region && region.bbox && region.population > 0) ?
+                viewer.getDistanceAndHeight(region.bbox, dir, up) :
+                null;
+
+            // move the eye to optimal dostance if the current distance is too much
+            if (optimum != null) {
+                const distance = vec3.dist(toVec3(region.centre), eye);
+
+                // we are too far away, move to optimal distance, set optimal height for orthographic view
+                if (distance > optimum.distance * threasholdCoeficient) {
+                    const moveDir = vec3.negate(vec3.create(), dir);
+                    const move = vec3.scale(vec3.create(), moveDir, optimum.distance);
+                    eye = vec3.add(vec3.create(), toVec3(region.centre), move);
+                    orthCamHeight = optimum.height;
+                }
             }
 
-            // use width and height if available to set perspective and adjust ratio
-            if (isPositiveNumber(camera.width) && isPositiveNumber(camera.height)) {
-                // camera properties fom the data of the maximal values
-                let h = camera.height;
-                const w = camera.width;
-                const a = w / h;
-
-                // fix to fit the screen (aspect ratio)
-                if (a > aspect) {
-                    // adjust perspective camera height
-                    h = h * a / aspect;
+            if (viewpoint.perspective_camera) {
+                viewer.camera = CameraType.PERSPECTIVE;
+                let fov = 60.0; // default value
+                if (isPositiveNumber(viewpoint.perspective_camera.field_of_view)) {
+                    fov = viewpoint.perspective_camera.field_of_view;
                 }
 
-                // set to optimal view if it seems to be too far away
-                if (optimum != null && h > optimum.height * threasholdCoeficient) {
-                    h = optimum.height;
-                }
+                if (isPositiveNumber(camera.width) && isPositiveNumber(camera.height)) {
+                    // camera properties fom the data of the maximal values
+                    const a = camera.width / camera.height;
 
-                orthCamHeight = h;
+                    // fix to fit the screen (aspect ratio)
+                    if (a > aspect) {
+                        const current = fov * Math.PI / 180.0;
+                        // FOV is non-linear in relation to aspect ratio but can be calculated like this
+                        const extended = 2.0 * Math.atan(Math.tan(current / 2.0) * a / aspect);
+                        fov = extended * 180.0 / Math.PI;
+                    }
+                }
+                viewer.cameraProperties.fov = fov;
             }
-        }
+            else if (viewpoint.orthogonal_camera) {
+                viewer.camera = CameraType.ORTHOGONAL;
+                // set default FOV
+                viewer.cameraProperties.fov = 60.0;
 
-        // set camera (MV matrix)
-        const target = vec3.add(vec3.create(), eye, dir);
-        const mv = mat4.lookAt(mat4.create(), eye, target, up);
-        viewer.animations.viewTo({ mv: mv, height: orthCamHeight }, duration)
-            .then(() => {
-                // try to fix camera placement for generic orthographic views or camera height for perspective views
-                // this improves interactive navigation and smooth switching between cameras
-                if (viewpoint.orthogonal_camera) {
-                    // don't do anything if this is a plan view
-                    var delta = vec3.angle(toVec3(camera.camera_direction), vec3.fromValues(0, 0, -1));
-                    if (delta > Math.PI / 180.0)
-                        return;
-
-                    viewer.adjustments.adjust(10);
+                if (isPositiveNumber(viewpoint.orthogonal_camera.view_to_world_scale)) {
+                    const scale = viewpoint.orthogonal_camera.view_to_world_scale;
+                    const viewportHeight = viewer.height / Viewpoint.resolution;
+                    const modelHeight = viewportHeight / scale;
+                    orthCamHeight = modelHeight * viewer.unitsInMeter;
                 }
-            });
 
+                // use width and height if available to set perspective and adjust ratio
+                if (isPositiveNumber(camera.width) && isPositiveNumber(camera.height)) {
+                    // camera properties fom the data of the maximal values
+                    let h = camera.height;
+                    const w = camera.width;
+                    const a = w / h;
+
+                    // fix to fit the screen (aspect ratio)
+                    if (a > aspect) {
+                        // adjust perspective camera height
+                        h = h * a / aspect;
+                    }
+
+                    // set to optimal view if it seems to be too far away
+                    if (optimum != null && h > optimum.height * threasholdCoeficient) {
+                        h = optimum.height;
+                    }
+
+                    orthCamHeight = h;
+                }
+            }
+
+            // set camera (MV matrix)
+            const target = vec3.add(vec3.create(), eye, dir);
+            const mv = mat4.lookAt(mat4.create(), eye, target, up);
+            viewer.animations.viewTo({ mv: mv, height: orthCamHeight }, duration)
+                .then(() => {
+                    // try to fix camera placement for generic orthographic views or camera height for perspective views
+                    // this improves interactive navigation and smooth switching between cameras
+                    if (viewpoint.orthogonal_camera) {
+                        // don't do anything if this is a plan view
+                        var delta = vec3.angle(toVec3(camera.camera_direction), vec3.fromValues(0, 0, -1));
+                        if (delta > Math.PI / 180.0)
+                            return;
+
+                        viewer.adjustments.adjust(10);
+                    }
+                });
+        }
 
         // clear current selection
         viewer.clearHighlighting();
@@ -354,15 +352,25 @@ export class Viewpoint {
                 }
             }
             const productsByModel: { [id: number]: number[] } = {};
+            const zoomGroup: {id: number, model: number}[] = [];
             selection
                 .map(c => idMapper(c.ifc_guid))
                 .forEach(map => {
                     const products = productsByModel[map.modelId] || (productsByModel[map.modelId] = []);
                     products.push(map.productId);
+                    zoomGroup.push({id: map.productId, model: map.modelId});
                 });
             Object.getOwnPropertyNames(productsByModel).forEach(mId => {
                 viewer.addState(State.HIGHLIGHTED, productsByModel[mId], parseInt(mId, 10));
             });
+
+            // if no camera is defined, but there is a selection defined, we shall zoom to selection
+            if (camera == null) {
+                viewer.renderingMode = RenderingMode.XRAY_ULTRA;
+                viewer.show(ViewType.DEFAULT, undefined, undefined, duration > 0).then(() => {
+                    viewer.zoomTo(zoomGroup, undefined, duration > 0, false);
+                });
+            }
         }
     }
 
