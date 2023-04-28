@@ -220,6 +220,16 @@ export class ModelHandle {
             }
         });
 
+        // this region is invalid. We attempt to recalculate the bounds
+        if (
+            this._region.bbox.indexOf(Number.NaN) !== -1 || 
+            this._region.bbox.indexOf(Infinity) !== -1 || 
+            this._region.bbox.indexOf(-Infinity) !== -1)
+        {
+            console.warn('Invalid region detected. Attempting to recompute the region based on all the products.')
+            this._region = this.recomputeCompleteRegion();
+        }
+
         // set default region if no region is defined. This shouldn't ever happen if model contains any geometry.
         if (this._region == null) {
             this._region = new Region();
@@ -227,6 +237,35 @@ export class ModelHandle {
             this._region.centre = new Float32Array([0.0, 0.0, 0.0]);
             this._region.bbox = new Float32Array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
         }
+    }
+
+    private recomputeCompleteRegion(): Region {
+        const maps = Object.getOwnPropertyNames(this._model.productMaps).map(id => this._model.productMaps[id]);
+
+        // aggregated bounding box
+        const bb = maps.reduce((prev: Float32Array, curr: ProductMap) => {
+            if (curr.bBox.indexOf(Number.NaN) !== -1 || curr.bBox.indexOf(Infinity) !== -1 || curr.bBox.indexOf(-Infinity) !== -1) {
+                return prev;
+            }
+            if (prev == null) {
+                return curr.bBox;
+            }
+            return BBox.union(prev, curr.bBox);
+        }, null);
+        let result = new Region();
+        if (bb == null) {
+            console.error('Failed to recompute the region. No valid product bounding boxes found.')
+            return result;
+        }
+
+        result.population = maps.length;
+        result.bbox = new Float32Array(bb);
+        result.centre = new Float32Array([
+            bb[0] + bb[3] / 2.0,
+            bb[1] + bb[4] / 2.0,
+            bb[2] + bb[5] / 2.0
+        ]);
+        return result;
     }
 
     private InitGlBuffersAndTextures(gl: WebGLRenderingContext): void {
