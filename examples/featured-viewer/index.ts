@@ -6,6 +6,7 @@ import { PerformanceRating } from '../../src/performance-rating';
 import { ClippingPlane } from '../../src/bcf';
 import { LoaderOverlay } from '../../src/plugins/LoaderOverlay/loader-overlay';
 import { ProductAnalyticalResult } from '../../src/common/product-analytical-result';
+import { PlaySpaces } from './play-spaces';
 
 // tslint:disable-next-line: only-arrow-functions
 var QueryString = function () {
@@ -292,6 +293,12 @@ document['zoomToSelection'] = () => {
     const elements = viewer.getProductsWithState(State.HIGHLIGHTED);
     viewer.zoomTo(elements);
 };
+
+document['playSpaces'] = () =>
+{
+    const player = new PlaySpaces(viewer);
+    player.play();
+}
 
 viewer.on("pick", (args) => {
     viewer.stopRotation();

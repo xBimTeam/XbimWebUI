@@ -3,6 +3,7 @@ import { Grid } from '../../src/plugins/Grid/grid';
 import { vec3 } from 'gl-matrix';
 import { Snapshot, Viewpoint } from '../../src/bcf';
 import { LoaderOverlay } from '../../src/plugins/LoaderOverlay/loader-overlay';
+import { PlaySpaces } from '../featured-viewer/play-spaces';
 
 var models: any[] = [];
 
@@ -391,4 +392,9 @@ window['track'] = (id: number, model: number) => {
     viewer.on('pointermove', adjust);
     viewer.on('wheel', adjust);
     adjust();
+}
+
+window['playSpaces'] = () => {
+    const player = new PlaySpaces(viewer);
+    player.play();
 }
