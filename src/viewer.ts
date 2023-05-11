@@ -2058,6 +2058,9 @@ export class Viewer {
             this.setActive();
             gl.uniform1i(this._colorCodingUniformPointer, ColourCoding.PRODUCTS);
 
+            gl.uniform1i(this._renderingModeUniformPointer, this.renderingMode);
+
+
             //render colour coded image using latest buffered data
             this._handles.forEach((handle) => {
                 if (!handle.stopped && handle.pickable) {

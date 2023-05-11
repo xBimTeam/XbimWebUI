@@ -211,15 +211,35 @@ void main(void) {
 		
 	//product ID colour coding
 	if (uColorCoding == -2) {
-		float id = floor(aProduct + 0.5);
-		vColor = getIdColor(id);
-		vNormal = vec3(0.0, 0.0, 0.0);
+		// exclude everything except for highlighted and xray visible in xray mode
+		if ((uRenderingMode == 2 || uRenderingMode == 4) && state != 252 && state != 253)
+		{
+			vDiscard = 1.0;
+			vColor = vec4(0.0, 0.0, 0.0, 0.0);
+			vNormal = vec3(0.0, 0.0, 0.0);	
+		} 
+		else
+		{
+			float id = floor(aProduct + 0.5);
+			vColor = getIdColor(id);
+			vNormal = vec3(0.0, 0.0, 0.0);
+		}
 	}
 	//model ID colour coding
 	else if (uColorCoding >= 0) {
-		float id = float(uColorCoding);
-		vColor = getIdColor(id);
-		vNormal = vec3(0.0, 0.0, 0.0);
+		// exclude everything except for highlighted and xray visible in xray mode
+		if ((uRenderingMode == 2 || uRenderingMode == 4) && state != 252 && state != 253)
+		{
+			vDiscard = 1.0;
+			vColor = vec4(0.0, 0.0, 0.0, 0.0);
+			vNormal = vec3(0.0, 0.0, 0.0);	
+		} 
+		else
+		{
+		    float id = float(uColorCoding);
+		    vColor = getIdColor(id);
+		    vNormal = vec3(0.0, 0.0, 0.0);
+		}
 	}
 	// rendering
 	else {
