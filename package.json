@@ -4,7 +4,7 @@
   "license": "CDDL-1.0",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/xBimTeam/XbimWebUI"
   },
   "author": {
     "email": "info@xbim.net",
@@ -36,7 +36,6 @@
     "build:dev": "webpack --config webpack.worker.js&&webpack --config webpack.dev.js"
   },
   "dependencies": {
-    "gl-matrix": "^3.4.3",
-    "handlebars": "^4.7.7"
+    "gl-matrix": "^3.4.3"
   }
 }
