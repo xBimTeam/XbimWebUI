@@ -55,7 +55,7 @@ export class InteractiveClippingPlane implements IPlugin {
             var region = this.viewer.getMergedRegion();
             var size = Math.sqrt(region.bbox[3] * region.bbox[3] + region.bbox[4] * region.bbox[4] + region.bbox[5] * region.bbox[5])
             this.setActive();
-            const controlsSize = Math.min(this.viewer.unitsInMeter * 2, size * 0.1);
+            const controlsSize = Math.max(this.viewer.unitsInMeter * 0.5, size * 0.05);
             this.bufferGeometry(controlsSize, size)
 
             this.updateTransformationFromPlane();
@@ -147,7 +147,7 @@ export class InteractiveClippingPlane implements IPlugin {
         var gl = this.setActive();
 
         // UI control identity colour coding
-        gl.uniform1f(this.idCodingUniformPointer, 1);   
+        gl.uniform1f(this.idCodingUniformPointer, 1);
         this.draw(gl);
     }
 
@@ -266,9 +266,9 @@ export class InteractiveClippingPlane implements IPlugin {
         let lastMouseX: number = null;
         let lastMouseY: number = null;
         let lastNavigation: NavigationMode;
-        let origin: vec3; 
+        let origin: vec3;
         let originInPlaneSpace: vec3;
-        
+
         this.viewer.canvas.addEventListener('pointerdown', event => {
             // don't do anything if this plugin is not active
             if (this.stopped || this.viewer.plugins.indexOf(this) < 0) {
@@ -286,8 +286,8 @@ export class InteractiveClippingPlane implements IPlugin {
             lastMouseY = event.clientY;
             lastNavigation = this.viewer.navigationMode;
             origin = data.xyz;
-            this.viewer.navigationMode = 'none'; 
- 
+            this.viewer.navigationMode = 'none';
+
             originInPlaneSpace = vec3.transformMat4(vec3.create(), origin, mat4.invert(mat4.create(), this.transformation));
         });
 
@@ -298,28 +298,28 @@ export class InteractiveClippingPlane implements IPlugin {
             action = -1;
             this.viewer.navigationMode = lastNavigation;
         });
-        
+
         window.addEventListener('pointermove', event => {
-             
+
             if (action === -1) {
                 this.viewer.gl.uniform1f(this.idSelectedIdUniformPointer, action);
                 return;
             }
             this.viewer.gl.uniform1f(this.idSelectedIdUniformPointer, action);
-             
+
             var newX = event.clientX;
             var newY = event.clientY;
 
             var deltaX = newX - lastMouseX;
             var deltaY = newY - lastMouseY;
- 
- 
+
+
             lastMouseX = newX;
             lastMouseY = newY;
             const camera = this.viewer.getCameraPosition();
-            
+
             const distance = vec3.distance(camera, origin);
-             
+
             switch (action) {
                 case this.ARROW:
                     let c = 0;
@@ -339,7 +339,7 @@ export class InteractiveClippingPlane implements IPlugin {
                     let angle = this.getRotatingAngle(deltaX, deltaY, originInPlaneSpace);
                     mat4.rotateZ(this.transformation, this.transformation, angle);
                     break;
-                case this.VERTICAL: 
+                case this.VERTICAL:
                     angle = this.getRotatingAngle(deltaX, deltaY, originInPlaneSpace, true);
                     mat4.rotateY(this.transformation, this.transformation, angle);
                     break;
@@ -351,16 +351,16 @@ export class InteractiveClippingPlane implements IPlugin {
 
     private getRotatingAngle(deltaX: number, deltaY: number, originInPlaneSpace: vec3, vertical: boolean = false) : number {
 
-        // project the rotating point origin to screen to work with 
-        // screen mouse movemnt vectors 
+        // project the rotating point origin to screen to work with
+        // screen mouse movemnt vectors
         const modelViewRotation = mat4.getRotation(quat.create(), this.mvMatrix);
         const screenProjectedOrigin = vec3.transformQuat(vec3.create(), originInPlaneSpace, modelViewRotation);
-        
-        // reverse the angle according to if we are top or bottom of the plane of rotation 
+
+        // reverse the angle according to if we are top or bottom of the plane of rotation
         const camera = this.viewer.getCameraPosition();
         const planeOfRevert = vertical? this.getTangentPlaneEquation() : this.getPrependicularPlaneEquation();
         const topOrBottom = (planeOfRevert[0]*camera[0]) + (planeOfRevert[1]*camera[1]) + (planeOfRevert[2]*camera[2]) + (planeOfRevert[3]);
-        
+
         // mouse movement vector
         const displacmentVector = vec3.fromValues(deltaX, -deltaY, 0);
 
@@ -370,29 +370,31 @@ export class InteractiveClippingPlane implements IPlugin {
         // calculate the angle bwteen the original vector and the rotated one
         const angle = vec3.angle(screenProjectedOrigin, displacedOrigin);
 
-        const speed = (displacmentVector.length * this.viewer.unitsInMeter) / 100 ;
+        var region = this.viewer.getMergedRegion();
+        var size = Math.sqrt(region.bbox[3] * region.bbox[3] + region.bbox[4] * region.bbox[4] + region.bbox[5] * region.bbox[5])
 
-        // we use the vector perpendicular to the plane of rotation to determine 
-        // if we are rotating clockwise or anti-clockwise 
+        // we use the vector perpendicular to the plane of rotation to determine
+        // if we are rotating clockwise or anti-clockwise
         const signVector = vec3.cross(vec3.create(), displacedOrigin, screenProjectedOrigin);
         vec3.normalize(signVector, signVector);
-      
+        const speed = Math.cbrt(size * this.viewer.unitsInMeter * Math.sqrt(deltaX*deltaX + deltaY*deltaY)) / 100;
+
         return (vertical? -1 : 1) * (topOrBottom > 0 ? -1 : 1) * signVector[2] * speed * angle;
     }
-    
+
     private getDragOffset(speed: number, deltaX: number, deltaY: number) : vec3{
-         
-        const dragAxis = vec3.fromValues(1, 0, 0); 
-         
+
+        const dragAxis = vec3.fromValues(1, 0, 0);
+
         // we use this projected screen normal to map mouse movement
         // to actual drag axis
-        const modelViewRotation = mat4.getRotation(quat.create(), this.mvMatrix); 
+        const modelViewRotation = mat4.getRotation(quat.create(), this.mvMatrix);
         const projectedNormal = vec3.transformQuat(vec3.create(), dragAxis, modelViewRotation);
         vec3.normalize(projectedNormal, projectedNormal)
-        
+
         // calculate offset based on the projected axis orientation
         const offset = (deltaX * projectedNormal[0]) - (deltaY * projectedNormal[1]);
-         
+
         // scale the dragging axis with the deduced offset and speed factor
         vec3.scale(dragAxis, dragAxis, offset * speed);
 
@@ -410,8 +412,8 @@ export class InteractiveClippingPlane implements IPlugin {
             const region = this.viewer.getMergedRegion();
             this.transformation = mat4.translate(mat4.create(), mat4.create(), region.centre);
             return;
-        } 
- 
+        }
+
         // noraml, tangent and binormal of the plane
         const normal = vec3.normalize(vec3.create(), vec3.fromValues(plane[0], plane[1], plane[2]));
         const tangent = this.getTangent(normal);
@@ -419,7 +421,7 @@ export class InteractiveClippingPlane implements IPlugin {
         vec3.normalize(binormal, binormal);
 
         // plane point
-        const planePoint = this.getPlanePoint(normal, plane[3]); 
+        const planePoint = this.getPlanePoint(normal, plane[3]);
 
         // build transformation
         const transform = mat4.fromValues(
@@ -427,20 +429,20 @@ export class InteractiveClippingPlane implements IPlugin {
             tangent[0], tangent[1], tangent[2], 0,
             binormal[0], binormal[1], binormal[2], 0,
             planePoint[0], planePoint[1], planePoint[2], 1);
-          
-            
+
+
         if(this.transformation && this.isTransformationsHasSameOrientation(this.transformation, transform, plane)){
             return;
         }
-        
+
         this.transformation = transform;
-        
+
     }
 
     private  isTransformationsHasSameOrientation (transform1 :mat4, transform2: mat4, plane: number[]) : boolean{
-        const tolerance = 0.001; 
+        const tolerance = 0.001;
         // if the two planes has same normal
-        if (Math.abs(transform1[0] - transform2[0]) < tolerance && Math.abs(transform1[1] - transform2[1]) < tolerance && 
+        if (Math.abs(transform1[0] - transform2[0]) < tolerance && Math.abs(transform1[1] - transform2[1]) < tolerance &&
             Math.abs(transform1[2] - transform2[2]) < tolerance && Math.abs(transform1[3] - transform2[3]) < tolerance) {
                 // if the new transform placment lies on the older plane
                 return Math.abs((plane[0] * transform2[12]) + (plane[1] * transform2[13]) + (plane[2] * transform2[14]) + plane[3]) < tolerance;
@@ -450,7 +452,7 @@ export class InteractiveClippingPlane implements IPlugin {
     private getPlanePoint(normal: vec3, dval: number): vec3 {
 
         const regionCentre = this.viewer.getMergedRegion()?.centre ?? vec3.create();
-        
+
         let planePoint : vec3 = null;
         if(normal[2] != 0){
             const acc = (normal[0] * regionCentre[0]) + (normal[1] * regionCentre[1]) + dval;
@@ -468,7 +470,7 @@ export class InteractiveClippingPlane implements IPlugin {
         return planePoint;
     }
 
-    private getTangent(normal: vec3): vec3 { 
+    private getTangent(normal: vec3): vec3 {
 
         const between = (x: number, min: number, max: number) => {
             return x > min && x < max;
@@ -477,7 +479,7 @@ export class InteractiveClippingPlane implements IPlugin {
         const x = vec3.fromValues(1, 0, 0);
         const y = vec3.fromValues(0, 1, 0);
         const z = vec3.fromValues(0, 0, 1);
-        
+
         let tangent : vec3 = null;
         if(between(vec3.angle(normal, z), 0, Math.PI)) {
             tangent = vec3.cross(vec3.create(), normal, z);
@@ -490,7 +492,7 @@ export class InteractiveClippingPlane implements IPlugin {
         }
 
         vec3.normalize(tangent, tangent);
-    
+
         return tangent;
     }
 
@@ -523,24 +525,23 @@ export class InteractiveClippingPlane implements IPlugin {
         const wcs = this.viewer.getCurrentWcs();
         const point = vec3.transformMat4(vec3.create(), vec3.create(), this.transformation);
         const normal = this.getPlaneNormal();
-        //compute normal equation of the plane
-        const d = 0.0 - normal[0] * (point[0] + wcs[0]) - normal[1] * (point[1] + wcs[1]) - normal[2] * (point[2] + wcs[2]);
-        return [normal[0], normal[1], normal[2], d];
+        const normalLength = vec3.len(normal);
+        const d = - (normal[0] * (point[0] + wcs[0])) - (normal[1] * (point[1] + wcs[1])) - (normal[2] * (point[2] + wcs[2]));
+
+        return [normal[0], normal[1], normal[2], d / normalLength];
     }
 
     private getPrependicularPlaneEquation(): number[] {
-        const wcs = this.viewer.getCurrentWcs();
         const point = vec3.transformMat4(vec3.create(), vec3.create(), this.transformation);
         const normal = this.getPlaneBinormal();
-        const d = 0.0 - normal[0] * (point[0] + wcs[0]) - normal[1] * (point[1] + wcs[1]) - normal[2] * (point[2] + wcs[2]);
+        const d = 0.0 - normal[0] * point[0] - normal[1] * (point[1]) - normal[2] * point[2];
         return [normal[0], normal[1], normal[2], d];
     }
 
     private getTangentPlaneEquation(): number[] {
-        const wcs = this.viewer.getCurrentWcs();
         const point = vec3.transformMat4(vec3.create(), vec3.create(), this.transformation);
         const normal = this.getPlaneTangent();
-        const d = 0.0 - normal[0] * (point[0] + wcs[0]) - normal[1] * (point[1] + wcs[1]) - normal[2] * (point[2] + wcs[2]);
+        const d = 0.0 - normal[0] * point[0] - normal[1] * point[1] - normal[2] * point[2];
         return [normal[0], normal[1], normal[2], d];
     }
 
