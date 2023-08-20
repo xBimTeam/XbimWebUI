@@ -54,7 +54,7 @@ export class InteractiveClippingPlane implements IPlugin {
             var region = this.viewer.getMergedRegion();
             var size = Math.sqrt(region.bbox[3] * region.bbox[3] + region.bbox[4] * region.bbox[4] + region.bbox[5] * region.bbox[5])
             this.setActive();
-            const controlsSize = Math.min(this.viewer.unitsInMeter * 2, size * 0.1);
+            const controlsSize = Math.max(this.viewer.unitsInMeter * 0.5, size * 0.05);
             this.bufferGeometry(controlsSize, size)
 
             this.updateTransformationFromPlane();
@@ -349,16 +349,16 @@ export class InteractiveClippingPlane implements IPlugin {
 
     private getRotatingAngle(deltaX: number, deltaY: number, originInPlaneSpace: vec3, vertical: boolean = false) : number {
 
-        // project the rotating point origin to screen to work with 
-        // screen mouse movemnt vectors 
+        // project the rotating point origin to screen to work with
+        // screen mouse movemnt vectors
         const modelViewRotation = mat4.getRotation(quat.create(), this.mvMatrix);
         const screenProjectedOrigin = vec3.transformQuat(vec3.create(), originInPlaneSpace, modelViewRotation);
-        
-        // reverse the angle according to if we are top or bottom of the plane of rotation 
+
+        // reverse the angle according to if we are top or bottom of the plane of rotation
         const camera = this.viewer.getCameraPosition();
         const planeOfRevert = vertical? this.getTangentPlaneEquation() : this.getPrependicularPlaneEquation();
         const topOrBottom = (planeOfRevert[0]*camera[0]) + (planeOfRevert[1]*camera[1]) + (planeOfRevert[2]*camera[2]) + (planeOfRevert[3]);
-        
+
         // mouse movement vector
         const displacmentVector = vec3.fromValues(deltaX, -deltaY, 0);
 
@@ -368,13 +368,15 @@ export class InteractiveClippingPlane implements IPlugin {
         // calculate the angle bwteen the original vector and the rotated one
         const angle = vec3.angle(screenProjectedOrigin, displacedOrigin);
 
-        const speed = (displacmentVector.length * this.viewer.unitsInMeter) / 100 ;
+        var region = this.viewer.getMergedRegion();
+        var size = Math.sqrt(region.bbox[3] * region.bbox[3] + region.bbox[4] * region.bbox[4] + region.bbox[5] * region.bbox[5])
 
-        // we use the vector perpendicular to the plane of rotation to determine 
-        // if we are rotating clockwise or anti-clockwise 
+        // we use the vector perpendicular to the plane of rotation to determine
+        // if we are rotating clockwise or anti-clockwise
         const signVector = vec3.cross(vec3.create(), displacedOrigin, screenProjectedOrigin);
         vec3.normalize(signVector, signVector);
-      
+        const speed = Math.cbrt(size * this.viewer.unitsInMeter * Math.sqrt(deltaX*deltaX + deltaY*deltaY)) / 100;
+
         return (vertical? -1 : 1) * (topOrBottom > 0 ? -1 : 1) * signVector[2] * speed * angle;
     }
     
@@ -521,24 +523,23 @@ export class InteractiveClippingPlane implements IPlugin {
         const wcs = this.viewer.getCurrentWcs();
         const point = vec3.transformMat4(vec3.create(), vec3.create(), this.transformation);
         const normal = this.getPlaneNormal();
-        //compute normal equation of the plane
-        const d = 0.0 - normal[0] * (point[0] + wcs[0]) - normal[1] * (point[1] + wcs[1]) - normal[2] * (point[2] + wcs[2]);
-        return [normal[0], normal[1], normal[2], d];
+        const normalLength = vec3.len(normal);
+        const d = - (normal[0] * (point[0] + wcs[0])) - (normal[1] * (point[1] + wcs[1])) - (normal[2] * (point[2] + wcs[2]));
+
+        return [normal[0], normal[1], normal[2], d / normalLength];
     }
 
     private getPrependicularPlaneEquation(): number[] {
-        const wcs = this.viewer.getCurrentWcs();
         const point = vec3.transformMat4(vec3.create(), vec3.create(), this.transformation);
         const normal = this.getPlaneBinormal();
-        const d = 0.0 - normal[0] * (point[0] + wcs[0]) - normal[1] * (point[1] + wcs[1]) - normal[2] * (point[2] + wcs[2]);
+        const d = 0.0 - normal[0] * point[0] - normal[1] * (point[1]) - normal[2] * point[2];
         return [normal[0], normal[1], normal[2], d];
     }
 
     private getTangentPlaneEquation(): number[] {
-        const wcs = this.viewer.getCurrentWcs();
         const point = vec3.transformMat4(vec3.create(), vec3.create(), this.transformation);
         const normal = this.getPlaneTangent();
-        const d = 0.0 - normal[0] * (point[0] + wcs[0]) - normal[1] * (point[1] + wcs[1]) - normal[2] * (point[2] + wcs[2]);
+        const d = 0.0 - normal[0] * point[0] - normal[1] * point[1] - normal[2] * point[2];
         return [normal[0], normal[1], normal[2], d];
     }
 
