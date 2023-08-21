@@ -56,7 +56,6 @@ export class InteractiveClippingPlane implements IPlugin {
             this.setActive();
             const controlsSize = Math.max(this.viewer.unitsInMeter * 0.5, size * 0.05);
             this.bufferGeometry(controlsSize, size)
-
             this.updateTransformationFromPlane();
             this.applyCurrentPlane();
         }
@@ -405,6 +404,7 @@ export class InteractiveClippingPlane implements IPlugin {
         }
 
         const plane = this.viewer.getClip()?.PlaneA;
+
         // no plane is defined, so we shall place it in the middle
         if (plane == null) {
             const region = this.viewer.getMergedRegion();
@@ -419,7 +419,7 @@ export class InteractiveClippingPlane implements IPlugin {
         vec3.normalize(binormal, binormal);
 
         // plane point
-        const planePoint = this.getPlanePoint(normal, plane[3]); 
+        const planePoint = this.getPlanePoint(plane)
 
         // build transformation
         const transform = mat4.fromValues(
@@ -432,9 +432,7 @@ export class InteractiveClippingPlane implements IPlugin {
         if(this.transformation && this.isTransformationsHasSameOrientation(this.transformation, transform, plane)){
             return;
         }
-        
         this.transformation = transform;
-        
     }
 
     private  isTransformationsHasSameOrientation (transform1 :mat4, transform2: mat4, plane: number[]) : boolean{
@@ -447,25 +445,50 @@ export class InteractiveClippingPlane implements IPlugin {
             }
     }
 
-    private getPlanePoint(normal: vec3, dval: number): vec3 {
+    private getPlanePoint(plane: number[]): vec3 {
 
         const regionCentre = this.viewer.getMergedRegion()?.centre ?? vec3.create();
-        
+        const wcs = this.viewer.getCurrentWcs();
+        var transformed = this.transformPlane(plane, wcs);
+        const normal = vec3.fromValues(transformed[0], transformed[1], transformed[2]);
         let planePoint : vec3 = null;
         if(normal[2] != 0){
-            const acc = (normal[0] * regionCentre[0]) + (normal[1] * regionCentre[1]) + dval;
+            const acc = (normal[0] * regionCentre[0]) + (normal[1] * regionCentre[1]) + transformed[3];
             planePoint = vec3.fromValues(regionCentre[0], regionCentre[1], -1 * (acc / normal[2]));
         }
         else if(normal[1] != 0){
-            const acc = (normal[0] * regionCentre[0]) + (normal[2] * regionCentre[2]) + dval;
+            const acc = (normal[0] * regionCentre[0]) + (normal[2] * regionCentre[2]) + transformed[3];
             planePoint = vec3.fromValues(regionCentre[0], -1 * (acc / normal[1]), regionCentre[2]);
         }
         else if(normal[0] != 0){
-            const acc = (normal[1] * regionCentre[1]) + (normal[2] * regionCentre[2]) + dval;
+            const acc = (normal[1] * regionCentre[1]) + (normal[2] * regionCentre[2]) + transformed[3];
             planePoint = vec3.fromValues(-1 * (acc/ normal[0]), regionCentre[1], regionCentre[2]);
         }
-
         return planePoint;
+    }
+
+    private transformPlane(plane: number[], transform: vec3): Float32Array {
+        // plane components
+        const a = plane[0];
+        const b = plane[1];
+        const c = plane[2];
+        let d = plane[3];
+        const normalLength = vec3.len(vec3.fromValues(a, b, c));
+
+        // point closest to [0,0,0]
+        let x = (a * -d) / normalLength;
+        let y = (b * -d) / normalLength;
+        let z = (c * -d) / normalLength;
+
+        // translate
+        x -= transform[0];
+        y -= transform[1];
+        z -= transform[2];
+
+        //compute new normal equation of the plane
+        d = 0.0 - a * x - b * y - c * z;
+
+        return new Float32Array([a, b, c, d]);
     }
 
     private getTangent(normal: vec3): vec3 { 
