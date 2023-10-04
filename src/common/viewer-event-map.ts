@@ -54,6 +54,7 @@ export interface ViewerEventMap extends ViewerInteractionEventMap {
     "unloaded": ViewerLoadedEvent;
     "error": { message: string };
     "navigationEnd": boolean;
+    "navigationStart": boolean;
 }
 
 /**

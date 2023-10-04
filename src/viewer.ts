@@ -1483,16 +1483,6 @@ export class Viewer {
         let width = framebuffer ? framebuffer.width : this.width;
         let height = framebuffer ? framebuffer.height : this.height;
 
-        // this will minimize z-fighting when zoomed far away from the model with thin layers
-        var { near, far, size } = this.getCameraDistanceFromRegion();
-        if (near > 0 && far > 0) {
-            this.cameraProperties.near = near;
-            this.cameraProperties.far = far;
-        } else {
-            this.cameraProperties.near = this.meter * 0.2;
-            this.cameraProperties.far = size * 5;
-        }
-
         // set right size of viewport
         gl.viewport(0, 0, width, height);
         this.updatePMatrix(width, height);
@@ -1713,7 +1703,7 @@ export class Viewer {
         let region = this.getMergedRegion();
 
         if (!region.bbox || region.bbox.length === 0) {
-            return { near: 0, far: 0, size: 0};
+            return { near: 0, far: 0, size: 0 };
         }
 
         let camera = this.getCameraPosition();
@@ -1724,8 +1714,8 @@ export class Viewer {
         let regionDir = vec3.normalize(vec3.create(), regionVec);
         let regionDist = vec3.length(regionVec);
 
-        let nearVec = vec3.scale(vec3.create(), regionDir, regionDist - size / 2.0);
-        let farVec = vec3.scale(vec3.create(), regionDir, regionDist + size / 2.0);
+        let nearVec = vec3.scale(vec3.create(), regionDir, regionDist - size);
+        let farVec = vec3.scale(vec3.create(), regionDir, regionDist + size);
 
         let near = vec3.dot(viewDir, nearVec);
         let far = vec3.dot(viewDir, farVec);
@@ -2367,6 +2357,13 @@ export class Viewer {
                 this.fire('navigationEnd', true);
                 // navigation ended and there is something to draw, so draw it
                 if (this.activeHandles.length > 0) {
+
+                    // this will minimize z-fighting when zoomed far away from the model with thin layers
+                    var { near, far, size } = this.getCameraDistanceFromRegion();
+                    if (near > 0 && far > 0) {
+                        this.cameraProperties.near = near;
+                        this.cameraProperties.far = far;
+                    } 
                     this.draw();
                 }
                 this._requestAnimationFrame(tick);
@@ -2374,7 +2371,14 @@ export class Viewer {
             }
 
             // we are on the move. Set the performance indicator based on the current FPS
-            isMoving = true;
+            if (isMoving === false)
+            {
+                isMoving = true;
+                var { near, far, size } = this.getCameraDistanceFromRegion();
+                this.cameraProperties.near = this.meter * 0.2;
+                this.cameraProperties.far = size * 5;
+                this.fire('navigationStart', true);
+            }
             if (fps < 10 && this.performance > PerformanceRating.VERY_LOW) {
                 this.performance = PerformanceRating.VERY_LOW;
             } else if (fps < 20 && this.performance > PerformanceRating.LOW) {
