@@ -199,54 +199,55 @@ export class MouseNavigation {
         let lastScrollPoint: vec2 = null;
         let scrollCounter = 0;
         var handleMouseScroll = (event: WheelEvent) => {
-            if (viewer.navigationMode === 'none') {
-                return;
-            }
-            if (event.stopPropagation) {
-                viewer.fire('wheel', {
-                    event: event,
-                    id: null,
-                    model: null,
-                    xyz: null
-                });
-                event.stopPropagation();
-            }
-            if (event.preventDefault) {
-                event.preventDefault();
-            }
-
-            scrollCounter++;
-            const scrollPoint = vec2.fromValues(event.clientX, event.clientY);
-            if (lastScrollPoint == null || vec2.dist(lastScrollPoint, scrollPoint) > 5 || scrollCounter > 10) {
-                scrollOrigin = viewer.getInteractionOrigin(event);
-
-                if (scrollOrigin == null) {
-                    var region = viewer.getMergedRegion();
-                    var centre = vec3.fromValues(region.centre[0], region.centre[1], region.centre[2]);
-                    var eye = viewer.getCameraPosition();
-                    var distance = vec3.distance(centre, eye);
-                    var trans = mat4.invert(mat4.create(), viewer.mvMatrix);
-                    var rotation = mat4.getRotation(quat.create(), trans);
-                    var dir = vec3.normalize(vec3.create(), vec3.transformQuat(vec3.create(), [0, 0, -1], rotation));
-                    var move = vec3.scale(vec3.create(), dir, distance);
-                    scrollOrigin = vec3.add(vec3.create(), move, eye);
+            try {
+                if (viewer.navigationMode === 'none') {
+                    return;
                 }
-
-                lastScrollPoint = scrollPoint;
-                scrollCounter = 0;
-            }
-
-
-            var sign = (x: any) => {
-                x = +x; // convert to a number
-                if (x === 0 || isNaN(x)) {
-                    return x;
+                if (event.stopPropagation) {
+                    event.stopPropagation();
                 }
-                return x > 0 ? 1 : -1;
-            };
-
-            //deltaX and deltaY have very different values in different web browsers so fixed value is used for constant functionality.
-            viewer.navigate('zoom', sign(event.deltaX) * -1.0, sign(event.deltaY) * -1.0, scrollOrigin);
+                if (event.preventDefault) {
+                    event.preventDefault();
+                }
+    
+                scrollCounter++;
+                const scrollPoint = vec2.fromValues(event.clientX, event.clientY);
+                if (lastScrollPoint == null || vec2.dist(lastScrollPoint, scrollPoint) > 5 || scrollCounter > 10) {
+                    scrollOrigin = viewer.getInteractionOrigin(event);
+                    
+                    if (scrollOrigin == null) {
+                        var region = viewer.getMergedRegion();
+    
+                        if(region && region.centre) {
+                            var centre = vec3.fromValues(region.centre[0], region.centre[1], region.centre[2]);
+                            var eye = viewer.getCameraPosition();
+                            var distance = vec3.distance(centre,  eye);
+                            var trans = mat4.invert(mat4.create(), viewer.mvMatrix);
+                            var rotation = mat4.getRotation(quat.create(), trans);
+                            var dir = vec3.normalize(vec3.create(), vec3.transformQuat(vec3.create(), [0,0,-1], rotation));
+                            var move = vec3.scale(vec3.create(), dir, distance);
+                            scrollOrigin = vec3.add(vec3.create(), move, eye);
+                        }
+                    }
+    
+                    lastScrollPoint = scrollPoint;
+                    scrollCounter = 0;
+                } 
+                
+    
+                var sign = (x: any) => {
+                    x = +x; // convert to a number
+                    if (x === 0 || isNaN(x)) {
+                        return x;
+                    }
+                    return x > 0 ? 1 : -1;
+                };
+    
+                //deltaX and deltaY have very different values in different web browsers so fixed value is used for constant functionality.
+                viewer.navigate('zoom', sign(event.deltaX) * -1.0, sign(event.deltaY) * -1.0, scrollOrigin);
+            } catch(e){
+                console.error(e);
+            }
         };
 
         // handle mouse movements when using PointerLock mode.
