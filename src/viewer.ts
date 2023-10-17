@@ -935,11 +935,13 @@ export class Viewer {
             width = height * viewRatio;
         }
 
-        const distance = height / (Math.tan(this.cameraProperties.fov * Math.PI / 180.0 / 2.0) * 2.0) + sizes.depth / 2.0;
+        const minDistance = this.cameraProperties.near + sizes.depth / 2.0;
+        const optimalDistance = height / (Math.tan(this.cameraProperties.fov * Math.PI / 180.0 / 2.0) * 2.0) + sizes.depth / 2.0;
 
         return {
-            distance: distance * 1.5,
-            height: height * 1.5 // make it little bit more far away so there is some space around the model
+            distance: Math.max(optimalDistance, minDistance) * 1.2,
+            // distance: optimalDistance * 1.5,
+            height: height * 1.2 // make it little bit more far away so there is some space around the model
         };
     };
 
@@ -1777,7 +1779,7 @@ export class Viewer {
     * @param {Number | Array<{id: number, model: number}>} [target] Optional product ID or a list of products in models
     * @param {Number} [model] Optional model ID
     * @param {boolean} withAnimation - Optional parameter, default is 'true'. When true, transition to the view is animated. When false, view is changed imediately.
-    * @param {boolean} checkVisibility - Optional parameter, default is 'true'. When true, viewer tries attempts to fing the best view angle where the target is most visible.
+    * @param {boolean} checkVisibility - Optional parameter, default is 'true'. When true, viewer attempts to fing the best view angle where the target is best visible. This is an expensive operation.
     * @return {boolean} True if target exists and zoom was successful, False otherwise
     */
     public zoomTo(target?: number | { id: number, model: number }[], model?: number, withAnimation: boolean = true, checkVisibility: boolean = true): Promise<void> {
