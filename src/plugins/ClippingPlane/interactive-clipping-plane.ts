@@ -528,8 +528,8 @@ export class InteractiveClippingPlane implements IPlugin {
     private snapToMainAxes(): void {
         const rotation = mat4.getRotation(quat.create(), this.transformation);
         const normal = vec3.transformQuat(vec3.create(), vec3.fromValues(1, 0, 0), rotation);
+        const tolerance = Math.PI / 180.0 * 6;
 
-        const tolerance = Math.PI / 180.0 * 5;
         if (vec3.angle(normal, vec3.fromValues(0, 0, 1)) < tolerance) {
             const translation = mat4.getTranslation(vec3.create(), this.transformation);
             const yRoration = quat.rotateY(quat.create(), quat.create(), - Math.PI / 2.0);
@@ -540,6 +540,14 @@ export class InteractiveClippingPlane implements IPlugin {
             const yRoration = quat.rotateY(quat.create(), quat.create(), Math.PI / 2.0);
             mat4.fromRotationTranslation(this.transformation, yRoration, translation);
         }
+        const proj = vec3.fromValues(normal[0], normal[1], 0);
+        const angle = vec3.angle(normal, proj);
+        if (angle < tolerance) {
+            const translation = mat4.getTranslation(vec3.create(), this.transformation);
+            const roration = quat.rotateZ(quat.create(), quat.create(), Math.atan2(proj[1], proj[0]));
+            mat4.fromRotationTranslation(this.transformation, roration, translation);
+        }
+        
     }
 
     private getPlaneEquation(): number[] {
@@ -568,8 +576,7 @@ export class InteractiveClippingPlane implements IPlugin {
 
     private getPlaneNormal(): vec3 {
         const rotation = mat4.getRotation(quat.create(), this.transformation);
-        const normal = vec3.transformQuat(vec3.create(), vec3.fromValues(1, 0, 0), rotation);
-        return normal;
+        return vec3.transformQuat(vec3.create(), vec3.fromValues(1, 0, 0), rotation);
     }
 
     private getPlaneBinormal(): vec3 {
