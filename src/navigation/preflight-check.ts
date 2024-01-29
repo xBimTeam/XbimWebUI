@@ -58,7 +58,9 @@ export class PreflightCheck {
         viewer.stop();
         const originalMv = viewer.mvMatrix;
         const originalHeight = viewer.cameraProperties.height;
+        const originalAdaptive = viewer.adaptivePerformanceOn;
         try {
+            viewer.adaptivePerformanceOn = false;
             const center = vec3.fromValues(bBox[0] + bBox[3] / 2.0, bBox[1] + bBox[4] / 2.0, bBox[2] + bBox[5] / 2.0);
 
             // get optimal distances and heights
@@ -110,6 +112,7 @@ console.error(ex);
             viewer.mvMatrix = originalMv;
             if (originalHeight != null && originalHeight > 0)
                 viewer.cameraProperties.height = originalHeight;
+            viewer.adaptivePerformanceOn = originalAdaptive;
             if (isRunning) viewer.start();
         }
 
