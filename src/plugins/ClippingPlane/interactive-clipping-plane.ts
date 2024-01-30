@@ -265,7 +265,7 @@ export class InteractiveClippingPlane implements IPlugin {
         let lastMouseX: number = null;
         let lastMouseY: number = null;
         let lastNavigation: NavigationMode;
-        let origin: vec3; 
+        let origin: vec3 = vec3.create(); 
         let originInPlaneSpace: vec3;
         
         this.viewer.canvas.addEventListener('pointerdown', event => {
@@ -284,7 +284,8 @@ export class InteractiveClippingPlane implements IPlugin {
             lastMouseX = event.clientX;
             lastMouseY = event.clientY;
             lastNavigation = this.viewer.navigationMode;
-            origin = data.xyz;
+            if(data.xyz) origin = data.xyz;
+
             this.viewer.navigationMode = 'none'; 
  
             originInPlaneSpace = vec3.transformMat4(vec3.create(), origin, mat4.invert(mat4.create(), this.transformation));
@@ -314,7 +315,6 @@ export class InteractiveClippingPlane implements IPlugin {
             lastMouseX = newX;
             lastMouseY = newY;
             const camera = this.viewer.getCameraPosition();
-            
             const distance = vec3.distance(camera, origin);
              
             switch (this.currentInteraction) {
