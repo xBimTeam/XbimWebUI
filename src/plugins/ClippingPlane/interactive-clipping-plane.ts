@@ -351,7 +351,7 @@ export class InteractiveClippingPlane implements IPlugin {
         // project the rotating point origin to screen to work with
         // screen mouse movemnt vectors
         const modelViewRotation = mat4.getRotation(quat.create(), this.mvMatrix);
-        const screenProjectedOrigin = vec3.transformQuat(vec3.create(), originInPlaneSpace, modelViewRotation);
+        const screenProjectedOrigin = vec3.normalize(vec3.create(), vec3.transformQuat(vec3.create(), originInPlaneSpace, modelViewRotation));
 
         // reverse the angle according to if we are top or bottom of the plane of rotation
         const camera = this.viewer.getCameraPosition();
@@ -359,24 +359,20 @@ export class InteractiveClippingPlane implements IPlugin {
         const topOrBottom = (planeOfRevert[0]*camera[0]) + (planeOfRevert[1]*camera[1]) + (planeOfRevert[2]*camera[2]) + (planeOfRevert[3]);
 
         // mouse movement vector
-        const displacmentVector = vec3.fromValues(deltaX, -deltaY, 0);
+       // const displacmentVector = vec3.fromValues(vertical? 0 : deltaX, vertical? -deltaY : 0, 0);
+        const displacmentVector = vec3.fromValues( deltaX, -deltaY , 0);
 
         // move the rotating origin point with the displacement vector
         const displacedOrigin = vec3.add(vec3.create(), screenProjectedOrigin, displacmentVector);
-
-        // calculate the angle bwteen the original vector and the rotated one
-        const angle = vec3.angle(screenProjectedOrigin, displacedOrigin);
-
-        var region = this.viewer.getMergedRegion();
-        var size = Math.sqrt(region.bbox[3] * region.bbox[3] + region.bbox[4] * region.bbox[4] + region.bbox[5] * region.bbox[5])
-
+        
+        const displacment = vec3.length(displacmentVector) / 100;
+ 
         // we use the vector perpendicular to the plane of rotation to determine
         // if we are rotating clockwise or anti-clockwise
         const signVector = vec3.cross(vec3.create(), displacedOrigin, screenProjectedOrigin);
-        vec3.normalize(signVector, signVector);
-        const speed = Math.cbrt(size * this.viewer.unitsInMeter * Math.sqrt(deltaX*deltaX + deltaY*deltaY)) / 100;
+        vec3.normalize(signVector, signVector); 
 
-        return (vertical? -1 : 1) * (topOrBottom > 0 ? -1 : 1) * signVector[2] * speed * angle;
+        return (vertical? -1 : 1) * (topOrBottom > 0 ? -1 : 1) * signVector[2] * displacment;
     }
     
     private getDragOffset(speed: number, deltaX: number, deltaY: number) : vec3{
