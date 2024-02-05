@@ -38,17 +38,19 @@ void main(void) {
 	bool ignoreVec = false;
 	if (uColorCoding > 0.5 && uColorCoding <= 1.0)
 	{
+		ignoreVec = aId == 4.0;
 		vColor = getIdColor(aId);
 	}
 	else if (uColorCoding < -0.5)
 	{
+		ignoreVec = aId == 4.0;
 		vColor = getIdColor(1000010.0);
 	}
 	else
 	{ 
 		if(uSelectedId == aId)
 		{ 
-			vColor = uHoverPickColour; 
+			vColor = aColour; 
 		}
 		else
 		{
@@ -57,7 +59,7 @@ void main(void) {
 				if(aId != 4.0){ // hide other controls but leave the plane
 					ignoreVec = true;
 				}
-				else
+				else if(uSelectedId != 4.0) 
 					vColor = getTransparentColor(aColour, 1.5);
 			}
 			else 

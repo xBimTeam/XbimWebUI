@@ -21,7 +21,7 @@ export class InteractiveClippingPlane implements IPlugin {
     private arrowColour = [1.0, 0.0, 0.0, 1.0];
     private horizontalColour = [0.0, 1.0, 0.0, 1.0];
     private verticalColour = [0.0, 0.0, 1.0, 1.0];
-    private planeColour = [0.5, 0.5, 0.5, 0.3];
+    private planeColour = [0.5, 0.5, 0.5, 0.05];
     private currentInteraction: number = -1;
 
     private program: WebGLProgram;
@@ -537,8 +537,7 @@ export class InteractiveClippingPlane implements IPlugin {
             mat4.fromRotationTranslation(this.transformation, yRoration, translation);
         }
         const proj = vec3.fromValues(normal[0], normal[1], 0);
-        const angle = vec3.angle(normal, proj);
-        if (angle < tolerance) {
+        if (vec3.angle(normal, proj) < tolerance) {
             const translation = mat4.getTranslation(vec3.create(), this.transformation);
             const roration = quat.rotateZ(quat.create(), quat.create(), Math.atan2(proj[1], proj[0]));
             mat4.fromRotationTranslation(this.transformation, roration, translation);
