@@ -240,7 +240,7 @@ export class Viewpoint {
             };
 
             // set camera type and properties
-            let orthCamHeight = viewer.cameraProperties.height || 100;
+            let orthCamHeight = camera.height || 100;
 
             // region sizes from the viewpoint direction
             const region = viewer.getMergedRegion();
@@ -321,16 +321,14 @@ export class Viewpoint {
             const mv = mat4.lookAt(mat4.create(), eye, target, up);
             viewer.animations.viewTo({ mv: mv, height: orthCamHeight }, duration)
                 .then(() => {
+
                     // try to fix camera placement for generic orthographic views or camera height for perspective views
                     // this improves interactive navigation and smooth switching between cameras
-                    if (viewpoint.orthogonal_camera) {
-                        // don't do anything if this is a plan view
-                        var delta = vec3.angle(toVec3(camera.camera_direction), vec3.fromValues(0, 0, -1));
-                        if (delta > Math.PI / 180.0)
-                            return;
-
-                        viewer.adjustments.adjust(10);
-                    }
+                    // don't do anything if this is a plan view
+                    var delta = vec3.angle(toVec3(camera.camera_direction), vec3.fromValues(0, 0, -1));
+                    if (delta < Math.PI / 180.0)
+                        return;
+                    viewer.adjustments.adjust(10);
                 });
         }
 
