@@ -265,7 +265,7 @@ export class InteractiveClippingPlane implements IPlugin {
         let lastMouseX: number = null;
         let lastMouseY: number = null;
         let lastNavigation: NavigationMode;
-        let origin: vec3 = vec3.create(); 
+        let origin: vec3 = null; 
         let originInPlaneSpace: vec3;
         
         this.viewer.canvas.addEventListener('pointerdown', event => {
@@ -279,16 +279,11 @@ export class InteractiveClippingPlane implements IPlugin {
             if (data.model !== 1000010 || data.id == this.PLANE) {
                 return;
             }
-
-            this.currentInteraction = data.id;
             lastMouseX = event.clientX;
             lastMouseY = event.clientY;
             lastNavigation = this.viewer.navigationMode;
-            if(data.xyz) origin = data.xyz;
-
-            this.viewer.navigationMode = 'none'; 
- 
-            originInPlaneSpace = vec3.transformMat4(vec3.create(), origin, mat4.invert(mat4.create(), this.transformation));
+            this.viewer.navigationMode = 'none';
+            this.currentInteraction = data.id;
         });
 
         window.addEventListener('pointerup', event => {
@@ -297,12 +292,18 @@ export class InteractiveClippingPlane implements IPlugin {
             this.applyCurrentPlane();
             this.currentInteraction = -1;
             this.viewer.navigationMode = lastNavigation;
+            origin = null;
         });
         
         window.addEventListener('pointermove', event => {
              
             if (this.currentInteraction === -1) {
                 return;
+            }
+            const data = this.viewer.getEventDataFromEvent(event, true);
+            if(!origin){
+                origin = data.xyz? data.xyz : vec3.create();
+                originInPlaneSpace = vec3.transformMat4(vec3.create(), origin, mat4.invert(mat4.create(), this.transformation));
             }
              
             var newX = event.clientX;
@@ -351,7 +352,7 @@ export class InteractiveClippingPlane implements IPlugin {
         // project the rotating point origin to screen to work with
         // screen mouse movemnt vectors
         const modelViewRotation = mat4.getRotation(quat.create(), this.mvMatrix);
-        const screenProjectedOrigin = vec3.normalize(vec3.create(), vec3.transformQuat(vec3.create(), originInPlaneSpace, modelViewRotation));
+        const projectedOrigin = vec3.normalize(vec3.create(), vec3.transformQuat(vec3.create(), originInPlaneSpace, modelViewRotation));
 
         // reverse the angle according to if we are top or bottom of the plane of rotation
         const camera = this.viewer.getCameraPosition();
@@ -363,18 +364,18 @@ export class InteractiveClippingPlane implements IPlugin {
         const displacmentVector = vec3.fromValues( deltaX, -deltaY , 0);
 
         // move the rotating origin point with the displacement vector
-        const displacedOrigin = vec3.add(vec3.create(), screenProjectedOrigin, displacmentVector);
+        const displacedOrigin = vec3.add(vec3.create(), projectedOrigin, displacmentVector);
         
         const displacment = vec3.length(displacmentVector) / 100;
  
         // we use the vector perpendicular to the plane of rotation to determine
         // if we are rotating clockwise or anti-clockwise
-        const signVector = vec3.cross(vec3.create(), displacedOrigin, screenProjectedOrigin);
+        const signVector = vec3.cross(vec3.create(), displacedOrigin, projectedOrigin);
         vec3.normalize(signVector, signVector); 
 
         return (vertical? -1 : 1) * (topOrBottom > 0 ? -1 : 1) * signVector[2] * displacment;
     }
-    
+
     private getDragOffset(speed: number, deltaX: number, deltaY: number) : vec3{
          
         const dragAxis = vec3.fromValues(1, 0, 0); 
