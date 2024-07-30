@@ -31,8 +31,6 @@ viewer.on('loaded', args => {
         viewer.camera = CameraType.PERSPECTIVE;
         clipBox();
         viewer.show(ViewType.DEFAULT);
-        //viewer.zoomTo(763012);
-
         // kick off annotation rendering each frame 
         window.requestAnimationFrame(() => renderAnnotationLayer());
     } catch (e) {
