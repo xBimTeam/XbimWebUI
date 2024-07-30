@@ -1,19 +1,10 @@
-import { Viewer, NavigationCube, Heatmap, ContinuousHeatmapChannel, HeatmapSource, Icons, CameraType, ViewType, IHeatmapChannel, ClippingPlane, ProductType, } from '../..';
+import { Viewer, Heatmap, ContinuousHeatmapChannel, HeatmapSource, Icons, CameraType, ViewType, ClippingPlane, ProductType, } from '../..';
 import { Icon } from '../../src/plugins/DataVisualization/Icons/icon';
-import { Grid } from '../../src/plugins/Grid/grid';
 import { IconsData } from './icons';
 
 const viewer = new Viewer("viewer");
-const cube = new NavigationCube();
-const grid = new Grid();
 const heatmap = new Heatmap();
 const icons = new Icons();
-cube.ratio = 0.05;
-cube.stopped = false;
-cube.passiveAlpha = 1.0;
-cube.trueNorth = 0;
-viewer.addPlugin(grid);
-viewer.addPlugin(cube);
 viewer.addPlugin(heatmap);
 viewer.addPlugin(icons);
 
@@ -22,13 +13,14 @@ const humidityChannelId = "room_humidity";
 
 const temperatureSource = new HeatmapSource("Temp sensor", 1, 152, tempChannelId, 1);
 const humiditySource = new HeatmapSource("Humidity sensor", 1, 152, humidityChannelId, 10);
-const sourceIcon = new Icon("Room 1 Sensor", "Temprature sensor", 1, 152, IconsData.errorIcon);
+const sourceIcon = new Icon("Room 1 Sensor", "Temperature sensor", 1, 152, IconsData.errorIcon, null, null, null, () => { viewer.zoomTo(152, 1) });
 
 let selectedChannel: ContinuousHeatmapChannel;
 const tempChannel = new ContinuousHeatmapChannel
-(tempChannelId, "double", "Temprature", "Temperature of Rooms", "temprature", "°F", 0, 150, ["#142ce2","#fff200","#FF0000"]);
+(tempChannelId, "double", "Temperature", "Temperature of Rooms", "temperature", "°C", 0, 40, ["#142ce2","#fff200","#FF0000"]);
+
 const humidityChannel = new ContinuousHeatmapChannel
-(humidityChannelId, "double", "Humidity", "Humidity of Rooms", "temprature", "%", 0, 100, ["#1ac603", "#f96c00"]);
+(humidityChannelId, "double", "Humidity", "Humidity of Rooms", "humidity", "%", 0, 100, ["#1ac603", "#f96c00"]);
 selectedChannel = tempChannel;
 
 heatmap.addChannel(tempChannel);
@@ -46,14 +38,14 @@ viewer.on('loaded', args => {
         heatmap.addSource(humiditySource);
 
         icons.addIcon(sourceIcon);
-        icons.addIcon(new Icon("Temp. Sensor 2", "Temprature sensor", 1, 617, IconsData.successIcon));
-        icons.addIcon(new Icon("Temp. Sensor 3", "Temprature sensor", 1, 447, IconsData.successIcon));
+        icons.addIcon(new Icon("Temperature Sensor 2", "Temperature sensor", 1, 617, IconsData.successIcon));
+        icons.addIcon(new Icon("Temperature Sensor 3", "Temperature sensor", 1, 447, IconsData.successIcon));
 
         heatmap.renderChannel(selectedChannel.channelId);
 
         setInterval(function(){
             if(selectedChannel.channelId === tempChannelId){
-                temperatureSource.value = getRandomInt(150);
+                temperatureSource.value = getRandomInt(40);
                 heatmap.renderSource(temperatureSource.id);
                 sourceIcon.description = `Room ${selectedChannel.name}: ${temperatureSource.value}${selectedChannel.unit}`;
             }
@@ -66,12 +58,6 @@ viewer.on('loaded', args => {
 
     } catch (e) {
 
-    }
-});
-
-viewer.on("pick", (arg) => {
-    if (arg.id) {
-        console.log(`Selected id: ${arg.id} model ${arg.model} xyz ${arg.xyz}`);
     }
 });
 
@@ -90,7 +76,7 @@ setSelectedChannel();
 viewer.loadAsync('/tests/data/SampleHouse.wexbim')
 viewer.hoverPickEnabled = true;
 viewer.adaptivePerformanceOn = false;
-viewer.highlightingColour=[0,0,255,255];
+viewer.highlightingColour = [0, 0, 255, 255];
 viewer.start();
 window['viewer'] = viewer;
 
@@ -120,7 +106,7 @@ function handleDropdownChange() {
             setSelectedChannel();
             return;
         }
-        case 'Temprature':{
+        case 'Temperature':{
             selectedChannel = tempChannel;
             setSelectedChannel();
             return;
