@@ -1,7 +1,7 @@
 export class Icon {
     private _modelId: number;
     private _productId: number;
-    private _xyz: Float32Array;
+    private _location: Float32Array;
     private _imageData: string;
     private _description: string;
     private _name: string;
@@ -17,18 +17,18 @@ export class Icon {
      * @param {number} modelId - The model ID associated with the icon.
      * @param {number} productId - The product ID associated with the icon.
      * @param {string} imageData - Base64 encoded image data for the icon.
-     * @param {Float32Array} [xyz=null] - The XYZ coordinates for the icon. If not provided, the centroid of the product bounding box is used.
+     * @param {Float32Array} [location=null] - The XYZ coordinates for the icon location. If not provided, the centroid of the product bounding box is used.
      * @param {number | null} [width=null] - The width of the icon. If null, default width is used.
      * @param {number | null} [height=null] - The height of the icon. If null, default height is used.
      * @param {() => void} [onIconSelected=null] - Callback function to be executed when the icon is selected.
      * @example
      * const icon = new Icon('Sample Icon', 'This is a sample icon.', 1, 101, 'imageDataString', 100, 100, () => console.log('Icon selected'));
      */
-    constructor(name: string, description: string, modelId: number, productId: number, imageData: string, xyz: Float32Array = null, width: number | null = null, height: number | null = null, onIconSelected: () => void = null) {
+    constructor(name: string, description: string, modelId: number, productId: number, imageData: string, location: Float32Array | null = null, width: number | null = null, height: number | null = null, onIconSelected: () => void = null) {
         this._modelId = modelId;
         this._productId = productId;
         this._imageData = imageData;
-        this._xyz = xyz;
+        this._location = location;
         this._name = name;
         this._description = description;
         this._width = width;
@@ -44,12 +44,12 @@ export class Icon {
         return this._productId;
     }
 
-    public get xyz(): Float32Array {
-        return this._xyz;
+    public get location(): Float32Array {
+        return this._location;
     }
 
-    public set xyz(value: Float32Array) {
-         this._xyz = value;
+    public set location(value: Float32Array) {
+         this._location = value;
     }
 
     public get imageData(): string {
