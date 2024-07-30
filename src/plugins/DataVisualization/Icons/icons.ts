@@ -12,7 +12,7 @@ export class Icons implements IPlugin {
     private _floatBody: HTMLDivElement;
     private _instances : { [id: number] : Icon} = {}
     private _selectedIcon: Icon | undefined;
-
+    private _iconsCount = 0;
 
     init(viewer: Viewer): void {
         this._viewer = viewer;
@@ -71,7 +71,7 @@ export class Icons implements IPlugin {
     }
 
     public addIcon(icon: Icon){
-        var id = Math.floor(Math.random() * 100000);
+        const id = this.getId(icon);
         const iconElement = document.createElement('div');
         const image = document.createElement('img');
         image.classList.add('icon-image')
@@ -86,17 +86,18 @@ export class Icons implements IPlugin {
         image.id = id.toString();
         image.height = icon.height ?? IconData.defaultIconHeight;
         image.width = icon.width ?? IconData.defaultIconWidth;
-        if(!icon.xyz) {
+        if(!icon.location) {
             const bb : Float32Array = this._viewer.getProductBoundingBox(icon.productId, icon.modelId);
             const wcs = this._viewer.getCurrentWcs();
             const xyz = [bb[0] - wcs[0] + (bb[3] / 2), bb[1] - wcs[1]  + (bb[4] / 2), bb[2] - wcs[2]  + (bb[5] / 2)];
-            icon.xyz = new Float32Array(xyz);
+            icon.location = new Float32Array(xyz);
         }
         this._instances[id] = icon;
         iconElement.id = "icon" + id;
         iconElement.title = `Product ${icon.productId}, Model ${icon.modelId}`;
         iconElement.appendChild(image);
         this._icons.appendChild(iconElement);
+        this._iconsCount++;
     }
 
     private onIconClicked(ev: PointerEvent ){
@@ -130,9 +131,9 @@ export class Icons implements IPlugin {
             Object.getOwnPropertyNames(this._instances).forEach(k => {
                 let iconLabel = document.getElementById('icon' + k);
                 const icon: Icon = this._instances[k];
-                if(iconLabel && icon && icon.xyz){
+                if(iconLabel && icon && icon.location){
     
-                    const position = this._viewer.getHtmlCoordinatesOfVector(icon.xyz);
+                    const position = this._viewer.getHtmlCoordinatesOfVector(icon.location);
                     if(position.length == 2) {
 
                         const posLeft = (position[0]- iconwidth);
@@ -150,7 +151,7 @@ export class Icons implements IPlugin {
             });
 
             if(this._selectedIcon) {
-                const position = this._viewer.getHtmlCoordinatesOfVector(this._selectedIcon.xyz);
+                const position = this._viewer.getHtmlCoordinatesOfVector(this._selectedIcon.location);
                 if(position.length == 2) {
                     this._floatTitle.textContent = this._selectedIcon.name;
                     this._floatBody.textContent = this._selectedIcon.description;
@@ -172,6 +173,14 @@ export class Icons implements IPlugin {
         const element = document.createElement('style');
         element.textContent = IconData.styles;
         document.body.appendChild(element);
+    }
+      
+    private getId(icon: Icon): number {
+        return this.cantorPairing(this.cantorPairing(icon.productId, icon.modelId), this._iconsCount);
+    }
+    
+    private cantorPairing(x: number, y: number): number {
+        return (x + y) * (x + y + 1) / 2 + y;
     }
 
     onBeforeDraw(width: number, height: number): void {
