@@ -1462,6 +1462,7 @@ export class Viewer {
         }
         return vec3.create();
     }
+
     /**
     * This is the main draw method. You can use it if you just want to render model once with no navigation and interaction.
     * If you want interactive model, call {@link Viewer#start start()} method. 
