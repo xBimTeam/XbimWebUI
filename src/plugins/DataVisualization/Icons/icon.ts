@@ -36,7 +36,7 @@ export class Icon {
         description: string,
         modelId: number,
         productId: number,
-        imageData: string,
+        imageData: string | null,
         location: Float32Array | null = null,
         width: number | null = null,
         height: number | null = null,
