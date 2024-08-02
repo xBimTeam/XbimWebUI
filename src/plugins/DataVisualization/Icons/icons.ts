@@ -10,7 +10,7 @@ export class Icons implements IPlugin {
     private _floatdetails: HTMLDivElement;
     private _floatTitle: HTMLDivElement;
     private _floatBody: HTMLDivElement;
-    private _instances : { [id: number] : Icon} = {}
+    private _instances : { [id: string] : Icon} = {}
     private _selectedIcon: Icon | undefined;
     private _iconsCount = 0;
 
@@ -78,21 +78,26 @@ export class Icons implements IPlugin {
         image.addEventListener("click", this.onIconClicked.bind(this), false);
         if(!icon.imageData){
             icon.imageData = IconData.defaultIcon;
+
         }
-        const encodedUriPrefix = 'data:image/png;base64,';
-        if(!icon.imageData.startsWith(encodedUriPrefix)){
-            image.src = encodedUriPrefix + icon.imageData;
+        if(!icon.imageData.startsWith('data:image/')){
+            image.src = 'data:image/png;base64,' + icon.imageData; // assume it is png
+            image.height = icon.height ?? IconData.defaultIconHeight;
+            image.width = icon.width ?? IconData.defaultIconWidth;
+        }
+        else{
+            image.src = icon.imageData;
+            image.height = 24;
+            image.width = 18;
         }
         image.id = id.toString();
-        image.height = icon.height ?? IconData.defaultIconHeight;
-        image.width = icon.width ?? IconData.defaultIconWidth;
         if(!icon.location) {
             const bb : Float32Array = this._viewer.getProductBoundingBox(icon.productId, icon.modelId);
             const wcs = this._viewer.getCurrentWcs();
             const xyz = [bb[0] - wcs[0] + (bb[3] / 2), bb[1] - wcs[1]  + (bb[4] / 2), bb[2] - wcs[2]  + (bb[5] / 2)];
             icon.location = new Float32Array(xyz);
         }
-        this._instances[id] = icon;
+        this._instances[id.toString()] = icon;
         iconElement.id = "icon" + id;
         iconElement.title = `Product ${icon.productId}, Model ${icon.modelId}`;
         iconElement.appendChild(image);
@@ -119,9 +124,7 @@ export class Icons implements IPlugin {
 
     private render() {
         const canvas = document.getElementById('viewer');
-        const iconheight = 32;
-        const iconwidth = 32;
-        
+       
         if(this._icons) {
     
             // Keep annotation layer in sync with canvas
@@ -136,8 +139,10 @@ export class Icons implements IPlugin {
                     const position = this._viewer.getHtmlCoordinatesOfVector(icon.location);
                     if(position.length == 2) {
 
-                        const posLeft = (position[0]- iconwidth);
-                        const posTop =(position[1] - iconheight);
+                        const iconheight = icon.height ?? IconData.defaultIconHeight;
+                        const iconwidth = icon.width ?? IconData.defaultIconWidth;
+                        const posLeft = (position[0]- iconwidth / 2);
+                        const posTop =(position[1] - iconheight / 2);
                         iconLabel.style.position = 'absolute';
                         iconLabel.style.display = 'block';
                         iconLabel.style.left = posLeft + 'px';
@@ -156,7 +161,7 @@ export class Icons implements IPlugin {
                     this._floatTitle.textContent = this._selectedIcon.name;
                     this._floatBody.textContent = this._selectedIcon.description;
                     const posLeft = (position[0]) +(-this._floatdetails.clientWidth / 2) + 10;
-                    const posTop =(position[1]) - (this._floatdetails.clientHeight + 48);
+                    const posTop =(position[1]) - (this._floatdetails.clientHeight + 24);
                     this._floatdetails.style.left = posLeft + 'px';
                     this._floatdetails.style.top = posTop + 'px';
                     this._floatdetails.style.display = 'block';
