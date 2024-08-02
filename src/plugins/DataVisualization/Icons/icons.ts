@@ -125,7 +125,7 @@ export class Icons implements IPlugin {
     private render() {
         const canvas = document.getElementById('viewer');
        
-        if(this._icons) {
+        if(canvas && this._icons) {
     
             // Keep annotation layer in sync with canvas
             this._icons.style.width = canvas.clientWidth + 'px';
@@ -155,7 +155,7 @@ export class Icons implements IPlugin {
                 }
             });
 
-            if(this._selectedIcon) {
+            if(this._selectedIcon && this._floatdetails) {
                 const position = this._viewer.getHtmlCoordinatesOfVector(this._selectedIcon.location);
                 if(position.length == 2) {
                     this._floatTitle.textContent = this._selectedIcon.name;
