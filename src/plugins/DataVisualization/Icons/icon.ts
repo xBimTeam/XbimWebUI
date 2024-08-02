@@ -14,6 +14,7 @@ export class Icon {
     private _name: string;
     private _width: number;
     private _height: number;
+    private _enabled: boolean;
     private _onIconSelected: () => void;
     
     /**
@@ -51,6 +52,7 @@ export class Icon {
         this._width = width;
         this._height = height;
         this._onIconSelected = onIconSelected;
+        this._enabled = true;
     }
 
     /**
@@ -171,5 +173,21 @@ export class Icon {
      */
     public get onIconSelected(): () => void {
         return this._onIconSelected;
+    }
+
+    /**
+     * Gets a boolean value indicating if this icon is enabled
+     * @returns {boolean} a value indicates if this icon is enabled.
+     */
+    public get isEnabled(): boolean {
+        return this._enabled;
+    }
+
+     /**
+     * Sets if this icon is enabled or not
+     * @param {boolean} value - a value indicates if this icon is enabled.
+     */
+    public set isEnabled(value: boolean) {
+        this._enabled = value;
     }
 }

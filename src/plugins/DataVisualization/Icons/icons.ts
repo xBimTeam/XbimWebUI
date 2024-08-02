@@ -134,7 +134,7 @@ export class Icons implements IPlugin {
             Object.getOwnPropertyNames(this._instances).forEach(k => {
                 let iconLabel = document.getElementById('icon' + k);
                 const icon: Icon = this._instances[k];
-                if(iconLabel && icon && icon.location){
+                if(iconLabel && icon && icon.location && icon.isEnabled){
     
                     const position = this._viewer.getHtmlCoordinatesOfVector(icon.location);
                     if(position.length == 2) {

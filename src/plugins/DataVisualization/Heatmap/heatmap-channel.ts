@@ -45,6 +45,11 @@ export interface IHeatmapChannel {
      * @type {string}
      */
     dataType: string;
+
+    /**
+     * A value indicates if this channel is enabled or not
+     */
+    isEnabled: boolean;
 }
 
 /**

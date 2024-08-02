@@ -16,6 +16,7 @@ export class ContinuousHeatmapChannel implements IHeatmapChannel {
     private _min: number;
     private _max: number;
     private _colorGradient: string[];
+    private _enabled: boolean;
 
     /**
      * Creates an instance of ContinuousHeatmapChannel.
@@ -51,6 +52,7 @@ export class ContinuousHeatmapChannel implements IHeatmapChannel {
         this._min = min;
         this._max = max;
         this._colorGradient = colorGradient;
+        this._enabled = true;
     }
 
     /**
@@ -171,5 +173,21 @@ export class ContinuousHeatmapChannel implements IHeatmapChannel {
      */
     public set colorGradient(value: string[]) {
         this._colorGradient = value;
+    }
+
+     /**
+     * Gets a boolean value indicating if this channel is enabled
+     * @returns {boolean} a value indicates if this channel is enabled.
+     */
+     public get isEnabled(): boolean {
+        return this._enabled;
+    }
+
+     /**
+     * Sets if this channel is enabled or not
+     * @param {boolean} value - a value indicates if this channel is enabled.
+     */
+    public set isEnabled(value: boolean) {
+        this._enabled = value;
     }
 }

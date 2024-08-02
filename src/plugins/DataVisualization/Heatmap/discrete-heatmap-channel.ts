@@ -13,6 +13,7 @@ export class DiscreteHeatmapChannel implements IHeatmapChannel {
     private _description: string;
     private _property: string;
     private _unit: string;
+    private _enabled: boolean;
     private _values: { [value: string]: string };
 
     /**
@@ -43,6 +44,7 @@ export class DiscreteHeatmapChannel implements IHeatmapChannel {
         this._property = property;
         this._unit = unit;
         this._values = values;
+        this._enabled = true;
     }
 
     /**
@@ -131,5 +133,21 @@ export class DiscreteHeatmapChannel implements IHeatmapChannel {
      */
     public get values(): { [value: string]: string } {
         return this._values;
+    }
+
+    /**
+     * Gets a boolean value indicating if this channel is enabled
+     * @returns {boolean} a value indicates if this channel is enabled.
+     */
+    public get isEnabled(): boolean {
+        return this._enabled;
+    }
+
+     /**
+     * Sets if this channel is enabled or not
+     * @param {boolean} value - a value indicates if this channel is enabled.
+     */
+    public set isEnabled(value: boolean) {
+        this._enabled = value;
     }
 }
