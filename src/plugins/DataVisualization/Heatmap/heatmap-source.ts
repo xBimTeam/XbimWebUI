@@ -8,6 +8,7 @@ export class HeatmapSource {
     private _productId: number;
     private _channelId: string;
     private _value: any;
+    private _enabled: boolean;
 
     /**
      * Creates an instance of HeatmapSource.
@@ -24,6 +25,7 @@ export class HeatmapSource {
         this._productId = productId;
         this._channelId = channelId;
         this._value = value;
+        this._enabled = true;
     }
 
     /**
@@ -72,5 +74,21 @@ export class HeatmapSource {
      */
     public set value(value: any) {
         this._value = value;
+    }
+
+    /**
+     * Gets a boolean value indicating if this source is enabled
+     * @returns {boolean} a value indicates if this source is enabled.
+     */
+     public get isEnabled(): boolean {
+        return this._enabled;
+    }
+
+    /**
+     * Sets if this source is enabled or not
+     * @param {boolean} value - a value indicates if this source is enabled.
+     */
+    public set isEnabled(value: boolean) {
+        this._enabled = value;
     }
 }
