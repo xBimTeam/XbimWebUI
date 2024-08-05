@@ -17,7 +17,7 @@ const sourceIcon = new Icon("Room 1 Sensor", "Temperature sensor", 1, 152, Icons
 
 let selectedChannel: ContinuousHeatmapChannel;
 const tempChannel = new ContinuousHeatmapChannel
-(tempChannelId, "double", "Temperature", "Temperature of Rooms", "temperature", "°C", 0, 40, ["#142ce2","#fff200","#FF0000"]);
+(tempChannelId, "double", "Temperature", "Temperature of Rooms", "temperature", "°C", 0, 40, ["#142ce261","#fff200","#FF000061"]);
 
 const humidityChannel = new ContinuousHeatmapChannel
 (humidityChannelId, "double", "Humidity", "Humidity of Rooms", "humidity", "%", 0, 100, ["#1ac603", "#f96c00"]);

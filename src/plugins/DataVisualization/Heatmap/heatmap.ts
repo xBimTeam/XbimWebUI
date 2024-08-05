@@ -210,25 +210,32 @@ export class Heatmap implements IPlugin {
 
     private hexToRgba(hex: string, alpha: number = 1): number[] {
         hex = hex.replace(/^#/, '');
-        let r: number, g: number, b: number;
-    
+        let r: number, g: number, b: number, a: number;
+
         if (hex.length === 3) {
             // Handle shorthand notation (e.g., "#03F")
             r = parseInt(hex.charAt(0) + hex.charAt(0), 16);
             g = parseInt(hex.charAt(1) + hex.charAt(1), 16);
             b = parseInt(hex.charAt(2) + hex.charAt(2), 16);
+            a = Math.round(alpha * 255); // Default alpha value
         } else if (hex.length === 6) {
             // Handle full notation (e.g., "#0033FF")
             r = parseInt(hex.substring(0, 2), 16);
             g = parseInt(hex.substring(2, 4), 16);
             b = parseInt(hex.substring(4, 6), 16);
+            a = Math.round(alpha * 255); // Default alpha value
+        } else if (hex.length === 8) {
+            // Handle full notation with alpha channel (e.g., "#0033FF80")
+            r = parseInt(hex.substring(0, 2), 16);
+            g = parseInt(hex.substring(2, 4), 16);
+            b = parseInt(hex.substring(4, 6), 16);
+            a = parseInt(hex.substring(6, 8), 16);
         } else {
-            const msg =`Invalid hex color '${hex}'`;
+            const msg = `Invalid hex color '${hex}'`;
             console.error(msg)
             throw new Error(msg);
         }
-    
-        const a = Math.round(alpha * 255);
+
         return [r, g, b, a];
     }
 
