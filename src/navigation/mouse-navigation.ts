@@ -128,7 +128,10 @@ export class MouseNavigation {
         };
 
         var handleMouseMove = (event: MouseEvent) => {
-            if (viewer.hoverPickEnabled && !mouseDown && viewer.navigationMode !== 'walk') {
+
+            const isCanvasOurTarget = event.target instanceof HTMLCanvasElement;
+
+            if (viewer.hoverPickEnabled && !mouseDown && viewer.navigationMode !== 'walk' && isCanvasOurTarget) {
 
                 //get coordinates within canvas (with the right orientation)
                 let r = viewer.canvas.getBoundingClientRect();
@@ -139,6 +142,12 @@ export class MouseNavigation {
                 viewer.setHoverPick(data.id, data.model);
                 viewer.fire('hoverpick', { id: data.id, model: data.model, event: event, xyz: data.xyz });
             }
+
+            if(!isCanvasOurTarget)
+            {
+                viewer.setHoverPick(undefined, undefined);
+            }
+            
             if (!mouseDown) {
                 return;
             }
