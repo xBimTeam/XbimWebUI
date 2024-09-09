@@ -68,4 +68,10 @@ export enum ChannelType {
      * @type {string}
      */
     Discrete = "discrete",
+
+    /**
+     * Represents a value ranges channel type.
+     * @type {string}
+     */
+    ValueRanges = "valueRanges",
 }

@@ -5,6 +5,7 @@ import { ModelHandle } from "../../../model-handle";
 import { HeatmapSource } from "./heatmap-source";
 import { ContinuousHeatmapChannel } from "./continuous-heatmap-channel";
 import { DiscreteHeatmapChannel } from "./discrete-heatmap-channel";
+import { ValueRangesHeatmapChannel } from "./value-ranges-heatmap-channel";
 
 /**
  * @category Plugins
@@ -98,6 +99,10 @@ export class Heatmap implements IPlugin {
                     this.renderDiscreteChannel(channel as DiscreteHeatmapChannel, sources);
                     return;
                 }
+                case ChannelType.ValueRanges: {
+                    this.renderValueRangesChannel(channel as ValueRangesHeatmapChannel, sources);
+                    return;
+                }
             }
         }
         else {
@@ -117,14 +122,41 @@ export class Heatmap implements IPlugin {
             this._colorStylesMap[colorHex] = this._nextStyleId;
             this._nextStyleId++;
         });
+        const values = Object.keys(channel.values);
+        (sources ?? this._sources).filter(s => s.channelId == channel.channelId).forEach(source => {
+            // Normalize source value to [0, 1.0]
+            const stringVal = source.value.toString();
+            if(values.includes(stringVal)){
+                const colorHex = channel.values[source.value];
+                this._viewer.setStyle(this._colorStylesMap[colorHex], [source.productId], source.modelId);
+            }
+         });
+    }
+
+    private renderValueRangesChannel(channel: ValueRangesHeatmapChannel, sources: HeatmapSource[] = null) {
+        const colorVals = channel.valueRanges.map(vr => vr.color);
+        colorVals.forEach(colorHex => {
+            if(this._colorStylesMap[colorHex])
+                return;
+
+            const rgba = this.hexToRgba(colorHex);
+            this._viewer.defineStyle(this._nextStyleId, rgba);
+            this._colorStylesMap[colorHex] = this._nextStyleId;
+            this._nextStyleId++;
+        });
 
         (sources ?? this._sources).filter(s => s.channelId == channel.channelId).forEach(source => {
             // Normalize source value to [0, 1.0]
-            var values = Object.keys(channel.values);
-            var stringVal = source.value.toString();
-            if(values.includes(stringVal)){
-                var colorHex = channel.values[source.value];
-                this._viewer.setStyle(this._colorStylesMap[colorHex], [source.productId], source.modelId);
+            if(typeof source.value === 'number')
+            {
+                const value = source.value as number;
+                for (let i = 0; i < channel.valueRanges.length; i++) {
+                    const range = channel.valueRanges[i];
+                    if(value >= range.min && value <= range.max){
+                        this._viewer.setStyle(this._colorStylesMap[range.color], [source.productId], source.modelId);
+                        break;
+                    }
+                }
             }
          });
     }

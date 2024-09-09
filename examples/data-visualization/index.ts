@@ -1,4 +1,4 @@
-import { Viewer, Heatmap, ContinuousHeatmapChannel, HeatmapSource, Icons, CameraType, ViewType, ClippingPlane, ProductType, } from '../..';
+import { Viewer, Heatmap, ContinuousHeatmapChannel, ValueRange, ValueRangesHeatmapChannel, HeatmapSource, Icons, CameraType, ViewType, ClippingPlane, ProductType, IHeatmapChannel, ChannelType, } from '../..';
 import { Icon } from '../../src/plugins/DataVisualization/Icons/icon';
 import { IconsData } from './icons';
 
@@ -15,9 +15,15 @@ const temperatureSource = new HeatmapSource("Temp sensor", 1, 152, tempChannelId
 const humiditySource = new HeatmapSource("Humidity sensor", 1, 152, humidityChannelId, 10);
 const sourceIcon = new Icon("Room 1 Sensor", "Temperature sensor", 1, 152, IconsData.errorIcon, null, null, null, () => { viewer.zoomTo(152, 1) });
 
-let selectedChannel: ContinuousHeatmapChannel;
-const tempChannel = new ContinuousHeatmapChannel
-(tempChannelId, "double", "Temperature", "Temperature of Rooms", "temperature", "°C", 0, 40, ["#142ce261","#fff200","#FF000061"]);
+let selectedChannel: IHeatmapChannel;
+const ranges = [
+    new ValueRange(-Infinity, 5, "#00d4ff", "Exteremly Cold"),
+    new ValueRange(6, 16, "#3d00f7", "Cold"),
+    new ValueRange(17, 25, "#41ff0c", "Good"),
+    new ValueRange(26, Infinity, "#ff0c0c", "Hot")
+];
+const tempChannel = new ValueRangesHeatmapChannel
+(tempChannelId, "double", "Temperature", "Temperature of Rooms", "temperature", "°C", ranges);
 
 const humidityChannel = new ContinuousHeatmapChannel
 (humidityChannelId, "double", "Humidity", "Humidity of Rooms", "humidity", "%", 0, 100, ["#1ac603", "#f96c00"]);
@@ -82,20 +88,45 @@ window['viewer'] = viewer;
 
 
 function setSelectedChannel() {
-    var colors = selectedChannel.colorGradient;
-    const gradientElement = document.getElementById('gradient')!;
-    const gradientStartElement = document.getElementById('start-grad')!;
-    const gradientEndElement = document.getElementById('end-grad')!;
-    gradientStartElement.textContent = `${selectedChannel.min}${selectedChannel.unit}`;
-    gradientEndElement.textContent = `${selectedChannel.max}${selectedChannel.unit}`;
+    if(selectedChannel.channelType === ChannelType.Continuous){
+        const rangesElement = document.getElementById('ranges')!;
+        rangesElement.style.display = "none";
+        const continous = selectedChannel as ContinuousHeatmapChannel;
+        const colors = continous.colorGradient;
+        const gradientElement = document.getElementById('gradient')!;
+        const gradientParentElement = document.getElementById('gradient-parent')!;
+        gradientParentElement.style.display = "flex";
 
-    const numColors = colors.length;
-    const stops = colors.map((color, index) => {
-        const position = (index / (numColors - 1)) * 100;
-        return { color, position: `${position}%` };
-    });
-    const gradientString = stops.map(stop => `${stop.color} ${stop.position}`).join(', ');
-    gradientElement.style.background = `linear-gradient(90deg, ${gradientString})`;
+        const gradientStartElement = document.getElementById('start-grad')!;
+        const gradientEndElement = document.getElementById('end-grad')!;
+        gradientStartElement.textContent = `${continous.min}${selectedChannel.unit}`;
+        gradientEndElement.textContent = `${continous.max}${selectedChannel.unit}`;
+
+        const numColors = colors.length;
+        const stops = colors.map((color, index) => {
+            const position = (index / (numColors - 1)) * 100;
+            return { color, position: `${position}%` };
+        });
+        const gradientString = stops.map(stop => `${stop.color} ${stop.position}`).join(', ');
+        gradientElement.style.background = `linear-gradient(90deg, ${gradientString})`;
+    }
+    else if(selectedChannel.channelType === ChannelType.ValueRanges){
+        const gradientElement = document.getElementById('gradient-parent')!;
+        gradientElement.style.display = "none";
+        const valueRanges = selectedChannel as ValueRangesHeatmapChannel;
+
+        const container = document.getElementById('ranges')!;
+        container.style.display = "flex";
+        container.innerHTML  = "";
+        valueRanges.valueRanges.forEach(range => {
+            const rangeDiv = document.createElement('div');
+            rangeDiv.style.backgroundColor = range.color;
+            rangeDiv.textContent = `${range.label} (${range.min === -Infinity ? '-∞' : range.min}${valueRanges.unit} to ${range.max === Infinity ? '∞' : range.max}${valueRanges.unit})`;
+            container.appendChild(rangeDiv);
+        });
+
+    }
+    
 }
 
 function handleDropdownChange() {
