@@ -71,6 +71,11 @@ viewer.on('loaded', args => {
     }
 });
 
+viewer.on("pick", (arg) => {
+    console.log(`Product id: ${arg.id}, model: ${arg.model}`)
+});
+
+
 const channelsDropdown = document.getElementById('channels') as HTMLSelectElement;
 channelsDropdown.addEventListener('change', handleDropdownChange);
 
