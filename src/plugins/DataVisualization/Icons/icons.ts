@@ -3,6 +3,7 @@ import { IPlugin } from "../../plugin";
 import { Icon } from "./icon";
 import { vec3 } from "gl-matrix";
 import { IconData } from "./icons-data";
+import { VectorUtils } from "../../../common/vector-utils";
 
 export class Icons implements IPlugin {
     private _viewer: Viewer;
@@ -131,9 +132,12 @@ export class Icons implements IPlugin {
             this._icons.style.width = canvas.clientWidth + 'px';
             this._icons.style.height = canvas.clientHeight + 'px';
 
-            const planeA = this._viewer.getClip()?.PlaneA;
-            const planeB = this._viewer.getClip()?.PlaneB;
-            const box = this._viewer.sectionBox.getBoundingBox(this._viewer.getCurrentWcs());
+            var wcs = this._viewer.getCurrentWcs();
+            var a = this._viewer.getClip()?.PlaneA;
+            var b = this._viewer.getClip()?.PlaneB;
+            const planeA = a ? this.transformPlane(a, wcs) : null;
+            const planeB = b? this.transformPlane(this._viewer.getClip()?.PlaneB, wcs) : null;
+            const box = this._viewer.sectionBox.getBoundingBox(wcs);
 
             Object.getOwnPropertyNames(this._instances).forEach(k => {
                 let iconLabel = document.getElementById('icon' + k);
@@ -198,7 +202,7 @@ export class Icons implements IPlugin {
         return (x + y) * (x + y + 1) / 2 + y;
     }
 
-    private canBeRendered(point: Float32Array, planeA: number[], planeB: number[], box: Float32Array): boolean{
+    private canBeRendered(point: Float32Array, planeA: Float32Array, planeB: Float32Array, box: Float32Array): boolean{
 
         if(!planeA && !planeB && !box)
             return true;
@@ -206,32 +210,30 @@ export class Icons implements IPlugin {
         if(planeA && planeB){
             const relPlaneA = this.pointPlaneRelation(planeA[0], planeA[1], planeA[2], planeA[3], point[0], point[1], point[2]);
             const relPlaneB = this.pointPlaneRelation(planeB[0], planeB[1], planeB[2], planeB[3], point[0], point[1], point[2]);
-            return relPlaneA === 1 && relPlaneB === 1;
+            console.log( relPlaneA, relPlaneB);
+
+            return relPlaneA > 0 && relPlaneB > 0;
         }
         
         if(planeA){
             const relPlaneA = this.pointPlaneRelation(planeA[0], planeA[1], planeA[2], planeA[3], point[0], point[1], point[2]);
-            return relPlaneA === 1;
+            console.log( relPlaneA);
+
+            return relPlaneA > 0;
         }
 
         if(planeB){
             const relPlaneB = this.pointPlaneRelation(planeB[0], planeB[1], planeB[2], planeB[3], point[0], point[1], point[2]);
-            return relPlaneB === 1;
+            return relPlaneB > 0;
         }
 
         if(box){
             
             const minX = box[0], minY = box[1], minZ = box[2];
             const maxX = box[0] + box[3], maxY = box[1] + box[4], maxZ = box[2] + box[5];
-            
-            if (point[0] >= minX && point[0] <= maxX &&
+            return (point[0] >= minX && point[0] <= maxX &&
                 point[1] >= minY && point[1] <= maxY &&
-                point[2] >= minZ && point[2] <= maxZ) {
-                console.log("in box", true, point, box);
-                return true;
-            } else {
-                return false;
-            }
+                point[2] >= minZ && point[2] <= maxZ);
         }
 
 
@@ -241,6 +243,7 @@ export class Icons implements IPlugin {
 
     private pointPlaneRelation(A: number, B: number, C: number, D: number, x1: number, y1: number, z1: number) {
         let result = A * x1 + B * y1 + C * z1 + D;
+        result = result / Math.sqrt(A*A + B*B + C*C);
         if (result > 0) {
             return 1; // Point is above the plane
         } else if (result < 0) {
@@ -248,6 +251,30 @@ export class Icons implements IPlugin {
         } else {
             return 0; // Point is on the plane
         }
+    }
+
+    private transformPlane(plane: number[], transform: vec3): Float32Array {
+        const normalLength = vec3.len(VectorUtils.getVec3(plane));
+        // plane components
+        const a = plane[0];
+        const b = plane[1];
+        const c = plane[2];
+        let d = plane[3];
+
+        // point closest to [0,0,0]
+        let x = (a * -d) / normalLength;
+        let y = (b * -d) / normalLength;
+        let z = (c * -d) / normalLength;
+
+        // translate
+        x -= transform[0];
+        y -= transform[1];
+        z -= transform[2];
+
+        //compute new normal equation of the plane
+        d = 0.0 - a * x - b * y - c * z;
+
+        return new Float32Array([a, b, c, d]);
     }
 
     onBeforeDraw(width: number, height: number): void {
