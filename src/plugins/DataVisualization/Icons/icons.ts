@@ -130,12 +130,22 @@ export class Icons implements IPlugin {
             // Keep annotation layer in sync with canvas
             this._icons.style.width = canvas.clientWidth + 'px';
             this._icons.style.height = canvas.clientHeight + 'px';
-    
+
+            const planeA = this._viewer.getClip()?.PlaneA;
+            const planeB = this._viewer.getClip()?.PlaneB;
+            const box = this._viewer.sectionBox.getBoundingBox(this._viewer.getCurrentWcs());
+
             Object.getOwnPropertyNames(this._instances).forEach(k => {
                 let iconLabel = document.getElementById('icon' + k);
                 const icon: Icon = this._instances[k];
                 if(iconLabel && icon && icon.location && icon.isEnabled){
-    
+                    
+                    if(!this.canBeRendered(icon.location, planeA, planeB, box))
+                    {
+                        iconLabel.style.display = 'none';
+                        return;
+                    }
+
                     const position = this._viewer.getHtmlCoordinatesOfVector(icon.location);
                     if(position.length == 2) {
 
@@ -186,6 +196,58 @@ export class Icons implements IPlugin {
     
     private cantorPairing(x: number, y: number): number {
         return (x + y) * (x + y + 1) / 2 + y;
+    }
+
+    private canBeRendered(point: Float32Array, planeA: number[], planeB: number[], box: Float32Array): boolean{
+
+        if(!planeA && !planeB && !box)
+            return true;
+
+        if(planeA && planeB){
+            const relPlaneA = this.pointPlaneRelation(planeA[0], planeA[1], planeA[2], planeA[3], point[0], point[1], point[2]);
+            const relPlaneB = this.pointPlaneRelation(planeB[0], planeB[1], planeB[2], planeB[3], point[0], point[1], point[2]);
+            return relPlaneA === 1 && relPlaneB === 1;
+        }
+        
+        if(planeA){
+            const relPlaneA = this.pointPlaneRelation(planeA[0], planeA[1], planeA[2], planeA[3], point[0], point[1], point[2]);
+            return relPlaneA === 1;
+        }
+
+        if(planeB){
+            const relPlaneB = this.pointPlaneRelation(planeB[0], planeB[1], planeB[2], planeB[3], point[0], point[1], point[2]);
+            return relPlaneB === 1;
+        }
+
+        if(box){
+            
+            const minX = box[0], minY = box[1], minZ = box[2];
+            const maxX = box[0] + box[3], maxY = box[1] + box[4], maxZ = box[2] + box[5];
+            
+            if (point[0] >= minX && point[0] <= maxX &&
+                point[1] >= minY && point[1] <= maxY &&
+                point[2] >= minZ && point[2] <= maxZ) {
+                console.log("in box", true, point, box);
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+
+        return true;
+    }
+
+
+    private pointPlaneRelation(A: number, B: number, C: number, D: number, x1: number, y1: number, z1: number) {
+        let result = A * x1 + B * y1 + C * z1 + D;
+        if (result > 0) {
+            return 1; // Point is above the plane
+        } else if (result < 0) {
+            return -1; // Point is below the plane
+        } else {
+            return 0; // Point is on the plane
+        }
     }
 
     onBeforeDraw(width: number, height: number): void {
