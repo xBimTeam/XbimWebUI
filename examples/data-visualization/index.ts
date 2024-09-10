@@ -1,4 +1,4 @@
-import { Viewer, Heatmap, ContinuousHeatmapChannel, ValueRange, ValueRangesHeatmapChannel, HeatmapSource, Icons, CameraType, ViewType, ClippingPlane, ProductType, IHeatmapChannel, ChannelType, } from '../..';
+import { Viewer, Heatmap, InteractiveClippingPlane, ContinuousHeatmapChannel, ValueRange, ValueRangesHeatmapChannel, HeatmapSource, Icons, CameraType, ViewType, ClippingPlane, ProductType, IHeatmapChannel, ChannelType, } from '../..';
 import { Icon } from '../../src/plugins/DataVisualization/Icons/icon';
 import { IconsData } from './icons';
 
@@ -7,6 +7,10 @@ const heatmap = new Heatmap();
 const icons = new Icons();
 viewer.addPlugin(heatmap);
 viewer.addPlugin(icons);
+
+var plane = new InteractiveClippingPlane();
+viewer.addPlugin(plane);
+
 
 const tempChannelId = "room_temp";
 const humidityChannelId = "room_humidity";
@@ -36,7 +40,7 @@ viewer.on('loaded', args => {
     try {
         
         viewer.camera = CameraType.PERSPECTIVE;
-        clipBox();
+        clipModel();
         viewer.resetState(ProductType.IFCSPACE)
         viewer.show(ViewType.DEFAULT);
 
@@ -150,7 +154,7 @@ function getRandomInt(max: number) {
 }
 
 
-let clipBox = () => {
+let clipModel = () => {
     var planes: ClippingPlane[] = [
         {
             direction: [1, 0, 0],
@@ -180,3 +184,51 @@ let clipBox = () => {
 
     viewer.sectionBox.setToPlanes(planes);
 }
+
+document['clip'] = () => {
+    plane.stopped = false;
+};
+document['hideClippingControl'] = () => {
+    plane.stopped = true;
+};
+document['unclip'] = () => {
+    viewer.unclip();
+    plane.stopped = true;
+};
+
+window['clipBox'] = () => {
+    var planes: ClippingPlane[] = [
+        {
+            direction: [1, 0, 0],
+            location: [5000, 0, 0]
+        },
+        {
+            direction: [0, 1, 0],
+            location: [0, 2000, 0]
+        },
+        {
+            direction: [0, 0, 1],
+            location: [0, 0, 2100]
+        },
+        {
+            direction: [-1, 0, 0],
+            location: [-100, 0, 0]
+        },
+        {
+            direction: [0, -1, 0],
+            location: [0, -2000, 0]
+        },
+        {
+            direction: [0, 0, -1],
+            location: [0, 0, -1000]
+        }
+    ];
+
+    viewer.sectionBox.setToPlanes(planes);
+    viewer.zoomTo();
+};
+
+window['releaseClipBox'] = () => {
+    clipModel();
+    viewer.zoomTo();
+};

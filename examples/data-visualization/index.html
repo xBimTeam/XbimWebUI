@@ -88,6 +88,10 @@
                 padding: 10px;
             }
 
+            .clipping-controls{
+                margin-bottom: 20px;
+            }
+
         </style>
 
     </head>
@@ -97,6 +101,18 @@
                 <canvas id="viewer"></canvas>
             </div>
             <div class="left-panel">
+                <div class="clipping-controls">
+                    <button onclick="clip();"> Clip with plane
+                    </button>
+                    <button onclick="hideClippingControl();"> Hide plane
+                    </button>
+                    <button onclick="unclip();"> Reset plane
+                    </button>
+                    <button onclick="clipBox();"> Clip with box
+                    </button>
+                    <button onclick="releaseClipBox();"> Reset clip box
+                    </button>
+                </div>
                 <select id="channels"></select>
                 <div class="ranges-class" id="ranges"></div>
 
