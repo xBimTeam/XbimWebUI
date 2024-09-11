@@ -124,7 +124,6 @@ export class Heatmap implements IPlugin {
         });
         const values = Object.keys(channel.values);
         (sources ?? this._sources).filter(s => s.channelId == channel.channelId).forEach(source => {
-            // Normalize source value to [0, 1.0]
             const stringVal = source.value.toString();
             if(values.includes(stringVal)){
                 const colorHex = channel.values[source.value];
@@ -146,16 +145,15 @@ export class Heatmap implements IPlugin {
         });
 
         (sources ?? this._sources).filter(s => s.channelId == channel.channelId).forEach(source => {
-            // Normalize source value to [0, 1.0]
-            if(typeof source.value === 'number')
-            {
-                const value = source.value as number;
-                for (let i = 0; i < channel.valueRanges.length; i++) {
-                    const range = channel.valueRanges[i];
-                    if(value >= range.min && value <= range.max){
-                        this._viewer.setStyle(this._colorStylesMap[range.color], [source.productId], source.modelId);
-                        break;
-                    }
+            const value = Number(source.value);
+            if(isNaN(value))
+                return;
+                
+            for (let i = 0; i < channel.valueRanges.length; i++) {
+                const range = channel.valueRanges[i];
+                if(value >= range.min && value <= range.max){
+                    this._viewer.setStyle(this._colorStylesMap[range.color], [source.productId], source.modelId);
+                    break;
                 }
             }
          });
@@ -173,8 +171,11 @@ export class Heatmap implements IPlugin {
             this._nextStyleId++;
         });
         (sources ?? this._sources).filter(s => s.channelId == channel.channelId).forEach(source => {
-            // Normalize source value to [0, 1.0]
-            var value = this.clamp((source.value - channel.min) / (channel.max - channel.min), channel.min, channel.max);
+            const srcValue = Number(source.value);
+            if(isNaN(srcValue))
+                return;
+
+            var value = this.clamp((srcValue - channel.min) / (channel.max - channel.min), channel.min, channel.max);
             if(this._valueStylesMap[value]){
                 var style = this._valueStylesMap[value];
                 this._viewer.setStyle(style, [source.productId], source.modelId);
