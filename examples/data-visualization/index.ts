@@ -55,12 +55,12 @@ viewer.on('loaded', args => {
 
         setInterval(function(){
             if(selectedChannel.channelId === tempChannelId){
-                temperatureSource.value = getRandomInt(40);
+                temperatureSource.value = getRandomInt(40).toString(); // will work for stringified
                 heatmap.renderSource(temperatureSource.id);
                 sourceIcon.description = `Room ${selectedChannel.name}: ${temperatureSource.value}${selectedChannel.unit}`;
             }
             else{
-                humiditySource.value = getRandomInt(100);
+                humiditySource.value = getRandomInt(100).toString();
                 heatmap.renderSource(humiditySource.id);
                 sourceIcon.description = `Room ${selectedChannel.name}: ${humiditySource.value}${selectedChannel.unit}`;
             }
