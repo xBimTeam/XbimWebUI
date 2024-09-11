@@ -204,40 +204,28 @@ export class Icons implements IPlugin {
 
     private canBeRendered(point: Float32Array, planeA: Float32Array, planeB: Float32Array, box: Float32Array): boolean{
 
-        if(!planeA && !planeB && !box)
-            return true;
+        let canBeRendered = true;
 
-        if(planeA && planeB){
-            const relPlaneA = this.pointPlaneRelation(planeA[0], planeA[1], planeA[2], planeA[3], point[0], point[1], point[2]);
-            const relPlaneB = this.pointPlaneRelation(planeB[0], planeB[1], planeB[2], planeB[3], point[0], point[1], point[2]);
-            console.log( relPlaneA, relPlaneB);
-
-            return relPlaneA > 0 && relPlaneB > 0;
-        }
-        
         if(planeA){
             const relPlaneA = this.pointPlaneRelation(planeA[0], planeA[1], planeA[2], planeA[3], point[0], point[1], point[2]);
-            console.log( relPlaneA);
-
-            return relPlaneA > 0;
+            canBeRendered = canBeRendered && relPlaneA > 0;
         }
 
         if(planeB){
             const relPlaneB = this.pointPlaneRelation(planeB[0], planeB[1], planeB[2], planeB[3], point[0], point[1], point[2]);
-            return relPlaneB > 0;
+            canBeRendered = canBeRendered && relPlaneB > 0;
         }
 
         if(box){
             
             const minX = box[0], minY = box[1], minZ = box[2];
             const maxX = box[0] + box[3], maxY = box[1] + box[4], maxZ = box[2] + box[5];
-            return (point[0] >= minX && point[0] <= maxX &&
+            canBeRendered = canBeRendered && (point[0] >= minX && point[0] <= maxX &&
                 point[1] >= minY && point[1] <= maxY &&
                 point[2] >= minZ && point[2] <= maxZ);
         }
 
-
-        return true;
+        return canBeRendered;
     }
 
 
