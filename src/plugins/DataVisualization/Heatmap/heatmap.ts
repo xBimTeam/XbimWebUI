@@ -6,13 +6,13 @@ import { HeatmapSource } from "./heatmap-source";
 import { ContinuousHeatmapChannel } from "./continuous-heatmap-channel";
 import { DiscreteHeatmapChannel } from "./discrete-heatmap-channel";
 import { ValueRangesHeatmapChannel } from "./value-ranges-heatmap-channel";
+import { State } from "../../../common";
 
 /**
  * @category Plugins
  */
 export class Heatmap implements IPlugin {
     private _viewer: Viewer = null;
-    private _activeHandles: ModelHandle[] = [];
     private _channels: IHeatmapChannel[] = [];
     private _sources: HeatmapSource[] = [];
     private _colorStylesMap: { [colorHex: string]: number } = {};
@@ -23,7 +23,7 @@ export class Heatmap implements IPlugin {
     public get channels(): IHeatmapChannel[] { return this._channels; }
 
     public get stopped(): boolean { return this._stopped; }
-    
+
     public set stopped(value: boolean) {
         this._stopped = value;
         if (this._viewer) {
@@ -35,9 +35,9 @@ export class Heatmap implements IPlugin {
         this._viewer = viewer;
     }
 
-    public addChannel(channel: IHeatmapChannel): void{
+    public addChannel(channel: IHeatmapChannel): void {
         var existing = this.channels.filter(c => c.channelId === channel.channelId).pop();
-        if(existing){
+        if (existing) {
             const msg = `A channel with this Id '${channel.channelId}' already exists.`;
             console.error(msg)
             throw new Error(msg);
@@ -45,19 +45,19 @@ export class Heatmap implements IPlugin {
         this._channels.push(channel);
     }
 
-    public addSource(source: HeatmapSource): void{
+    public addSource(source: HeatmapSource): void {
         var existing = this._sources.filter(c => c.id === source.id).pop();
-        if(existing){
+        if (existing) {
             const msg = `A source with this Id '${source.id}' already exists.`
             console.error(msg)
             throw new Error(msg);
         }
 
         const channel = this._channels.filter(c => c.channelId === source.channelId).pop();
-        if(channel){
+        if (channel) {
             this._sources.push(source);
         }
-        else{
+        else {
             const msg = `No channel with Id '${source.channelId}' exists for this source '${source.id}'.`;
             console.error(msg)
             throw new Error(msg);
@@ -65,19 +65,19 @@ export class Heatmap implements IPlugin {
 
     }
 
-    public renderChannel(channelId: string){
+    public renderChannel(channelId: string) {
         const channel = this._channels.filter(c => c.channelId === channelId).pop();
         this.renderChannelInternal(channel);
     }
 
-    public getChannel(channelId: string): IHeatmapChannel{
+    public getChannel(channelId: string): IHeatmapChannel {
         const channel = this._channels.filter(c => c.channelId === channelId).pop();
         return channel;
     }
- 
-    public renderSource(sourceId: string){
+
+    public renderSource(sourceId: string) {
         const source = this._sources.filter(c => c.id === sourceId).pop();
-        if(source){
+        if (source) {
             const channel = this._channels.filter(c => c.channelId === source.channelId).pop();
             this.renderChannelInternal(channel, [source]);
         }
@@ -114,7 +114,7 @@ export class Heatmap implements IPlugin {
     private renderDiscreteChannel(channel: DiscreteHeatmapChannel, sources: HeatmapSource[] = null) {
         const colorVals = Object.values(channel.values);
         colorVals.forEach(colorHex => {
-            if(this._colorStylesMap[colorHex])
+            if (this._colorStylesMap[colorHex])
                 return;
 
             const rgba = this.hexToRgba(colorHex);
@@ -123,19 +123,23 @@ export class Heatmap implements IPlugin {
             this._nextStyleId++;
         });
         const values = Object.keys(channel.values);
-        (sources ?? this._sources).filter(s => s.channelId == channel.channelId).forEach(source => {
-            const stringVal = source.value.toString();
-            if(values.includes(stringVal)){
-                const colorHex = channel.values[source.value];
-                this._viewer.setStyle(this._colorStylesMap[colorHex], [source.productId], source.modelId);
+        const maps = (sources ?? this._sources).filter(s => s.channelId == channel.channelId);
+        const groups = this.groupBy(maps, m => `${m.value}-${m.modelId}`);
+        groups.forEach(group => {
+            const stringVal = group[0].value.toString();
+            if (values.includes(stringVal)) {
+                const colorHex = channel.values[group[0].value];
+                const products: number[] = group.reduce((ps, c) => { ps.push(c.productId); return ps; }, []);
+                this._viewer.setStyle(this._colorStylesMap[colorHex], products, group[0].modelId);
+                this._viewer.addState(State.XRAYVISIBLE, products, group[0].modelId)
             }
-         });
+        });
     }
 
     private renderValueRangesChannel(channel: ValueRangesHeatmapChannel, sources: HeatmapSource[] = null) {
         const colorVals = channel.valueRanges.map(vr => vr.color);
         colorVals.forEach(colorHex => {
-            if(this._colorStylesMap[colorHex])
+            if (this._colorStylesMap[colorHex])
                 return;
 
             const rgba = this.hexToRgba(colorHex);
@@ -144,25 +148,35 @@ export class Heatmap implements IPlugin {
             this._nextStyleId++;
         });
 
-        (sources ?? this._sources).filter(s => s.channelId == channel.channelId).forEach(source => {
-            const value = Number(source.value);
-            if(isNaN(value))
-                return;
-                
-            for (let i = 0; i < channel.valueRanges.length; i++) {
-                const range = channel.valueRanges[i];
-                if(value >= range.min && value <= range.max){
-                    this._viewer.setStyle(this._colorStylesMap[range.color], [source.productId], source.modelId);
-                    break;
-                }
-            }
-         });
+        const maps = (sources ?? this._sources).filter(s => s.channelId == channel.channelId);
+        const initial: Array<{ color: string, sources: HeatmapSource[][] }> = [];
+        const ranges = channel.valueRanges.reduce((result, range) => {
+            const inRange = maps.filter(m => {
+                const value = Number(m.value);
+                if (isNaN(value))
+                    return false;
+                return value >= range.min && value <= range.max;
+            });
+            result.push({
+                color: range.color,
+                sources: this.groupBy(inRange, r => `${r.modelId}`)
+            });
+            return result;
+        }, initial).filter(r => r.sources.length > 0);
+
+        ranges.forEach(range => {
+            range.sources.forEach(group => {
+                const products: number[] = group.reduce((ps, c) => { ps.push(c.productId); return ps; }, []);
+                this._viewer.setStyle(this._colorStylesMap[range.color], products, group[0].modelId);
+                this._viewer.addState(State.XRAYVISIBLE, products, group[0].modelId)
+            });
+        });
     }
 
     private renderContinuousChannel(channel: ContinuousHeatmapChannel, sources: HeatmapSource[] = null) {
         // styles for edges of gradient
         channel.colorGradient.forEach(colorHex => {
-            if(this._colorStylesMap[colorHex])
+            if (this._colorStylesMap[colorHex])
                 return;
 
             const rgba = this.hexToRgba(colorHex);
@@ -170,38 +184,49 @@ export class Heatmap implements IPlugin {
             this._colorStylesMap[colorHex] = this._nextStyleId;
             this._nextStyleId++;
         });
-        (sources ?? this._sources).filter(s => s.channelId == channel.channelId).forEach(source => {
-            const srcValue = Number(source.value);
-            if(isNaN(srcValue))
-                return;
 
-            var value = this.clamp((srcValue - channel.min) / (channel.max - channel.min), channel.min, channel.max);
-            if(this._valueStylesMap[value]){
+        const maps = (sources ?? this._sources).filter(s => s.channelId == channel.channelId).map(m => {
+            const srcValue = Number(m.value);
+            if (isNaN(srcValue))
+                return null;;
+            return {
+                map: m,
+                clampedValue: this.clamp((srcValue - channel.min) / (channel.max - channel.min), channel.min, channel.max)
+            }
+        }).filter(m => m != null);
+        const ranges = this.groupBy(maps, m => `${m.clampedValue}-${m.map.modelId}`);
+        ranges.forEach(group => {
+            const value = group[0].clampedValue;
+            const modelId = group[0].map.modelId;
+            const products: number[] = group.reduce((ps, c) => { ps.push(c.map.productId); return ps; }, []);
+            if (this._valueStylesMap[value]) {
                 var style = this._valueStylesMap[value];
-                this._viewer.setStyle(style, [source.productId], source.modelId);
+                this._viewer.setStyle(style, products, modelId);
+                this._viewer.addState(State.XRAYVISIBLE, products, modelId)
                 return;
             }
 
             var rgba = this.interpolateColor(channel.colorGradient, value);
             var colorHex = this.rgbaToHex(rgba[0], rgba[1], rgba[2], rgba[3]);
 
-            if(this._colorStylesMap[colorHex])
-            {
-                this._viewer.setStyle(this._colorStylesMap[colorHex], [source.productId], source.modelId);
+            if (this._colorStylesMap[colorHex]) {
+                this._viewer.setStyle(this._colorStylesMap[colorHex], products, modelId);
+                this._viewer.addState(State.XRAYVISIBLE, products, modelId)
                 return;
             }
 
             this._viewer.defineStyle(this._nextStyleId, rgba);
             this._colorStylesMap[colorHex] = this._nextStyleId;
             this._valueStylesMap[value] = this._nextStyleId;
-            this._viewer.setStyle(this._nextStyleId, [source.productId], source.modelId);
+            this._viewer.setStyle(this._nextStyleId, products, modelId);
+            this._viewer.addState(State.XRAYVISIBLE, products, modelId)
             this._nextStyleId++;
-         });
+        });
     }
 
     private interpolateColor(hexColors: string[], t: number): number[] {
         const n = hexColors.length;
-        if (n === 0){
+        if (n === 0) {
             const msg = 'Color array cannot be empty.';
             console.error(msg);
             throw new Error(msg);
@@ -232,7 +257,7 @@ export class Heatmap implements IPlugin {
         const hex = component.toString(16);
         return hex.length === 1 ? '0' + hex : hex;
     }
-    
+
     private rgbaToHex(r: number, g: number, b: number, a: number): string {
         r = Math.max(0, Math.min(255, r));
         g = Math.max(0, Math.min(255, g));
@@ -276,7 +301,18 @@ export class Heatmap implements IPlugin {
         return Math.max(min, Math.min(max, value));
     }
 
-    
+    private groupBy<T>(array: Array<T>, keyFunc: (item: T) => string): Array<Array<T>> {
+        const seed: { [key: string]: T[] } = {};
+        const groups = array.reduce((dictionary, item) => {
+            const key = keyFunc(item);
+            (dictionary[key] = dictionary[item[key]] || []).push(item);
+            return dictionary;
+        }, seed);
+
+        const resultSeed: Array<Array<T>> = [];
+        return Object.getOwnPropertyNames(groups).reduce((array, key) => { array.push(groups[key]); return array; }, resultSeed);
+    };
+
     public onAfterDraw(width: number, height: number): void {
     }
 
@@ -284,10 +320,10 @@ export class Heatmap implements IPlugin {
     }
 
     public onBeforeDrawId(): void { }
-    
+
     public onAfterDrawId(): void { }
-    
+
     public onAfterDrawModelId(): void { }
 
 }
- 
+
