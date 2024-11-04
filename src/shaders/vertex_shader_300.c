@@ -101,7 +101,7 @@ vec2 getTextureCoordinates(int index, int size)
     int x = index % size;
     int y = index / size;
 	float texSize = float(size);
-    float halfTexel = 0.5 / texSize;
+    float halfTexel = 0.5;
     return (vec2(x, y) + halfTexel) / texSize;;
 }
 
