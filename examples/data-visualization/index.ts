@@ -1,4 +1,4 @@
-import { Viewer, Heatmap, InteractiveClippingPlane, ContinuousHeatmapChannel, ValueRange, ValueRangesHeatmapChannel, HeatmapSource, Icons, CameraType, ViewType, ClippingPlane, ProductType, IHeatmapChannel, ChannelType, } from '../..';
+import { Viewer, Heatmap, InteractiveClippingPlane, ConstantColorChannel, ContinuousHeatmapChannel, ValueRange, ValueRangesHeatmapChannel, HeatmapSource, Icons, CameraType, ViewType, ClippingPlane, ProductType, IHeatmapChannel, ChannelType, } from '../..';
 import { Icon } from '../../src/plugins/DataVisualization/Icons/icon';
 import { IconsData } from './icons';
 
@@ -14,7 +14,9 @@ viewer.addPlugin(plane);
 
 const tempChannelId = "room_temp";
 const humidityChannelId = "room_humidity";
+const energyChannelId = "room_energy";
 
+const energySource = new HeatmapSource("Energy sensor", 1, 152, energyChannelId, 10);
 const temperatureSource = new HeatmapSource("Temp sensor", 1, 152, tempChannelId, 1);
 const humiditySource = new HeatmapSource("Humidity sensor", 1, 152, humidityChannelId, 10);
 const sourceIcon = new Icon("Room 1 Sensor", "Temperature sensor", 1, 152, IconsData.errorIcon, null, null, null, () => { viewer.zoomTo(152, 1) });
@@ -31,10 +33,15 @@ const tempChannel = new ValueRangesHeatmapChannel
 
 const humidityChannel = new ContinuousHeatmapChannel
 (humidityChannelId, "double", "Humidity", "Humidity of Rooms", "humidity", "%", 0, 100, ["#1ac603", "#f96c00"]);
+
+const energyChannel = new ConstantColorChannel
+(energyChannelId, "double", "Energy", "Energy Consumption", "energy", "kW", "#1ac603");
+
 selectedChannel = tempChannel;
 
 heatmap.addChannel(tempChannel);
 heatmap.addChannel(humidityChannel);
+heatmap.addChannel(energyChannel);
 
 viewer.on('loaded', args => {
     try {
@@ -46,6 +53,7 @@ viewer.on('loaded', args => {
 
         heatmap.addSource(temperatureSource);
         heatmap.addSource(humiditySource);
+        heatmap.addSource(energySource);
 
         icons.addIcon(sourceIcon);
         icons.addIcon(new Icon("Temperature Sensor 2", "Temperature sensor", 1, 617, IconsData.successIcon));
@@ -59,10 +67,15 @@ viewer.on('loaded', args => {
                 heatmap.renderSource(temperatureSource.id);
                 sourceIcon.description = `Room ${selectedChannel.name}: ${temperatureSource.value}${selectedChannel.unit}`;
             }
-            else{
+            else if(selectedChannel.channelId === humidityChannelId){
                 humiditySource.value = getRandomInt(100).toString();
                 heatmap.renderSource(humiditySource.id);
                 sourceIcon.description = `Room ${selectedChannel.name}: ${humiditySource.value}${selectedChannel.unit}`;
+            }
+            else if(selectedChannel.channelId === energyChannelId){
+                energySource.value = getRandomInt(100).toString();
+                heatmap.renderSource(energySource.id);
+                sourceIcon.description = `${selectedChannel.description}: ${energySource.value}${selectedChannel.unit}`;
             }
         }, 2000);
 
@@ -134,6 +147,11 @@ function setSelectedChannel() {
             container.appendChild(rangeDiv);
         });
 
+    } else if(selectedChannel.channelType === ChannelType.Constant){
+        const gradientElement = document.getElementById('gradient-parent')!;
+        gradientElement.style.display = "none";
+        const container = document.getElementById('ranges')!;
+        container.style.display = "none";
     }
     
 }
@@ -148,6 +166,11 @@ function handleDropdownChange() {
         }
         case 'Temperature':{
             selectedChannel = tempChannel;
+            setSelectedChannel();
+            return;
+        }
+        case 'Energy':{
+            selectedChannel = energyChannel;
             setSelectedChannel();
             return;
         }
