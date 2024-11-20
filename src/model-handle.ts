@@ -556,7 +556,6 @@ export class ModelHandle {
         }
 
         var typeIds = Product.getAllSubTypes(type);
-
         Object.getOwnPropertyNames(this._model.productMaps).forEach(id => {
             var map: ProductMap = this._model.productMaps[id];
             if (typeIds[map.type]) {

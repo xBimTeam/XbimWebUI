@@ -35,7 +35,6 @@ export class Product {
                 type.children.forEach((c) => { toProcess.push(c); });
             }
         }
-
         // collect all non-abstract sub types
         toProcess = roots.slice();
         const result: {[id: number]: boolean} = {};
@@ -254,6 +253,17 @@ const ProductInheritance: Product = {
                             abs: true,
                             children: [{ name: "IfcProjectionElement", id: 384, abs: false }]
                         }, { name: "IfcSurfaceFeature", id: 1287, abs: false }
+                    ]
+                },{
+                    name: "IfcBuiltElement",
+                    id: 1416,
+                    abs: false,
+                    children: [
+                        {
+                            name: "IfcCourse",
+                            id: 1425,
+                            abs: false,
+                        }
                     ]
                 }, {
                     name: "IfcBuildingElement",
