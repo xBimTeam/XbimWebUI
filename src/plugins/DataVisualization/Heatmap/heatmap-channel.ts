@@ -74,4 +74,10 @@ export enum ChannelType {
      * @type {string}
      */
     ValueRanges = "valueRanges",
+
+    /**
+     * Represents a constant color channel type.
+     * @type {string}
+     */
+    Constant = "Constant",
 }
