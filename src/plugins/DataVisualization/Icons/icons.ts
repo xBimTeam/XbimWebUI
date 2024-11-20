@@ -4,6 +4,7 @@ import { Icon } from "./icon";
 import { vec3 } from "gl-matrix";
 import { IconData } from "./icons-data";
 import { VectorUtils } from "../../../common/vector-utils";
+import { randomInt } from "crypto";
 
 export class Icons implements IPlugin {
     private _viewer: Viewer;
@@ -92,7 +93,7 @@ export class Icons implements IPlugin {
             image.width = 18;
         }
         image.id = id.toString();
-        if(!icon.location) {
+        if(icon.productId && !icon.location) {
             const bb : Float32Array = this._viewer.getProductBoundingBox(icon.productId, icon.modelId);
             const wcs = this._viewer.getCurrentWcs();
             const xyz = [bb[0] - wcs[0] + (bb[3] / 2), bb[1] - wcs[1]  + (bb[4] / 2), bb[2] - wcs[2]  + (bb[5] / 2)];
@@ -100,10 +101,74 @@ export class Icons implements IPlugin {
         }
         this._instances[id.toString()] = icon;
         iconElement.id = "icon" + id;
-        iconElement.title = `Product ${icon.productId}, Model ${icon.modelId}`;
+        iconElement.title = icon.productId? `Product ${icon.productId}, Model ${icon.modelId}`: "";
         iconElement.appendChild(image);
         this._icons.appendChild(iconElement);
         this._iconsCount++;
+    }
+
+    public moveIconTo(icon: Icon, location: Float32Array, speed: number): void {
+        if (!icon.location) {
+            console.warn("Icon location is not defined.");
+            return;
+        }
+    
+        icon.addMovementToQueue(location, speed);
+        if (!icon.isMoving) {
+            this.processMovementQueue(icon);
+        }
+    }
+    
+    private processMovementQueue(icon: Icon): void {
+        if (!icon.movementQueue || icon.movementQueue.length === 0) {
+            icon.isMoving = false;
+            return;
+        }
+    
+        const { location, speed } = icon.movementQueue.shift();
+    
+        icon.isMoving = true;
+    
+        const startLocation = icon.location;
+    
+        const vector = [
+            location[0] - startLocation[0],
+            location[1] - startLocation[1],
+            location[2] - startLocation[2],
+        ];
+    
+        const distance = Math.sqrt(
+            vector[0] ** 2 + vector[1] ** 2 + vector[2] ** 2
+        );
+    
+        if (distance === 0) {
+            this.processMovementQueue(icon);
+            return;
+        }
+    
+        const direction = vector.map((v) => v / distance);
+        const totalTime = distance / speed;
+        const intervalTime = 16;
+        const steps = Math.ceil(totalTime * (1000 / intervalTime));
+        let currentStep = 0;
+    
+        const intervalId = setInterval(() => {
+            if (currentStep >= steps) {
+                clearInterval(intervalId);
+                icon.location = location;
+                this.processMovementQueue(icon);
+                return;
+            }
+    
+            const progress = currentStep / steps;
+            icon.location = new Float32Array([
+                startLocation[0] + direction[0] * distance * progress,
+                startLocation[1] + direction[1] * distance * progress,
+                startLocation[2] + direction[2] * distance * progress,
+            ]);
+    
+            currentStep++;
+        }, intervalTime);
     }
 
     private onIconClicked(ev: PointerEvent ){
@@ -195,7 +260,10 @@ export class Icons implements IPlugin {
     }
       
     private getId(icon: Icon): number {
-        return this.cantorPairing(this.cantorPairing(icon.productId, icon.modelId), this._iconsCount);
+        if(icon.productId)
+            return this.cantorPairing(this.cantorPairing(icon.productId, icon.modelId), this._iconsCount);
+        else 
+            return this.cantorPairing(this.cantorPairing(Math.random(), icon.modelId), this._iconsCount);
     }
     
     private cantorPairing(x: number, y: number): number {
