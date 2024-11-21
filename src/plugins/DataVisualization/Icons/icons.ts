@@ -209,7 +209,7 @@ export class Icons implements IPlugin {
                 const icon: Icon = this._instances[k];
                 if(iconLabel && icon && icon.location && icon.isEnabled){
                     
-                    if(!this.canBeRendered(icon.location, planeA, planeB, box))
+                    if(!this.canBeRendered(icon, planeA, planeB, box))
                     {
                         iconLabel.style.display = 'none';
                         return;
@@ -270,10 +270,23 @@ export class Icons implements IPlugin {
         return (x + y) * (x + y + 1) / 2 + y;
     }
 
-    private canBeRendered(point: Float32Array, planeA: Float32Array, planeB: Float32Array, box: Float32Array): boolean{
+    private canBeRendered(icon: Icon, planeA: Float32Array, planeB: Float32Array, box: Float32Array): boolean{
 
         let canBeRendered = true;
+        const point = icon.location;
 
+        let isProductInModel = false;
+        if(icon.productId){
+            this._viewer.activeHandles.forEach(handle => {
+                if(this._viewer.isProductInModel(icon.productId, handle.id)){
+                    isProductInModel = true;
+                }
+            });
+
+            if(!isProductInModel)
+                return false;
+        }
+      
         if(planeA){
             const relPlaneA = this.pointPlaneRelation(planeA[0], planeA[1], planeA[2], planeA[3], point[0], point[1], point[2]);
             canBeRendered = canBeRendered && relPlaneA > 0;
