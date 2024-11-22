@@ -117,13 +117,13 @@ export class Heatmap implements IPlugin {
     }
 
     private renderConstantColorChannel(channel: ConstantColorChannel, sources: HeatmapSource[] = null) {
-        if (this._colorStylesMap[channel.color])
-            return;
-
-        const rgba = this.hexToRgba(channel.color);
-        this._viewer.defineStyle(this._nextStyleId, rgba);
-        this._colorStylesMap[channel.color] = this._nextStyleId;
-        this._nextStyleId++;
+        if (!this._colorStylesMap[channel.color])
+        { 
+            const rgba = this.hexToRgba(channel.color);
+            this._viewer.defineStyle(this._nextStyleId, rgba);
+            this._colorStylesMap[channel.color] = this._nextStyleId;
+            this._nextStyleId++;
+        }
 
         const maps = (sources ?? this._sources).filter(s => s.channelId == channel.channelId);
         const groups = this.groupBy(maps, m => `${m.modelId}`);
