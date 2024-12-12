@@ -14,6 +14,7 @@ export class Icons implements IPlugin {
     private _floatBody: HTMLDivElement;
     private _instances : { [id: string] : Icon} = {}
     private _selectedIcon: Icon | undefined;
+    private _floatingDetailsEnabled: boolean = true;
     private _iconsCount = 0;
 
     init(viewer: Viewer): void {
@@ -105,6 +106,10 @@ export class Icons implements IPlugin {
         iconElement.appendChild(image);
         this._icons.appendChild(iconElement);
         this._iconsCount++;
+    }
+
+    public setFloatingDetailsState(enabled: boolean){
+        this._floatingDetailsEnabled = enabled;
     }
 
     public moveIconTo(icon: Icon, location: Float32Array, speed: number): void {
@@ -234,7 +239,7 @@ export class Icons implements IPlugin {
                 }
             });
 
-            if(this._selectedIcon && this._floatdetails) {
+            if(this._selectedIcon && this._floatdetails && this._floatingDetailsEnabled) {
                 const position = this._viewer.getHtmlCoordinatesOfVector(this._selectedIcon.location);
                 if(position.length == 2) {
                     this._floatTitle.textContent = this._selectedIcon.name;
