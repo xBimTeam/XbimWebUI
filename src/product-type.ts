@@ -178,4 +178,5 @@ export enum ProductType {
     IFCSPATIALZONE = 1275,
     IFCGRID = 564,
     IFCPROXY = 447,
+    IFCCOURSE = 1425,
 }

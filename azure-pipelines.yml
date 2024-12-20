@@ -26,5 +26,5 @@ steps:
     command: publish
     workingDir: dist
     publishRegistry: useExternalRegistry
-    publishEndpoint: "npm @xbim organisation"
+    publishEndpoint: 'npm PAT for @xbim'
     publishFeed: "@xbim/viewer"

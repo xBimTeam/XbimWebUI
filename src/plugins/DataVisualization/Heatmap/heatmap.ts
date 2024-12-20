@@ -4,6 +4,7 @@ import { ChannelType, IHeatmapChannel } from "./heatmap-channel";
 import { ModelHandle } from "../../../model-handle";
 import { HeatmapSource } from "./heatmap-source";
 import { ContinuousHeatmapChannel } from "./continuous-heatmap-channel";
+import { ConstantColorChannel } from "./constant-color-channel";
 import { DiscreteHeatmapChannel } from "./discrete-heatmap-channel";
 import { ValueRangesHeatmapChannel } from "./value-ranges-heatmap-channel";
 import { State } from "../../../common";
@@ -103,12 +104,34 @@ export class Heatmap implements IPlugin {
                     this.renderValueRangesChannel(channel as ValueRangesHeatmapChannel, sources);
                     return;
                 }
+                case ChannelType.Constant: {
+                    this.renderConstantColorChannel(channel as ConstantColorChannel, sources);
+                    return;
+                }
             }
         }
         else {
             const msg = `No channel registered with this Id '${channel.channelId}'.`;
             throw new Error(msg);
         }
+    }
+
+    private renderConstantColorChannel(channel: ConstantColorChannel, sources: HeatmapSource[] = null) {
+        if (!this._colorStylesMap[channel.color])
+        { 
+            const rgba = this.hexToRgba(channel.color);
+            this._viewer.defineStyle(this._nextStyleId, rgba);
+            this._colorStylesMap[channel.color] = this._nextStyleId;
+            this._nextStyleId++;
+        }
+
+        const maps = (sources ?? this._sources).filter(s => s.channelId == channel.channelId);
+        const groups = this.groupBy(maps, m => `${m.modelId}`);
+        groups.forEach(group => {
+                const products: number[] = group.reduce((ps, c) => { ps.push(c.productId); return ps; }, []);
+                this._viewer.setStyle(this._colorStylesMap[channel.color], products, group[0].modelId);
+                this._viewer.addState(State.XRAYVISIBLE, products, group[0].modelId)
+        });
     }
 
     private renderDiscreteChannel(channel: DiscreteHeatmapChannel, sources: HeatmapSource[] = null) {

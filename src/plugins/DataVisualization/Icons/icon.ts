@@ -7,7 +7,7 @@ import { Icons } from './icons'
  */
 export class Icon {
     private _modelId: number;
-    private _productId: number;
+    private _productId: number | null;
     private _location: Float32Array;
     private _imageData: string;
     private _description: string;
@@ -17,6 +17,9 @@ export class Icon {
     private _enabled: boolean;
     private _onIconSelected: () => void;
     
+    private _movementQueue: Array<{ location: Float32Array; speed: number }> = [];
+    private _isMoving: boolean = false;
+
     /**
      * Creates an instance of Icon.
      * 
@@ -36,7 +39,7 @@ export class Icon {
         name: string,
         description: string,
         modelId: number,
-        productId: number,
+        productId: number | null,
         imageData: string | null,
         location: Float32Array | null = null,
         width: number | null = null,
@@ -67,7 +70,7 @@ export class Icon {
      * Gets the product ID associated with the icon.
      * @returns {number} The product ID.
      */
-    public get productId(): number {
+    public get productId(): number | null {
         return this._productId;
     }
 
@@ -189,5 +192,45 @@ export class Icon {
      */
     public set isEnabled(value: boolean) {
         this._enabled = value;
+    }
+
+    /**
+     * Gets the movement queue for the icon.
+     * @returns {Array<{ location: Float32Array; speed: number }>} The queue of movements.
+     */
+    public get movementQueue(): Array<{ location: Float32Array; speed: number }> {
+        return this._movementQueue;
+    }
+
+    /**
+     * Adds a movement task to the queue.
+     * @param {Float32Array} location - The target location.
+     * @param {number} speed - The speed of the movement.
+     */
+    public addMovementToQueue(location: Float32Array, speed: number): void {
+        this._movementQueue.push({ location, speed });
+    }
+
+    /**
+     * Clears the movement queue.
+     */
+    public clearMovementQueue(): void {
+        this._movementQueue = [];
+    }
+
+    /**
+     * Gets whether the icon is currently moving.
+     * @returns {boolean} True if the icon is moving, otherwise false.
+     */
+    public get isMoving(): boolean {
+        return this._isMoving;
+    }
+
+    /**
+     * Sets whether the icon is currently moving.
+     * @param {boolean} value - True to set the icon as moving, otherwise false.
+     */
+    public set isMoving(value: boolean) {
+        this._isMoving = value;
     }
 }
