@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <title>Data Visualization example</title>
+        <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+
+        <style>
+            html,
+            body {
+                height: 100%;
+                padding: 0;
+                margin: 0;
+                font-family: Arial, Helvetica, sans-serif;
+            }
+
+            canvas { 
+                height: 100%;
+                width: 100%;
+                display: block;
+                border: none;
+            }
+
+            #viewer-container {
+                flex: 6;
+                width: 100%;
+                overflow: hidden;
+            }
+
+            .flex-container {
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+                overflow: hidden;
+            } 
+
+            .left-panel {
+                position: absolute;
+                top: 40px;
+                z-index: 1;
+                padding: 2em;
+                background-color: white;
+                box-shadow: 0 0 10px darkgray;
+                border-radius: 10px;
+                left: 20px;
+                width: 500px;
+                max-width: 500px;
+                user-select: none;
+                pointer-events: fill;
+            }
+            .left-panel div {
+                font-weight: 600;
+                padding-top: 1em;
+            }
+
+            #gradient{
+                margin-top: 10px;
+                width: 100%;
+            }
+
+            #gradient-parent{
+                display: flex;
+                flex-direction: row;
+            }
+            #channels{
+                width: 100%;
+                height: 20px;
+            }
+
+            .ranges-class {
+                display: flex;
+                justify-content: center;
+                gap: 10px;
+                padding: 10px;
+            }
+
+            .ranges-class div {
+                width: 160px;
+                height: 15px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                color: white;
+                font-size: 12px;
+                text-align: center;
+                font-weight: bold;
+                border-radius: 10px;
+                padding: 10px;
+            }
+
+            .clipping-controls{
+                margin-bottom: 20px;
+            }
+
+        </style>
+
+    </head>
+    <body>
+        <div class="flex-container">
+            <div id="viewer-container">
+                <canvas id="viewer"></canvas>
+            </div>
+            <div class="left-panel">
+                <div class="clipping-controls">
+                    <button onclick="clip();"> Clip with plane
+                    </button>
+                    <button onclick="hideClippingControl();"> Hide plane
+                    </button>
+                    <button onclick="unclip();"> Reset plane
+                    </button>
+                    <button onclick="clipBox();"> Clip with box
+                    </button>
+                    <button onclick="releaseClipBox();"> Reset clip box
+                    </button>
+                </div>
+                <select id="channels"></select>
+                <div class="ranges-class" id="ranges"></div>
+
+                <div id="gradient-parent">
+
+                    <div style="width: 50px; margin-right: 0px;" id="start-grad"></div>
+                    <div id="gradient"></div>
+                    <div style="width: 65px; margin-left: 10px;"  id="end-grad"></div>
+                </div>
+            </div>  
+        </div>
+    </body>
+
+</html>

@@ -899,6 +899,20 @@ export class Viewer {
 
     /**
     * 
+    * @function Viewer#getProductsOfType
+    * @param {Number} typeId - Type ID.
+    * @param {Number} [modelId] - Optional Model ID. If not defined first type of a product with certain ID will be returned. This might be ambiguous.
+    * @return {Numbe[]} Products IDs.
+    */
+    public getProductsOfType(typeId: number, modelId?: number): number[] {
+        return this.forHandleOrAll((handle: ModelHandle) => {
+            return handle.getProductsOfType(typeId).map(p => p.productID);
+        }, modelId);
+    }
+
+
+    /**
+    * 
     * @function Viewer#getProductBoundingBox
     * @param {Number} prodID - Product ID. You can get this value either from semantic structure of the model or by listening to {@link ViewerEventMap#pick pick} event.
     * @param {Number} [modelId] - Optional Model ID. If not defined first type of a product with certain ID will be returned. This might be ambiguous.
@@ -1462,6 +1476,7 @@ export class Viewer {
         }
         return vec3.create();
     }
+
     /**
     * This is the main draw method. You can use it if you just want to render model once with no navigation and interaction.
     * If you want interactive model, call {@link Viewer#start start()} method. 

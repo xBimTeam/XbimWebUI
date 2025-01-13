@@ -9,6 +9,8 @@ entries['featured-viewer'] = './examples/featured-viewer/index.ts';
 entries['basic-viewer'] = './examples/basic-viewer/index.ts';
 entries['wexbim-files-viewer'] = './examples/wexbim-files-viewer/index.ts';
 entries['pins'] = './examples/pins/index.ts';
+entries['data-visualization'] = './examples/data-visualization/index.ts';
+entries['3d-tracking'] = './examples/3d-tracking/index.ts';
 
 module.exports = merge(common, {
     entry: entries,
@@ -34,6 +36,16 @@ module.exports = merge(common, {
             filename: 'pins/index.html',
             template: './examples/pins/index.html',
             chunks: ['pins', 'commons']
+        }),
+        new HtmlWebpackPlugin({
+            filename: 'data-visualization/index.html',
+            template: './examples/data-visualization/index.html',
+            chunks: ['data-visualization', 'commons']
+        }),
+        new HtmlWebpackPlugin({
+            filename: '3d-tracking/index.html',
+            template: './examples/3d-tracking/index.html',
+            chunks: ['3d-tracking', 'commons']
         })
     ],
     module: {
@@ -42,7 +54,6 @@ module.exports = merge(common, {
         ]
     },
     devServer: {
-        
         host: "localhost",
         port: 9001,
         open: "/",

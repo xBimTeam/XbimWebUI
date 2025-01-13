@@ -3,5 +3,14 @@ export * from "./NavigationCube/navigation-cube";
 export * from "./Grid/grid";
 export * from "./LoaderOverlay/loader-overlay";
 export * from "./ClippingPlane/interactive-clipping-plane"
+export * from "./DataVisualization/Heatmap/heatmap"
+export * from "./DataVisualization/Heatmap/heatmap-channel"
+export * from "./DataVisualization/Heatmap/continuous-heatmap-channel"
+export * from "./DataVisualization/Heatmap/constant-color-channel"
+export * from "./DataVisualization/Heatmap/value-ranges-heatmap-channel"
+export * from "./DataVisualization/Heatmap/discrete-heatmap-channel"
+export * from "./DataVisualization/Heatmap/heatmap-source"
+export * from "./DataVisualization/Icons/icons"
+export * from "./DataVisualization/Icons/icon"
 export * from "./InteractiveSectionBox/interactive-section-box"
 export * from "./InteractiveSectionBox2/interactive-section-box2"

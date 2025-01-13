@@ -96,20 +96,22 @@ vec4 getIdColor(float id) {
 	return vec4(R / 255.0, G / 255.0, B / 255.0, 1.0);
 }
 
-vec2 getTextureCoordinates(float index, float size)
+vec2 getTextureCoordinates(int index, int size)
 {
-	float x = floor(mod(index + 0.5, size)); // integral modulo
-	float y = floor((index + 0.5)/ size); // integral division
-								   //ask for the middle of the pixel
-	return vec2((x + 0.5) / size, (y + 0.5) / size);
+    int x = index % size;
+    int y = index / size;
+	float texSize = float(size);
+    float halfTexel = 0.5;
+    return (vec2(x, y) + halfTexel) / texSize;;
 }
-
 
 vec4 getColor() { 
 	// overriding colour is not defined
 	float restyle = aState[1];
 	if (restyle > 224.5) {
-		vec2 coords = getTextureCoordinates(aStyleIndex, uStyleTextureSize);
+		int index = int(aStyleIndex);
+    	int size = int(uStyleTextureSize);
+		vec2 coords = getTextureCoordinates(index, size);
 		vec4 col = texture(uStyleSampler, coords);
  
 		// gray scale colour mode
@@ -124,7 +126,7 @@ vec4 getColor() {
 
 	// return colour based on restyle
 	// restyling texture is fixed size 15x15 for up to 225 styling colours
-	vec2 coords = getTextureCoordinates(restyle, 15.0);
+	vec2 coords = getTextureCoordinates(int(restyle), 15);
 	vec4 col2 = texture(uStateStyleSampler, coords);
 
 	// gray scale colour mode
@@ -137,14 +139,16 @@ vec4 getColor() {
 }
 
 vec4 getVertexPosition(mat4 transform) {
-	vec2 coords = getTextureCoordinates(aVertexIndex, uVertexTextureSize);
-	vec3 point = vec3(texture(uVertexSampler, coords));
+    int index = int(aVertexIndex);
+    int size = int(uVertexTextureSize);
+    vec2 coords = getTextureCoordinates(index, size);
+    vec3 point = texture(uVertexSampler, coords).rgb;
 
-	if (aTransformationIndex < -0.5) {
-		return vec4 (point, 1.0);
-	}
+    if (aTransformationIndex < -0.5) {
+        return vec4(point, 1.0);
+    }
 
-	return transform * vec4(point, 1.0);
+    return transform * vec4(point, 1.0);
 }
 
 mat4 getTransform() {
@@ -155,10 +159,12 @@ mat4 getTransform() {
 	float tIndex = aTransformationIndex * 4.0;
 
 	// get transformation texture coordinates
-	vec2 c1 = getTextureCoordinates(tIndex, uMatrixTextureSize);
-	vec2 c2 = getTextureCoordinates(tIndex + 1.0, uMatrixTextureSize);
-	vec2 c3 = getTextureCoordinates(tIndex + 2.0, uMatrixTextureSize);
-	vec2 c4 = getTextureCoordinates(tIndex + 3.0, uMatrixTextureSize);
+	int index = int(tIndex);
+    int size = int(uMatrixTextureSize);
+	vec2 c1 = getTextureCoordinates(index, size);
+	vec2 c2 = getTextureCoordinates(index + 1, size);
+	vec2 c3 = getTextureCoordinates(index + 2, size);
+	vec2 c4 = getTextureCoordinates(index + 3, size);
 
 	// get transformation matrix components
 	vec4 v1 = texture(uMatrixSampler, c1);

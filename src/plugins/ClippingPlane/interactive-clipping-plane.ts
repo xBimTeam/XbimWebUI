@@ -6,6 +6,11 @@ import { vshader } from "./vshader";
 import { CameraType } from "../../camera";
 import { quat } from "gl-matrix";
 
+/**
+ * Interactive clipping plane. This will render a 3D control which can be used to drag and rotate the clipping
+ * plane. Use `InteractiveClippingPlane.stopped` to show or hide the 3D control. Once clipping plane
+ * is applied, you can discard it using `viewer.unclip()`. 
+ */
 export class InteractiveClippingPlane implements IPlugin {
     private viewer: Viewer;
     private indices: Uint16Array;
