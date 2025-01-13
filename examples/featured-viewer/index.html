@@ -1,292 +1,464 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-    <title>The Viewer</title>
-    <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-    <style>
-        html,
-        body {
-            height: 100%;
-            padding: 0;
-            margin: 0;
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 14px;
-            background: linear-gradient(to top, #E8E8E8, white);
-        }
+  <meta charset="UTF-8">
+  <title>xbim 3D Viewer</title>
 
-        canvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-            border: none;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 0;
-        }
+  <link 
+    rel="stylesheet" 
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" 
+    crossorigin="anonymous" 
+  />
 
-        button {
-            border-radius: 5px;
-            border-style: solid;
-            padding: 5px 15px;
-            margin: 0;
-            border-width: 1px;
-            border-color: darkgray;
-            background-color: lightgray;
-        }
+  <style>
+    * {
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box;
+    }
+    html, body {
+      height: 100%;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(to top, #E8E8E8, white);
+    }
 
-        button:hover {
-            cursor: pointer;
-        }
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      border: none;
+      z-index: 0;
+    }
 
-        .left-panel,
-        .right-panel {
-            position: absolute;
-            top: 40px;
-            z-index: 1;
-            padding: 2em;
-            background-color: white;
-            box-shadow: 0 0 10px darkgray;
-            border-radius: 10px;
-        }
+    .left-panel {
+      position: absolute;
+      top: 170px;
+      left: 20px;
+      max-width: 300px;
+      padding: 1.5em;
+      background-color: white;
+      box-shadow: 0 0 10px darkgray;
+      border-radius: 10px;
+      z-index: 2;
+    }
 
-        .left-panel {
-            left: 20px;
-            max-width: 300px;
-        }
+    .right-panel {
+      position: absolute;
+      top: 170px;
+      right: 20px;
+      width: 300px;
+      padding: 0.5em;
+      background-color: white;
+      box-shadow: 0 0 10px darkgray;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 1em;
+      z-index: 2;
+    }
+    .right-panel > div {
+      background-color: #fafafa;
+      padding: 1em;
+      border-radius: 5px;
+      box-shadow: 0 0 5px #ddd;
+    }
+    .right-panel h3 {
+      margin-top: 0;
+      margin-bottom: 0.5em;
+    }
 
-        .right-panel {
-            right: 20px;
-        }
+    .ribbon {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      background-color: #f0f0f0;
+      box-shadow: 0 0 5px #aaa;
+      z-index: 10;
+    }
 
-        .left-panel>div,
-        .right-panel>div {
-            margin-bottom: 0.8em;
-        }
+    .ribbon-content {
+      display: flex;
+      flex-direction: row;
+      gap: 1rem;
+      padding: 0.8rem 1rem;
+    }
 
-        #initScript {
-            display: block;
-            width: 100%;
-            height: 80px;
-        }
-    </style>
+    .ribbon-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 90px;
+    }
+
+    .ribbon-group + .ribbon-group {
+      border-left: 1px solid #ccc; 
+      padding-left: 1rem; 
+    }
+
+    .icon-stack {
+      display: flex;
+      flex-direction: row;
+      gap: 1.2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .ribbon-icon-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer; 
+      padding: 0.4rem;
+      border-radius: 4px;
+      transition: background-color 0.2s, color 0.2s;
+    }
+    .ribbon-icon-block i {
+      font-size: 1.4rem;
+    }
+    .icon-caption {
+      font-size: 0.75rem;
+      margin-top: 0.2rem;
+      text-align: center;
+      color: #333;
+    }
+
+    .group-label {
+      margin-top: auto;
+      font-size: 0.85rem;
+      color: #555;
+      text-align: center;
+    }
+
+    .ribbon-icon-block:hover {
+      background-color: #e9f0f8;
+    }
+    
+    .ribbon-icon-block:hover i {
+      color: #007ACC;
+    }
+  </style>
 </head>
-
-
 <body>
-    <canvas id="xBIM-viewer"></canvas>
-    <div style="position: absolute; left: 0; bottom: 0; width: 400px; height: 200px;">
-        <canvas id="viewer2"></canvas>
+ 
+  <!-- 3D Viewer Canvas -->
+  <canvas id="xBIM-viewer"></canvas>
+
+  <!-- Optional second canvas at bottom-left -->
+  <div style="position: absolute; left: 0; bottom: 0; width: 400px; height: 200px;">
+    <canvas id="viewer2"></canvas>
+  </div>
+
+  <!-- Left panel for status/info -->
+  <div class="left-panel">
+    <div>
+      <strong>Status:</strong> 
+      <span id="progress"></span>
     </div>
-
-    <div class="left-panel">
-        <div>
-            Status:
-            <span id="progress">
-        </div>
-        <div>
-            Selected:
-            <span id="ids"></span> <br>
-            <span id="coords"></span>
-        </div>
-        <div>
-            Hover-over:
-            <span id="hoverid"></span> <br>
-            <span id="hovercoords"></span>
-        </div>
-        <div>
-            Framerate (FPS):
-            <span id="fps"></span>
-        </div>
-        <div>
-            WebGL version:
-            <span id="webglVersion"></span>
-        </div>
-
-        <div>
-            Models:
-            <ul>
-                <li>
-                    <a href="?model=OneWallHigh"> One Wall </a>
-                </li>
-                <li>
-                    <a href="?model=OneWallTwoWindows"> One Wall Two Windows </a>
-                </li>
-                <li>
-                    <a href="?model=TwoProxy"> Two proxy objects </a>
-                </li>
-                <li>
-                    <a href="?model=TwoWallsTwoColour"> Two Walls Two Colour </a>
-                </li>
-                <li>
-                    <a href="?model=FourWalls"> Four Walls </a>
-                </li>
-                <li>
-                    <a href="?model=FourWallsDoorWindows"> Four Walls Door Windows </a>
-                </li>
-                <li>
-                    <a href="?model=FourWallsDoorWindowsRoof"> Four Walls Door Windows Roof </a>
-                </li>
-                <li>
-                    <a href="?model=LakesideRestaurant"> Lakeside Restaurant </a>
-                </li>
-                <li>
-                    <a href="?model=SampleHouseV3"> Sample House (wexBIM V3)</a>
-                </li>
-                <li>
-                    <a href="?model=windows-doors_duplex"> Duplex windows and doors (wexBIM V3)</a>
-                </li>
-                <li>
-                    <a href="?model=Barracks_envelope"> Barracks envelope</a>
-                </li>
-                <li>
-                    <a href="?model=v4/CubeA"> Cube A (V4)</a>
-                </li>
-                <li>
-                    <a href="?model=v4/feethams_envelope"> Feethams Envelope (V4)</a>
-                </li>
-            </ul>
-        </div>
-        <div>
-            <button onclick="takeSnapshot()">
-                Take snapshot
-            </button>
-            <br />
-            <div id="snapshot"></div>
-            <div id="initialSnapshot">
-
-            </div>
-        </div>
-        <div id="errLog" style="color: red">
-
-        </div>
+    <div>
+      <strong>Selected:</strong> 
+      <span id="ids"></span> <br />
+      <span id="coords"></span>
     </div>
-    <div class="right-panel">
-        <div>
-            <button onclick="viewer.navigationMode = 'orbit'">Orbit</button>
-            <button onclick="viewer.navigationMode = 'free-orbit'">Free orbit</button>
-            <button onclick="viewer.navigationMode = 'pan'">Pan</button>
-            <button onclick="viewer.navigationMode = 'zoom'">Zoom</button>
-            <button onclick="viewer.navigationMode = 'look-around'">Look around</button>
-            <button onclick="viewer.navigationMode = 'walk'">Walk</button>
-        </div>
-        <div>
-            <button onclick="viewer.show(ViewType.DEFAULT)">Default</button>
-            <button onclick="viewer.show(ViewType.FRONT)">Front</button>
-            <button onclick="viewer.show(ViewType.BACK)">Back</button>
-            <button onclick="viewer.show(ViewType.TOP)">Top</button>
-            <button onclick="viewer.show(ViewType.BOTTOM)">Bottom</button>
-            <button onclick="viewer.show(ViewType.LEFT)">Left</button>
-            <button onclick="viewer.show(ViewType.RIGHT)">Right</button>
-            <button onclick="zoomToSelection()">Zoom to selection</button>
-        </div>
-
-        <div>
-            <button onclick="clip();"> Clip model
-            </button>
-            <button onclick="hideClippingControl();"> Hide control
-            </button>
-            <button onclick="unclip();"> Reset clipping
-            </button>
-            <button onclick="clipBox();"> Clip model with box
-            </button>
-            <button onclick="releaseClipBox();"> Release clip box
-            </button>
-        </div>
-        <div>
-            <button onclick="viewer.camera = CameraType.PERSPECTIVE;"> Perspective
-            </button>
-            <button onclick="viewer.camera = CameraType.ORTHOGONAL;"> Orthographic
-            </button>
-        </div>
-        <div>
-            <button onclick="makeWallsRed()"> Make all walls red
-            </button>
-            <button onclick="hideWalls()"> Hide all walls
-            </button>
-            <button onclick="resetWalls()"> Reset walls
-            </button>
-            <button onclick="selectAllWalls()">
-                Select
-            </button>
-        </div>
-        <div>
-            <button onclick="viewer.addState(states.HIDDEN, types.IFCSPACE)"> Hide spaces
-            </button>
-            <button onclick="viewer.resetState(types.IFCSPACE)"> Show spaces
-            </button>
-            <button onclick="playSpaces()"> Play spaces </button>
-        </div>
-        <div>
-            <form>
-                <label>
-                    <input type="radio" name="radioHiding" value="hideOne" /> Hide on click
-                </label>
-                <label>
-                    <input type="radio" name="radioHiding" value="hideType" /> Hide by type
-                </label>
-                <label>
-                    <input type="radio" name="radioHiding" value="noHide" /> No hiding
-                </label>
-            </form>
-            <button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.resetState(+types[i])}}">
-                Show all
-            </button>
-            <button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.setStyle(1, +types[i])}}">
-                Make all glass
-            </button>
-            <button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.setStyle(2, +types[i])}}">
-                Make all white
-            </button>
-            <button
-                onclick="for (var i in types) { if (types[i] !== types.IFCSPACE) { viewer.setStyle(states.UNSTYLED, +types[i]) } }">
-                Make all default
-            </button>
-        </div>
-        <div>
-            Rendering mode:
-            <br />
-            <label>
-                <input type="radio" name="radioRenderingMode" value="normal" checked="checked"
-                    onchange="viewer.renderingMode = RenderingMode.NORMAL;" /> Normal
-            </label>
-            <label>
-                <input type="radio" name="radioRenderingMode" value="xray"
-                    onchange="viewer.renderingMode = RenderingMode.XRAY;" /> X-Ray
-            </label>
-            <label>
-                <input type="radio" name="radioRenderingMode" value="xray"
-                    onchange="viewer.renderingMode = RenderingMode.XRAY_ULTRA;" /> Ultra X-Ray
-            </label>
-            <label>
-                <input type="radio" name="radioRenderingMode" value="gray"
-                    onchange="viewer.renderingMode = RenderingMode.GRAYSCALE;" /> Grayscale
-            </label>
-        </div>
-        <div>
-            Grid and navigation cube
-            <br />
-            <button onclick="stopCube()"> Stop cube </button>
-            <button onclick="startCube()"> Start cube </button>
-            <button onclick="stopGrid()"> Stop grid </button>
-            <button onclick="startGrid()"> Start grid </button>
-        </div>
-        <div>
-            Gamma:
-            <input type="range" name="gamma" min="0" max="5" value="1.0" step="0.1" oninput="updateGamma(event)">
-            Contrast:
-            <input type="range" name="contrast" min="0" max="5" value="1.0" step="0.1" oninput="updateContrast(event)">
-            Brightness:
-            <input type="range" name="brightness" min="-1" max="1" value="0.0" step="0.1"
-                oninput="updateBrightness(event)">
-        </div>
-        <div>
-            Init script:
-            <textarea id="initScript"></textarea>
-            <button onclick="eval(initScript.value)" style="border-radius: 0 0 5px 5px">Run</button>
-        </div>
+    <div>
+      <strong>Hover-over:</strong> 
+      <span id="hoverid"></span> <br />
+      <span id="hovercoords"></span>
     </div>
+    <div>
+      <strong>Framerate (FPS):</strong> 
+      <span id="fps"></span>
+    </div>
+    <div>
+      <strong>WebGL version:</strong> 
+      <span id="webglVersion"></span>
+    </div>
+    <div>
+      <strong>Models:</strong>
+      <ul>
+        <li><a href="?model=OneWallHigh"> One Wall </a></li>
+        <li><a href="?model=OneWallTwoWindows"> One Wall Two Windows </a></li>
+        <li><a href="?model=TwoProxy"> Two proxy objects </a></li>
+        <li><a href="?model=TwoWallsTwoColour"> Two Walls Two Colour </a></li>
+        <li><a href="?model=FourWalls1"> Four Walls </a></li>
+        <li><a href="?model=FourWallsDoorWindows"> Four Walls Door Windows </a></li>
+        <li><a href="?model=FourWallsDoorWindowsRoof"> Four Walls Door Windows Roof </a></li>
+        <li><a href="?model=LakesideRestaurant"> Lakeside Restaurant </a></li>
+        <li><a href="?model=SampleHouse"> Sample House</a></li>
+        <li><a href="?model=SampleHouseV3"> Sample House (wexBIM V3)</a></li>
+        <li><a href="?model=windows-doors_duplex"> Duplex windows and doors (wexBIM V3)</a></li>
+        <li><a href="?model=Barracks_envelope"> Barracks envelope</a></li>
+        <li><a href="?model=v4/CubeA"> Cube A (V4)</a></li>
+        <li><a href="?model=v4/feethams_envelope"> Feethams Envelope (V4)</a></li>
+      </ul>
+    </div>
+    <div>
+      <button onclick="takeSnapshot()">Take snapshot</button>
+      <br />
+      <div id="snapshot"></div>
+      <div id="initialSnapshot"></div>
+    </div>
+    <div id="errLog" style="color:red;"></div>
+  </div>
+
+  <!-- Right panel (advanced controls) -->
+  <div class="right-panel">
+    <div>
+      <h3>Hiding/Showing</h3>
+      <form>
+        <label><input type="radio" name="radioHiding" value="hideOne" /> Hide on click</label> <br />
+        <label><input type="radio" name="radioHiding" value="hideType" /> Hide by type</label> <br />
+        <label><input type="radio" name="radioHiding" value="noHide" checked="checked" /> No hiding</label>
+      </form>
+      <button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.resetState(+types[i])}}">
+        Show all
+      </button>
+      <button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.setStyle(1, +types[i])}}">
+        Make all glass
+      </button>
+      <button onclick="for (var i in types){ if (types[i] !== types.IFCSPACE) {viewer.setStyle(2, +types[i])}}">
+        Make all white
+      </button>
+      <button
+        onclick="for (var i in types) { if (types[i] !== types.IFCSPACE) { viewer.setStyle(states.UNSTYLED, +types[i]) } }">
+        Make all default
+      </button>
+    </div>
+    <div>
+      <h3>Rendering Mode</h3>
+      <label>
+        <input type="radio" name="radioRenderingMode" value="normal" checked="checked"
+          onchange="viewer.renderingMode = RenderingMode.NORMAL;" /> Normal
+      </label><br/>
+      <label>
+        <input type="radio" name="radioRenderingMode" value="xray"
+          onchange="viewer.renderingMode = RenderingMode.XRAY;" /> X-Ray
+      </label><br/>
+      <label>
+        <input type="radio" name="radioRenderingMode" value="xray"
+          onchange="viewer.renderingMode = RenderingMode.XRAY_ULTRA;" /> Ultra X-Ray
+      </label><br/>
+      <label>
+        <input type="radio" name="radioRenderingMode" value="gray"
+          onchange="viewer.renderingMode = RenderingMode.GRAYSCALE;" /> Grayscale
+      </label>
+    </div>
+    <div>
+      Gamma:
+      <input type="range" name="gamma" min="0" max="5" value="1.0" step="0.1" oninput="updateGamma(event)">
+      <br/>
+      Contrast:
+      <input type="range" name="contrast" min="0" max="5" value="1.0" step="0.1" oninput="updateContrast(event)">
+      <br/>
+      Brightness:
+      <input type="range" name="brightness" min="-1" max="1" value="0.0" step="0.1" oninput="updateBrightness(event)">
+    </div>
+    <div>
+      <h3>Init Script</h3>
+      <textarea id="initScript"></textarea> <br/>
+      <button onclick="eval(initScript.value)">Run</button>
+    </div>
+  </div>
+
+  <!-- Top Ribbon -->
+  <div class="ribbon">
+    <div class="ribbon-content">
+
+      <!-- Group: Navigation -->
+      <div class="ribbon-group">
+        <div class="icon-stack">
+          <div class="ribbon-icon-block" onclick="viewer.navigationMode = 'orbit'" title="Orbit">
+            <i class="fas fa-globe"></i>
+            <div class="icon-caption">Orbit</div>
+          </div>
+          <div class="ribbon-icon-block" onclick="viewer.navigationMode = 'free-orbit'" title="Free orbit">
+            <i class="fas fa-globe-americas"></i>
+            <div class="icon-caption">Free Orbit</div>
+          </div>
+          <div class="ribbon-icon-block" onclick="viewer.navigationMode = 'pan'" title="Pan">
+            <i class="fas fa-hand-paper"></i>
+            <div class="icon-caption">Pan</div>
+          </div>
+        </div>
+        <div class="icon-stack">
+          <div class="ribbon-icon-block" onclick="viewer.navigationMode = 'zoom'" title="Zoom">
+            <i class="fas fa-search-plus"></i>
+            <div class="icon-caption">Zoom</div>
+          </div>
+          <div class="ribbon-icon-block" onclick="viewer.navigationMode = 'look-around'" title="Look around">
+            <i class="fas fa-eye"></i>
+            <div class="icon-caption">Look Around</div>
+          </div>
+          <div class="ribbon-icon-block" onclick="viewer.navigationMode = 'walk'" title="Walk">
+            <i class="fas fa-walking"></i>
+            <div class="icon-caption">Walk</div>
+          </div>
+        </div>
+        <div class="group-label">Navigation</div>
+      </div>
+
+      <!-- Group: Views -->
+      <div class="ribbon-group">
+        <div class="icon-stack">
+          <div class="ribbon-icon-block" onclick="viewer.show(ViewType.DEFAULT)" title="Default view">
+            <i class="fas fa-home"></i>
+            <div class="icon-caption">Default</div>
+          </div>
+          <div class="ribbon-icon-block" onclick="viewer.show(ViewType.FRONT)" title="Front view">
+            <i class="fas fa-arrow-up"></i>
+            <div class="icon-caption">Front</div>
+          </div>
+          <div class="ribbon-icon-block" onclick="viewer.show(ViewType.BACK)" title="Back view">
+            <i class="fas fa-arrow-down"></i>
+            <div class="icon-caption">Back</div>
+          </div>
+          <div class="ribbon-icon-block" onclick="viewer.show(ViewType.TOP)" title="Top view">
+            <i class="fas fa-level-up-alt"></i>
+            <div class="icon-caption">Top</div>
+          </div>
+          <div class="ribbon-icon-block" onclick="viewer.show(ViewType.BOTTOM)" title="Bottom view">
+            <i class="fas fa-level-down-alt"></i>
+            <div class="icon-caption">Bottom</div>
+          </div>
+          <div class="ribbon-icon-block" onclick="viewer.show(ViewType.LEFT)" title="Left view">
+            <i class="fas fa-arrow-left"></i>
+            <div class="icon-caption">Left</div>
+          </div>
+          <div class="ribbon-icon-block" onclick="viewer.show(ViewType.RIGHT)" title="Right view">
+            <i class="fas fa-arrow-right"></i>
+            <div class="icon-caption">Right</div>
+          </div>
+          <div class="ribbon-icon-block" onclick="zoomToSelection()" title="Zoom to selection">
+            <i class="fas fa-search-location"></i>
+            <div class="icon-caption">Zoom</div>
+            <div class="icon-caption">To Selected</div>
+          </div>
+        </div> 
+        <div class="group-label">Views</div>
+      </div>
+
+      <!-- Group: Clipping -->
+      <div class="ribbon-group">
+        <div class="icon-stack">
+          <div class="ribbon-icon-block" onclick="clip()" title="Clip model">
+            <i class="fas fa-cut"></i>
+            <div class="icon-caption">Clip</div>
+          </div>
+          <div class="ribbon-icon-block" onclick="hideClippingControl()" title="Hide clipping control">
+            <i class="fas fa-eye-slash"></i>
+            <div class="icon-caption">Hide Plane</div>
+          </div>
+          <div class="ribbon-icon-block" onclick="unclip()" title="Reset clipping">
+            <i class="fas fa-undo-alt"></i>
+            <div class="icon-caption">Unclip</div>
+          </div>
+        </div>
+        <div class="icon-stack">
+          <div class="ribbon-icon-block" onclick="clipBox()" title="Clip with box">
+            <i class="fas fa-cube"></i>
+            <div class="icon-caption">Clip Box</div>
+          </div>
+          <div class="ribbon-icon-block" onclick="releaseClipBox()" title="Release clip box">
+            <i class="fas fa-cubes"></i>
+            <div class="icon-caption">Release Box</div>
+          </div>
+        </div>
+        <div class="group-label">Clipping</div>
+      </div>
+
+      <!-- Group: Camera -->
+      <div class="ribbon-group">
+        <div class="icon-stack">
+          <div class="ribbon-icon-block" onclick="viewer.camera = CameraType.PERSPECTIVE;" title="Perspective camera">
+            <i class="fas fa-video"></i>
+            <div class="icon-caption">Persp.</div>
+          </div>
+          <div class="ribbon-icon-block" onclick="viewer.camera = CameraType.ORTHOGONAL;" title="Orthographic camera">
+            <i class="fas fa-vector-square"></i>
+            <div class="icon-caption">Ortho.</div>
+          </div>
+        </div>
+        <div class="group-label">Camera</div>
+      </div>
+
+      <!-- Group: Walls -->
+      <div class="ribbon-group">
+        <div class="icon-stack">
+          <div class="ribbon-icon-block" onclick="makeWallsRed()" title="Make all walls red">
+            <i class="fas fa-paint-roller"></i>
+            <div class="icon-caption">Red</div>
+          </div>
+          <div class="ribbon-icon-block" onclick="hideWalls()" title="Hide all walls">
+            <i class="fas fa-eye-slash"></i>
+            <div class="icon-caption">Hide</div>
+          </div>
+        </div>
+        <div class="icon-stack">
+          <div class="ribbon-icon-block" onclick="resetWalls()" title="Reset walls">
+            <i class="fas fa-sync-alt"></i>
+            <div class="icon-caption">Reset</div>
+          </div>
+          <div class="ribbon-icon-block" onclick="selectAllWalls()" title="Select all walls">
+            <i class="fas fa-hand-pointer"></i>
+            <div class="icon-caption">Select</div>
+          </div>
+        </div>
+        <div class="group-label">Walls</div>
+      </div>
+
+      <!-- Group: Spaces -->
+      <div class="ribbon-group">
+        <div class="icon-stack">
+          <div class="ribbon-icon-block" onclick="viewer.addState(states.HIDDEN, types.IFCSPACE)" title="Hide spaces">
+            <i class="fas fa-eye-slash"></i>
+            <div class="icon-caption">Hide</div>
+          </div>
+          <div class="ribbon-icon-block" onclick="viewer.resetState(types.IFCSPACE)" title="Show spaces">
+            <i class="fas fa-eye"></i>
+            <div class="icon-caption">Show</div>
+          </div>
+          <div class="ribbon-icon-block" onclick="playSpaces()" title="Play spaces">
+            <i class="fas fa-play-circle"></i>
+            <div class="icon-caption">Play</div>
+          </div>
+        </div>
+        <div class="group-label">Spaces</div>
+      </div>
+
+      <!-- Group: Navigation Cube -->
+      <div class="ribbon-group">
+        <div class="icon-stack">
+          <div class="ribbon-icon-block" onclick="stopCube()" title="Stop cube">
+            <i class="fas fa-cube"></i>
+            <div class="icon-caption">Stop</div>
+          </div> 
+          <div class="ribbon-icon-block" onclick="startCube()" title="Start cube">
+            <i class="fas fa-cube"></i>
+            <div class="icon-caption">Start</div>
+          </div>
+        </div> 
+        <div class="group-label">Cube</div>
+      </div>
+
+      <!-- Group: Grid -->
+      <div class="ribbon-group">
+        <div class="icon-stack">
+          <div class="ribbon-icon-block" onclick="stopGrid()" title="Stop grid">
+            <i class="fas fa-border-all"></i>
+            <div class="icon-caption">Stop</div>
+          </div>
+          <div class="ribbon-icon-block" onclick="startGrid()" title="Start grid">
+            <i class="fas fa-border-all"></i>
+            <div class="icon-caption">Start</div>
+          </div>
+        </div> 
+        <div class="group-label">Grid</div>
+      </div>
+
+    </div> <!-- .ribbon-content -->
+  </div> <!-- .ribbon -->
+
 </body>
-
 </html>

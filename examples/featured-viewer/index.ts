@@ -1,4 +1,4 @@
-﻿import { Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube, InteractiveSectionBox, InteractiveSectionBox2, Grid, EasingType, MessageProgress, InteractiveClippingPlane } from '../..';
+﻿import { Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube, InteractiveSectionBox, Grid, EasingType, MessageProgress, InteractiveClippingPlane } from '../..';
 import { CameraType } from '../../src/camera';
 import { Viewpoint } from '../../src/bcf/viewpoint';
 import { vec3, mat4 } from 'gl-matrix';
@@ -245,18 +245,19 @@ if (modelId == 'large') {
 var grid = new Grid();
 grid.zFactor = 20;
 grid.colour = [0, 0, 0, 0.8];
-// viewer.addPlugin(grid);
+viewer.addPlugin(grid);
+grid.stopped = true;
 
 var cube = new NavigationCube();
-cube.ratio = 0.05;
+cube.ratio = 0.02;
 cube.passiveAlpha = cube.activeAlpha = 1.0;
-cube.minSize = 150;
+cube.minSize = 100;
 viewer.addPlugin(cube);
 
 var plane = new InteractiveClippingPlane();
 viewer.addPlugin(plane);
 
-var box = new InteractiveSectionBox2();
+var box = new InteractiveSectionBox();
 viewer.addPlugin(box);
 
 viewer.defineStyle(0, [255, 0, 0, 255]);  //red
@@ -387,34 +388,51 @@ viewer.on("pick", (args) => {
 });
 
 window['clipBox'] = () => {
-    var planes: ClippingPlane[] = [
+    const boundingBox = viewer.getMergedRegionWcs().bbox;
+    const centre = viewer.getMergedRegionWcs().centre;
+    const minX = boundingBox[0], minY = boundingBox[1], minZ = boundingBox[2];
+    const maxX = boundingBox[3], maxY = boundingBox[4], maxZ = boundingBox[5];
+    const meter = viewer.activeHandles[0].meter;
+
+    const cx = centre[0];
+    const cy = centre[1];
+    const cz = centre[2];
+
+    const ex = Math.min(3 * meter, Math.abs(maxX - minX) / 5);
+    const ey = Math.min(3 * meter, Math.abs(maxY - minY) / 5);
+    const ez = Math.min(3 * meter, Math.abs(maxZ - minZ) / 5);
+
+    console.log(ex, ey ,ez)
+
+    const planes: ClippingPlane[] = [
         {
-            direction: [1, 0, 0],
-            location: [3000, 0, 0]
+            direction: [ 1,  0,  0],
+            location:  [cx + ex, cy,      cz     ]  // front
         },
         {
-            direction: [0, 1, 0],
-            location: [0, 2000, 0]
+            direction: [-1,  0,  0],
+            location:  [cx - ex, cy,      cz     ]  // back
         },
         {
-            direction: [0, 0, 1],
-            location: [0, 0, 1000]
+            direction: [ 0,  0,  1],
+            location:  [cx,     cy,      cz + ez ]  // top
         },
         {
-            direction: [-1, 0, 0],
-            location: [-3000, 0, 0]
+            direction: [ 0,  0, -1],
+            location:  [cx,     cy,      cz - ez ]  // bottom
         },
         {
-            direction: [0, -1, 0],
-            location: [0, -2000, 0]
+            direction: [ 0,  1,  0],
+            location:  [cx,     cy + ey, cz      ]  // right
         },
         {
-            direction: [0, 0, -1],
-            location: [0, 0, -1000]
+            direction: [ 0, -1,  0],
+            location:  [cx,     cy - ey, cz      ]  // left
         }
     ];
 
     viewer.sectionBox.setToPlanes(planes);
+    box.setClippingPlanes(planes);
     viewer.zoomTo();
     box.stopped = false;
 };
