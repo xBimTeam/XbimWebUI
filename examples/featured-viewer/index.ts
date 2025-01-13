@@ -1,9 +1,9 @@
-﻿import { Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube, Grid, EasingType, MessageProgress, InteractiveClippingPlane } from '../..';
+﻿import { Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube, InteractiveSectionBox, InteractiveSectionBox2, Grid, EasingType, MessageProgress, InteractiveClippingPlane } from '../..';
 import { CameraType } from '../../src/camera';
 import { Viewpoint } from '../../src/bcf/viewpoint';
 import { vec3, mat4 } from 'gl-matrix';
 import { PerformanceRating } from '../../src/performance-rating';
-import { ClippingPlane } from '../../src/bcf';
+import { ClippingPlane, Component } from '../../src/bcf';
 import { LoaderOverlay } from '../../src/plugins/LoaderOverlay/loader-overlay';
 import { ProductAnalyticalResult } from '../../src/common/product-analytical-result';
 import { PlaySpaces } from './play-spaces';
@@ -168,6 +168,13 @@ viewer.on('loaded', () => {
 });
 
 viewer.readerOptions.orderGeometryBySize = true;
+
+function idMapper(guid: string) : { productId: number, modelId: number } {
+    var nums = guid.split('.').map(n => parseInt(n, 10));
+    return { productId: nums[0], modelId: nums[1] };
+} 
+
+
 if (modelId == 'large') {
     // load context (mostly large objects)
     viewer.loadAsync('/tests/data/large/context/roofing.wexbim');
@@ -180,16 +187,65 @@ if (modelId == 'large') {
 } else {
     viewer.loadAsync(model, "base", null, (msg) => {
         progress.innerHTML = `[${MessageProgress(msg).toFixed(2)}%] ${msg.message}`;
+        if(MessageProgress(msg) === 100) {
+        }
     });
     viewer2.loadAsync(model);
+
+    var vp: Viewpoint = new Viewpoint();
+
+    vp.perspective_camera = { 
+        camera_view_point: [ 3.1667765065281515,
+            3.7936820279753638,
+            1.0725],
+        camera_direction: [ 0.0,
+            -1.0,
+            0.0],
+        camera_up_vector: [ 0.0,
+            0.0,
+            1.0],
+        field_of_view: 60,
+        width: null,
+        height: null
+    };
+    vp.components = {
+        selection: [{
+            "ifc_guid": "103936.1",
+            "originating_system": "Revit",
+            "authoring_tool_id": "1"
+        },],
+        coloring: [],
+        visibility: {
+            default_visibility: true,
+            view_setup_hints: {
+                spaces_visible: false,
+                space_boundaries_visible: false,
+                openings_visible: false
+            },
+            exceptions: []
+        }
+    };
+    vp.clipping_planes = [];
+    vp.lines = [];
+    vp.bitmaps = [];
+    vp.snapshot = {
+        snapshot_type: "png",
+        snapshot_data: ""
+    };
+    vp.guid = "807da2d4-5f43-4a0a-938a-ffeaafcbb010";
+    vp.index = 11687;
+    
+
+    //Viewpoint.SetViewpoint(viewer, vp, null, 1000);
+
 }
 
 
-
+ 
 var grid = new Grid();
 grid.zFactor = 20;
 grid.colour = [0, 0, 0, 0.8];
-viewer.addPlugin(grid);
+// viewer.addPlugin(grid);
 
 var cube = new NavigationCube();
 cube.ratio = 0.05;
@@ -199,6 +255,9 @@ viewer.addPlugin(cube);
 
 var plane = new InteractiveClippingPlane();
 viewer.addPlugin(plane);
+
+var box = new InteractiveSectionBox2();
+viewer.addPlugin(box);
 
 viewer.defineStyle(0, [255, 0, 0, 255]);  //red
 viewer.defineStyle(1, [0, 0, 255, 100]);  //semitransparent blue
@@ -357,11 +416,13 @@ window['clipBox'] = () => {
 
     viewer.sectionBox.setToPlanes(planes);
     viewer.zoomTo();
+    box.stopped = false;
 };
 
 window['releaseClipBox'] = () => {
     viewer.sectionBox.clear();
     viewer.zoomTo();
+    box.stopped = true;
 };
 
 // restore init script if any is saved

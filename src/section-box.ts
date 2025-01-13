@@ -192,8 +192,8 @@ export class SectionBox {
         }
 
         const location = this.getCentroid(points);
-        const sizeX = this.getSize(results[0].plane, planes);
-        const sizeY = this.getSize(results[1].plane, planes);
+        const sizeX = this.getSize(results[1].plane, planes);
+        const sizeY = this.getSize(results[0].plane, planes);
         const sizeZ = this.getSize(results[2].plane, planes);
 
         if (sizeX == null || sizeY == null || sizeZ == null) {
@@ -201,8 +201,8 @@ export class SectionBox {
             return false;
         }
 
-        const Xdir = vec3.normalize(vec3.create(), VectorUtils.getVec3(results[0].plane.direction));
-        const Ydir = vec3.normalize(vec3.create(), VectorUtils.getVec3(results[1].plane.direction));
+        const Xdir = vec3.normalize(vec3.create(), VectorUtils.getVec3(results[1].plane.direction));
+        const Ydir = vec3.normalize(vec3.create(), VectorUtils.getVec3(results[0].plane.direction));
         const Zdir = vec3.normalize(vec3.create(), VectorUtils.getVec3(results[2].plane.direction));
         const rotation = quat.setAxes(quat.create(), vec3.negate(vec3.create(), Zdir), Xdir, Ydir);
 
@@ -307,6 +307,40 @@ export class SectionBox {
     private _lastWcs: vec3;
     private _lastBBox: Float32Array;
 
+
+    public getVertices(wcs: vec3): vec3[] {
+ 
+            const dx = this.lengthX / 2.0;
+            const dy = this.lengthY / 2.0;
+            const dz = this.lengthZ / 2.0;
+
+            //create box vertices in local coordinates
+            const local = [
+                [- dx, - dy, - dz],
+                [- dx, - dy, + dz],
+                [- dx, + dy, - dz],
+                [- dx, + dy, + dz],
+                [+ dx, - dy, - dz],
+                [+ dx, - dy, + dz],
+                [+ dx, + dy, - dz],
+                [+ dx, + dy, + dz]
+            ];
+
+            // reduce by wcs displacement
+            const loc = vec3.subtract(vec3.create(), this.location, wcs);
+
+            // create transformation from rotation and translation
+            let m = mat4.create();
+            m = mat4.rotateX(mat4.create(), m, this.rotationX * Math.PI / 180.0);
+            m = mat4.rotateY(mat4.create(), m, this.rotationY * Math.PI / 180.0);
+            m = mat4.rotateZ(mat4.create(), m, this.rotationZ * Math.PI / 180.0);
+            m = mat4.translate(mat4.create(), m, loc);
+
+            // transform section box vertices to real placement and rotation
+            const vertices = local.map(v => vec3.transformMat4(vec3.create(), VectorUtils.getVec3(v), m));
+            return vertices;
+    }
+
     /**
      * Returns bounding box of the section box. This is usefull for
      * zooming and similar operations
@@ -317,34 +351,8 @@ export class SectionBox {
             return this._lastBBox;
         }
 
-        const dx = this.lengthX / 2.0;
-        const dy = this.lengthY / 2.0;
-        const dz = this.lengthZ / 2.0;
-
-        //create box vertices in local coordinates
-        const local = [
-            [- dx, - dy, - dz],
-            [- dx, - dy, + dz],
-            [- dx, + dy, - dz],
-            [- dx, + dy, + dz],
-            [+ dx, - dy, - dz],
-            [+ dx, - dy, + dz],
-            [+ dx, + dy, - dz],
-            [+ dx, + dy, + dz]
-        ];
-
-        // reduce by wcs displacement
-        const loc = vec3.subtract(vec3.create(), this.location, wcs);
-
-        // create transformation from rotation and translation
-        let m = mat4.create();
-        m = mat4.rotateX(mat4.create(), m, this.rotationX * Math.PI / 180.0);
-        m = mat4.rotateY(mat4.create(), m, this.rotationY * Math.PI / 180.0);
-        m = mat4.rotateZ(mat4.create(), m, this.rotationZ * Math.PI / 180.0);
-        m = mat4.translate(mat4.create(), m, loc);
-
-        // transform section box vertices to real placement and rotation
-        const vertices = local.map(v => vec3.transformMat4(vec3.create(), VectorUtils.getVec3(v), m));
+        // get vertices
+        const vertices = this.getVertices(wcs);
 
         // get minimumm and maximum coordinates
         const min = vertices.reduce((previous, current) =>
