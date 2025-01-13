@@ -6,6 +6,7 @@ import { VectorUtils } from "./common/vector-utils";
  * @category Core
  */
 export class SectionBox {
+    private _boxVertices: vec3[] = [];
     private _location: vec3;
     private _lengthX: number;
     private _lengthY: number;
@@ -27,6 +28,9 @@ export class SectionBox {
             }
         };
     }
+
+    public get boxVertices(): vec3[] { return this._boxVertices; }
+    public set boxVertices(value: vec3[]) { this._boxVertices = value; this._onChange(); }
 
     public get location(): vec3 { return this._location; }
     public set location(value: vec3) { this._location = value; this._onChange(); }
@@ -136,11 +140,13 @@ export class SectionBox {
      */
     public setToPlanes(planes: ClippingPlane[]): boolean {
         if (planes == null || planes.length !== 6)
-            throw new Error('Invalid input: box has to be defined by 3 clipping planes');
+            throw new Error('Invalid input: box has to be defined by 6 clipping planes');
+
+        planes = this.sortPlanes(planes);
 
         var results: { plane: ClippingPlane, points: vec3[] }[] = [];
         const points: vec3[] = [];
-
+        this.boxVertices = [];
         for (let i = 0; i < 6; i++) {
             const planeA = planes[i];
             for (let j = i + 1; j < 6; j++) {
@@ -181,6 +187,7 @@ export class SectionBox {
                     this.addPointToResults(results, planeA, X);
                     this.addPointToResults(results, planeB, X);
                     this.addPointToResults(results, planeC, X);
+                    this.boxVertices.push(X);
                 }
             }
         }
@@ -226,6 +233,51 @@ export class SectionBox {
 
         // return true when clipping planes were interpreted as a section box
         return true;
+    }
+
+    private sortPlanes(planes: ClippingPlane[]): ClippingPlane[] {
+        if (planes.length !== 6) {
+          throw new Error('Expected exactly 6 planes.');
+        }
+      
+        let top: ClippingPlane | undefined;
+        let bottom: ClippingPlane | undefined;
+        let front: ClippingPlane | undefined;
+        let back: ClippingPlane | undefined;
+        let left: ClippingPlane | undefined;
+        let right: ClippingPlane | undefined;
+      
+        for (const plane of planes) {
+          const [dx, dy, dz] = plane.direction;
+      
+          if (dx === 0 && dy === 0 && dz === 1) {
+            // +Z => top
+            top = plane;
+          } else if (dx === 0 && dy === 0 && dz === -1) {
+            // -Z => bottom
+            bottom = plane;
+          } else if (dx === 1 && dy === 0 && dz === 0) {
+            // +X => front (as per your mapping)
+            front = plane;
+          } else if (dx === -1 && dy === 0 && dz === 0) {
+            // -X => back
+            back = plane;
+          } else if (dx === 0 && dy === -1 && dz === 0) {
+            // -Y => left
+            left = plane;
+          } else if (dx === 0 && dy === 1 && dz === 0) {
+            // +Y => right
+            right = plane;
+          } else {
+            console.warn('Unrecognized plane direction:', plane.direction);
+          }
+        }
+      
+        if (!top || !bottom || !front || !back || !left || !right) {
+          throw new Error('One or more planes could not be classified.');
+        }
+      
+        return [top, bottom, front, back, left, right];
     }
 
     private getSize(plane: ClippingPlane, planes: ClippingPlane[]): number {
