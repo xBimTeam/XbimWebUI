@@ -173,11 +173,22 @@ export class Heatmap implements IPlugin {
 
         const maps = (sources ?? this._sources).filter(s => s.channelId == channel.channelId);
         const initial: Array<{ color: string, sources: HeatmapSource[][] }> = [];
-        const ranges = channel.valueRanges.reduce((result, range) => {
+        const ranges = channel.valueRanges.reduce((result, range, idx, array) => {
             const inRange = maps.filter(m => {
                 const value = Number(m.value);
                 if (isNaN(value))
                     return false;
+
+                if (value == range.min && idx > 0) {
+                    if (array[idx-1].max == range.min) {
+                        return range.priority >= array[idx-1].priority;
+                    }
+                }
+                if (value == range.max && idx < array.length - 1) {
+                    if (array[idx+1].min == range.max) {
+                        return range.priority >= array[idx+1].priority;
+                    }
+                }
                 return value >= range.min && value <= range.max;
             });
             result.push({

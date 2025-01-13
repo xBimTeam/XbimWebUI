@@ -1,4 +1,4 @@
-import { Viewer, Heatmap, InteractiveClippingPlane, ConstantColorChannel, ContinuousHeatmapChannel, ValueRange, ValueRangesHeatmapChannel, HeatmapSource, Icons, CameraType, ViewType, ClippingPlane, ProductType, IHeatmapChannel, ChannelType, } from '../..';
+import { Viewer, Heatmap, InteractiveClippingPlane, ConstantColorChannel, ContinuousHeatmapChannel, ValueRange, ValueRangesHeatmapChannel, HeatmapSource, Icons, CameraType, ViewType, ClippingPlane, ProductType, IHeatmapChannel, ChannelType, RenderingMode, } from '../..';
 import { Icon } from '../../src/plugins/DataVisualization/Icons/icon';
 import { IconsData } from './icons';
 
@@ -17,16 +17,17 @@ const humidityChannelId = "room_humidity";
 const energyChannelId = "room_energy";
 
 const energySource = new HeatmapSource("Energy sensor", 1, 152, energyChannelId, 10);
-const temperatureSource = new HeatmapSource("Temp sensor", 1, 152, tempChannelId, 1);
+const temperatureSource = new HeatmapSource("Temp sensor", 1, 152, tempChannelId, 22);
 const humiditySource = new HeatmapSource("Humidity sensor", 1, 152, humidityChannelId, 10);
 const sourceIcon = new Icon("Room 1 Sensor", "Temperature sensor", 1, 152, IconsData.errorIcon, null, null, null, () => { viewer.zoomTo(152, 1) });
 
 let selectedChannel: IHeatmapChannel;
 const ranges = [
-    new ValueRange(-Infinity, 5, "#00d4ff", "Exteremly Cold"),
-    new ValueRange(6, 16, "#3d00f7", "Cold"),
-    new ValueRange(17, 25, "#41ff0c", "Good"),
-    new ValueRange(26, Infinity, "#ff0c0c", "Hot")
+    new ValueRange(-Infinity, 5, "#00d4ff", "Exteremly Cold", 2),
+    new ValueRange(5, 17, "#3d00f7", "Cold", 1),
+    new ValueRange(17, 25, "#41ff0c", "Good", 0),
+    new ValueRange(25, 32, "#ff9999", "Hot", 1),
+    new ValueRange(32, Infinity, "#ff0000", "Extremely Hot", 2)
 ];
 const tempChannel = new ValueRangesHeatmapChannel
 (tempChannelId, "double", "Temperature", "Temperature of Rooms", "temperature", "°C", ranges);
@@ -47,9 +48,9 @@ viewer.on('loaded', args => {
     try {
         
         viewer.camera = CameraType.PERSPECTIVE;
-        clipModel();
         viewer.resetState(ProductType.IFCSPACE)
         viewer.show(ViewType.DEFAULT);
+        viewer.renderingMode = RenderingMode.XRAY_ULTRA;
 
         heatmap.addSource(temperatureSource);
         heatmap.addSource(humiditySource);

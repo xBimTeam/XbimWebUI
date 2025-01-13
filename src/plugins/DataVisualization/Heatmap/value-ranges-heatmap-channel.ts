@@ -7,6 +7,7 @@ export class ValueRange {
     private _max: number;
     private _color: string;
     private _label: string;
+    private _priority: number = 0;
 
 
     /**
@@ -15,12 +16,14 @@ export class ValueRange {
          * @param {number} max - The maximum value.
          * @param {string} color - The color associated with the range.
          * @param {string} label - The label for the value range.
+         * @param {number} priority - Priority of the value range.
          */
-    constructor(min: number, max: number, color: string, label: string) {
+    constructor(min: number, max: number, color: string, label: string, priority: number) {
         this._min = min;
         this._max = max;
         this._color = color;
         this._label = label;
+        this._priority = priority ?? 0;
     }
 
     /**
@@ -86,6 +89,24 @@ export class ValueRange {
     public set label(value: string) {
         this._label = value;
     }
+
+    
+    /**
+     * Priority of the value range
+     * @returns {number} The priority of this range
+     */
+    public get priority() : number {
+        return this._priority;
+    }
+
+    /**
+     * Sets priority of the value range
+     * @param priority Priority
+     */
+    public set priority(priority : number) {
+        this._priority = priority;
+    }
+    
 }
 
 
