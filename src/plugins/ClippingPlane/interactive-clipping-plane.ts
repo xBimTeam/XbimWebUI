@@ -275,7 +275,7 @@ export class InteractiveClippingPlane implements IPlugin {
         
         this.viewer.canvas.addEventListener('pointerdown', event => {
             // don't do anything if this plugin is not active
-            if (this.stopped || this.viewer.plugins.indexOf(this) < 0) {
+            if (this.stopped || this.viewer.plugins.indexOf(this) < 0 || event.button !== 0) {
                 return;
             }
 
@@ -317,7 +317,6 @@ export class InteractiveClippingPlane implements IPlugin {
             var deltaX = newX - lastMouseX;
             var deltaY = newY - lastMouseY;
  
- 
             lastMouseX = newX;
             lastMouseY = newY;
             const camera = this.viewer.getCameraPosition();
@@ -333,7 +332,6 @@ export class InteractiveClippingPlane implements IPlugin {
                         const h = 2 * distance * Math.tan(fov / 2.0);
                         c = h / this.viewer.height;
                     }
-
                     const draggingOffset = this.getDragOffset(c, deltaX, deltaY);
                     mat4.translate(this.transformation, this.transformation, draggingOffset);
 
@@ -619,7 +617,7 @@ export class InteractiveClippingPlane implements IPlugin {
         gl.linkProgram(this.program);
 
         if (!gl.getProgramParameter(this.program, gl.LINK_STATUS)) {
-            viewer.error('Could not initialise shaders for a navigation cube plugin');
+            viewer.error('Could not initialise shaders for a interactive clipping plane plugin');
         }
     }
 

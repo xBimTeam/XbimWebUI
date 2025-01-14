@@ -332,7 +332,7 @@ export class ModelGeometry {
             this.normals.set(geometry.normals, iIndex * 2);
 
             //switch spaces and openings off by default 
-            let state = map.type === ProductType.IFCSPACE || map.type === ProductType.IFCOPENINGELEMENT
+            let state = map.type === ProductType.IFCSPACE 
                 ? State.HIDDEN
                 : 0xFF; //0xFF is for the default state
 

@@ -1,9 +1,9 @@
-﻿import { Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube, Grid, EasingType, MessageProgress, InteractiveClippingPlane } from '../..';
+﻿import { Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube, InteractiveSectionBox, Grid, EasingType, MessageProgress, InteractiveClippingPlane } from '../..';
 import { CameraType } from '../../src/camera';
 import { Viewpoint } from '../../src/bcf/viewpoint';
 import { vec3, mat4 } from 'gl-matrix';
 import { PerformanceRating } from '../../src/performance-rating';
-import { ClippingPlane } from '../../src/bcf';
+import { ClippingPlane, Component } from '../../src/bcf';
 import { LoaderOverlay } from '../../src/plugins/LoaderOverlay/loader-overlay';
 import { ProductAnalyticalResult } from '../../src/common/product-analytical-result';
 import { PlaySpaces } from './play-spaces';
@@ -168,6 +168,13 @@ viewer.on('loaded', () => {
 });
 
 viewer.readerOptions.orderGeometryBySize = true;
+
+function idMapper(guid: string) : { productId: number, modelId: number } {
+    var nums = guid.split('.').map(n => parseInt(n, 10));
+    return { productId: nums[0], modelId: nums[1] };
+} 
+
+
 if (modelId == 'large') {
     // load context (mostly large objects)
     viewer.loadAsync('/tests/data/large/context/roofing.wexbim');
@@ -180,25 +187,78 @@ if (modelId == 'large') {
 } else {
     viewer.loadAsync(model, "base", null, (msg) => {
         progress.innerHTML = `[${MessageProgress(msg).toFixed(2)}%] ${msg.message}`;
+        if(MessageProgress(msg) === 100) {
+        }
     });
     viewer2.loadAsync(model);
+
+    var vp: Viewpoint = new Viewpoint();
+
+    vp.perspective_camera = { 
+        camera_view_point: [ 3.1667765065281515,
+            3.7936820279753638,
+            1.0725],
+        camera_direction: [ 0.0,
+            -1.0,
+            0.0],
+        camera_up_vector: [ 0.0,
+            0.0,
+            1.0],
+        field_of_view: 60,
+        width: null,
+        height: null
+    };
+    vp.components = {
+        selection: [{
+            "ifc_guid": "103936.1",
+            "originating_system": "Revit",
+            "authoring_tool_id": "1"
+        },],
+        coloring: [],
+        visibility: {
+            default_visibility: true,
+            view_setup_hints: {
+                spaces_visible: false,
+                space_boundaries_visible: false,
+                openings_visible: false
+            },
+            exceptions: []
+        }
+    };
+    vp.clipping_planes = [];
+    vp.lines = [];
+    vp.bitmaps = [];
+    vp.snapshot = {
+        snapshot_type: "png",
+        snapshot_data: ""
+    };
+    vp.guid = "807da2d4-5f43-4a0a-938a-ffeaafcbb010";
+    vp.index = 11687;
+    
+
+    //Viewpoint.SetViewpoint(viewer, vp, null, 1000);
+
 }
 
 
-
+ 
 var grid = new Grid();
 grid.zFactor = 20;
 grid.colour = [0, 0, 0, 0.8];
 viewer.addPlugin(grid);
+grid.stopped = true;
 
 var cube = new NavigationCube();
-cube.ratio = 0.05;
+cube.ratio = 0.02;
 cube.passiveAlpha = cube.activeAlpha = 1.0;
-cube.minSize = 150;
+cube.minSize = 100;
 viewer.addPlugin(cube);
 
 var plane = new InteractiveClippingPlane();
 viewer.addPlugin(plane);
+
+var box = new InteractiveSectionBox();
+viewer.addPlugin(box);
 
 viewer.defineStyle(0, [255, 0, 0, 255]);  //red
 viewer.defineStyle(1, [0, 0, 255, 100]);  //semitransparent blue
@@ -328,40 +388,59 @@ viewer.on("pick", (args) => {
 });
 
 window['clipBox'] = () => {
-    var planes: ClippingPlane[] = [
+    const boundingBox = viewer.getMergedRegionWcs().bbox;
+    const centre = viewer.getMergedRegionWcs().centre;
+    const minX = boundingBox[0], minY = boundingBox[1], minZ = boundingBox[2];
+    const maxX = boundingBox[3], maxY = boundingBox[4], maxZ = boundingBox[5];
+    const meter = viewer.activeHandles[0].meter;
+
+    const cx = centre[0];
+    const cy = centre[1];
+    const cz = centre[2];
+
+    const ex = Math.min(3 * meter, Math.abs(maxX - minX) / 5);
+    const ey = Math.min(3 * meter, Math.abs(maxY - minY) / 5);
+    const ez = Math.min(3 * meter, Math.abs(maxZ - minZ) / 5);
+
+    console.log(ex, ey ,ez)
+
+    const planes: ClippingPlane[] = [
         {
-            direction: [1, 0, 0],
-            location: [3000, 0, 0]
+            direction: [ 1,  0,  0],
+            location:  [cx + ex, cy,      cz     ]  // front
         },
         {
-            direction: [0, 1, 0],
-            location: [0, 2000, 0]
+            direction: [-1,  0,  0],
+            location:  [cx - ex, cy,      cz     ]  // back
         },
         {
-            direction: [0, 0, 1],
-            location: [0, 0, 1000]
+            direction: [ 0,  0,  1],
+            location:  [cx,     cy,      cz + ez ]  // top
         },
         {
-            direction: [-1, 0, 0],
-            location: [-3000, 0, 0]
+            direction: [ 0,  0, -1],
+            location:  [cx,     cy,      cz - ez ]  // bottom
         },
         {
-            direction: [0, -1, 0],
-            location: [0, -2000, 0]
+            direction: [ 0,  1,  0],
+            location:  [cx,     cy + ey, cz      ]  // right
         },
         {
-            direction: [0, 0, -1],
-            location: [0, 0, -1000]
+            direction: [ 0, -1,  0],
+            location:  [cx,     cy - ey, cz      ]  // left
         }
     ];
 
     viewer.sectionBox.setToPlanes(planes);
+    box.setClippingPlanes(planes);
     viewer.zoomTo();
+    box.stopped = false;
 };
 
 window['releaseClipBox'] = () => {
     viewer.sectionBox.clear();
     viewer.zoomTo();
+    box.stopped = true;
 };
 
 // restore init script if any is saved

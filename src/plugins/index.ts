@@ -3,6 +3,7 @@ export * from "./NavigationCube/navigation-cube";
 export * from "./Grid/grid";
 export * from "./LoaderOverlay/loader-overlay";
 export * from "./ClippingPlane/interactive-clipping-plane"
+export * from "./InteractiveSectionBox/interactive-section-box"
 export * from "./DataVisualization/Heatmap/heatmap"
 export * from "./DataVisualization/Heatmap/heatmap-channel"
 export * from "./DataVisualization/Heatmap/continuous-heatmap-channel"
