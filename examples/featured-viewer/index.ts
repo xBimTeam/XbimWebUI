@@ -289,8 +289,11 @@ document['resetWalls'] = () => {
 document['clip'] = () => {
     plane.stopped = false;
 };
-document['hideClippingControl'] = () => {
-    plane.stopped = true;
+document['toggleClippingControl'] = () => {
+    plane.stopped = !plane.stopped ;
+};
+document['toggleClippingBox'] = () => {
+    box.stopped = !box.stopped;
 };
 document['unclip'] = () => {
     viewer.unclip();

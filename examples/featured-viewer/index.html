@@ -408,11 +408,11 @@
         <div class="icon-stack">
           <div class="ribbon-icon-block" onclick="clip()" title="Clip model">
             <i class="fas fa-cut"></i>
-            <div class="icon-caption">Clip</div>
+            <div class="icon-caption">Clip Plane</div>
           </div>
-          <div class="ribbon-icon-block" onclick="hideClippingControl()" title="Hide clipping control">
-            <i class="fas fa-eye-slash"></i>
-            <div class="icon-caption">Hide Plane</div>
+          <div class="ribbon-icon-block" onclick="toggleClippingControl()" title="Hide clipping control">
+            <i class="fas fa-eye"></i>
+            <div class="icon-caption">Toggle Plane</div>
           </div>
           <div class="ribbon-icon-block" onclick="unclip()" title="Reset clipping">
             <i class="fas fa-undo-alt"></i>
@@ -423,6 +423,10 @@
           <div class="ribbon-icon-block" onclick="clipBox()" title="Clip with box">
             <i class="fas fa-cube"></i>
             <div class="icon-caption">Clip Box</div>
+          </div>
+          <div class="ribbon-icon-block" onclick="toggleClippingBox()" title="Hide clipping box">
+            <i class="fas fa-eye"></i>
+            <div class="icon-caption">Toggle Box</div>
           </div>
           <div class="ribbon-icon-block" onclick="releaseClipBox()" title="Release clip box">
             <i class="fas fa-cubes"></i>
