@@ -139,6 +139,71 @@
     .ribbon-icon-block:hover i {
       color: #007ACC;
     }
+
+    .left-panel {
+    position: absolute;
+    top: 170px;
+    left: 20px;
+    max-width: 300px;
+    padding: 1.0em;
+    background-color: white;
+    box-shadow: 0 0 10px darkgray;
+    border-radius: 10px;
+    z-index: 2;
+    }
+
+    .left-section {
+    margin-bottom: 0.5em; 
+    padding-bottom: 5px; /* Padding inside the section */
+    border-bottom: 1px solid #ddd; /* Optional dividing line */
+    }
+
+    .left-section:last-child {
+    border-bottom: none;
+    }
+
+    .left-section h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.3em;
+    color: #333;
+    font-weight: bold;
+    }
+
+    .left-section ul {
+    list-style: none;
+    padding-left: 0;
+    max-height: 140px;
+    overflow-y: scroll;
+    scroll-behavior: smooth;
+    }
+
+    .left-section ul li {
+    margin-bottom: 0.2em;
+    }
+
+    .left-section ul li a {
+    text-decoration: none;
+    color: #007ACC;
+    }
+
+    .left-section ul li a:hover {
+    text-decoration: underline;
+    }
+
+    .left-section button {
+    background-color: #007ACC;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 0.5em 1em;
+    cursor: pointer;
+    font-size: 0.9rem;
+    }
+
+    .left-section button:hover {
+    background-color: #005F99;
+    }
+
   </style>
 </head>
 <body>
@@ -146,37 +211,36 @@
   <!-- 3D Viewer Canvas -->
   <canvas id="xBIM-viewer"></canvas>
 
-  <!-- Optional second canvas at bottom-left -->
-  <div style="position: absolute; left: 0; bottom: 0; width: 400px; height: 200px;">
-    <canvas id="viewer2"></canvas>
-  </div>
-
+  
   <!-- Left panel for status/info -->
   <div class="left-panel">
-    <div>
-      <strong>Status:</strong> 
-      <span id="progress"></span>
+    <div class="left-section">
+      <div>
+        <strong>Status:</strong>
+        <span id="progress">Loading...</span>
+      </div>
+      <div>
+        <strong>Selected:</strong>
+        <span id="ids">None</span> <br />
+        <span id="coords">---</span>
+      </div>
+      <div>
+        <strong>Hover-over:</strong>
+        <span id="hoverid">---</span> <br />
+        <span id="hovercoords">---</span>
+      </div>
+      <div>
+        <strong>Framerate (FPS):</strong>
+        <span id="fps">---</span>
+      </div>
+      <div>
+        <strong>WebGL version:</strong>
+        <span id="webglVersion">---</span>
+      </div>
     </div>
-    <div>
-      <strong>Selected:</strong> 
-      <span id="ids"></span> <br />
-      <span id="coords"></span>
-    </div>
-    <div>
-      <strong>Hover-over:</strong> 
-      <span id="hoverid"></span> <br />
-      <span id="hovercoords"></span>
-    </div>
-    <div>
-      <strong>Framerate (FPS):</strong> 
-      <span id="fps"></span>
-    </div>
-    <div>
-      <strong>WebGL version:</strong> 
-      <span id="webglVersion"></span>
-    </div>
-    <div>
-      <strong>Models:</strong>
+  
+    <div class="left-section">
+      <h3>Models</h3>
       <ul>
         <li><a href="?model=OneWallHigh"> One Wall </a></li>
         <li><a href="?model=OneWallTwoWindows"> One Wall Two Windows </a></li>
@@ -194,15 +258,15 @@
         <li><a href="?model=v4/feethams_envelope"> Feethams Envelope (V4)</a></li>
       </ul>
     </div>
-    <div>
-      <button onclick="takeSnapshot()">Take snapshot</button>
-      <br />
-      <div id="snapshot"></div>
+  
+    <div class="left-section">
+      <button onclick="takeSnapshot()">Take Snapshot</button>
+      <div id="snapshot">No snapshots yet.</div>
       <div id="initialSnapshot"></div>
+      <div id="errLog" style="color: red;"></div>
     </div>
-    <div id="errLog" style="color:red;"></div>
   </div>
-
+   
   <!-- Right panel (advanced controls) -->
   <div class="right-panel">
     <div>
@@ -455,6 +519,10 @@
           </div>
         </div> 
         <div class="group-label">Grid</div>
+      </div>
+
+      <div class="ribbon-group" style="position: absolute; right: 0; bottom: 0; width: 200px; height: 200px;">
+        <canvas id="viewer2"></canvas>
       </div>
 
     </div> <!-- .ribbon-content -->
