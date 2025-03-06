@@ -6,8 +6,7 @@ import { Icons } from './icons'
  * @see Icons
  */
 export class Icon {
-    private _modelId: number;
-    private _productsIds: number[] | null;
+    private _products: { id: number, model: number }[] | null;
     private _location: Float32Array;
     private _imageData: string;
     private _description: string;
@@ -25,8 +24,7 @@ export class Icon {
      * 
      * @param {string} name - The name of the icon.
      * @param {string} description - A brief description of the icon.
-     * @param {number} modelId - The model ID associated with the icon.
-     * @param {number} productIds - The products IDs associated with the icon.
+     * @param {number} products - The products associated with the icon.
      * @param {string} imageData - Base64 encoded image data for the icon.
      * @param {Float32Array | null} [location=null] - The XYZ coordinates for the icon location. If not provided, the centroid of the product bounding box is used.
      * @param {number | null} [width=null] - The width of the icon. If null, default width is used.
@@ -38,16 +36,14 @@ export class Icon {
     constructor(
         name: string,
         description: string,
-        modelId: number,
-        productsIds: number[] | null,
+        products: { id: number, model: number }[] | null,
         imageData: string | null,
         location: Float32Array | null = null,
         width: number | null = null,
         height: number | null = null,
         onIconSelected: () => void = null
     ) {
-        this._modelId = modelId;
-        this._productsIds = productsIds;
+        this._products = products;
         this._imageData = imageData;
         this._location = location;
         this._name = name;
@@ -59,19 +55,11 @@ export class Icon {
     }
 
     /**
-     * Gets the model ID associated with the icon.
-     * @returns {number} The model ID.
+     * Gets the products associated with the icon.
+     * @returns {{ id: number, model: number }[] } The products.
      */
-    public get modelId(): number {
-        return this._modelId;
-    }
-
-    /**
-     * Gets the products ID associated with the icon.
-     * @returns {number} The product ID.
-     */
-    public get productsIds(): number[] | null {
-        return this._productsIds;
+    public get products(): { id: number, model: number }[] | null {
+        return this._products;
     }
 
     /**

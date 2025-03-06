@@ -125,18 +125,19 @@ export class Heatmap implements IPlugin {
         }
     
         const maps = (sources ?? this._sources).filter(s => s.channelId == channel.channelId);
-        const groups = this.groupBy(maps, m => `${m.modelId}`);
+        const groups: Record<string, number[]> = maps.map(m => m.products).flat().reduce((groups, item) => {
+            const key = item.model;
+            if (!groups[key]) {
+              groups[key] = [];
+            }
+            groups[key].push(item.id);
+            return groups;
+          }, {});
+          
         
-        groups.forEach(group => {
-            let products: number[] = [];
-            group.forEach(source => {
-                if (source.productsIds && source.productsIds.length > 0) {
-                    products.push(...source.productsIds);
-                } 
-            });
-            
-            this._viewer.setStyle(this._colorStylesMap[channel.color], products, group[0].modelId);
-            this._viewer.addState(State.XRAYVISIBLE, products, group[0].modelId);
+          Object.entries(groups).forEach(([model, products]) => {
+            this._viewer.setStyle(this._colorStylesMap[channel.color], products, Number(model));
+            this._viewer.addState(State.XRAYVISIBLE, products, Number(model));
         });
     }
     
@@ -154,19 +155,25 @@ export class Heatmap implements IPlugin {
         });
         const values = Object.keys(channel.values);
         const maps = (sources ?? this._sources).filter(s => s.channelId == channel.channelId);
-        const groups = this.groupBy(maps, m => `${m.value}-${m.modelId}`);
-        groups.forEach(group => {
-            const stringVal = group[0].value.toString();
+        const groups: Record<string, {source:HeatmapSource, products: {id:number, model:number}[]}> = maps.flatMap(source => source.products.map(product => ({ product, source })))
+        .reduce((groups, item) => {
+            const key = `${item.source.value}-${item.product.model}`;
+            if (!groups[key]) {
+              groups[key] = [];
+            }
+            groups[key].push(item);
+            return groups;
+          }, {});
+          
+        
+          Object.entries(groups).forEach(([key, val]) => {
+            const stringVal = val[0].source.value.toString();
+            const modelId = val[0].products[0].model;
             if (values.includes(stringVal)) {
-                const colorHex = channel.values[group[0].value];
-                let products: number[] = [];
-                group.forEach(source => {
-                    if (source.productsIds && source.productsIds.length > 0) {
-                        products.push(...source.productsIds);
-                    } 
-                });
-                this._viewer.setStyle(this._colorStylesMap[colorHex], products, group[0].modelId);
-                this._viewer.addState(State.XRAYVISIBLE, products, group[0].modelId)
+                const colorHex = channel.values[val[0].source.value];
+                let productsIds: number[] = val.products.map(p => p.id);
+                this._viewer.setStyle(this._colorStylesMap[colorHex], productsIds, modelId);
+                this._viewer.addState(State.XRAYVISIBLE, productsIds, modelId)
             }
         });
     }
@@ -184,10 +191,11 @@ export class Heatmap implements IPlugin {
         });
 
         const maps = (sources ?? this._sources).filter(s => s.channelId == channel.channelId);
-        const initial: Array<{ color: string, sources: HeatmapSource[][] }> = [];
+        const initial: Array<{ color: string, sources: Record<string, {source:HeatmapSource, product: {id:number, model:number}}[]> }> = [];
         const ranges = channel.valueRanges.reduce((result, range, idx, array) => {
             const inRange = maps.filter(m => {
                 const value = Number(m.value);
+                
                 if (isNaN(value))
                     return false;
 
@@ -203,23 +211,34 @@ export class Heatmap implements IPlugin {
                 }
                 return value >= range.min && value <= range.max;
             });
+
+            const groupsInRange: Record<string, {source:HeatmapSource, product: {id:number, model:number}}[]> = inRange
+            .flatMap(source => source.products.map(product => ({ product, source })))
+            .reduce((groups, item) => {
+                const key = item.product.model;
+                if (!groups[key]) {
+                  groups[key] = [];
+                }
+                groups[key].push(item);
+                return groups;
+              }, {});
+
             result.push({
                 color: range.color,
-                sources: this.groupBy(inRange, r => `${r.modelId}`)
+                sources: groupsInRange
             });
+
+
             return result;
-        }, initial).filter(r => r.sources.length > 0);
+        }, initial).filter(r => Object.entries(r.sources).length > 0);
+
 
         ranges.forEach(range => {
-            range.sources.forEach(group => {
-                let products: number[] = [];
-                group.forEach(source => {
-                    if (source.productsIds && source.productsIds.length > 0) {
-                        products.push(...source.productsIds);
-                    } 
-                });
-                this._viewer.setStyle(this._colorStylesMap[range.color], products, group[0].modelId);
-                this._viewer.addState(State.XRAYVISIBLE, products, group[0].modelId)
+
+            Object.entries(range.sources).forEach(([model, val]) => {
+                let productsIds: number[] = val.map(p => p.product.id);
+                this._viewer.setStyle(this._colorStylesMap[range.color], productsIds, Number(model));
+                this._viewer.addState(State.XRAYVISIBLE, productsIds, Number(model));
             });
         });
     }
@@ -245,16 +264,24 @@ export class Heatmap implements IPlugin {
                 clampedValue: this.clamp((srcValue - channel.min) / (channel.max - channel.min), channel.min, channel.max)
             }
         }).filter(m => m != null);
-        const ranges = this.groupBy(maps, m => `${m.clampedValue}-${m.map.modelId}`);
-        ranges.forEach(group => {
-            const value = group[0].clampedValue;
-            const modelId = group[0].map.modelId;
-            let products: number[] = [];
-            group.forEach(source => {
-                if (source.map.productsIds && source.map.productsIds.length > 0) {
-                    products.push(...source.map.productsIds);
-                } 
-            });
+
+        const ranges: Record<string, {source: {map: HeatmapSource, clampedValue:number }, product: {id:number, model:number}}[]> = maps
+        .flatMap(source => source.map.products.map(product => ({ product, source })))
+        .reduce((groups, item) => {
+            const key = `${item.source.clampedValue}-${item.product.id}`;
+            if (!groups[key]) {
+              groups[key] = [];
+            }
+            groups[key].push(item);
+            return groups;
+          }, {});
+          
+        console.log("ranges",  maps);
+
+        Object.entries(ranges).forEach(([key, val]) => {
+            const value = val[0].source.clampedValue;
+            const modelId: number = val[0].product.model;
+            let products: number[] =  val.map(p => p.product.id);
             
             if (this._valueStylesMap[value]) {
                 var style = this._valueStylesMap[value];
