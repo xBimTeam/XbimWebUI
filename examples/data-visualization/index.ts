@@ -19,7 +19,8 @@ const energyChannelId = "room_energy";
 const energySource = new HeatmapSource("Energy sensor", 1, [152, 447], energyChannelId, 10);
 const temperatureSource = new HeatmapSource("Temp sensor", 1, [152, 447], tempChannelId, 22);
 const humiditySource = new HeatmapSource("Humidity sensor", 1, [152, 447], humidityChannelId, 10);
-const sourceIcon = new Icon("Room 1 Sensor", "Temperature sensor", 1, [152, 447], IconsData.errorIcon, null, null, null, () => { viewer.zoomTo(152, 1) });
+const sourceIcon = new Icon("Rooms 1 and 2 Sensor", "Temperature sensor", 1, [152, 447], IconsData.errorIcon, null, null, null, () => { 
+    viewer.zoomTo([{ id: 152, model: 1 }, { id: 447, model: 1 }], 1) });
 
 let selectedChannel: IHeatmapChannel;
 const ranges = [
