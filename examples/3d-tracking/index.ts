@@ -11,7 +11,7 @@ viewer.addPlugin(icons);
 var plane = new InteractiveClippingPlane();
 viewer.addPlugin(plane);
 
-const sourceIcon = new Icon("Digger #1", "Tracking digger location along the bridge", 1, null, IconsData.diggerIcon);
+const sourceIcon = new Icon("Digger #1", "Tracking digger location along the bridge", null, IconsData.diggerIcon);
 
 viewer.on('loaded', args => {
     try {

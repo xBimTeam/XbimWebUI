@@ -94,12 +94,12 @@ export class Icons implements IPlugin {
             image.width = 18;
         }
         image.id = id.toString();
-        if(icon.productsIds && !icon.location) {
+        if(icon.products && icon.products.length && !icon.location) {
             const wcs = this._viewer.getCurrentWcs();
             let minX = Infinity, minY = Infinity, minZ = Infinity;
             let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
-            icon.productsIds.forEach(productId => {
-                const bb = this._viewer.getProductBoundingBox(productId, icon.modelId);
+            icon.products.forEach(product => {
+                const bb = this._viewer.getProductBoundingBox(product.id, product.model);
                 if (bb && bb.length === 6) {
                     minX = Math.min(minX, bb[0]);
                     minY = Math.min(minY, bb[1]);
@@ -119,8 +119,8 @@ export class Icons implements IPlugin {
         }
         this._instances[id.toString()] = icon;
         iconElement.id = "icon" + id;
-        iconElement.title = (icon.productsIds && icon.productsIds.length)
-            ? `Products ${icon.productsIds.join(', ')}, Model ${icon.modelId}` : "";
+        iconElement.title = (icon.products && icon.products.length)
+            ? `Products ${icon.products.map(p => p.id).join(', ')}` : "";
         iconElement.appendChild(image);
         this._icons.appendChild(iconElement);
         this._iconsCount++;
@@ -283,15 +283,15 @@ export class Icons implements IPlugin {
     }
       
     private getId(icon: Icon): number {
-        if (icon.productsIds && icon.productsIds.length > 0) {
-            const sortedProductIds = icon.productsIds.slice().sort((a, b) => a - b);
+        if (icon.products && icon.products.length > 0) {
+            const sortedProductIds = icon.products.map(p => p.id).slice().sort((a, b) => a - b);
             let combinedProductId = sortedProductIds[0];
             for (let i = 1; i < sortedProductIds.length; i++) {
                 combinedProductId = this.cantorPairing(combinedProductId, sortedProductIds[i]);
             }
-            return this.cantorPairing(this.cantorPairing(combinedProductId, icon.modelId), this._iconsCount);
+            return this.cantorPairing(combinedProductId,  this._iconsCount);
         } else {
-            return this.cantorPairing(this.cantorPairing(Math.random(), icon.modelId), this._iconsCount);
+            return this.cantorPairing(Math.random(), this._iconsCount);
         }
     }
     
@@ -304,10 +304,10 @@ export class Icons implements IPlugin {
         const point = icon.location;
     
         let isProductInModel = false;
-        if (icon.productsIds && icon.productsIds.length > 0) {
+        if (icon.products && icon.products.length > 0) {
             this._viewer.activeHandles.forEach(handle => {
-                icon.productsIds.forEach(productId => {
-                    if (this._viewer.isProductInModel(productId, handle.id)) {
+                icon.products.forEach(product => {
+                    if (this._viewer.isProductInModel(product.id, handle.id)) {
                         isProductInModel = true;
                     }
                 });
