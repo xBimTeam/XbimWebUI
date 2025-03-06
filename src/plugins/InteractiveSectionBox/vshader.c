@@ -5,13 +5,11 @@ attribute highp float aId;
 uniform mat4 uMvMatrix;
 uniform mat4 uPMatrix;
 
-//this might be used for a color coding for pick operation
 uniform mediump float uColorCoding; 
 uniform mediump float uSelectedId;
 
 uniform vec4 uHoverPickColour;
 
-//this will pass colour information to fragment shader
 varying vec4 vColor;
 varying vec3 FragPos;
 varying mat4 planeTrsf;

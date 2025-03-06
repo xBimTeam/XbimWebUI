@@ -94,15 +94,33 @@ export class Icons implements IPlugin {
             image.width = 18;
         }
         image.id = id.toString();
-        if(icon.productId && !icon.location) {
-            const bb : Float32Array = this._viewer.getProductBoundingBox(icon.productId, icon.modelId);
+        if(icon.productsIds && !icon.location) {
             const wcs = this._viewer.getCurrentWcs();
-            const xyz = [bb[0] - wcs[0] + (bb[3] / 2), bb[1] - wcs[1]  + (bb[4] / 2), bb[2] - wcs[2]  + (bb[5] / 2)];
-            icon.location = new Float32Array(xyz);
+            let minX = Infinity, minY = Infinity, minZ = Infinity;
+            let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+            icon.productsIds.forEach(productId => {
+                const bb = this._viewer.getProductBoundingBox(productId, icon.modelId);
+                if (bb && bb.length === 6) {
+                    minX = Math.min(minX, bb[0]);
+                    minY = Math.min(minY, bb[1]);
+                    minZ = Math.min(minZ, bb[2]);
+                    
+                    maxX = Math.max(maxX, bb[0] + bb[3]);
+                    maxY = Math.max(maxY, bb[1] + bb[4]);
+                    maxZ = Math.max(maxZ, bb[2] + bb[5]);
+                }
+            });
+            if (minX !== Infinity && minY !== Infinity && minZ !== Infinity) {
+                const centerX = (minX + maxX) / 2 - wcs[0];
+                const centerY = (minY + maxY) / 2 - wcs[1];
+                const centerZ = (minZ + maxZ) / 2 - wcs[2];
+                icon.location = new Float32Array([centerX, centerY, centerZ]);
+            }
         }
         this._instances[id.toString()] = icon;
         iconElement.id = "icon" + id;
-        iconElement.title = icon.productId? `Product ${icon.productId}, Model ${icon.modelId}`: "";
+        iconElement.title = (icon.productsIds && icon.productsIds.length)
+            ? `Products ${icon.productsIds.join(', ')}, Model ${icon.modelId}` : "";
         iconElement.appendChild(image);
         this._icons.appendChild(iconElement);
         this._iconsCount++;
@@ -265,52 +283,77 @@ export class Icons implements IPlugin {
     }
       
     private getId(icon: Icon): number {
-        if(icon.productId)
-            return this.cantorPairing(this.cantorPairing(icon.productId, icon.modelId), this._iconsCount);
-        else 
+        if (icon.productsIds && icon.productsIds.length > 0) {
+            const sortedProductIds = icon.productsIds.slice().sort((a, b) => a - b);
+            let combinedProductId = sortedProductIds[0];
+            for (let i = 1; i < sortedProductIds.length; i++) {
+                combinedProductId = this.cantorPairing(combinedProductId, sortedProductIds[i]);
+            }
+            return this.cantorPairing(this.cantorPairing(combinedProductId, icon.modelId), this._iconsCount);
+        } else {
             return this.cantorPairing(this.cantorPairing(Math.random(), icon.modelId), this._iconsCount);
+        }
     }
     
     private cantorPairing(x: number, y: number): number {
-        return (x + y) * (x + y + 1) / 2 + y;
+        return ((x + y) * (x + y + 1)) / 2 + y;
     }
 
-    private canBeRendered(icon: Icon, planeA: Float32Array, planeB: Float32Array, box: Float32Array): boolean{
-
+    private canBeRendered(icon: Icon, planeA: Float32Array, planeB: Float32Array, box: Float32Array): boolean {
         let canBeRendered = true;
         const point = icon.location;
-
+    
         let isProductInModel = false;
-        if(icon.productId){
+        if (icon.productsIds && icon.productsIds.length > 0) {
             this._viewer.activeHandles.forEach(handle => {
-                if(this._viewer.isProductInModel(icon.productId, handle.id)){
-                    isProductInModel = true;
-                }
+                icon.productsIds.forEach(productId => {
+                    if (this._viewer.isProductInModel(productId, handle.id)) {
+                        isProductInModel = true;
+                    }
+                });
             });
-
-            if(!isProductInModel)
+    
+            if (!isProductInModel) {
                 return false;
+            }
         }
       
-        if(planeA){
-            const relPlaneA = this.pointPlaneRelation(planeA[0], planeA[1], planeA[2], planeA[3], point[0], point[1], point[2]);
+        if (planeA) {
+            const relPlaneA = this.pointPlaneRelation(
+                planeA[0],
+                planeA[1],
+                planeA[2],
+                planeA[3],
+                point[0],
+                point[1],
+                point[2]
+            );
             canBeRendered = canBeRendered && relPlaneA > 0;
         }
-
-        if(planeB){
-            const relPlaneB = this.pointPlaneRelation(planeB[0], planeB[1], planeB[2], planeB[3], point[0], point[1], point[2]);
+    
+        if (planeB) {
+            const relPlaneB = this.pointPlaneRelation(
+                planeB[0],
+                planeB[1],
+                planeB[2],
+                planeB[3],
+                point[0],
+                point[1],
+                point[2]
+            );
             canBeRendered = canBeRendered && relPlaneB > 0;
         }
-
-        if(box){
-            
+    
+        if (box) {
             const minX = box[0], minY = box[1], minZ = box[2];
             const maxX = box[0] + box[3], maxY = box[1] + box[4], maxZ = box[2] + box[5];
-            canBeRendered = canBeRendered && (point[0] >= minX && point[0] <= maxX &&
+            canBeRendered = canBeRendered && (
+                point[0] >= minX && point[0] <= maxX &&
                 point[1] >= minY && point[1] <= maxY &&
-                point[2] >= minZ && point[2] <= maxZ);
+                point[2] >= minZ && point[2] <= maxZ
+            );
         }
-
+    
         return canBeRendered;
     }
 

@@ -16,10 +16,10 @@ const tempChannelId = "room_temp";
 const humidityChannelId = "room_humidity";
 const energyChannelId = "room_energy";
 
-const energySource = new HeatmapSource("Energy sensor", 1, 152, energyChannelId, 10);
-const temperatureSource = new HeatmapSource("Temp sensor", 1, 152, tempChannelId, 22);
-const humiditySource = new HeatmapSource("Humidity sensor", 1, 152, humidityChannelId, 10);
-const sourceIcon = new Icon("Room 1 Sensor", "Temperature sensor", 1, 152, IconsData.errorIcon, null, null, null, () => { viewer.zoomTo(152, 1) });
+const energySource = new HeatmapSource("Energy sensor", 1, [152, 447], energyChannelId, 10);
+const temperatureSource = new HeatmapSource("Temp sensor", 1, [152, 447], tempChannelId, 22);
+const humiditySource = new HeatmapSource("Humidity sensor", 1, [152, 447], humidityChannelId, 10);
+const sourceIcon = new Icon("Room 1 Sensor", "Temperature sensor", 1, [152, 447], IconsData.errorIcon, null, null, null, () => { viewer.zoomTo(152, 1) });
 
 let selectedChannel: IHeatmapChannel;
 const ranges = [
@@ -57,8 +57,8 @@ viewer.on('loaded', args => {
         heatmap.addSource(energySource);
 
         icons.addIcon(sourceIcon);
-        icons.addIcon(new Icon("Temperature Sensor 2", "Temperature sensor", 1, 617, IconsData.successIcon));
-        icons.addIcon(new Icon("Temperature Sensor 3", "Temperature sensor", 1, 447, IconsData.successIcon));
+        icons.addIcon(new Icon("Temperature Sensor 2", "Temperature sensor", 1, [617], IconsData.successIcon));
+        // icons.addIcon(new Icon("Temperature Sensor 3", "Temperature sensor", 1, [447], IconsData.successIcon));
 
         heatmap.renderChannel(selectedChannel.channelId);
 

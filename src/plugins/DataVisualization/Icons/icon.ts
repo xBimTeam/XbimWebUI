@@ -7,7 +7,7 @@ import { Icons } from './icons'
  */
 export class Icon {
     private _modelId: number;
-    private _productId: number | null;
+    private _productsIds: number[] | null;
     private _location: Float32Array;
     private _imageData: string;
     private _description: string;
@@ -26,7 +26,7 @@ export class Icon {
      * @param {string} name - The name of the icon.
      * @param {string} description - A brief description of the icon.
      * @param {number} modelId - The model ID associated with the icon.
-     * @param {number} productId - The product ID associated with the icon.
+     * @param {number} productIds - The products IDs associated with the icon.
      * @param {string} imageData - Base64 encoded image data for the icon.
      * @param {Float32Array | null} [location=null] - The XYZ coordinates for the icon location. If not provided, the centroid of the product bounding box is used.
      * @param {number | null} [width=null] - The width of the icon. If null, default width is used.
@@ -39,7 +39,7 @@ export class Icon {
         name: string,
         description: string,
         modelId: number,
-        productId: number | null,
+        productsIds: number[] | null,
         imageData: string | null,
         location: Float32Array | null = null,
         width: number | null = null,
@@ -47,7 +47,7 @@ export class Icon {
         onIconSelected: () => void = null
     ) {
         this._modelId = modelId;
-        this._productId = productId;
+        this._productsIds = productsIds;
         this._imageData = imageData;
         this._location = location;
         this._name = name;
@@ -67,11 +67,11 @@ export class Icon {
     }
 
     /**
-     * Gets the product ID associated with the icon.
+     * Gets the products ID associated with the icon.
      * @returns {number} The product ID.
      */
-    public get productId(): number | null {
-        return this._productId;
+    public get productsIds(): number[] | null {
+        return this._productsIds;
     }
 
     /**

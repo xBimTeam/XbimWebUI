@@ -5,7 +5,7 @@
 export class HeatmapSource {
     private _id: string;
     private _modelId: number;
-    private _productId: number;
+    private _productsIds: number[];
     private _channelId: string;
     private _value: any;
     private _enabled: boolean;
@@ -15,14 +15,14 @@ export class HeatmapSource {
      * 
      * @param {string} id - A unique identifier for the heatmap source.
      * @param {number} modelId - The model ID associated with the source.
-     * @param {number} productId - The product ID associated with the source.
+     * @param {number[]} productId - The products IDs associated with the source.
      * @param {string} channelId - The channel ID associated with the source.
      * @param {any} value - The value produced by the source.
      */
-    constructor(id: string, modelId: number, productId: number, channelId: string, value: any) {
+    constructor(id: string, modelId: number, productsIds: number[], channelId: string, value: any) {
         this._id = id;
         this._modelId = modelId;
-        this._productId = productId;
+        this._productsIds = productsIds;
         this._channelId = channelId;
         this._value = value;
         this._enabled = true;
@@ -45,11 +45,11 @@ export class HeatmapSource {
     }
 
     /**
-     * Gets the product ID associated with the source.
-     * @returns {number} The product ID.
+     * Gets the products IDs associated with the source.
+     * @returns {number} The products IDs.
      */
-    public get productId(): number {
-        return this._productId;
+    public get productsIds(): number[] {
+        return this._productsIds;
     }
 
     /**
