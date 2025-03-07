@@ -276,8 +276,6 @@ export class Heatmap implements IPlugin {
             return groups;
           }, {});
           
-        console.log("ranges",  maps);
-
         Object.entries(ranges).forEach(([key, val]) => {
             const value = val[0].source.clampedValue;
             const modelId: number = val[0].product.model;

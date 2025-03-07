@@ -283,16 +283,23 @@ export class Icons implements IPlugin {
     }
       
     private getId(icon: Icon): number {
+        const uniqueValue = Date.now().toString();
         if (icon.products && icon.products.length > 0) {
-            const sortedProductIds = icon.products.map(p => p.id).slice().sort((a, b) => a - b);
-            let combinedProductId = sortedProductIds[0];
-            for (let i = 1; i < sortedProductIds.length; i++) {
-                combinedProductId = this.cantorPairing(combinedProductId, sortedProductIds[i]);
-            }
-            return this.cantorPairing(combinedProductId,  this._iconsCount);
+          const sortedProductIds = icon.products.map(p => p.id).slice().sort((a, b) => a - b);
+          const idString = sortedProductIds.join('-') + '-' + icon.name + '-' + this._iconsCount + '-' + uniqueValue;
+          return this.hashString(idString);
         } else {
-            return this.cantorPairing(Math.random(), this._iconsCount);
+          return this.hashString(Math.random().toString());
         }
+    }
+      
+    private hashString(str: string): number {
+    let hash = 5381;
+    for (let i = 0; i < str.length; i++) {
+        hash = ((hash << 5) + hash) + str.charCodeAt(i);
+        hash |= 0;
+    }
+    return Math.abs(hash);
     }
     
     private cantorPairing(x: number, y: number): number {
