@@ -126,6 +126,34 @@ export class Icons implements IPlugin {
         this._iconsCount++;
     }
 
+    public updateIconsLocations(){
+        Object.keys(this._instances).forEach(key => {
+            const icon = this._instances[key];
+            if (icon.products && icon.products.length) {
+                const wcs = this._viewer.getCurrentWcs();
+                let minX = Infinity, minY = Infinity, minZ = Infinity;
+                let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+                icon.products.forEach(product => {
+                    const bb = this._viewer.getProductBoundingBox(product.id, product.model);
+                    if (bb && bb.length === 6) {
+                        minX = Math.min(minX, bb[0]);
+                        minY = Math.min(minY, bb[1]);
+                        minZ = Math.min(minZ, bb[2]);
+                        
+                        maxX = Math.max(maxX, bb[0] + bb[3]);
+                        maxY = Math.max(maxY, bb[1] + bb[4]);
+                        maxZ = Math.max(maxZ, bb[2] + bb[5]);
+                    }
+                });
+                if (minX !== Infinity && minY !== Infinity && minZ !== Infinity) {
+                    const centerX = (minX + maxX) / 2 - wcs[0];
+                    const centerY = (minY + maxY) / 2 - wcs[1];
+                    const centerZ = (minZ + maxZ) / 2 - wcs[2];
+                    icon.location = new Float32Array([centerX, centerY, centerZ]);
+                }
+            }
+        });
+    }
     public setFloatingDetailsState(enabled: boolean){
         this._floatingDetailsEnabled = enabled;
     }
