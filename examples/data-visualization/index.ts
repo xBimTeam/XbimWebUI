@@ -1,4 +1,4 @@
-import { Viewer, Heatmap, InteractiveClippingPlane, ConstantColorChannel, ContinuousHeatmapChannel, ValueRange, ValueRangesHeatmapChannel, HeatmapSource, Icons, CameraType, ViewType, ClippingPlane, ProductType, IHeatmapChannel, ChannelType, RenderingMode, } from '../..';
+import { Viewer, Heatmap, InteractiveClippingPlane, ConstantColorChannel, ContinuousHeatmapChannel, ValueRange, ValueRangesHeatmapChannel, HeatmapSource, Icons, CameraType, ViewType, ClippingPlane, ProductType, IHeatmapChannel, ChannelType, RenderingMode, DiscreteHeatmapChannel, } from '../..';
 import { Icon } from '../../src/plugins/DataVisualization/Icons/icon';
 import { IconsData } from './icons';
 
@@ -15,11 +15,14 @@ viewer.addPlugin(plane);
 const tempChannelId = "room_temp";
 const humidityChannelId = "room_humidity";
 const energyChannelId = "room_energy";
+const occChannelId = "room_occupancy";
 
 const products = [{ id: 152, model: 1 }, { id: 447, model: 1 }];
 const energySource = new HeatmapSource("Energy sensor", products, energyChannelId, 10);
 const temperatureSource = new HeatmapSource("Temp sensor", products, tempChannelId, 22);
 const humiditySource = new HeatmapSource("Humidity sensor", products, humidityChannelId, 10);
+const occupancySource = new HeatmapSource("Occupancy sensor", products, occChannelId, "Occupied");
+
 const sourceIcon = new Icon("Rooms 1 and 2 Sensor", "Temperature sensor", products, IconsData.errorIcon, null, null, null, () => { 
     viewer.zoomTo(products, 1) });
 
@@ -40,11 +43,19 @@ const humidityChannel = new ContinuousHeatmapChannel
 const energyChannel = new ConstantColorChannel
 (energyChannelId, "double", "Energy", "Energy Consumption", "energy", "kW", "#1ac603");
 
+const occupancyChannel = new DiscreteHeatmapChannel
+(occChannelId, "string", "Occupancy", "Room Occupancy", "occupancy", "", {
+    "Occupied": "#ff0000",
+    "Vacant": "#00ff00"
+});
+
+
 selectedChannel = tempChannel;
 
 heatmap.addChannel(tempChannel);
 heatmap.addChannel(humidityChannel);
 heatmap.addChannel(energyChannel);
+heatmap.addChannel(occupancyChannel);
 
 viewer.on('loaded', args => {
     try {
@@ -57,6 +68,7 @@ viewer.on('loaded', args => {
         heatmap.addSource(temperatureSource);
         heatmap.addSource(humiditySource);
         heatmap.addSource(energySource);
+        heatmap.addSource(occupancySource);
 
         icons.addIcon(sourceIcon);
         icons.addIcon(new Icon("Temperature Sensor 2", "Temperature sensor", [{id: 617, model: 1}], IconsData.successIcon));
@@ -80,6 +92,12 @@ viewer.on('loaded', args => {
                 heatmap.renderSource(energySource.id);
                 sourceIcon.description = `${selectedChannel.description}: ${energySource.value}${selectedChannel.unit}`;
             }
+            else if(selectedChannel.channelId === occChannelId){
+                occupancySource.value = occupancySource.value === "Occupied" ? "Vacant" : "Occupied";
+                heatmap.renderSource(occupancySource.id);
+                sourceIcon.description = `${selectedChannel.description}: ${occupancySource.value}`;
+            }
+            
         }, 2000);
 
     } catch (e) {
@@ -174,6 +192,11 @@ function handleDropdownChange() {
         }
         case 'Energy':{
             selectedChannel = energyChannel;
+            setSelectedChannel();
+            return;
+        }
+        case 'Occupancy':{
+            selectedChannel = occupancyChannel;
             setSelectedChannel();
             return;
         }
