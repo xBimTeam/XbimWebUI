@@ -10,6 +10,7 @@ export class Icon {
     private _location: Float32Array;
     private _imageData: string;
     private _description: string;
+    private _valueReadout: string;
     private _name: string;
     private _width: number;
     private _height: number;
@@ -24,6 +25,7 @@ export class Icon {
      * 
      * @param {string} name - The name of the icon.
      * @param {string} description - A brief description of the icon.
+     * @param {string | null} valueReadout - A value readout of the icon.
      * @param {number} products - The products associated with the icon.
      * @param {string} imageData - Base64 encoded image data for the icon.
      * @param {Float32Array | null} [location=null] - The XYZ coordinates for the icon location. If not provided, the centroid of the product bounding box is used.
@@ -36,6 +38,7 @@ export class Icon {
     constructor(
         name: string,
         description: string,
+        valueReadout: string | null,
         products: { id: number, model: number }[] | null,
         imageData: string | null,
         location: Float32Array | null = null,
@@ -48,6 +51,7 @@ export class Icon {
         this._location = location;
         this._name = name;
         this._description = description;
+        this._valueReadout = valueReadout;
         this._width = width;
         this._height = height;
         this._onIconSelected = onIconSelected;
@@ -124,6 +128,22 @@ export class Icon {
      */
     public set description(value: string) {
         this._description = value;
+    }
+
+    /**
+     * Gets the value readout of the icon.
+     * @returns {string} The value readout of the icon.
+     */
+    public get valueReadout(): string {
+        return this._valueReadout;
+    }
+
+    /**
+     * Sets the value readout of the icon.
+     * @param {string} value - The new value readout of the icon.
+     */
+    public set valueReadout(value: string) {
+        this._valueReadout = value;
     }
 
     /**

@@ -117,10 +117,17 @@ export class Icons implements IPlugin {
                 icon.location = new Float32Array([centerX, centerY, centerZ]);
             }
         }
+        
+        const valueDiv = document.createElement('div');
+        valueDiv.classList.add('icon-value-readout');
+        valueDiv.id = 'value-' + id;
+        valueDiv.style.display = 'none'; // Initially hidden
+        
         this._instances[id.toString()] = icon;
         iconElement.id = "icon" + id;
         iconElement.title = (icon.products && icon.products.length)
             ? `Products ${icon.products.map(p => p.id).join(', ')}` : "";
+        iconElement.appendChild(valueDiv);
         iconElement.appendChild(image);
         this._icons.appendChild(iconElement);
         this._iconsCount++;
@@ -277,6 +284,20 @@ export class Icons implements IPlugin {
                         iconLabel.style.display = 'block';
                         iconLabel.style.left = posLeft + 'px';
                         iconLabel.style.top = posTop + 'px';
+
+                        if(icon.valueReadout){
+                            const valueDiv = document.getElementById('value-' + k);
+                            if(valueDiv) {
+                                valueDiv.textContent = icon.valueReadout;
+                                valueDiv.style.display = 'block';
+                                valueDiv.style.top = (iconheight + 5) + 'px';
+                            }
+                        } else {
+                            const valueDiv = document.getElementById('value-' + k);
+                            if(valueDiv) {
+                                valueDiv.style.display = 'none';
+                            }
+                        }
                     }
 
                 } else {

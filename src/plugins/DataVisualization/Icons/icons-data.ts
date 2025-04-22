@@ -20,6 +20,29 @@ export abstract class IconData{
             scale: 1.1;
         }
         
+        .icon-value-readout {
+            position: absolute;
+            background: rgb(255, 255, 255);
+            color: black;
+            border-radius: 10px;
+            padding: 2px 5px;
+            font-size: 11px;
+            font-weight: bold;
+            white-space: nowrap;
+            top: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+            z-index: 10;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
         #floatdetails {
             display: none;
             position: absolute;
