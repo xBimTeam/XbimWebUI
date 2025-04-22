@@ -23,8 +23,9 @@ const temperatureSource = new HeatmapSource("Temp sensor", products, tempChannel
 const humiditySource = new HeatmapSource("Humidity sensor", products, humidityChannelId, 10);
 const occupancySource = new HeatmapSource("Occupancy sensor", products, occChannelId, "Occupied");
 
-const sourceIcon = new Icon("Rooms 1 and 2 Sensor", "Temperature sensor", products, IconsData.errorIcon, null, null, null, () => { 
+const sourceIcon = new Icon("Rooms 1 and 2 Sensor", "Temperature sensor", "22°C", products, IconsData.errorIcon, null, null, null, () => { 
     viewer.zoomTo(products, 1) });
+const otherIcon = new Icon("Temperature Sensor 2", "Temperature sensor", "22°C", [{id: 617, model: 1}], IconsData.successIcon);
 
 let selectedChannel: IHeatmapChannel;
 const ranges = [
@@ -71,7 +72,7 @@ viewer.on('loaded', args => {
         heatmap.addSource(occupancySource);
 
         icons.addIcon(sourceIcon);
-        icons.addIcon(new Icon("Temperature Sensor 2", "Temperature sensor", [{id: 617, model: 1}], IconsData.successIcon));
+        icons.addIcon(otherIcon);
         // icons.addIcon(new Icon("Temperature Sensor 3", "Temperature sensor", 1, [447], IconsData.successIcon));
 
         heatmap.renderChannel(selectedChannel.channelId);
@@ -81,21 +82,29 @@ viewer.on('loaded', args => {
                 temperatureSource.value = getRandomInt(40).toString(); // will work for stringified
                 heatmap.renderSource(temperatureSource.id);
                 sourceIcon.description = `Room ${selectedChannel.name}: ${temperatureSource.value}${selectedChannel.unit}`;
+                sourceIcon.valueReadout = `${temperatureSource.value}${selectedChannel.unit}`;
+                otherIcon.valueReadout = `22${selectedChannel.unit}`;
             }
             else if(selectedChannel.channelId === humidityChannelId){
                 humiditySource.value = getRandomInt(100).toString();
                 heatmap.renderSource(humiditySource.id);
                 sourceIcon.description = `Room ${selectedChannel.name}: ${humiditySource.value}${selectedChannel.unit}`;
+                sourceIcon.valueReadout = `${humiditySource.value}${selectedChannel.unit}`;
+                otherIcon.valueReadout = `10${selectedChannel.unit}`;
             }
             else if(selectedChannel.channelId === energyChannelId){
                 energySource.value = getRandomInt(100).toString();
                 heatmap.renderSource(energySource.id);
                 sourceIcon.description = `${selectedChannel.description}: ${energySource.value}${selectedChannel.unit}`;
+                sourceIcon.valueReadout = `${energySource.value}${selectedChannel.unit}`;
+                otherIcon.valueReadout = `20${selectedChannel.unit}`;
             }
             else if(selectedChannel.channelId === occChannelId){
                 occupancySource.value = occupancySource.value === "Occupied" ? "Vacant" : "Occupied";
                 heatmap.renderSource(occupancySource.id);
                 sourceIcon.description = `${selectedChannel.description}: ${occupancySource.value}`;
+                sourceIcon.valueReadout = `${occupancySource.value}`;
+                otherIcon.valueReadout = `N/A`;
             }
             
         }, 2000);
