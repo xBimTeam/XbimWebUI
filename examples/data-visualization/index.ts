@@ -100,7 +100,7 @@ viewer.on('loaded', args => {
                 otherIcon.valueReadout = `20${selectedChannel.unit}`;
             }
             else if(selectedChannel.channelId === occChannelId){
-                occupancySource.value = occupancySource.value === "Occupied" ? "Vacant" : "Occupied";
+                occupancySource.value = occupancySource.value.toLowerCase() === "occupied" ? "vacant" : "occupied";
                 heatmap.renderSource(occupancySource.id);
                 sourceIcon.description = `${selectedChannel.description}: ${occupancySource.value}`;
                 sourceIcon.valueReadout = `${occupancySource.value}`;
