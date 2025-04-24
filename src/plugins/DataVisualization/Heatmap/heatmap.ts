@@ -168,8 +168,21 @@ export class Heatmap implements IPlugin {
           Object.entries(groups).forEach(([key, val]) => {
             const stringVal = val[0].source.value.toString();
             const modelId = val[0].product.model;
-            if (values.includes(stringVal)) {
-                const colorHex = channel.values[val[0].source.value];
+            
+            let includesValue = false;
+            if (channel.dataType === 'string') {
+                includesValue = values.some(v => v.toLowerCase() === stringVal.toLowerCase());
+            } else {
+                includesValue = values.includes(stringVal);
+            }
+            
+            if (includesValue) {
+                let matchingKey = stringVal;
+                if (channel.dataType === 'string') {
+                    matchingKey = values.find(v => v.toLowerCase() === stringVal.toLowerCase()) || stringVal;
+                }
+                
+                const colorHex = channel.values[matchingKey];
                 let productsIds: number[] = val.map(p => p.product.id);
                 this._viewer.setStyle(this._colorStylesMap[colorHex], productsIds, modelId);
                 this._viewer.addState(State.XRAYVISIBLE, productsIds, modelId)
