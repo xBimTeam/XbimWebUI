@@ -408,14 +408,7 @@ window['clipBox'] = () => {
     console.log(ex, ey ,ez)
 
     const planes: ClippingPlane[] = [
-        {
-            direction: [ 1,  0,  0],
-            location:  [cx + ex, cy,      cz     ]  // front
-        },
-        {
-            direction: [-1,  0,  0],
-            location:  [cx - ex, cy,      cz     ]  // back
-        },
+        
         {
             direction: [ 0,  0,  1],
             location:  [cx,     cy,      cz + ez ]  // top
@@ -425,12 +418,20 @@ window['clipBox'] = () => {
             location:  [cx,     cy,      cz - ez ]  // bottom
         },
         {
-            direction: [ 0,  1,  0],
-            location:  [cx,     cy + ey, cz      ]  // right
+            direction: [ 1,  0,  0],
+            location:  [cx + ex, cy,      cz     ]  // front
+        },
+        {
+            direction: [-1,  0,  0],
+            location:  [cx - ex, cy,      cz     ]  // back
         },
         {
             direction: [ 0, -1,  0],
             location:  [cx,     cy - ey, cz      ]  // left
+        },
+        {
+            direction: [ 0,  1,  0],
+            location:  [cx,     cy + ey, cz      ]  // right
         }
     ];
 

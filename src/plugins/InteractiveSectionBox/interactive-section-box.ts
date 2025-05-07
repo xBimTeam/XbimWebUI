@@ -490,7 +490,7 @@ export class InteractiveSectionBox implements IPlugin {
 
     private applySectionBox() {
     
-        this.viewer.sectionBox.setToPlanes(this.transformations.map((t,i) => {
+        let planes = this.transformations.map((t,i) => {
             var plane = new ClippingPlane();
             let normal = this.getNormal(i);
             plane.direction = [normal[0], 
@@ -498,7 +498,10 @@ export class InteractiveSectionBox implements IPlugin {
                              normal[2]];
             plane.location = [t[12], t[13], t[14]];
             return plane;
-        }));
+        });
+        planes = this.sortPlanes(planes);
+        
+        this.viewer.sectionBox.setToPlanes(planes);
     }
  
     private initShader(): void {
