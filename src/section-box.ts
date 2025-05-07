@@ -142,8 +142,6 @@ export class SectionBox {
         if (planes == null || planes.length !== 6)
             throw new Error('Invalid input: box has to be defined by 6 clipping planes');
 
-        planes = this.sortPlanes(planes);
-
         var results: { plane: ClippingPlane, points: vec3[] }[] = [];
         const points: vec3[] = [];
         this.boxVertices = [];
@@ -233,51 +231,6 @@ export class SectionBox {
 
         // return true when clipping planes were interpreted as a section box
         return true;
-    }
-
-    private sortPlanes(planes: ClippingPlane[]): ClippingPlane[] {
-        if (planes.length !== 6) {
-          throw new Error('Expected exactly 6 planes.');
-        }
-      
-        let top: ClippingPlane | undefined;
-        let bottom: ClippingPlane | undefined;
-        let front: ClippingPlane | undefined;
-        let back: ClippingPlane | undefined;
-        let left: ClippingPlane | undefined;
-        let right: ClippingPlane | undefined;
-      
-        for (const plane of planes) {
-          const [dx, dy, dz] = plane.direction;
-      
-          if (dx === 0 && dy === 0 && dz === 1) {
-            // +Z => top
-            top = plane;
-          } else if (dx === 0 && dy === 0 && dz === -1) {
-            // -Z => bottom
-            bottom = plane;
-          } else if (dx === 1 && dy === 0 && dz === 0) {
-            // +X => front (as per your mapping)
-            front = plane;
-          } else if (dx === -1 && dy === 0 && dz === 0) {
-            // -X => back
-            back = plane;
-          } else if (dx === 0 && dy === -1 && dz === 0) {
-            // -Y => left
-            left = plane;
-          } else if (dx === 0 && dy === 1 && dz === 0) {
-            // +Y => right
-            right = plane;
-          } else {
-            console.warn('Unrecognized plane direction:', plane.direction);
-          }
-        }
-      
-        if (!top || !bottom || !front || !back || !left || !right) {
-          throw new Error('One or more planes could not be classified.');
-        }
-      
-        return [top, bottom, front, back, left, right];
     }
 
     private getSize(plane: ClippingPlane, planes: ClippingPlane[]): number {
