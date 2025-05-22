@@ -42,6 +42,14 @@ export class HeatmapSource {
     }
 
     /**
+     * Sets the products associated with the source.
+     * @param {any} value - The new products.
+     */
+    public set products(products: { id: number, model: number }[]){
+        this._products = products;
+    }
+
+    /**
      * Gets the channel ID associated with the source.
      * @returns {string} The channel ID.
      */
