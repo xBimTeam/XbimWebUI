@@ -67,6 +67,14 @@ export class Icon {
     }
 
     /**
+     * Sets the products associated with the icon.
+     * @param {any} value - The new products.
+     */
+    public set products(products: { id: number, model: number }[] | null){
+        this._products = products;
+    }
+
+    /**
      * Gets the location of the icon.
      * @returns {Float32Array} The XYZ coordinates of the icon.
      */
