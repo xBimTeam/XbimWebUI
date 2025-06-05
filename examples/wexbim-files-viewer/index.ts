@@ -1,4 +1,4 @@
-import { Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube, ViewerInteractionEvent } from '../..';
+import { Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube, ViewerInteractionEvent, InteractiveClippingPlane } from '../..';
 import { Grid } from '../../src/plugins/Grid/grid';
 import { vec3 } from 'gl-matrix';
 import { Snapshot, Viewpoint } from '../../src/bcf';
@@ -13,6 +13,10 @@ viewer.background = [0, 0, 0, 0];
 var grid = new Grid();
 grid.zFactor = 20;
 viewer.addPlugin(grid);
+
+var clip = new InteractiveClippingPlane();
+viewer.addPlugin(clip);
+window['clipping'] = clip;
 
 var cube = new NavigationCube();
 cube.ratio = 0.05;
@@ -37,9 +41,16 @@ viewer.on("pick", (arg) => {
             const point = vec3.add(vec3.create(), wcs, arg.xyz);
             console.log(point);
         }
+
+        // toggle selection
+        const state = viewer.getState(arg.id, arg.model);
+        if (state === State.HIGHLIGHTED) {
+            viewer.setState(State.UNDEFINED, [arg.id], arg.model);
+        } else {
+            viewer.setState(State.HIGHLIGHTED, [arg.id], arg.model);
+        }
     }
-}
-);
+});
 viewer.on("loaded", (evt) => {
     models.push({ id: evt.model, name: evt.tag, stopped: false });
     viewer.show(ViewType.DEFAULT, undefined, undefined, false);

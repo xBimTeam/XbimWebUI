@@ -416,21 +416,32 @@ export class ModelHandle {
             return;
         }
 
+        let drawArrays = (start: number, count: number) => {
+            // fix for HW limitation
+            const maxChunk = 3e7;
+            if (count - start < maxChunk) {
+                gl.drawArrays(gl.TRIANGLES, start, count);
+            } else {
+                let partialStart = start;
+                let partialCount = maxChunk;
+                while (partialStart < start + count) {
+                    gl.drawArrays(gl.TRIANGLES, partialStart, partialCount);
+                    const remainder = count -partialStart - partialCount;
+                    partialStart = partialStart + partialCount;
+                    partialCount = Math.min(maxChunk, remainder);
+                }
+
+            }
+        }
+
         if (mode == null) {
             // make sure depth testing is on for general rendering
             if (maps == null) {
-                gl.drawArrays(gl.TRIANGLES, 0, this._numberOfIndices);
-                // if (percent == null || percent === 100 || this._model.breaks[percent] == null) {
-                //     gl.drawArrays(gl.TRIANGLES, 0, this._numberOfIndices);
-                // } else {
-                //     const breaks = this._model.breaks[percent];
-                //     gl.drawArrays(gl.TRIANGLES, 0, breaks[0]);
-                //     gl.drawArrays(gl.TRIANGLES, breaks[1], this._numberOfIndices - breaks[1]);
-                // }
+                drawArrays(0, this._numberOfIndices);
             } else {
                 maps.forEach((map) => {
                     map.spans.forEach((span) => {
-                        gl.drawArrays(gl.TRIANGLES, span[0], span[1] - span[0]);
+                        drawArrays(span[0], span[1] - span[0]);
                     });
                 });
             }
@@ -441,17 +452,17 @@ export class ModelHandle {
             // make sure depth testing is on for solid rendering
             if (maps == null) {
                 if (percent == null || percent === 100 || this._model.breaks[percent] == null) {
-                    gl.drawArrays(gl.TRIANGLES, 0, this._model.transparentIndex);
+                    drawArrays(0, this._model.transparentIndex);
                 } else {
                     const breaks = this._model.breaks[percent];
-                    gl.drawArrays(gl.TRIANGLES, 0, breaks[0] + 1);
+                    drawArrays(0, breaks[0] + 1);
                 }
             } else {
                 maps.forEach((map) => {
                     map.spans
                         .filter((s) => s[1] <= this._model.transparentIndex)
                         .forEach((span) => {
-                            gl.drawArrays(gl.TRIANGLES, span[0], span[1] - span[0]);
+                            drawArrays(span[0], span[1] - span[0]);
                         });
                 });
             }
@@ -468,17 +479,17 @@ export class ModelHandle {
 
             if (maps == null) {
                 if (percent == null || percent === 100 || this._model.breaks[percent] == null) {
-                    gl.drawArrays(gl.TRIANGLES, this._model.transparentIndex, this._numberOfIndices - this._model.transparentIndex);
+                    drawArrays(this._model.transparentIndex, this._numberOfIndices - this._model.transparentIndex);
                 } else {
                     const breaks = this._model.breaks[percent];
-                    gl.drawArrays(gl.TRIANGLES, breaks[1], this._numberOfIndices - breaks[1]);
+                    drawArrays(breaks[1], this._numberOfIndices - breaks[1]);
                 }
             } else {
                 maps.forEach((map) => {
                     map.spans
                         .filter((s) => s[0] >= this._model.transparentIndex)
                         .forEach((span) => {
-                            gl.drawArrays(gl.TRIANGLES, span[0], span[1] - span[0]);
+                            drawArrays(span[0], span[1] - span[0]);
                         });
                 });
             }
@@ -490,20 +501,6 @@ export class ModelHandle {
             return;
         }
     }
-
-
-    //public drawProduct(id: number): void {
-    //    if (this.stopped) return;
-    //    var gl = this._gl;
-    //    var map = this.getProductMap(id);
-    //    if (map != null) {
-    //        map.spans.forEach((span) => {
-    //            gl.drawArrays(gl.TRIANGLES, span[0], span[1] - span[0]);
-    //        },
-    //            this);
-    //    }
-    //}
-
 
     public getProductId(renderId: number): number {
         if (this.empty) {
