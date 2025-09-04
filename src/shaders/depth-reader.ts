@@ -41,7 +41,38 @@ export class DepthReader {
 
         //fragment shader
         this.fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-        let fsCompiled = compile(this.fragmentShader, depth_fragment_shader);
+
+        const depth_fragment_shader_ws = `
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+    precision highp float;
+    precision highp int;
+#else
+    precision mediump float;
+    precision mediump int;
+    #define highp mediump
+#endif
+
+varying vec2 position;
+uniform sampler2D texture;
+
+vec4 packDepth(float depth)
+{
+    // See Aras Pranckevičius' post Encoding Floats to RGBA
+    // http://aras-p.info/blog/2009/07/30/encoding-floats-to-rgba-the-final/
+    vec4 enc = vec4(1.0, 255.0, 65025.0, 16581375.0) * depth;
+    enc = fract(enc);
+    enc -= enc.yzww * vec4(1.0 / 255.0, 1.0 / 255.0, 1.0 / 255.0, 0.0);
+    return enc;
+}
+
+void main() {
+    float depth = texture2D(texture, position).x;
+    gl_FragColor = packDepth(texture2D(texture, position).r);
+    //[original code] gl_FragColor = vec4(depth, depth, depth, 1.0);
+}
+`;
+
+        let fsCompiled = compile(this.fragmentShader, depth_fragment_shader_ws); //change for ws
         if (!fsCompiled) {
             throw new Error("Failed to compile depth reading fragment shader");
         }
@@ -92,9 +123,8 @@ export class DepthReader {
         gl.enableVertexAttribArray(this.vertAttrs);
         gl.vertexAttribPointer(this.vertAttrs, 2, gl.FLOAT, false, 0, 0);
 
-
         gl.clearColor(0, 0, 0, 0); //zero colour for no-values
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
 
         // draw the quad (2 triangles, 6 vertices)
         gl.drawArrays(gl.TRIANGLES, 0, 6);
@@ -112,7 +142,7 @@ export class DepthReader {
         this.draw(tex);
 
         // all components should be the same (therefore just using [0])
-        var depths = points.map(p => fb.getPixel(p.x, p.y)[0]) ;
+        var depths = points.map(p => fb.getPixelAsFloat(p.x, p.y)) ;
 
         // free resources
         fb.delete();
