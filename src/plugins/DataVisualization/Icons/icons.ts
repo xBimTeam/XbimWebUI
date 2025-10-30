@@ -247,7 +247,7 @@ export class Icons implements IPlugin {
     }
 
     private render() {
-        const canvas = document.getElementById('viewer');
+        const canvas = this._viewer.canvas;
        
         if(canvas && this._icons) {
     
