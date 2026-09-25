@@ -1020,7 +1020,7 @@ export class Viewer {
             });
 
         let bbox: number[] | Float32Array = region.bbox;
-        if (this.sectionBox.isSet) {
+        if (bbox != null && this.sectionBox.isSet) {
             // if section box is set, return intersection of the section box and region bounding box
             bbox = BBox.intersection(region.bbox, this.sectionBox.getBoundingBox(wcs));
             if (bbox == null) {
