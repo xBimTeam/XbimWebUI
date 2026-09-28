@@ -11,10 +11,12 @@ pool:
   vmImage: 'ubuntu-latest'
 
 steps:
-- task: NodeTool@0
-  inputs:
-    versionSpec: '22.x'
+
+- task: UseNode@1
   displayName: 'Install Node.js'
+  inputs:
+    versionSource: 'spec'
+    version: '22.x'
 
 - script: |
     npm install
@@ -24,7 +26,7 @@ steps:
 - task: PublishPipelineArtifact@1
   displayName: 'Publish Artifacts'
   inputs:
-    targetPath: '$(Pipeline.Workspace)'
+    targetPath: '$(Build.SourcesDirectory)/dist'
     artifact: 'dist'
     publishLocation: 'pipeline'
 
