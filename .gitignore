@@ -68,3 +68,4 @@ src/**/*.js
 # built assets
 dist
 tests/data/large/
+/.vs

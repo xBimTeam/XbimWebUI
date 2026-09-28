@@ -59,14 +59,15 @@ window['view'] = view;
 const envelopeBase64 = "lVecBQQEAAAAIAAAADAAAAAAAAAABAAAAAEAAAAAAIA/yP1R7OeyNsDPkDXkFpo1wAAAAAAAAAhAAQAEAAAAVjxyQUmsq0EAAIBAAAAAAAAAAAAAAAAAVjzyQUmsK0IAAABBmAAAAKuqKj/JyMg+09LSPgAAgD+mAAAAxQE/l7VBt9CUQQAAAAC46qpAzBJQQAAAgEBFAQAAxQE1wLZBG6qtQQAAAAA9lo0/mx3QPwAAgEBgAQAAxQEAAAAAAAAAAAAAAABWPPJBvTGNQQAAAEF7AQAAxQHEehQ+xwiMQQAAAABpcW1Byk/LQQAAAEEEAAAAAQAAAKYAAADFAQAAAACYAAAAtQAAAAEIAAAADAAAAO5R4EER05ZBAAAAADXAtkER065BAACAQO5R4EER05ZBAACAQDXAtkER065BAAAAAD+XtUG30KxBAACAQD+XtUG30KxBAAAAAPgo30G30JRBAAAAAPgo30G30JRBAACAQAYAAAACAAAAPyoAAQIBAAMCAAAAwVQDBAEEAwUCAAAAwtEEBgcGBAUCAAAAP6gHAAIABwYCAAAAfn4GAwADBgUCAAAAAH4BBwIHAQQBAAAARQEAAMUBAAAAAJgAAAC1AAAAAQgAAAAMAAAAP5e9QfWrukEAAAAANcC2QRHTrkEAAIBAP5e9QfWrukEAAIBANcC2QRHTrkEAAAAAj8K4QRuqrUEAAIBAj8K4QRuqrUEAAAAAmZm/Qf+CuUEAAAAAmZm/Qf+CuUEAAIBABgAAAAIAAADBVAABAgEAAwIAAADB0QMEAQQDBQIAAAA/qAQGBwYEBQIAAAA/KgcAAgAHBgIAAAB+fgYDAAMGBQIAAAAAfgEHAgcBBAEAAAB7AQAAxQEAAAAAmAAAALUAAAABCAAAAAwAAADF08o+xwiMQQAAAABUw29BzhcrQgAAAEHF08o+xwiMQQAAAEFUw29BzhcrQgAAAAChvmtBSawrQgAAAEGhvmtBSawrQgAAAADEehQ+vDGNQQAAAADEehQ+vDGNQQAAAEEGAAAAAgAAAD+oAAECAQADAgAAAD8qAwQBBAMFAgAAAMFUBAYHBgQFAgAAAMHRBwACAAcGAgAAAH5+BgMAAwYFAgAAAAB+AQcCBwEEAQAAAGABAADFAQAAAACYAAAAtQAAAAEIAAAADAAAAFY88kFjloA+AAAAAOF6FD69MY1BAAAAQVY88kFjloA+AAAAQeF6FD69MY1BAAAAAAAA4KRjL4tBAAAAQQAA4KRjL4tBAAAAAGAT8UEAAOAoAAAAAGAT8UEAAOAoAAAAQQYAAAACAAAAPyoAAQIBAAMCAAAAwVQDBAEEAwUCAAAAwtEEBgcGBAUCAAAAP6gHAAIABwYCAAAAfn4GAwADBgUCAAAAAH4BBwIHAQQ=";
 const envelope = baseToBlob(envelopeBase64);
 
-viewer.loadAsync(envelope);
-//viewer.loadAsync('/tests/data/rac_envelope.wexbim')
+//viewer.loadAsync(envelope);
+viewer.loadAsync('/tests/data/rac_envelope.wexbim')
 
 var progress = document.getElementById("progress");
 // viewer.loadAsync("/tests/data/LakesideRestaurant.wexbim", null, null, (msg) => {
-//     progress.innerHTML = `${msg.message}, done:${msg.percent}%`;
-// });
-viewer.start();
+    //     progress.innerHTML = `${msg.message}, done:${msg.percent}%`;
+    // });
+    viewer.start();
+    
 
 // viewer.on('pointerdown', (args) => {
 //     console.log(args);
@@ -74,9 +75,10 @@ viewer.start();
 
 viewer.on('loaded', args => {
     try {
-        viewer.show(ViewType.DEFAULT, undefined, undefined, false);
+        viewer.sectionBox.clear();
+        viewer.show(ViewType.DEFAULT, undefined, undefined, false).catch(on => console.error("Load Failed", on));
     } catch (e) {
-
+        console.error(e);
     }
 });
 

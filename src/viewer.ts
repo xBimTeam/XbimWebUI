@@ -174,7 +174,7 @@ export class Viewer {
     /**
      * The viewer is watching the performance based on the FPS. When performance drops down, it can reduce amount
      * of geometry to be rendered. This is usefull for some navigation and animations but might not be convenient in all scenarios
-     * like in a wals mode. This property can be used to switch the addaptive performance on and off.
+     * like in a walk mode. This property can be used to switch the adaptive performance on and off.
      */
     public get adaptivePerformanceOn(): boolean { return this._adaptivePerformanceOn; }
     public set adaptivePerformanceOn(value: boolean) { this._adaptivePerformanceOn = value; }
@@ -902,7 +902,7 @@ export class Viewer {
     * @function Viewer#getProductsOfType
     * @param {Number} typeId - Type ID.
     * @param {Number} [modelId] - Optional Model ID. If not defined first type of a product with certain ID will be returned. This might be ambiguous.
-    * @return {Numbe[]} Products IDs.
+    * @return {Number[]} Products IDs.
     */
     public getProductsOfType(typeId: number, modelId?: number): number[] {
         return this.forHandleOrAll((handle: ModelHandle) => {

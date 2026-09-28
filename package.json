@@ -13,6 +13,7 @@
   },
   "version": "2.1.0",
   "devDependencies": {
+    "@types/lodash": "^4.17.25",
     "@types/node": "18.11.14",
     "@types/webgl2": "0.0.6",
     "clean-webpack-plugin": "^4.0.0",
@@ -35,6 +36,7 @@
     "build:dev": "webpack --config webpack.worker.js&&webpack --config webpack.dev.js"
   },
   "dependencies": {
-    "gl-matrix": "^3.4.3"
+    "gl-matrix": "^3.4.3",
+    "lodash": "^4.18.1"
   }
 }

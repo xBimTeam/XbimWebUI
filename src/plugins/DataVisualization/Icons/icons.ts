@@ -4,7 +4,9 @@ import { Icon } from "./icon";
 import { vec3 } from "gl-matrix";
 import { IconData } from "./icons-data";
 import { VectorUtils } from "../../../common/vector-utils";
-import { randomInt } from "crypto";
+import { throttle } from "lodash";
+import { PerformanceRating } from "../../../performance-rating";
+
 
 export class Icons implements IPlugin {
     private _viewer: Viewer;
@@ -64,15 +66,31 @@ export class Icons implements IPlugin {
             parent.appendChild(iconsDiv);
         }
 
-        viewer.on('loaded', args => {
-            try {
-                window.requestAnimationFrame(() => this.render());
-            } catch (e) {
-            }
-        });
 
     }
 
+    /** Removes an icon from the system
+     * 
+     * @param icon 
+     * @returns 
+     */
+    public removeIcon(icon: Icon) {
+        const id = Object.keys(this._instances).find(key => this._instances[key] === icon);
+        if (id === undefined) {
+            return;
+        }
+
+        delete this._instances[id];
+        document.getElementById('icon' + id)?.remove();
+
+        if (this._selectedIcon === icon) {
+            this._selectedIcon = undefined;
+        }
+    }
+
+    /** Register an icon with the Data Visualization system 
+     * 
+    */
     public addIcon(icon: Icon){
         const id = this.getId(icon);
         const iconElement = document.createElement('div');
@@ -125,8 +143,6 @@ export class Icons implements IPlugin {
         
         this._instances[id.toString()] = icon;
         iconElement.id = "icon" + id;
-        iconElement.title = (icon.products && icon.products.length)
-            ? `Products ${icon.products.map(p => p.id).join(', ')}` : "";
         iconElement.appendChild(valueDiv);
         iconElement.appendChild(image);
         this._icons.appendChild(iconElement);
@@ -235,23 +251,24 @@ export class Icons implements IPlugin {
         if(!icon) return;
         if(this._selectedIcon && icon && icon === this._selectedIcon)
         {
-            this._selectedIcon = null;
+            this.closeFloatingBox()
             return;
         }
         if(icon.onIconSelected) icon.onIconSelected(); 
         this._selectedIcon = icon;
+        this.render();
     }
 
     private closeFloatingBox(){
         this._selectedIcon = null;
+        this.render();
     }
 
     private render() {
         const canvas = this._viewer.canvas;
-       
+        
         if(canvas && this._icons) {
-    
-            // Keep annotation layer in sync with canvas
+
             this._icons.style.width = canvas.clientWidth + 'px';
             this._icons.style.height = canvas.clientHeight + 'px';
 
@@ -284,11 +301,14 @@ export class Icons implements IPlugin {
                         iconLabel.style.display = 'block';
                         iconLabel.style.left = posLeft + 'px';
                         iconLabel.style.top = posTop + 'px';
-
-                        if(icon.valueReadout){
+                        if(!icon.isValueDisplayed)
+                        {
+                            iconLabel.title = icon.valueReadout;
+                        }
+                        if(icon.valueReadout && icon.isValueDisplayed){
                             const valueDiv = document.getElementById('value-' + k);
                             if(valueDiv) {
-                                valueDiv.textContent = icon.valueReadout;
+                                valueDiv.innerHTML = icon.overlayValue || icon.valueReadout;
                                 valueDiv.style.display = 'block';
                                 valueDiv.style.top = (iconheight + 5) + 'px';
                             }
@@ -310,7 +330,7 @@ export class Icons implements IPlugin {
                 const position = this._viewer.getHtmlCoordinatesOfVector(this._selectedIcon.location);
                 if(position.length == 2) {
                     this._floatTitle.textContent = this._selectedIcon.name;
-                    this._floatBody.textContent = this._selectedIcon.description;
+                    this._floatBody.innerHTML = this._selectedIcon.description;
                     const posLeft = (position[0]) +(-this._floatdetails.clientWidth / 2) + 10;
                     const posTop =(position[1]) - (this._floatdetails.clientHeight + 24);
                     this._floatdetails.style.left = posLeft + 'px';
@@ -321,8 +341,6 @@ export class Icons implements IPlugin {
                     this._floatdetails.style.display = 'none';
             }
         }
-        
-        window.requestAnimationFrame(() => this.render());
     }
 
     private addStyles() { 
@@ -331,7 +349,7 @@ export class Icons implements IPlugin {
         document.body.appendChild(element);
     }
       
-    private getId(icon: Icon): number {
+    public getId(icon: Icon): number {
         const uniqueValue = Date.now().toString();
         if (icon.products && icon.products.length > 0) {
           const sortedProductIds = icon.products.map(p => p.id).slice().sort((a, b) => a - b);
@@ -452,8 +470,15 @@ export class Icons implements IPlugin {
 
     onBeforeDraw(width: number, height: number): void {
     }
-    
+
+    throttledRefresh = throttle(this.render, 1000/30);          // 30 FPS
+    backOffThrottledRefresh = throttle(this.render, 1000/5);    // 5 FPS
+
     onAfterDraw(width: number, height: number): void {
+        if (this._viewer.performance === PerformanceRating.HIGH)
+            this.throttledRefresh();
+        else
+            this.backOffThrottledRefresh();
     }
     
     onBeforeDrawId(): void {

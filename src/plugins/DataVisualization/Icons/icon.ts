@@ -11,10 +11,12 @@ export class Icon {
     private _imageData: string;
     private _description: string;
     private _valueReadout: string;
+    private _valueFormatted: string | null = null;
     private _name: string;
     private _width: number;
     private _height: number;
     private _enabled: boolean;
+    private _displayValue: boolean;
     private _onIconSelected: () => void;
     
     private _movementQueue: Array<{ location: Float32Array; speed: number }> = [];
@@ -32,6 +34,7 @@ export class Icon {
      * @param {number | null} [width=null] - The width of the icon. If null, default width is used.
      * @param {number | null} [height=null] - The height of the icon. If null, default height is used.
      * @param {() => void} [onIconSelected=null] - Callback function to be executed when the icon is selected.
+     * @param {boolean} [displayValue=true] - Whether the value should be displayed for this icon
      * @example
      * const icon = new Icon('Sample Icon', 'This is a sample icon.', 1, 101, 'imageDataString', new Float32Array([0, 0, 0]), 100, 100, () => console.log('Icon selected'));
      */
@@ -44,7 +47,8 @@ export class Icon {
         location: Float32Array | null = null,
         width: number | null = null,
         height: number | null = null,
-        onIconSelected: () => void = null
+        onIconSelected: () => void = null,
+        displayValue: boolean = true
     ) {
         this._products = products;
         this._imageData = imageData;
@@ -55,6 +59,7 @@ export class Icon {
         this._width = width;
         this._height = height;
         this._onIconSelected = onIconSelected;
+        this._displayValue = displayValue;
         this._enabled = true;
     }
 
@@ -155,6 +160,23 @@ export class Icon {
     }
 
     /**
+     * Gets the overlay text for the icon. Can include Html elements.
+     * @returns {string} The value readout of the icon.
+     */
+    public get overlayValue(): string {
+        return this._valueFormatted;
+    }
+
+    /**
+     * Sets the overlay text for the icon. Can include Html elements.
+     * @param {string} value - The new value readout of the icon.
+     */
+    public set overlayValue(value: string) {
+        this._valueFormatted = value;
+    }
+
+
+    /**
      * Gets the width of the icon.
      * @returns {number} The width of the icon.
      */
@@ -208,6 +230,22 @@ export class Icon {
      */
     public set isEnabled(value: boolean) {
         this._enabled = value;
+    }
+
+    /**
+     * Gets a boolean value indicating if this value is displayed
+     * @returns {boolean} a value indicates if this value is displayed.
+     */
+    public get isValueDisplayed(): boolean {
+        return this._displayValue;
+    }
+
+     /**
+     * Sets if this value should be displayed or not
+     * @param {boolean} value - a value indicates if this value is displayed.
+     */
+    public set isValueDisplayed(value: boolean) {
+        this._displayValue = value;
     }
 
     /**
