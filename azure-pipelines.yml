@@ -23,8 +23,6 @@ steps:
 
 - task: Npm@1
   inputs:
-    command: publish
-    workingDir: dist
-    publishRegistry: useExternalRegistry
-    publishEndpoint: 'npm PAT for @xbim'
-    publishFeed: "@xbim/viewer"
+    command: 'publish'
+    workingDir: 'dist'
+    publishEndpoint: 'npm @xbim organisation'
