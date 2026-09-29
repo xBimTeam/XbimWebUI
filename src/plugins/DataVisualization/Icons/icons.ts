@@ -502,7 +502,7 @@ export class Icons implements IPlugin {
         if (icons.length > 0 && icons.every(icon => icon.categoryColor !== null)) {
             const categoryCounts = new Map<string, { count: number, color: string | null }>();
             icons.forEach(icon => {
-                const value = icon.value == null ? 'Unknown' : String(icon.value);
+                const value = icon.categoryLabel ?? (icon.value == null ? 'Unknown' : String(icon.value));
                 const category = categoryCounts.get(value);
                 if (category) {
                     category.count++;

@@ -313,6 +313,7 @@ export class Icon {
 
 export class ClusterIcon extends Icon {
     public categoryColor: string | null = null;
+    public categoryLabel: string | null = null;
 
     constructor(
         name: string,

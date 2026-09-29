@@ -245,13 +245,13 @@ export class ValueRangesHeatmapChannel implements IHeatmapChannel {
         this._ranges = value;
     }
 
-    public getColor(value: any): string | undefined {
+    public getRange(value: any): ValueRange | undefined {
         const numericValue = Number(value);
         if (isNaN(numericValue)) {
             return undefined;
         }
 
-        let color: string | undefined;
+        let matchingRange: ValueRange | undefined;
         this._ranges.forEach((range, index, ranges) => {
             let inRange = numericValue >= range.min && numericValue <= range.max;
             if (numericValue == range.min && index > 0 && ranges[index - 1].max == range.min) {
@@ -260,11 +260,16 @@ export class ValueRangesHeatmapChannel implements IHeatmapChannel {
                 inRange = range.priority >= ranges[index + 1].priority;
             }
             if (inRange) {
-                color = range.color;
+                matchingRange = range;
             }
         });
 
-        return color;
+        return matchingRange;
+    }
+
+    public getColor(value: any): string | undefined {
+        const range = this.getRange(value);
+        return range && range.color;
     }
 
      /**

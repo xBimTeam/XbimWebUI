@@ -248,6 +248,9 @@ function updateIcon(icon: Icon, channel: IHeatmapChannel, source: HeatmapSource)
         icon.categoryColor = channel instanceof DiscreteHeatmapChannel || channel instanceof ValueRangesHeatmapChannel
             ? channel.getColor(source.value) || null
             : null;
+        icon.categoryLabel = channel instanceof ValueRangesHeatmapChannel
+            ? channel.getRange(source.value)?.label ?? null
+            : null;
     }
     icon.value = source.value;
     icon.unit = channel.unit;
