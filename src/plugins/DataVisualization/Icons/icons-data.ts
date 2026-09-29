@@ -9,21 +9,72 @@ export abstract class IconData{
             top: 0;
             left: 0;
             pointer-events: none;
+            user-select: none;
+        }
+
+        #icons * {
+            user-select: none;
         }
 
         .icon-image{
             cursor: pointer;
             pointer-events: fill;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.45));
         }
 
         .icon-image:hover{
             scale: 1.1;
+        }
+
+        .icon-cluster {
+            position: absolute;
+            cursor: pointer;
+            box-sizing: border-box;
+            width: 72px;
+            height: 72px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            background: rgba(35, 87, 110, 0.75);
+            color: #ffffff;
+            box-shadow: 4px 10px 7px rgba(0, 0, 0, 0.35);
+            pointer-events: auto;
+            text-align: center;
+            z-index: 5;
+        }
+
+        .icon-cluster-count {
+            font-size: 20px;
+            font-weight: 700;
+            line-height: 1.1;
+            position: relative;
+            z-index: 1;
+        }
+
+        .icon-cluster-categorical::before {
+            content: '';
+            position: absolute;
+            inset: 18%;
+            border-radius: 50%;
+            background: rgba(35, 87, 110, 0.98);
+        }
+
+        .icon-cluster-summary {
+            max-width: 100%;
+            margin-top: 3px;
+            font-size: 8px;
+            line-height: 1.1;
+            white-space: pre-line;
+            overflow-wrap: anywhere;
         }
         
         .icon-value-readout {
             position: absolute;
             background: rgb(255, 255, 255);
             color: black;
+            border: 1px solid rgba(0, 0, 0, 0.2);
             border-radius: 10px;
             padding: 2px 5px;
             font-size: 11px;
@@ -32,7 +83,7 @@ export abstract class IconData{
             top: -18px;
             left: 50%;
             transform: translateX(-50%);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
             pointer-events: none;
             z-index: 10;
             animation: fadeIn 0.3s ease-in-out;

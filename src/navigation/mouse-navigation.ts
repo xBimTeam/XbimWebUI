@@ -10,6 +10,7 @@ export class MouseNavigation {
         let startX = null;
         let startY = null;
         let button = 'L';
+        let suppressPick = false;
         let id = -1;
         let modelId = -1;
         let xyz: vec3 = null;
@@ -19,6 +20,7 @@ export class MouseNavigation {
 
         //set initial conditions so that different gestures can be identified
         const handleMouseDown = (event: MouseEvent) => {
+            suppressPick = !!(event as MouseEvent & { fromPlugin?: boolean }).fromPlugin;
             mouseDown = true;
             lastMouseX = event.clientX;
             lastMouseY = event.clientY;
@@ -93,7 +95,7 @@ export class MouseNavigation {
             const deltaY = Math.abs(endY - startY);
 
             //if it was a longer movement do not perform picking
-            if (deltaX < 3 && deltaY < 3 && button === 'left') {
+            if (!suppressPick && deltaX < 3 && deltaY < 3 && button === 'left') {
 
                 /**
                 * Occurs when user click on model.
@@ -113,6 +115,7 @@ export class MouseNavigation {
                 timer = time;
             }
 
+            suppressPick = false;
             viewer.enableTextSelection();
         };
 

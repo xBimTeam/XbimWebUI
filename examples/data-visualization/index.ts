@@ -1,5 +1,5 @@
 import { Viewer, Heatmap, InteractiveClippingPlane, ConstantColorChannel, ContinuousHeatmapChannel, ValueRange, ValueRangesHeatmapChannel, HeatmapSource, Icons, CameraType, ViewType, ClippingPlane, LoaderOverlay, ProductType, IHeatmapChannel, ChannelType, RenderingMode, DiscreteHeatmapChannel, State, } from '../..';
-import { Icon } from '../../src/plugins/DataVisualization/Icons/icon';
+import { ClusterIcon, Icon } from '../../src/plugins/DataVisualization/Icons/icon';
 import { IconsData } from './icons';
 
 
@@ -21,17 +21,27 @@ const temperatureChannelId = "room_temp";
 const humidityChannelId = "room_humidity";
 const energyChannelId = "room_energy";
 const presenceChannelId = "room_occupancy";
-const alertChannelId = "element_alert";
+const alarmChannelId = "element_alarm";
+const alertClusteredChannelId = "element_clustered_alert";
 
 const sources: {[id: string]: HeatmapSource[] } = {};
 const vizIcons: {[id: string]: Icon[]} = {};
 
-function createHeatMapSourceAndIcons(products: {id: number, model: number}[][], channelId: string, channelLabel: string, iconData: string = IconsData.defaultIcon, displayValue = false) {
-    sources[channelId] =  products.map((e, i) => new HeatmapSource(`${channelLabel} ${i+1}`, e, channelId, null) );
+function createHeatMapSourceAndIcons(products: {id: number, model: number}[][], channelId: string, channelLabel: string, iconData: string = IconsData.defaultIcon, 
+    displayValue = false, initialValue: any = 0, clusterable: boolean = false) {
 
+    sources[channelId] =  products.map((e, i) => new HeatmapSource(`${channelLabel} ${i+1}`, e, channelId, initialValue) );
 
-    vizIcons[channelId] =  products.map((e, i) => new Icon(`Sensor ${i+1}`, `${channelLabel} sensor ${i+1}`, "", e, iconData, null, null, null, () => { 
-                 viewer.zoomTo(e, 1) }, displayValue)); 
+    vizIcons[channelId] =  products.map((e, i) => { 
+        const name = `Sensor ${i+1}`;
+        const description = `${channelLabel} sensor ${i+1}`;
+        const onIconSelected = () => {
+            viewer.zoomTo(e, 1)
+        };
+        return clusterable
+            ? new ClusterIcon(name, description, initialValue.toString(), e, iconData, null, null, null, onIconSelected, displayValue, initialValue, channelId)
+            : new Icon(name, description, initialValue.toString(), e, iconData, null, null, null, onIconSelected, displayValue, initialValue);
+    }); 
 }
 
 
@@ -60,9 +70,16 @@ const occupancyChannel = new DiscreteHeatmapChannel
     "Vacant": "#00ff00"
 });
 
-const alertsChannel = new DiscreteHeatmapChannel
-(alertChannelId, "string", "Alarm", "Asset Alarm", "alert", "", {
-    "OK": "#4c00ff",
+const alarmChannel = new DiscreteHeatmapChannel
+(alarmChannelId, "string", "Alarm", "Asset Alarm", "alarm", "", {
+    "OK": "#038913",
+    "Warning": "#ffea00",
+    "Alarm": "#ff3700"
+});
+
+const alertsClusteredChannel = new DiscreteHeatmapChannel
+(alertClusteredChannelId, "string", "ALERT", "Asset Alert - Clustered", "alert", "", {
+    "OK": "#038913",
     "Warning": "#ffea00",
     "Alarm": "#ff3700"
 });
@@ -88,7 +105,8 @@ viewer.on('loaded', args => {
         heatmap.addChannel(humidityChannel);
         heatmap.addChannel(energyChannel);
         heatmap.addChannel(occupancyChannel);
-        heatmap.addChannel(alertsChannel);
+        heatmap.addChannel(alarmChannel);
+        heatmap.addChannel(alertsClusteredChannel);
 
         InitialiseChannels();
 
@@ -101,15 +119,22 @@ viewer.on('loaded', args => {
         var individualElements = elements.map(e => [e])
         var individualSpaces = spaces.map(e => [e])
         
-        createHeatMapSourceAndIcons(individualSpaces, temperatureChannelId, "Temperature sensor", IconsData.temperatureIcon, true);
-        createHeatMapSourceAndIcons(individualSpaces, energyChannelId, "Energy sensor", IconsData.successIcon, true);
-        createHeatMapSourceAndIcons(spaceZones, humidityChannelId, "Humidity sensor", IconsData.successIcon, true);
-        createHeatMapSourceAndIcons(spaceZones, presenceChannelId, "Occupancy sensor", IconsData.defaultIcon, false);
-        createHeatMapSourceAndIcons(individualElements, alertChannelId, "Alarm", IconsData.errorIcon, true);
+        createHeatMapSourceAndIcons(individualSpaces, temperatureChannelId, "Temperature sensor", IconsData.temperatureIcon, true, 20, true);
+        createHeatMapSourceAndIcons(individualSpaces, energyChannelId, "Energy sensor", IconsData.successIcon, true, 1.5);
+        createHeatMapSourceAndIcons(spaceZones, humidityChannelId, "Humidity sensor", IconsData.successIcon, true, 50);
+        createHeatMapSourceAndIcons(spaceZones, presenceChannelId, "Occupancy sensor", IconsData.defaultIcon, false, "Vacant");
+        createHeatMapSourceAndIcons(individualElements, alarmChannelId, "Alarm", IconsData.errorIcon, true, "OK", false);
+        createHeatMapSourceAndIcons(individualElements, alertClusteredChannelId, "Alert", IconsData.errorIcon, true, "OK", true);
 
-        Object.keys(sources).map(k => sources[k].map(h => heatmap.addSource(h)));
+        Object.keys(sources).map(k => 
+            sources[k].map(h => 
+                heatmap.addSource(h)));
 
-        Object.keys(vizIcons).map(k => vizIcons[k].map(i => { icons.addIcon(i); i.isEnabled = false;}));   
+        Object.keys(vizIcons).map(k => 
+            vizIcons[k].map(i => { 
+                i.isEnabled = false;
+                icons.addIcon(i); 
+            }));   
         
         viewer.camera = CameraType.PERSPECTIVE;
         viewer.resetState(ProductType.IFCSPACE)
@@ -118,6 +143,7 @@ viewer.on('loaded', args => {
 
         heatmap.renderChannel(selectedChannel.channelId);
         setIconState(selectedChannel.channelId);
+        icons.useClusterCellCenter = false;
         updateVisualization();
         setInterval(function(){
             updateVisualization();
@@ -129,7 +155,7 @@ viewer.on('loaded', args => {
 });
 
 viewer.on("pick", (arg) => {
-    console.log(`Product id: ${arg.id}, model: ${arg.model}`)
+    console.log(`Product id: ${arg.id}, model: ${arg.model}  xyz: ${arg.xyz}`)
 });
 
 viewer.loadAsync('/tests/data/SampleHouse.wexbim')
@@ -158,56 +184,73 @@ function InitialiseChannels() {
         const selectedChannelName = channelsDropdown.value;
         setIconState(selectedChannel.channelId, false); // disable icons
         switch(selectedChannelName){
-            case 'Humidity':{
+            case humidityChannel.name:{
                 selectedChannel = humidityChannel;
                 break;
             }
-            case 'Temperature':{
+            case temperatureChannel.name:{
                 selectedChannel = temperatureChannel;
                 break;
             }
-            case 'Energy':{
+            case energyChannel.name:{
                 selectedChannel = energyChannel;
                 break;
             }
-            case 'Occupancy':{
+            case occupancyChannel.name:{
                 selectedChannel = occupancyChannel;
                 break;
             }
-            case 'Alarm':{
-                selectedChannel = alertsChannel;
+            case alarmChannel.name:{
+                selectedChannel = alarmChannel;
                 break;
             }
+            case alertsClusteredChannel.name:{
+                selectedChannel = alertsClusteredChannel;
+                break;
+            }
+            default:
+                console.error(`Channel ${selectedChannelName} not supported`);
         }
         setSelectedChannel();
+        updateVisualization();
     }
 }
 
 function getSources(selectedChannel: IHeatmapChannel) : HeatmapSource[] {
     switch(selectedChannel.channelId) {
         case temperatureChannelId:
-            return sources[temperatureChannelId].map(s => { s.value = ((getRandomInt(500)-100)/10).toString();  return s;});
+            return sources[temperatureChannelId].map(s => { s.value = ((getRandomInt(500)-100)/10);  return s;});
             
         case humidityChannelId:
-            return sources[humidityChannelId].map(s => { s.value = getRandomInt(100).toString();  return s;});
+            return sources[humidityChannelId].map(s => { s.value = getRandomInt(100);  return s;});
 
         case energyChannelId:
-            return sources[energyChannelId].map(s => { s.value = (getRandomInt(5000)/1000).toString();  return s;});
+            return sources[energyChannelId].map(s => { s.value = (getRandomInt(5000)/1000);  return s;});
 
         case presenceChannelId:
             return sources[presenceChannelId].map(s => { s.value = (getRandomInt(2) % 2) == 0 ? "Vacant" : "Occupied";  return s;});
 
-        case alertChannelId:
-            return sources[alertChannelId].map(s => { s.value = (getRandomInt(2) % 2) == 0 ? "OK" : (getRandomInt(2) % 2) == 0 ?"Alarm" : "Warning";  return s;});
+        case alarmChannelId:
+            return sources[alarmChannelId].map(s => { s.value = (getRandomInt(2) % 2) == 0 ? "OK" : (getRandomInt(2) % 2) == 0 ?"Alarm" : "Warning";  return s;});
+
+        case alertClusteredChannelId:
+            return sources[alertClusteredChannelId].map(s => { s.value = (getRandomInt(2) % 2) == 0 ? "OK" : (getRandomInt(2) % 2) == 0 ?"Alarm" : "Warning";  return s;});
             
         default:
-            return sources[temperatureChannelId].map(s => { s.value = ((getRandomInt(500)-100)/10).toString();  return s;});
+            return sources[temperatureChannelId].map(s => { s.value = ((getRandomInt(500)-100)/10);  return s;});
     }
 }
 
 function updateIcon(icon: Icon, channel: IHeatmapChannel, source: HeatmapSource) {
     if(icon == null) return;
     icon.description = `<b>Room</b> ${channel.name}: ${source.value}<sup>${channel.unit}</super>`;
+    if (icon instanceof ClusterIcon) {
+        icon.categoryColor = channel instanceof DiscreteHeatmapChannel
+            ? channel.values[String(source.value)] || null
+            : null;
+    }
+    icon.value = source.value;
+    icon.unit = channel.unit;
     icon.overlayValue = `${source.value}<sup>${channel.unit}</sup>`;
     icon.valueReadout = `${source.value}${channel.unit}`;
 }
@@ -215,59 +258,108 @@ function updateIcon(icon: Icon, channel: IHeatmapChannel, source: HeatmapSource)
 
 
 function setSelectedChannel() {
-    if(selectedChannel.channelType === ChannelType.Continuous){
-        const rangesElement = document.getElementById('ranges')!;
-        rangesElement.style.display = "none";
-        const continous = selectedChannel as ContinuousHeatmapChannel;
-        const colors = continous.colorGradient;
-        const gradientElement = document.getElementById('gradient')!;
-        const gradientParentElement = document.getElementById('gradient-parent')!;
-        gradientParentElement.style.display = "flex";
 
-        const gradientStartElement = document.getElementById('start-grad')!;
-        const gradientEndElement = document.getElementById('end-grad')!;
-        gradientStartElement.textContent = `${continous.min}${selectedChannel.unit}`;
-        gradientEndElement.textContent = `${continous.max}${selectedChannel.unit}`;
+    switch(selectedChannel.channelType) {
+        case ChannelType.Continuous: {
+            const rangesElement = document.getElementById('ranges')!;
+            rangesElement.style.display = "none";
+            const continous = selectedChannel as ContinuousHeatmapChannel;
+            const colors = continous.colorGradient;
+            const gradientElement = document.getElementById('gradient')!;
+            const gradientParentElement = document.getElementById('gradient-parent')!;
+            gradientParentElement.style.display = "flex";
 
-        const numColors = colors.length;
-        const stops = colors.map((color, index) => {
-            const position = (index / (numColors - 1)) * 100;
-            return { color, position: `${position}%` };
-        });
-        const gradientString = stops.map(stop => `${stop.color} ${stop.position}`).join(', ');
-        gradientElement.style.background = `linear-gradient(90deg, ${gradientString})`;
-    }
-    else if(selectedChannel.channelType === ChannelType.ValueRanges){
-        const gradientElement = document.getElementById('gradient-parent')!;
-        gradientElement.style.display = "none";
-        const valueRanges = selectedChannel as ValueRangesHeatmapChannel;
+            const gradientStartElement = document.getElementById('start-grad')!;
+            const gradientEndElement = document.getElementById('end-grad')!;
+            gradientStartElement.textContent = `${continous.min}${selectedChannel.unit}`;
+            gradientEndElement.textContent = `${continous.max}${selectedChannel.unit}`;
 
-        const container = document.getElementById('ranges')!;
-        container.style.display = "flex";
-        container.innerHTML  = "";
-        valueRanges.valueRanges.forEach(range => {
+            const numColors = colors.length;
+            const stops = colors.map((color, index) => {
+                const position = (index / (numColors - 1)) * 100;
+                return { color, position: `${position}%` };
+            });
+            const gradientString = stops.map(stop => `${stop.color} ${stop.position}`).join(', ');
+            gradientElement.style.background = `linear-gradient(90deg, ${gradientString})`;
+            break;
+        }
+
+        case ChannelType.ValueRanges:{
+            const gradientElement = document.getElementById('gradient-parent')!;
+            gradientElement.style.display = "none";
+            const valueRanges = selectedChannel as ValueRangesHeatmapChannel;
+
+            const container = document.getElementById('ranges')!;
+            container.style.display = "flex";
+            container.innerHTML  = "";
+            valueRanges.valueRanges.forEach(range => {
+                const rangeDiv = document.createElement('div');
+                rangeDiv.style.backgroundColor = range.color;
+                rangeDiv.innerHTML = `<span>${range.label}</span><span style="font-size: smaller">(${range.min === -Infinity ? '-∞' : range.min}${valueRanges.unit} - ${range.max === Infinity ? '∞' : range.max}${valueRanges.unit})</span>`;
+                container.appendChild(rangeDiv);
+            });
+            break;
+        }
+
+        case ChannelType.Discrete: {
+            const gradientElement = document.getElementById('gradient-parent')!;
+            gradientElement.style.display = "none";
+            const discreteChannel = selectedChannel as DiscreteHeatmapChannel;
+
+            const container = document.getElementById('ranges')!;
+            container.style.display = "flex";
+            container.innerHTML  = "";
+
+            Object.keys(discreteChannel.values).forEach(k => {
+                var color = discreteChannel.values[k];
+                const rangeDiv = document.createElement('div');
+                rangeDiv.style.backgroundColor = color;
+                rangeDiv.innerHTML = k;
+                container.appendChild(rangeDiv);
+
+            });
+            break;
+        }
+
+        case ChannelType.Constant: {
+            const gradientElement = document.getElementById('gradient-parent')!;
+            gradientElement.style.display = "none";
+            const constantChannel = selectedChannel as ConstantColorChannel;
+            const container = document.getElementById('ranges')!;
+            container.style.display = "flex";
+            container.innerHTML  = "";
+
             const rangeDiv = document.createElement('div');
-            rangeDiv.style.backgroundColor = range.color;
-            rangeDiv.innerHTML = `<span>${range.label}</span><span style="font-size: smaller">(${range.min === -Infinity ? '-∞' : range.min}${valueRanges.unit} - ${range.max === Infinity ? '∞' : range.max}${valueRanges.unit})</span>`;
+            rangeDiv.style.backgroundColor = constantChannel.color;
+            rangeDiv.innerHTML = `${constantChannel.name} (${constantChannel.unit})`;
             container.appendChild(rangeDiv);
-        });
 
-    } else if(selectedChannel.channelType === ChannelType.Constant){
-        const gradientElement = document.getElementById('gradient-parent')!;
-        gradientElement.style.display = "none";
-        const container = document.getElementById('ranges')!;
-        container.style.display = "none";
+            //container.style.display = "none";
+            break;
+        }
+
+        default: 
+            console.log("Channel not supported", selectedChannel);
+
     }
+
+    if(selectedChannel.channelId === temperatureChannelId) {
+        icons.minimumIconsToCluster = 2;
+    }
+    else {
+        icons.minimumIconsToCluster = 3;
+    }
+    
     viewer.resetState(ProductType.IFCPRODUCT)
     // Enable icons for this channel
     setIconState(selectedChannel.channelId);
-
+    
     
 }
 
 function setIconState(channelId: string, isEnabled: boolean = true) {
     if(channelId && Object.keys(vizIcons).length > 0) {
-        vizIcons[channelId].forEach(icon =>{
+        vizIcons[channelId].forEach(icon => {
             icon.isEnabled = isEnabled;
         });
     }

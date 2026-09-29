@@ -1,7 +1,7 @@
 import { Viewer } from "../../../viewer";
 import { IPlugin } from "../../plugin";
-import { Icon } from "./icon";
-import { vec3 } from "gl-matrix";
+import { ClusterIcon, Icon } from "./icon";
+import { mat4, vec3, vec4 } from "gl-matrix";
 import { IconData } from "./icons-data";
 import { VectorUtils } from "../../../common/vector-utils";
 import { throttle } from "lodash";
@@ -9,6 +9,16 @@ import { PerformanceRating } from "../../../performance-rating";
 
 
 export class Icons implements IPlugin {
+    /** Minimum number of icons in a cell before they are rendered as a cluster. */
+    public minimumIconsToCluster: number = 3;
+    /** Cell size as a percentage of the canvas's shorter dimension; the computed size is clamped to 48-120px. */
+    public clusterCellSize: number = 12;
+    /** When true, place cluster badges at the center of their cell; otherwise use the mean member position. */
+    public useClusterCellCenter = true;
+    /** Minimum depth-based scale factor applied to icons and cluster badges when simulating depth with z-order. */
+    public minimumIconImageScale = 0.6;
+
+
     private _viewer: Viewer;
     private _icons: HTMLDivElement;
     private _floatdetails: HTMLDivElement;
@@ -18,6 +28,9 @@ export class Icons implements IPlugin {
     private _selectedIcon: Icon | undefined;
     private _floatingDetailsEnabled: boolean = true;
     private _iconsCount = 0;
+    
+    private _clusterElements: { element: HTMLDivElement, count: HTMLSpanElement, summary: HTMLSpanElement, products: { id: number, model: number }[] }[] = [];
+    private _renderedIconElements: { element: HTMLElement, depth: number }[] = [];
 
     init(viewer: Viewer): void {
         this._viewer = viewer;
@@ -25,6 +38,53 @@ export class Icons implements IPlugin {
         const iconsDiv = document.createElement('div');
         iconsDiv.id = 'icons';
         this._icons = iconsDiv;
+        iconsDiv.addEventListener('mousedown', event => {
+            const target = event.target;
+            if (!(target instanceof Element) || !target.closest('.icon-image, .icon-cluster')) return;
+
+            const mouseEvent = new MouseEvent('mousedown', {
+                bubbles: false,
+                cancelable: true,
+                view: window,
+                detail: event.detail,
+                screenX: event.screenX,
+                screenY: event.screenY,
+                clientX: event.clientX,
+                clientY: event.clientY,
+                button: event.button,
+                buttons: event.buttons,
+                ctrlKey: event.ctrlKey,
+                shiftKey: event.shiftKey,
+                altKey: event.altKey,
+                metaKey: event.metaKey
+            }) as MouseEvent & { fromPlugin?: boolean };
+            mouseEvent.fromPlugin = true;
+            this._viewer.canvas.dispatchEvent(mouseEvent);
+        }, true);
+        iconsDiv.addEventListener('wheel', event => {
+            // propogate mouse wheel events to the viewer canvas so the icon overlays don't affect zooming
+            const wheelEvent = new WheelEvent('wheel', {
+                bubbles: false,
+                cancelable: true,
+                clientX: event.clientX,
+                clientY: event.clientY,
+                screenX: event.screenX,
+                screenY: event.screenY,
+                deltaX: event.deltaX,
+                deltaY: event.deltaY,
+                deltaZ: event.deltaZ,
+                deltaMode: event.deltaMode,
+                ctrlKey: event.ctrlKey,
+                shiftKey: event.shiftKey,
+                altKey: event.altKey,
+                metaKey: event.metaKey
+            });
+            this._viewer.canvas.dispatchEvent(wheelEvent);
+            if (wheelEvent.defaultPrevented) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+        }, true);
 
         const floatdetailsDiv = document.createElement('div');
         floatdetailsDiv.id = 'floatdetails'; 
@@ -96,6 +156,7 @@ export class Icons implements IPlugin {
         const iconElement = document.createElement('div');
         const image = document.createElement('img');
         image.classList.add('icon-image')
+        image.draggable = false;
         image.addEventListener("click", this.onIconClicked.bind(this), false);
         if(!icon.imageData){
             icon.imageData = IconData.defaultIcon;
@@ -278,57 +339,19 @@ export class Icons implements IPlugin {
             const planeA = a ? this.transformPlane(a, wcs) : null;
             const planeB = b? this.transformPlane(this._viewer.getClip()?.PlaneB, wcs) : null;
             const box = this._viewer.sectionBox.getBoundingBox(wcs);
+            const modelView = this._viewer.mvMatrix;
+            const viewProjection = mat4.multiply(mat4.create(), this._viewer.pMatrix, modelView);
+            const depthRange = this.getViewDepthRange(this._viewer.getTargetBoundingBox(), modelView);
 
-            Object.getOwnPropertyNames(this._instances).forEach(k => {
-                let iconLabel = document.getElementById('icon' + k);
-                const icon: Icon = this._instances[k];
-                if(iconLabel && icon && icon.location && icon.isEnabled){
-                    
-                    if(!this.canBeRendered(icon, planeA, planeB, box))
-                    {
-                        iconLabel.style.display = 'none';
-                        return;
-                    }
+            this._renderedIconElements = [];
+            this.renderSingleIcons(planeA, planeB, box, modelView, viewProjection, depthRange);
 
-                    const position = this._viewer.getHtmlCoordinatesOfVector(icon.location);
-                    if(position.length == 2) {
+            this.renderClusteredIcons(planeA, planeB, box, modelView, viewProjection, depthRange);
+            this.applyIconZOrder();
 
-                        const iconheight = icon.height ?? IconData.defaultIconHeight;
-                        const iconwidth = icon.width ?? IconData.defaultIconWidth;
-                        const posLeft = (position[0]- iconwidth / 2);
-                        const posTop =(position[1] - iconheight / 2);
-                        iconLabel.style.position = 'absolute';
-                        iconLabel.style.display = 'block';
-                        iconLabel.style.left = posLeft + 'px';
-                        iconLabel.style.top = posTop + 'px';
-                        if(!icon.isValueDisplayed)
-                        {
-                            iconLabel.title = icon.valueReadout;
-                        }
-                        if(icon.valueReadout && icon.isValueDisplayed){
-                            const valueDiv = document.getElementById('value-' + k);
-                            if(valueDiv) {
-                                valueDiv.innerHTML = icon.overlayValue || icon.valueReadout;
-                                valueDiv.style.display = 'block';
-                                valueDiv.style.top = (iconheight + 5) + 'px';
-                            }
-                        } else {
-                            const valueDiv = document.getElementById('value-' + k);
-                            if(valueDiv) {
-                                valueDiv.style.display = 'none';
-                            }
-                        }
-                    }
-
-                } else {
-                    if(iconLabel)
-                        iconLabel.style.display = 'none';
-                }
-            });
-
-            if(this._selectedIcon && this._floatdetails && this._floatingDetailsEnabled) {
+            if(this._selectedIcon && this._selectedIcon.isEnabled && this._floatdetails && this._floatingDetailsEnabled) {
                 const position = this._viewer.getHtmlCoordinatesOfVector(this._selectedIcon.location);
-                if(position.length == 2) {
+                if(position.length == 2 && this.isWithinNearFrustum(this._selectedIcon.location, viewProjection)) {
                     this._floatTitle.textContent = this._selectedIcon.name;
                     this._floatBody.innerHTML = this._selectedIcon.description;
                     const posLeft = (position[0]) +(-this._floatdetails.clientWidth / 2) + 10;
@@ -336,11 +359,297 @@ export class Icons implements IPlugin {
                     this._floatdetails.style.left = posLeft + 'px';
                     this._floatdetails.style.top = posTop + 'px';
                     this._floatdetails.style.display = 'block';
-                } 
+                } else {
+                    this._floatdetails.style.display = 'none';
+                }
             } else {
                     this._floatdetails.style.display = 'none';
             }
         }
+    }
+
+    private renderClusteredIcons(planeA: Float32Array | null, planeB: Float32Array | null, box: Float32Array, modelView: mat4, viewProjection: mat4, depthRange: { min: number, max: number }) {
+        const canvasSize = Math.min(this._viewer.canvas.clientWidth, this._viewer.canvas.clientHeight);
+        const cellSize = Math.max(48, Math.min(120, canvasSize * this.clusterCellSize / 100));
+        const buckets = new Map<string, ({icon:ClusterIcon, key: string, iconLabel: HTMLElement, position: number[]})[]>();
+
+        Object.keys(this._instances).forEach(k => {
+            const icon = this._instances[k];
+            if (!(icon instanceof ClusterIcon)) return;
+            
+            let iconLabel = document.getElementById('icon' + k);
+
+            if (iconLabel && icon && icon.location && icon.isEnabled) {
+                
+                if (!this.canBeRendered(icon, planeA, planeB, box) || !this.isWithinNearFrustum(icon.location, viewProjection)) {
+                    iconLabel.style.display = 'none';
+                    
+                    return;
+                }
+
+                const position = this._viewer.getHtmlCoordinatesOfVector(icon.location);
+                if (position.length == 2) {
+
+                    const iconheight = icon.height ?? IconData.defaultIconHeight;
+                    const iconwidth = icon.width ?? IconData.defaultIconWidth;
+                    const cellX = Math.floor((position[0] - iconwidth / 2) / cellSize); 
+                    const cellY = Math.floor((position[1] - iconheight / 2)/ cellSize); 
+                    const key = `${cellX},${cellY}`;
+
+                    let bucket = buckets.get(key);
+                    if (!bucket) {
+                        bucket = [];
+                        buckets.set(key, bucket);
+                    }
+                    bucket.push({icon, key: k, iconLabel, position});
+                }
+            } else {
+                if (iconLabel)
+                    iconLabel.style.display = 'none';
+            }
+
+        });
+
+        let clusterIndex = 0;
+        buckets.forEach((icons, clusterKey) => {
+            if (icons.length === 1 || icons.length < this.minimumIconsToCluster) {
+                icons.forEach(({icon, key, iconLabel, position}) => {
+                    this.renderIcon(icon, position, iconLabel, key, modelView, depthRange);
+                });
+            } else {
+                icons.forEach(item => item.iconLabel.style.display = 'none');
+
+                let cluster = this._clusterElements[clusterIndex];
+                if (!cluster) {
+                    const element = document.createElement('div');
+                    const count = document.createElement('span');
+                    const summary = document.createElement('span');
+                    element.className = 'icon-cluster';
+                    count.className = 'icon-cluster-count';
+                    summary.className = 'icon-cluster-summary';
+                    element.appendChild(count);
+                    element.appendChild(summary);
+                    this._icons.appendChild(element);
+                    cluster = { element, count, summary, products: [] };
+                    element.addEventListener('click', event => {
+                        event.stopPropagation();
+                        if (cluster.products.length > 0) {
+                            this._viewer.zoomTo(cluster.products);
+                        }
+                    });
+                    this._clusterElements.push(cluster);
+                }
+
+                const cellCoordinates = clusterKey.split(',');
+                const centerX = this.useClusterCellCenter
+                    ? (Number(cellCoordinates[0]) + 0.5) * cellSize
+                    : icons.reduce((sum, item) => sum + item.position[0], 0) / icons.length;
+                const centerY = this.useClusterCellCenter
+                    ? (Number(cellCoordinates[1]) + 0.5) * cellSize
+                    : icons.reduce((sum, item) => sum + item.position[1], 0) / icons.length;
+                cluster.count.textContent = icons.length.toString();
+                const summary = this.getClusterSummary(icons.map(item => item.icon));
+                cluster.element.classList.toggle('icon-cluster-categorical', summary.type === 'categorical');
+                cluster.element.style.background = '';
+                if (summary.type === 'categorical') {
+                    const total = summary.categories.reduce((sum, category) => sum + category.count, 0);
+                    let offset = 0;
+                    const segments = summary.categories.map(category => {
+                        const end = offset + category.count / total * 360;
+                        const segment = `${category.color} ${offset}deg ${end}deg`;
+                        offset = end;
+                        return segment;
+                    });
+                    cluster.element.style.background = `conic-gradient(${segments.join(', ')})`;
+                    cluster.summary.textContent = '';
+                    const breakdown = summary.categories.map(category => `${category.value}: ${category.count}`).join('\n');
+                    cluster.element.title = breakdown;
+                    cluster.element.setAttribute('aria-label', `Cluster of ${total} icons. ${breakdown.replace(/\n/g, ', ')}`);
+                } else {
+                    cluster.summary.textContent = summary.type === 'numeric' ? summary.text : '';
+                    cluster.element.title = icons.map(item => item.icon.name).join(', ');
+                    cluster.element.setAttribute('aria-label', `${icons.length} clustered icons`);
+                }
+                const products = new Map<string, { id: number, model: number }>();
+                icons.forEach(item => item.icon.products?.forEach(product => {
+                    products.set(`${product.model}:${product.id}`, product);
+                }));
+                cluster.products = Array.from(products.values());
+                cluster.element.style.left = (centerX - 36) + 'px';
+                cluster.element.style.top = (centerY - 36) + 'px';
+                cluster.element.style.display = 'flex';
+                const averageDepth = icons.reduce((sum, item) => sum + this.getViewDepth(item.icon.location, modelView), 0) / icons.length;
+                const depthSpan = depthRange.max - depthRange.min;
+                const normalizedDepth = depthSpan > 0
+                    ? Math.max(0, Math.min(1, (averageDepth - depthRange.min) / depthSpan))
+                    : 0;
+                const depthScale = 1 - normalizedDepth * (1 - this.minimumIconImageScale);
+                cluster.element.style.transform = `scale(${depthScale})`;
+                this._renderedIconElements.push({ element: cluster.element, depth: averageDepth });
+                clusterIndex++;
+            }
+        });
+
+        for (let index = clusterIndex; index < this._clusterElements.length; index++) {
+            this._clusterElements[index].element.style.display = 'none';
+        }
+    }
+
+    private getClusterSummary(icons: ClusterIcon[]):
+        { type: 'numeric', text: string } |
+        { type: 'categorical', categories: { value: string, count: number, color: string }[] } |
+        { type: 'none' } {
+        if (icons.length > 0 && icons.every(icon => typeof icon.value !== 'number')) {
+            const categoryCounts = new Map<string, { count: number, color: string | null }>();
+            icons.forEach(icon => {
+                const value = icon.value == null ? 'Unknown' : String(icon.value);
+                const category = categoryCounts.get(value);
+                if (category) {
+                    category.count++;
+                    if (!category.color && icon.categoryColor) category.color = icon.categoryColor;
+                } else {
+                    categoryCounts.set(value, { count: 1, color: icon.categoryColor });
+                }
+            });
+
+            const fallbackColors = ['#e76f51', '#2a9d8f', '#e9c46a', '#6d9dc5', '#c77dff', '#f4a261'];
+            const categories = Array.from(categoryCounts.entries())
+                .sort((a, b) => a[0].localeCompare(b[0]))
+                .map(([value, category], index) => ({
+                    value,
+                    count: category.count,
+                    color: category.color || fallbackColors[index % fallbackColors.length]
+                }));
+            return { type: 'categorical', categories };
+        }
+
+        if (!icons.every(icon => typeof icon.value === 'number' && isFinite(icon.value))) {
+            return { type: 'none' };
+        }
+
+        const unit = icons[0].unit.trim();
+        if (icons.some(icon => icon.unit.trim() !== unit)) return { type: 'none' };
+
+        const values = icons.map(icon => icon.value as number);
+        const min = Math.min.apply(Math, values);
+        const max = Math.max.apply(Math, values);
+        const average = values.reduce((sum, value) => sum + value, 0) / values.length;
+        const format = (value: number) => Number(value.toPrecision(3)).toString();
+        const suffix = unit ? ' ' + unit : '';
+        return { type: 'numeric', text: `min ${format(min)}${suffix}\navg ${format(average)}${suffix}\nmax ${format(max)}${suffix}` };
+    }
+
+
+    private renderSingleIcons(planeA: Float32Array | null, planeB: Float32Array | null, box: Float32Array, modelView: mat4, viewProjection: mat4, depthRange: { min: number, max: number }) {
+        Object.getOwnPropertyNames(this._instances).forEach(k => {
+            const icon: Icon = this._instances[k];
+            if (icon instanceof ClusterIcon) return;
+            let iconLabel = document.getElementById('icon' + k);
+            if (iconLabel && icon && icon.location && icon.isEnabled) {
+
+                if (!this.canBeRendered(icon, planeA, planeB, box) || !this.isWithinNearFrustum(icon.location, viewProjection)) {
+                    iconLabel.style.display = 'none';
+                    return;
+                }
+
+                const position = this._viewer.getHtmlCoordinatesOfVector(icon.location);
+                if (position.length == 2) {
+
+                    this.renderIcon(icon, position, iconLabel, k, modelView, depthRange);
+                }
+
+            } else {
+                if (iconLabel)
+                    iconLabel.style.display = 'none';
+            }
+        });
+    }
+
+    private renderIcon(icon: Icon, position: number[], iconLabel: HTMLElement, key: string, modelView: mat4, depthRange: { min: number, max: number }) {
+        const iconheight = icon.height ?? IconData.defaultIconHeight;
+        const iconwidth = icon.width ?? IconData.defaultIconWidth;
+        const posLeft = (position[0] - iconwidth / 2);
+        const posTop = (position[1] - iconheight / 2);
+        iconLabel.style.position = 'absolute';
+        iconLabel.style.display = 'block';
+        iconLabel.style.left = posLeft + 'px';
+        iconLabel.style.top = posTop + 'px';
+        const depth = this.getViewDepth(icon.location, modelView);
+        this._renderedIconElements.push({ element: iconLabel, depth });
+        const depthSpan = depthRange.max - depthRange.min;
+        const normalizedDepth = depthSpan > 0
+            ? Math.max(0, Math.min(1, (depth - depthRange.min) / depthSpan))
+            : 0;
+        const depthScale = 1 - normalizedDepth * (1 - this.minimumIconImageScale);
+        const image = iconLabel.querySelector<HTMLImageElement>('.icon-image');
+        if (image) {
+            image.style.transform = `scale(${depthScale})`;
+        }
+        if (!icon.isValueDisplayed) {
+            iconLabel.title = icon.valueReadout;
+        }
+        if (icon.valueReadout && icon.isValueDisplayed) {
+            const valueDiv = document.getElementById('value-' + key);
+            if (valueDiv) {
+                valueDiv.innerHTML = (icon.overlayValue || icon.valueReadout) ;
+                valueDiv.style.display = 'block';
+                valueDiv.style.top = (iconheight + 0) + 'px';
+                valueDiv.style.transform = `translateX(-50%) scale(${depthScale})`;
+            }
+        } else {
+            const valueDiv = document.getElementById('value-' + key);
+            if (valueDiv) {
+                valueDiv.style.display = 'none';
+            }
+        }
+    }
+
+    private applyIconZOrder() {
+        const orderedElements = this._renderedIconElements.slice().sort((a, b) => b.depth - a.depth);
+        orderedElements.forEach((item, index) => {
+            item.element.style.zIndex = (index + 1).toString();
+        });
+    }
+
+    private getViewDepth(position: Float32Array, modelView: mat4): number {
+        const viewPosition = vec3.transformMat4(vec3.create(), position, modelView);
+        return -viewPosition[2];
+    }
+
+    private isWithinNearFrustum(position: Float32Array, viewProjection: mat4): boolean {
+        const worldPosition = vec4.fromValues(position[0], position[1], position[2], 1);
+        const clipPosition = vec4.transformMat4(vec4.create(), worldPosition, viewProjection);
+        const w = clipPosition[3];
+
+        return w > 0 &&
+            clipPosition[0] >= -w && clipPosition[0] <= w &&
+            clipPosition[1] >= -w && clipPosition[1] <= w &&
+            clipPosition[2] >= -w;
+    }
+
+    private getViewDepthRange(bounds: number[] | Float32Array, modelView: mat4): { min: number, max: number } {
+        if (!bounds || bounds.length !== 6) return { min: -1, max: 1 };
+
+        let min = Infinity;
+        let max = -Infinity;
+        for (let x = 0; x <= 1; x++) {
+            for (let y = 0; y <= 1; y++) {
+                for (let z = 0; z <= 1; z++) {
+                    const corner = new Float32Array([
+                        bounds[0] + bounds[3] * x,
+                        bounds[1] + bounds[4] * y,
+                        bounds[2] + bounds[5] * z
+                    ]);
+                    const depth = this.getViewDepth(corner, modelView);
+                    if (isFinite(depth)) {
+                        min = Math.min(min, depth);
+                        max = Math.max(max, depth);
+                    }
+                }
+            }
+        }
+
+        return min <= max ? { min, max } : { min: -1, max: 1 };
     }
 
     private addStyles() { 

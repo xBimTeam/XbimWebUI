@@ -15,6 +15,8 @@ export class Icon {
     private _name: string;
     private _width: number;
     private _height: number;
+    private _value: unknown;
+    private _unit: string;
     private _enabled: boolean;
     private _displayValue: boolean;
     private _onIconSelected: () => void;
@@ -48,7 +50,9 @@ export class Icon {
         width: number | null = null,
         height: number | null = null,
         onIconSelected: () => void = null,
-        displayValue: boolean = true
+        displayValue: boolean = true,
+        value: any = undefined,
+        unit: string = ''
     ) {
         this._products = products;
         this._imageData = imageData;
@@ -58,6 +62,8 @@ export class Icon {
         this._valueReadout = valueReadout;
         this._width = width;
         this._height = height;
+        this._value = value;
+        this._unit = unit;
         this._onIconSelected = onIconSelected;
         this._displayValue = displayValue;
         this._enabled = true;
@@ -208,6 +214,22 @@ export class Icon {
         this._height = value;
     }
 
+    public get value(): any {
+        return this._value;
+    }
+
+    public set value(value: any) {
+        this._value = value;
+    }
+
+    public get unit(): string {
+        return this._unit;
+    }
+
+    public set unit(unit: string) {
+        this._unit = unit;
+    }
+
     /**
      * Gets the callback function to be executed when the icon is selected.
      * @returns {() => void} The callback function.
@@ -286,5 +308,39 @@ export class Icon {
      */
     public set isMoving(value: boolean) {
         this._isMoving = value;
+    }
+}
+
+export class ClusterIcon extends Icon {
+    public categoryColor: string | null = null;
+
+    constructor(
+        name: string,
+        description: string,
+        valueReadout: string | null,
+        products: { id: number, model: number }[] | null,
+        imageData: string | null,
+        location: Float32Array | null = null,
+        width: number | null = null,
+        height: number | null = null,
+        onIconSelected: () => void = null,
+        displayValue: boolean = true,
+        value: unknown = undefined,
+        unit: string = ''
+    ) {
+        super(
+            name,
+            description,
+            valueReadout,
+            products,
+            imageData,
+            location,
+            width,
+            height,
+            onIconSelected,
+            displayValue,
+            value,
+            unit
+        );
     }
 }
