@@ -135,6 +135,10 @@ export class ConstantColorChannel implements IHeatmapChannel {
         return this._color;
     }
 
+    public getColor(value: any): string {
+        return this._color;
+    }
+
     /**
      * Gets a boolean value indicating if this channel is enabled
      * @returns {boolean} a value indicates if this channel is enabled.

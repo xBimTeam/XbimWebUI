@@ -17,7 +17,6 @@ export class Heatmap implements IPlugin {
     private _channels: IHeatmapChannel[] = [];
     private _sources: HeatmapSource[] = [];
     private _colorStylesMap: { [colorHex: string]: number } = {};
-    private _valueStylesMap: { [normalizedValue: number]: number } = {};
     private _stopped = true;
     private _nextStyleId: number = 0;
 
@@ -117,10 +116,11 @@ export class Heatmap implements IPlugin {
     }
 
     private renderConstantColorChannel(channel: ConstantColorChannel, sources: HeatmapSource[] = null) {
-        if (!this._colorStylesMap[channel.color]) { 
-            const rgba = this.hexToRgba(channel.color);
+        const colorHex = channel.getColor(undefined);
+        if (!this._colorStylesMap[colorHex]) {
+            const rgba = this.hexToRgba(colorHex);
             this._viewer.defineStyle(this._nextStyleId, rgba);
-            this._colorStylesMap[channel.color] = this._nextStyleId;
+            this._colorStylesMap[colorHex] = this._nextStyleId;
             this._nextStyleId++;
         }
     
@@ -136,7 +136,7 @@ export class Heatmap implements IPlugin {
           
         
           Object.entries(groups).forEach(([model, products]) => {
-            this._viewer.setStyle(this._colorStylesMap[channel.color], products, Number(model));
+                        this._viewer.setStyle(this._colorStylesMap[colorHex], products, Number(model));
             this._viewer.addState(State.XRAYVISIBLE, products, Number(model));
         });
     }
@@ -153,7 +153,6 @@ export class Heatmap implements IPlugin {
             this._colorStylesMap[colorHex] = this._nextStyleId;
             this._nextStyleId++;
         });
-        const values = Object.keys(channel.values);
         const maps = (sources ?? this._sources).filter(s => s.channelId == channel.channelId);
         const groups: Record<string, {source:HeatmapSource, product: {id:number, model:number}}[]> = maps.flatMap(source => source.products.map(product => ({ product, source })))
         .reduce((groups, item) => {
@@ -166,23 +165,9 @@ export class Heatmap implements IPlugin {
           }, {});
           
           Object.entries(groups).forEach(([key, val]) => {
-            const stringVal = val[0].source.value.toString();
             const modelId = val[0].product.model;
-            
-            let includesValue = false;
-            if (channel.dataType === 'string') {
-                includesValue = values.some(v => v.toLowerCase() === stringVal.toLowerCase());
-            } else {
-                includesValue = values.includes(stringVal);
-            }
-            
-            if (includesValue) {
-                let matchingKey = stringVal;
-                if (channel.dataType === 'string') {
-                    matchingKey = values.find(v => v.toLowerCase() === stringVal.toLowerCase()) || stringVal;
-                }
-                
-                const colorHex = channel.values[matchingKey];
+            const colorHex = channel.getColor(val[0].source.value);
+            if (colorHex !== undefined) {
                 let productsIds: number[] = val.map(p => p.product.id);
                 this._viewer.setStyle(this._colorStylesMap[colorHex], productsIds, modelId);
                 this._viewer.addState(State.XRAYVISIBLE, productsIds, modelId)
@@ -203,54 +188,31 @@ export class Heatmap implements IPlugin {
         });
 
         const maps = (sources ?? this._sources).filter(s => s.channelId == channel.channelId);
-        const initial: Array<{ color: string, sources: Record<string, {source:HeatmapSource, product: {id:number, model:number}}[]> }> = [];
-        const ranges = channel.valueRanges.reduce((result, range, idx, array) => {
-            const inRange = maps.filter(m => {
-                const value = Number(m.value);
-                
-                if (isNaN(value))
-                    return false;
+        const groups: Record<string, Record<string, number[]>> = {};
+        maps.forEach(source => {
+            const colorHex = channel.getColor(source.value);
+            if (colorHex === undefined) {
+                return;
+            }
 
-                if (value == range.min && idx > 0) {
-                    if (array[idx-1].max == range.min) {
-                        return range.priority >= array[idx-1].priority;
-                    }
+            source.products.forEach(product => {
+                const model = String(product.model);
+                if (!groups[colorHex]) {
+                    groups[colorHex] = {};
                 }
-                if (value == range.max && idx < array.length - 1) {
-                    if (array[idx+1].min == range.max) {
-                        return range.priority >= array[idx+1].priority;
-                    }
+                if (!groups[colorHex][model]) {
+                    groups[colorHex][model] = [];
                 }
-                return value >= range.min && value <= range.max;
+                groups[colorHex][model].push(product.id);
             });
+        });
 
-            const groupsInRange: Record<string, {source:HeatmapSource, product: {id:number, model:number}}[]> = inRange
-            .flatMap(source => source.products.map(product => ({ product, source })))
-            .reduce((groups, item) => {
-                const key = item.product.model;
-                if (!groups[key]) {
-                  groups[key] = [];
-                }
-                groups[key].push(item);
-                return groups;
-              }, {});
-
-            result.push({
-                color: range.color,
-                sources: groupsInRange
-            });
-
-
-            return result;
-        }, initial).filter(r => Object.entries(r.sources).length > 0);
-
-
-        ranges.forEach(range => {
-
-            Object.entries(range.sources).forEach(([model, val]) => {
-                let productsIds: number[] = val.map(p => p.product.id);
-                this._viewer.setStyle(this._colorStylesMap[range.color], productsIds, Number(model));
-                this._viewer.addState(State.XRAYVISIBLE, productsIds, Number(model));
+        Object.keys(groups).forEach(colorHex => {
+            const models = groups[colorHex];
+            Object.keys(models).forEach(model => {
+                const products = models[model];
+                this._viewer.setStyle(this._colorStylesMap[colorHex], products, Number(model));
+                this._viewer.addState(State.XRAYVISIBLE, products, Number(model));
             });
         });
     }
@@ -267,97 +229,43 @@ export class Heatmap implements IPlugin {
             this._nextStyleId++;
         });
 
-        const maps = (sources ?? this._sources).filter(s => s.channelId == channel.channelId).map(m => {
-            const srcValue = Number(m.value);
-            if (isNaN(srcValue))
-                return null;;
-            return {
-                map: m,
-                clampedValue: this.clamp((srcValue - channel.min) / (channel.max - channel.min), channel.min, channel.max)
-            }
-        }).filter(m => m != null);
-
-        const ranges: Record<string, {source: {map: HeatmapSource, clampedValue:number }, product: {id:number, model:number}}[]> = maps
-        .flatMap(source => source.map.products.map(product => ({ product, source })))
-        .reduce((groups, item) => {
-            const key = `${item.source.clampedValue}-${item.product.id}`;
-            if (!groups[key]) {
-              groups[key] = [];
-            }
-            groups[key].push(item);
-            return groups;
-          }, {});
-          
-        Object.entries(ranges).forEach(([key, val]) => {
-            const value = val[0].source.clampedValue;
-            const modelId: number = val[0].product.model;
-            let products: number[] =  val.map(p => p.product.id);
-            
-            if (this._valueStylesMap[value]) {
-                var style = this._valueStylesMap[value];
-                this._viewer.setStyle(style, products, modelId);
-                this._viewer.addState(State.XRAYVISIBLE, products, modelId)
+        const maps = (sources ?? this._sources).filter(source => source.channelId == channel.channelId && source.products.length > 0);
+        const groups: Record<string, Record<string, number[]>> = {};
+        maps.forEach(source => {
+            const colorHex = channel.getColor(source.value);
+            if (colorHex === undefined) {
                 return;
             }
 
-            var rgba = this.interpolateColor(channel.colorGradient, value);
-            var colorHex = this.rgbaToHex(rgba[0], rgba[1], rgba[2], rgba[3]);
-
-            if (this._colorStylesMap[colorHex]) {
-                this._viewer.setStyle(this._colorStylesMap[colorHex], products, modelId);
-                this._viewer.addState(State.XRAYVISIBLE, products, modelId)
-                return;
-            }
-
-            this._viewer.defineStyle(this._nextStyleId, rgba);
-            this._colorStylesMap[colorHex] = this._nextStyleId;
-            this._valueStylesMap[value] = this._nextStyleId;
-            this._viewer.setStyle(this._nextStyleId, products, modelId);
-            this._viewer.addState(State.XRAYVISIBLE, products, modelId)
-            this._nextStyleId++;
+            source.products.forEach(product => {
+                const model = String(product.model);
+                if (!groups[colorHex]) {
+                    groups[colorHex] = {};
+                }
+                if (!groups[colorHex][model]) {
+                    groups[colorHex][model] = [];
+                }
+                groups[colorHex][model].push(product.id);
+            });
         });
-    }
 
-    private interpolateColor(hexColors: string[], t: number): number[] {
-        const n = hexColors.length;
-        if (n === 0) {
-            const msg = 'Color array cannot be empty.';
-            console.error(msg);
-            throw new Error(msg);
-        }
-        if (t <= 0) return this.hexToRgba(hexColors[0]);
-        if (t >= 1) return this.hexToRgba(hexColors[n - 1]);
+        Object.keys(groups).forEach(colorHex => {
+            const models = groups[colorHex];
+            let style = this._colorStylesMap[colorHex];
+            if (!style) {
+                const rgba = this.hexToRgba(colorHex);
+                this._viewer.defineStyle(this._nextStyleId, rgba);
+                style = this._nextStyleId;
+                this._colorStylesMap[colorHex] = style;
+                this._nextStyleId++;
+            }
 
-        const scaledT = t * (n - 1);
-        const startIndex = Math.floor(scaledT);
-        const endIndex = Math.ceil(scaledT);
-        const segmentT = scaledT - startIndex;
-
-        const startRgb = this.hexToRgba(hexColors[startIndex]);
-        const endRgb = this.hexToRgba(hexColors[endIndex]);
-
-        return this.interpolateColorSegment(startRgb, endRgb, segmentT);
-    }
-
-    private interpolateColorSegment(startRgb: number[], endRgb: number[], t: number): number[] {
-        const r = Math.round(startRgb[0] + (endRgb[0] - startRgb[0]) * t);
-        const g = Math.round(startRgb[1] + (endRgb[1] - startRgb[1]) * t);
-        const b = Math.round(startRgb[2] + (endRgb[2] - startRgb[2]) * t);
-        const a = Math.round(startRgb[3] + (endRgb[3] - startRgb[3]) * t);
-        return [r, g, b, a];
-    }
-
-    private componentToHex(component: number): string {
-        const hex = component.toString(16);
-        return hex.length === 1 ? '0' + hex : hex;
-    }
-
-    private rgbaToHex(r: number, g: number, b: number, a: number): string {
-        r = Math.max(0, Math.min(255, r));
-        g = Math.max(0, Math.min(255, g));
-        b = Math.max(0, Math.min(255, b));
-        a = Math.max(0, Math.min(255, a));
-        return `#${this.componentToHex(r)}${this.componentToHex(g)}${this.componentToHex(b)}${this.componentToHex(a)}`;
+            Object.keys(models).forEach(model => {
+                const products = models[model];
+                this._viewer.setStyle(style, products, Number(model));
+                this._viewer.addState(State.XRAYVISIBLE, products, Number(model));
+            });
+        });
     }
 
     private hexToRgba(hex: string, alpha: number = 1): number[] {
@@ -389,10 +297,6 @@ export class Heatmap implements IPlugin {
         }
 
         return [r, g, b, a];
-    }
-
-    private clamp(value: number, min: number, max: number) {
-        return Math.max(min, Math.min(max, value));
     }
 
     private groupBy<T>(array: Array<T>, keyFunc: (item: T) => string): Array<Array<T>> {

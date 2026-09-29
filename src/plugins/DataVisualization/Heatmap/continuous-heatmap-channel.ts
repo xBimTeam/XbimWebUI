@@ -175,6 +175,79 @@ export class ContinuousHeatmapChannel implements IHeatmapChannel {
         this._colorGradient = value;
     }
 
+    public getColor(value: any): string | undefined {
+        const numericValue = Number(value);
+        if (isNaN(numericValue)) {
+            return undefined;
+        }
+        if (this._colorGradient.length === 0) {
+            throw new Error("Color array cannot be empty.");
+        }
+
+        const normalizedValue = this.clamp((numericValue - this._min) / (this._max - this._min), this._min, this._max);
+        const color = this.interpolateColor(normalizedValue);
+        return this.rgbaToHex(color);
+    }
+
+    private interpolateColor(value: number): number[] {
+        const lastIndex = this._colorGradient.length - 1;
+        if (value <= 0) {
+            return this.hexToRgba(this._colorGradient[0]);
+        }
+        if (value >= 1) {
+            return this.hexToRgba(this._colorGradient[lastIndex]);
+        }
+
+        const scaledValue = value * lastIndex;
+        const startIndex = Math.floor(scaledValue);
+        const endIndex = Math.ceil(scaledValue);
+        const segmentValue = scaledValue - startIndex;
+        const startColor = this.hexToRgba(this._colorGradient[startIndex]);
+        const endColor = this.hexToRgba(this._colorGradient[endIndex]);
+
+        return startColor.map((component, index) => Math.round(component + (endColor[index] - component) * segmentValue));
+    }
+
+    private hexToRgba(hex: string): number[] {
+        hex = hex.replace(/^#/, "");
+        let r: number, g: number, b: number, a: number;
+
+        if (hex.length === 3) {
+            r = parseInt(hex.charAt(0) + hex.charAt(0), 16);
+            g = parseInt(hex.charAt(1) + hex.charAt(1), 16);
+            b = parseInt(hex.charAt(2) + hex.charAt(2), 16);
+            a = 255;
+        } else if (hex.length === 6) {
+            r = parseInt(hex.substring(0, 2), 16);
+            g = parseInt(hex.substring(2, 4), 16);
+            b = parseInt(hex.substring(4, 6), 16);
+            a = 255;
+        } else if (hex.length === 8) {
+            r = parseInt(hex.substring(0, 2), 16);
+            g = parseInt(hex.substring(2, 4), 16);
+            b = parseInt(hex.substring(4, 6), 16);
+            a = parseInt(hex.substring(6, 8), 16);
+        } else {
+            throw new Error(`Invalid hex color '${hex}'`);
+        }
+
+        return [r, g, b, a];
+    }
+
+    private componentToHex(component: number): string {
+        const hex = component.toString(16);
+        return hex.length === 1 ? "0" + hex : hex;
+    }
+
+    private rgbaToHex(color: number[]): string {
+        const components = color.map(component => Math.max(0, Math.min(255, component)));
+        return `#${components.map(component => this.componentToHex(component)).join("")}`;
+    }
+
+    private clamp(value: number, min: number, max: number): number {
+        return Math.max(min, Math.min(max, value));
+    }
+
      /**
      * Gets a boolean value indicating if this channel is enabled
      * @returns {boolean} a value indicates if this channel is enabled.

@@ -135,6 +135,15 @@ export class DiscreteHeatmapChannel implements IHeatmapChannel {
         return this._values;
     }
 
+    public getColor(value: any): string | undefined {
+        const stringValue = value.toString();
+        if (this._dataType === "string") {
+            const matchingKey = Object.keys(this._values).find(key => key.toLowerCase() === stringValue.toLowerCase());
+            return matchingKey === undefined ? undefined : this._values[matchingKey];
+        }
+        return this._values[stringValue];
+    }
+
     /**
      * Gets a boolean value indicating if this channel is enabled
      * @returns {boolean} a value indicates if this channel is enabled.

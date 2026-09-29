@@ -121,7 +121,7 @@ viewer.on('loaded', args => {
         
         createHeatMapSourceAndIcons(individualSpaces, temperatureChannelId, "Temperature sensor", IconsData.temperatureIcon, true, 20, true);
         createHeatMapSourceAndIcons(individualSpaces, energyChannelId, "Energy sensor", IconsData.successIcon, true, 1.5);
-        createHeatMapSourceAndIcons(spaceZones, humidityChannelId, "Humidity sensor", IconsData.successIcon, true, 50);
+        createHeatMapSourceAndIcons(individualSpaces, humidityChannelId, "Humidity sensor", IconsData.successIcon, true, 50, true);
         createHeatMapSourceAndIcons(spaceZones, presenceChannelId, "Occupancy sensor", IconsData.defaultIcon, false, "Vacant");
         createHeatMapSourceAndIcons(individualElements, alarmChannelId, "Alarm", IconsData.errorIcon, true, "OK", false);
         createHeatMapSourceAndIcons(individualElements, alertClusteredChannelId, "Alert", IconsData.errorIcon, true, "OK", true);
@@ -245,8 +245,8 @@ function updateIcon(icon: Icon, channel: IHeatmapChannel, source: HeatmapSource)
     if(icon == null) return;
     icon.description = `<b>Room</b> ${channel.name}: ${source.value}<sup>${channel.unit}</super>`;
     if (icon instanceof ClusterIcon) {
-        icon.categoryColor = channel instanceof DiscreteHeatmapChannel
-            ? channel.values[String(source.value)] || null
+        icon.categoryColor = channel instanceof DiscreteHeatmapChannel || channel instanceof ValueRangesHeatmapChannel
+            ? channel.getColor(source.value) || null
             : null;
     }
     icon.value = source.value;

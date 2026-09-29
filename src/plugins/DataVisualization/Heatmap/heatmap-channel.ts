@@ -50,6 +50,13 @@ export interface IHeatmapChannel {
      * A value indicates if this channel is enabled or not
      */
     isEnabled: boolean;
+
+    /**
+     * Gets the hex color for a supplied channel value, if it has a mapping.
+     * @param value - The value to resolve.
+     * @returns The hex color, or undefined when the value has no mapping.
+     */
+    getColor(value: any): string | undefined;
 }
 
 /**

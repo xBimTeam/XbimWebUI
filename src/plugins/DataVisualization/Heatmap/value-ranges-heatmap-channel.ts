@@ -245,6 +245,28 @@ export class ValueRangesHeatmapChannel implements IHeatmapChannel {
         this._ranges = value;
     }
 
+    public getColor(value: any): string | undefined {
+        const numericValue = Number(value);
+        if (isNaN(numericValue)) {
+            return undefined;
+        }
+
+        let color: string | undefined;
+        this._ranges.forEach((range, index, ranges) => {
+            let inRange = numericValue >= range.min && numericValue <= range.max;
+            if (numericValue == range.min && index > 0 && ranges[index - 1].max == range.min) {
+                inRange = range.priority >= ranges[index - 1].priority;
+            } else if (numericValue == range.max && index < ranges.length - 1 && ranges[index + 1].min == range.max) {
+                inRange = range.priority >= ranges[index + 1].priority;
+            }
+            if (inRange) {
+                color = range.color;
+            }
+        });
+
+        return color;
+    }
+
      /**
      * Gets a boolean value indicating if this channel is enabled
      * @returns {boolean} a value indicates if this channel is enabled.

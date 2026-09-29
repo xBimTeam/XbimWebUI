@@ -499,7 +499,7 @@ export class Icons implements IPlugin {
         { type: 'numeric', text: string } |
         { type: 'categorical', categories: { value: string, count: number, color: string }[] } |
         { type: 'none' } {
-        if (icons.length > 0 && icons.every(icon => typeof icon.value !== 'number')) {
+        if (icons.length > 0 && icons.every(icon => icon.categoryColor !== null)) {
             const categoryCounts = new Map<string, { count: number, color: string | null }>();
             icons.forEach(icon => {
                 const value = icon.value == null ? 'Unknown' : String(icon.value);
