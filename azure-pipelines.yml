@@ -18,10 +18,10 @@ steps:
     versionSource: 'spec'
     version: '26.x'
 
-- task: npmAuthenticate@0
-  displayName: Authenticate via NPM
-  inputs:
-    workingFile: $(Build.SourcesDirectory)/.npmrc
+# - task: npmAuthenticate@0
+#   displayName: Authenticate via NPM
+#   inputs:
+#     workingFile: $(Build.SourcesDirectory)/.npmrc
 
 - script: |
     npm install
@@ -38,6 +38,6 @@ steps:
 - task: Npm@1
   displayName: 'Publish to NPM'
   inputs:
-    command: 'custom'
+    command: 'publish'
     workingDir: 'dist'
-    customCommand: 'stage publish --tag=beta'
+    publishEndpoint: 'npm @xbim organisation'
