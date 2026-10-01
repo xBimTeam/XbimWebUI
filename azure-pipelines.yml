@@ -18,6 +18,11 @@ steps:
     versionSource: 'spec'
     version: '26.x'
 
+- task: npmAuthenticate@0
+  displayName: Authenticate via NPM
+  inputs:
+    workingFile: $(Build.SourcesDirectory)/.npmrc
+
 - script: |
     npm install
     npm run build
