@@ -35,4 +35,4 @@ steps:
   inputs:
     command: 'custom'
     workingDir: 'dist'
-    customCommand: 'stage publish'
+    customCommand: 'stage publish --tag=beta'
