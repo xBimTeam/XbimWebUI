@@ -32,5 +32,5 @@ jobs:
         run: npm run build
 
       - name: Publish to npmjs
-        run: npm publish --tag=beta
+        run: npm publish --access public --tag=beta
         working-directory: dist
