@@ -16,7 +16,7 @@ steps:
   displayName: 'Install Node.js'
   inputs:
     versionSource: 'spec'
-    version: '22.x'
+    version: '26.x'
 
 - script: |
     npm install
