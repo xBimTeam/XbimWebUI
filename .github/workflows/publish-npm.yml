@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - master
+      - fix/npm
 
 jobs:
   publish:
@@ -14,16 +15,16 @@ jobs:
       id-token: write
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '26.x'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Ensure npm supports trusted publishing
-        run: npm install --global 'npm@^11.5.1'
+        run: npm install --global 'npm@^11.15.0'
 
       - name: Install dependencies
         run: npm install
@@ -32,7 +33,5 @@ jobs:
         run: npm run build
 
       - name: Publish to npmjs
-        run: npm publish --access public --tag=beta
+        run: npm stage publish --access public --tag=beta
         working-directory: dist
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
