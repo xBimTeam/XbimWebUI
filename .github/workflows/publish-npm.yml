@@ -35,5 +35,3 @@ jobs:
       - name: Publish to npmjs
         run: npm publish --access public --tag=beta
         working-directory: dist
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
