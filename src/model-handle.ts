@@ -959,7 +959,7 @@ export class ModelHandle {
             this.isolatedProducts.forEach(i => isolated[i] = true);
         }
 
-        Object.getOwnPropertyNames(this._model.productMaps).forEach((n) => {
+        Object.keys(this._model.productMaps).forEach((n) => {
             const map: ProductMap = this._model.productMaps[n];
             if (map.states.indexOf(state) === -1) {
                 return;
