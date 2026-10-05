@@ -4,7 +4,7 @@
   "license": "CDDL-1.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/xBimTeam/XbimWebUI"
+    "url": "git+https://github.com/xBimTeam/XbimWebUI.git"
   },
   "author": {
     "email": "info@xbim.net",
