@@ -404,7 +404,7 @@ export class Heatmap implements IPlugin {
         }, seed);
 
         const resultSeed: Array<Array<T>> = [];
-        return Object.getOwnPropertyNames(groups).reduce((array, key) => { array.push(groups[key]); return array; }, resultSeed);
+        return Object.keys(groups).reduce((array, key) => { array.push(groups[key]); return array; }, resultSeed);
     };
 
     public onAfterDraw(width: number, height: number): void {

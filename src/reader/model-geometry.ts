@@ -359,7 +359,7 @@ export class ModelGeometry {
 
             // manage breakpoints
             var percent = (this._iIndexForward + this.indices.length - this._iIndexBackward) / this.indices.length * 100;
-            Object.getOwnPropertyNames(this.breaks).forEach(bp => {
+            Object.keys(this.breaks).forEach(bp => {
                 const breakPoint = +bp;
                 if (this.breaks[breakPoint].length === 0 && percent > breakPoint) {
                     this.breaks[breakPoint] = [this._iIndexForward, this._iIndexBackward]

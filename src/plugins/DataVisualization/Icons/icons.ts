@@ -279,7 +279,7 @@ export class Icons implements IPlugin {
             const planeB = b? this.transformPlane(this._viewer.getClip()?.PlaneB, wcs) : null;
             const box = this._viewer.sectionBox.getBoundingBox(wcs);
 
-            Object.getOwnPropertyNames(this._instances).forEach(k => {
+            Object.keys(this._instances).forEach(k => {
                 let iconLabel = document.getElementById('icon' + k);
                 const icon: Icon = this._instances[k];
                 if(iconLabel && icon && icon.location && icon.isEnabled){

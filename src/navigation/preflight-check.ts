@@ -96,7 +96,7 @@ export class PreflightCheck {
                 return c
             }, { count: 0, types: {} }));
             // multiply number of objects hit by number of hits. It is better to see more objects in the view than one large
-            const ratings = ratingTypes.map(c => c.count * Math.pow(Object.getOwnPropertyNames(c.types).length, 2));
+            const ratings = ratingTypes.map(c => c.count * Math.pow(Object.keys(c.types).length, 2));
 
             let maxIdx = 0;
             let maxRating = 0;
