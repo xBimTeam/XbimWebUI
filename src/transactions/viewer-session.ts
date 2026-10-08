@@ -28,9 +28,9 @@ export class ViewerSession extends Session {
      */
     public get selection(): { id: number, modelId: number }[] {
         const result: { id: number, modelId: number }[] = [];
-        Object.getOwnPropertyNames(this._selection).forEach(name => {
+        Object.keys(this._selection).forEach(name => {
             const modelId = parseInt(name, 10);
-            Object.getOwnPropertyNames(this._selection[modelId]).forEach(idString => {
+            Object.keys(this._selection[modelId]).forEach(idString => {
                 const id = parseInt(idString, 10);
                 // get actual current state
                 var state = this.viewer.getState(id, modelId);
@@ -46,12 +46,12 @@ export class ViewerSession extends Session {
 
     private getSelectionClone(): { [modelId: number]: { [id: number]: State; }; } {
         var result: { [modelId: number]: { [id: number]: State; }; } = {};
-        Object.getOwnPropertyNames(this._selection).forEach(name => {
+        Object.keys(this._selection).forEach(name => {
             const modelId = parseInt(name, 10);
             if (!result[modelId]) {
                 result[modelId] = {};
             }
-            Object.getOwnPropertyNames(this._selection[modelId]).forEach(idString => {
+            Object.keys(this._selection[modelId]).forEach(idString => {
                 const id = parseInt(idString, 10);
                 result[modelId][id] = this._selection[modelId][id];
             });
@@ -116,9 +116,9 @@ export class ViewerSession extends Session {
         });
 
         const doAction = () => {
-            Object.getOwnPropertyNames(oldSelection).forEach(name => {
+            Object.keys(oldSelection).forEach(name => {
                 const modelId = parseInt(name, 10);
-                Object.getOwnPropertyNames(oldSelection[modelId]).forEach(idString => {
+                Object.keys(oldSelection[modelId]).forEach(idString => {
                     const id = parseInt(idString, 10);
                     const state = oldSelection[modelId][id];
                     if (!newSelection[modelId] || !newSelection[modelId][id]) {
@@ -126,9 +126,9 @@ export class ViewerSession extends Session {
                     }
                 });
             });
-            Object.getOwnPropertyNames(newSelection).forEach(name => {
+            Object.keys(newSelection).forEach(name => {
                 const modelId = parseInt(name, 10);
-                Object.getOwnPropertyNames(newSelection[modelId]).forEach(idString => {
+                Object.keys(newSelection[modelId]).forEach(idString => {
                     const id = parseInt(idString, 10);
                     this.viewer.setState(State.HIGHLIGHTED, [id], modelId);
                 });
@@ -146,9 +146,9 @@ export class ViewerSession extends Session {
             super.fire('selection', this.selection );
         };
         const undoAction = () => {
-            Object.getOwnPropertyNames(newSelection).forEach(name => {
+            Object.keys(newSelection).forEach(name => {
                 const modelId = parseInt(name, 10);
-                Object.getOwnPropertyNames(newSelection[modelId]).forEach(idString => {
+                Object.keys(newSelection[modelId]).forEach(idString => {
                     const id = parseInt(idString, 10);
                     const state = newSelection[modelId][id];
                     if (!oldSelection[modelId] || !oldSelection[modelId][id]) {
@@ -156,9 +156,9 @@ export class ViewerSession extends Session {
                     }
                 });
             });
-            Object.getOwnPropertyNames(oldSelection).forEach(name => {
+            Object.keys(oldSelection).forEach(name => {
                 const modelId = parseInt(name, 10);
-                Object.getOwnPropertyNames(oldSelection[modelId]).forEach(idString => {
+                Object.keys(oldSelection[modelId]).forEach(idString => {
                     const id = parseInt(idString, 10);
                     this.viewer.setState(State.HIGHLIGHTED, [id], modelId);
                 });
@@ -177,9 +177,9 @@ export class ViewerSession extends Session {
      */
     public get hidden(): { id: number, modelId: number }[] {
         const result: { id: number, modelId: number }[] = [];
-        Object.getOwnPropertyNames(this._hidden).forEach(name => {
+        Object.keys(this._hidden).forEach(name => {
             const modelId = parseInt(name, 10);
-            Object.getOwnPropertyNames(this._hidden[modelId]).forEach(idString => {
+            Object.keys(this._hidden[modelId]).forEach(idString => {
                 const id = parseInt(idString, 10);
                 // get actual current state
                 var state = this.viewer.getState(id, modelId);

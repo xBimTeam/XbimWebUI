@@ -696,7 +696,7 @@ export class Icons implements IPlugin {
 
 
     private renderSingleIcons(planeA: Float32Array | null, planeB: Float32Array | null, box: Float32Array, modelView: mat4, viewProjection: mat4, depthRange: { min: number, max: number }) {
-        Object.getOwnPropertyNames(this._instances).forEach(k => {
+        Object.keys(this._instances).forEach(k => {
             const icon: Icon = this._instances[k];
             if (icon instanceof ClusterIcon) return;
             let iconLabel = document.getElementById('icon' + k);

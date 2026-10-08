@@ -1073,7 +1073,7 @@ export class Viewer {
     * @param {Object} settings - Object containing key - value pairs
     */
     public set(settings: Partial<Viewer>): void {
-        Object.getOwnPropertyNames(settings).forEach((key) => {
+        Object.keys(settings).forEach((key) => {
             this[key] = settings[key];
         });
     }
@@ -2963,7 +2963,7 @@ export class Viewer {
                 this.isolate([0], h.id);
             });
 
-        Object.getOwnPropertyNames(modelGroups).forEach(idStr => {
+        Object.keys(modelGroups).forEach(idStr => {
             const productIds = modelGroups[idStr];
             const modelId: number = +idStr;
             this.isolate(productIds, modelId);
