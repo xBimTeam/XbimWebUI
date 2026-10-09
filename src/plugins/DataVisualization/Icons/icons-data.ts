@@ -105,7 +105,8 @@ export abstract class IconData{
             z-index: 1000000000;
             transition: opacity 0.5s ease-in-out, height 0.5s ease-in-out;
             animation: opacityAnimate 0.5s;
-            filter: drop-shadow(rgb(178, 178, 178) 0px 1px 0px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            pointer-events: auto;
         }
 
         @keyframes opacityAnimate {
@@ -118,11 +119,19 @@ export abstract class IconData{
             display: flex;
             flex-direction: row;
         }
+
+        #floatdetails #floatBody {
+            max-height: 400px;
+            overflow-y: auto;
+            user-select: auto;
+        }
         
         #floatdetails #floatTitle {
             font-weight: 600;
             color: #090e49;
             margin-bottom: 5px;
+            word-wrap: anywhere;
+            max-width: 18rem;
         }
         
         #floatdetails #floatCloseBtn {

@@ -38,9 +38,14 @@ function createHeatMapSourceAndIcons(products: {id: number, model: number}[][], 
         const onIconSelected = () => {
             viewer.zoomTo(e, 1)
         };
+
+        const onIconDeselected = () => {
+            console.log(`Icon deselected for ${name}`);
+            viewer.show(ViewType.DEFAULT);
+        };
         return clusterable
-            ? new ClusterIcon(name, description, initialValue.toString(), e, iconData, null, null, null, onIconSelected, displayValue, initialValue, channelId)
-            : new Icon(name, description, initialValue.toString(), e, iconData, null, null, null, onIconSelected, displayValue, initialValue);
+            ? new ClusterIcon(name, description, initialValue.toString(), e, iconData, null, null, null, onIconSelected, displayValue, initialValue, channelId, onIconDeselected)
+            : new Icon(name, description, initialValue.toString(), e, iconData, null, null, null, onIconSelected, displayValue, initialValue, '', onIconDeselected);
     }); 
 }
 
