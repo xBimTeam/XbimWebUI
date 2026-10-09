@@ -20,6 +20,7 @@ export class Icon {
     private _enabled: boolean;
     private _displayValue: boolean;
     private _onIconSelected: () => void;
+    private _onIconDeselected: () => void
     
     private _movementQueue: Array<{ location: Float32Array; speed: number }> = [];
     private _isMoving: boolean = false;
@@ -37,6 +38,9 @@ export class Icon {
      * @param {number | null} [height=null] - The height of the icon. If null, default height is used.
      * @param {() => void} [onIconSelected=null] - Callback function to be executed when the icon is selected.
      * @param {boolean} [displayValue=true] - Whether the value should be displayed for this icon
+     * @param [value=undefined] The raw value of the icon
+     * @param [unit=''] - The unit associated with the icon's value.
+     * @param {() => void} [onIconDeselected=null] - Callback function to be executed when the icon is deselected.
      * @example
      * const icon = new Icon('Sample Icon', 'This is a sample icon.', 1, 101, 'imageDataString', new Float32Array([0, 0, 0]), 100, 100, () => console.log('Icon selected'));
      */
@@ -49,10 +53,11 @@ export class Icon {
         location: Float32Array | null = null,
         width: number | null = null,
         height: number | null = null,
-        onIconSelected: () => void = null,
+        onIconSelected: () => void = () => {},
         displayValue: boolean = true,
         value: any = undefined,
-        unit: string = ''
+        unit: string = '',
+        onIconDeselected: () => void = () => {},
     ) {
         this._products = products;
         this._imageData = imageData;
@@ -65,6 +70,7 @@ export class Icon {
         this._value = value;
         this._unit = unit;
         this._onIconSelected = onIconSelected;
+        this._onIconDeselected = onIconDeselected;
         this._displayValue = displayValue;
         this._enabled = true;
     }
@@ -239,6 +245,22 @@ export class Icon {
     }
 
     /**
+     * Gets the callback function to be executed when the icon is deselected.
+     * @returns {() => void} The callback function.
+     */
+    public get onIconDeselected(): () => void {
+        return this._onIconDeselected;
+    }
+
+    /**
+     * Sets the callback function to be executed when the icon is deselected or the floating panel is closed
+     * @param {() => void} callback - The callback function.
+     */
+    public set onIconDeselected(callback: () => void) {
+        this._onIconDeselected = callback;
+    }
+
+    /**
      * Gets a boolean value indicating if this icon is enabled
      * @returns {boolean} a value indicates if this icon is enabled.
      */
@@ -324,10 +346,11 @@ export class ClusterIcon extends Icon {
         location: Float32Array | null = null,
         width: number | null = null,
         height: number | null = null,
-        onIconSelected: () => void = null,
+        onIconSelected: () => void = () => {},
         displayValue: boolean = true,
         value: unknown = undefined,
-        unit: string = ''
+        unit: string = '',
+        onIconDeselected: () => void = () => {},
     ) {
         super(
             name,
@@ -341,7 +364,8 @@ export class ClusterIcon extends Icon {
             onIconSelected,
             displayValue,
             value,
-            unit
+            unit, 
+            onIconDeselected
         );
     }
 }

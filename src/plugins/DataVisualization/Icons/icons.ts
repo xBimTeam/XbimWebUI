@@ -321,6 +321,7 @@ export class Icons implements IPlugin {
     }
 
     private closeFloatingBox(){
+        if(this._selectedIcon) this._selectedIcon.onIconDeselected();
         this._selectedIcon = null;
         this.render();
     }
