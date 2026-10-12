@@ -7,7 +7,7 @@ export * from './src/viewer';
 export * from './src/camera';
 export * from './src/section-box';
 export * from './src/framebuffer';
-export { EasingType } from './src/navigation/animations';
+export { EasingType, TransitionMode, ViewState } from './src/navigation/animations';
 export * from "./src/plugins/NavigationCube/navigation-cube";
 export * from "./src/plugins/Grid/grid";
 export * from "./src/plugins/LoaderOverlay/loader-overlay";

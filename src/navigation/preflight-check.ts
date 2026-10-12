@@ -1,9 +1,10 @@
 import { Viewer } from "../viewer";
 import { vec3, mat4 } from "gl-matrix";
 import { VectorUtils } from "../common/vector-utils";
+import { ViewState } from "./animations";
 
 export class PreflightCheck {
-    public static findView(viewer: Viewer, elements: { id: number, model: number }[], density: number): { mv: mat4, height: number } {
+    public static findView(viewer: Viewer, elements: { id: number, model: number }[], density: number): ViewState | null {
         if (elements == null || elements.length === 0)
             return null;
 
@@ -103,11 +104,12 @@ export class PreflightCheck {
             let maxRating = 0;
             ratings.forEach((r, idx) => { if (r > maxRating) { maxRating = r; maxIdx = idx; } });
 
-            return maxRating > 0 ? { mv: mvs[maxIdx], height: optimal[maxIdx].height } : null;
+            return maxRating > 0 ? { mv: mvs[maxIdx], height: optimal[maxIdx].height, target: center } : null;
         }
         catch(ex)
         {
             console.error(ex);
+            return null;
         }
         finally {
             viewer.mvMatrix = originalMv;

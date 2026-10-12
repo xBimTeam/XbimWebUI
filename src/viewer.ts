@@ -1842,7 +1842,7 @@ export class Viewer {
         vec3.add(eye, translation, origin);
 
         var mv = mat4.lookAt(mat4.create(), eye, origin, heading);
-        return this.animations.viewTo({ mv: mv, height: distAndWidth.height }, duration);
+        return this.animations.viewTo({ mv: mv, height: distAndWidth.height, target: origin }, duration);
     }
 
     /**
@@ -1902,7 +1902,7 @@ export class Viewer {
 
         // use look-at function to set up camera and target
         const mv = mat4.lookAt(mat4.create(), camera, origin, heading);
-        return this.animations.viewTo({ mv: mv, height: distAndWidth.height }, duration);
+        return this.animations.viewTo({ mv: mv, height: distAndWidth.height, target: origin }, duration);
     }
 
     /**

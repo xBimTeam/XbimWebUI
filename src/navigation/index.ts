@@ -1,2 +1,2 @@
 export * from './camera-adjustment';
-export { EasingType, Animations } from './animations';
+export { EasingType, TransitionMode, ViewState, Animations } from './animations';

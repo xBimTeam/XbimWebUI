@@ -469,7 +469,7 @@ export class NavigationCube implements IPlugin {
 
             // use look-at function to set up camera and target
             let mv = mat4.lookAt(mat4.create(), camera, origin, heading);
-            this.viewer.animations.viewTo({ mv: mv, height: widthAndDistance.height }, this.viewer.zoomDuration);
+            this.viewer.animations.viewTo({ mv: mv, height: widthAndDistance.height, target: origin }, this.viewer.zoomDuration);
         });
 
         this._initialized = true;
