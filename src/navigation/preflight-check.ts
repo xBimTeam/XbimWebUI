@@ -59,6 +59,7 @@ export class PreflightCheck {
         const originalMv = viewer.mvMatrix;
         const originalHeight = viewer.cameraProperties.height;
         const originalAdaptive = viewer.adaptivePerformanceOn;
+        viewer.setNearAndFarFromCurrentModels();
         try {
             viewer.adaptivePerformanceOn = false;
             const center = vec3.fromValues(bBox[0] + bBox[3] / 2.0, bBox[1] + bBox[4] / 2.0, bBox[2] + bBox[5] / 2.0);
@@ -106,7 +107,7 @@ export class PreflightCheck {
         }
         catch(ex)
         {
-console.error(ex);
+            console.error(ex);
         }
         finally {
             viewer.mvMatrix = originalMv;
