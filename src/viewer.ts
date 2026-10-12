@@ -215,7 +215,7 @@ export class Viewer {
     /**
      * Number of milliseconds for animated zooming
      */
-    public zoomDuration: number = 1000;
+    public zoomDuration: number = 2000;
 
     /**
      * Animations functionality

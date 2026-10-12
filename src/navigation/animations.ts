@@ -16,6 +16,12 @@ export enum EasingType {
  */
 export class Animations {
 
+    /**
+     * Easing applied to view transitions (see {@link Animations#viewTo}). Can be changed at any time,
+     * e.g. `viewer.animations.easing = EasingType.LINEAR`. Applies to transitions started after it is set.
+     */
+    public easing: EasingType = EasingType.SINUS2;
+
     private requestAnimationFrame: (callback: FrameRequestCallback) => number;
     private setTimeout: (callback: () => void, offset: number) => void;
 
@@ -78,10 +84,12 @@ export class Animations {
      * 
      * @param end Target model view matrix
      * @param duration Duration of the transition in milliseconds
+     * @param easing Deprecated - set {@link Animations#easing} instead. Optional per-call override kept for backward compatibility; when null or omitted, {@link Animations#easing} is used.
      */
-    public viewTo(end: { mv: mat4, height: number }, duration: number, easing: EasingType = EasingType.SINUS2): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-
+    public viewTo(end: { mv: mat4, height: number },         duration: number, easing: EasingType = null): Promise<void> {
+            // capture so a change mid-transition doesn't cause a jump
+            const mode = easing ?? this.easing;
+            return new Promise<void>((resolve, reject) => {
             if (duration <= 0) { // no animation needed.
                 this.viewer.mvMatrix = end.mv;
                 this.viewer.cameraProperties.height = end.height;
@@ -141,7 +149,7 @@ export class Animations {
                     let state = (now - startTime) / duration;
 
                     // apply easing in and out
-                    switch (easing) {
+                    switch (mode) {
                         case EasingType.LINEAR:
                             // linear is the default
                             break;
