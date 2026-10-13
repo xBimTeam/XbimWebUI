@@ -19,6 +19,8 @@ export class Icon {
     private _unit: string;
     private _enabled: boolean;
     private _displayValue: boolean;
+    private _dirty = true;
+    private _valueDirty = true;
     private _onIconSelected: () => void;
     private _onIconDeselected: () => void
     
@@ -136,7 +138,10 @@ export class Icon {
      * @param {string} value - The new name of the icon.
      */
     public set name(value: string) {
-        this._name = value;
+        if (this._name !== value) {
+            this._name = value;
+            this._dirty = true;
+        }
     }
 
     /**
@@ -152,7 +157,18 @@ export class Icon {
      * @param {string} value - The new description of the icon.
      */
     public set description(value: string) {
-        this._description = value;
+        if (this._description !== value) {
+            this._description = value;
+            this._dirty = true;
+        }
+    }
+
+    public get isDirty(): boolean {
+        return this._dirty;
+    }
+
+    public clearDirty(): void {
+        this._dirty = false;
     }
 
     /**
@@ -168,7 +184,10 @@ export class Icon {
      * @param {string} value - The new value readout of the icon.
      */
     public set valueReadout(value: string) {
-        this._valueReadout = value;
+        if (this._valueReadout !== value) {
+            this._valueReadout = value;
+            this._valueDirty = true;
+        }
     }
 
     /**
@@ -184,7 +203,18 @@ export class Icon {
      * @param {string} value - The new value readout of the icon.
      */
     public set overlayValue(value: string) {
-        this._valueFormatted = value;
+        if (this._valueFormatted !== value) {
+            this._valueFormatted = value;
+            this._valueDirty = true;
+        }
+    }
+
+    public get isValueDirty(): boolean {
+        return this._valueDirty;
+    }
+
+    public clearValueDirty(): void {
+        this._valueDirty = false;
     }
 
 

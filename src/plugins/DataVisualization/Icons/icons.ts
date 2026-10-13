@@ -26,8 +26,12 @@ export class Icons implements IPlugin {
     private _floatBody: HTMLDivElement;
     private _instances : { [id: string] : Icon} = {}
     private _selectedIcon: Icon | undefined;
+    private _displayedDetailsIcon: Icon | undefined;
+    private _displayedDetailsName: string | undefined;
+    private _displayedDetailsDescription: string | undefined;
     private _floatingDetailsEnabled: boolean = true;
     private _iconsCount = 0;
+    private _renderedValueContents = new WeakMap<HTMLElement, string>();
     
     private _clusterElements: { element: HTMLDivElement, count: HTMLSpanElement, summary: HTMLSpanElement, products: { id: number, model: number }[] }[] = [];
     private _renderedIconElements: { element: HTMLElement, depth: number }[] = [];
@@ -353,8 +357,18 @@ export class Icons implements IPlugin {
             if(this._selectedIcon && this._selectedIcon.isEnabled && this._floatdetails && this._floatingDetailsEnabled) {
                 const position = this._viewer.getHtmlCoordinatesOfVector(this._selectedIcon.location);
                 if(position.length == 2 && this.isWithinNearFrustum(this._selectedIcon.location, viewProjection)) {
-                    this._floatTitle.textContent = this._selectedIcon.name;
-                    this._floatBody.innerHTML = this._selectedIcon.description;
+                    if (this._selectedIcon !== this._displayedDetailsIcon || this._selectedIcon.isDirty) {
+                        if (this._displayedDetailsName !== this._selectedIcon.name) {
+                            this._floatTitle.textContent = this._selectedIcon.name;
+                            this._displayedDetailsName = this._selectedIcon.name;
+                        }
+                        if (this._displayedDetailsDescription !== this._selectedIcon.description) {
+                            this._floatBody.innerHTML = this._selectedIcon.description;
+                            this._displayedDetailsDescription = this._selectedIcon.description;
+                        }
+                        this._selectedIcon.clearDirty();
+                        this._displayedDetailsIcon = this._selectedIcon;
+                    }
                     const posLeft = (position[0]) +(-this._floatdetails.clientWidth / 2) + 10;
                     const posTop =(position[1]) - (this._floatdetails.clientHeight + 24);
                     this._floatdetails.style.left = posLeft + 'px';
@@ -587,12 +601,22 @@ export class Icons implements IPlugin {
             image.style.transform = `scale(${depthScale})`;
         }
         if (!icon.isValueDisplayed) {
-            iconLabel.title = icon.valueReadout;
+            if (iconLabel.title !== icon.valueReadout) {
+                iconLabel.title = icon.valueReadout;
+            }
         }
         if (icon.valueReadout && icon.isValueDisplayed) {
             const valueDiv = document.getElementById('value-' + key);
             if (valueDiv) {
-                valueDiv.innerHTML = (icon.overlayValue || icon.valueReadout) ;
+                const valueContent = icon.overlayValue || icon.valueReadout;
+                const renderedValueContent = this._renderedValueContents.get(valueDiv);
+                if (icon.isValueDirty || renderedValueContent !== valueContent) {
+                    if (renderedValueContent !== valueContent) {
+                        valueDiv.innerHTML = valueContent;
+                        this._renderedValueContents.set(valueDiv, valueContent);
+                    }
+                    icon.clearValueDirty();
+                }
                 valueDiv.style.display = 'block';
                 valueDiv.style.top = (iconheight + 0) + 'px';
                 valueDiv.style.transform = `translateX(-50%) scale(${depthScale})`;
