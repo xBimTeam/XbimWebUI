@@ -5,3 +5,4 @@ export * from './product-identity';
 export * from './checkResult';
 export * from './viewer-event-map';
 export * from './product-analytical-result';
+export * from './space-rendering-mode';

@@ -9,6 +9,7 @@ import { BBox } from "./common/bbox";
 import { ProductType } from "./product-type";
 import { ProductAnalyticalResult } from "./common/product-analytical-result";
 import { VectorUtils } from "./common/vector-utils";
+import { SpaceRenderingMode } from "./common/space-rendering-mode";
 
 //this class holds pointers to textures, uniforms and data buffers which
 //make up a model in GPU
@@ -144,6 +145,8 @@ export class ModelHandle {
     private _clippingPlaneB: number[] = null;
     private _clippingA: boolean = false;
     private _clippingB: boolean = false;
+    private _spaceRenderingMode = SpaceRenderingMode.TRANSPARENT;
+    private _spaceAndOpeningSpans: Int32Array[] = [];
 
     private _glVersion: number = 1;
 
@@ -193,6 +196,13 @@ export class ModelHandle {
 
         this.meter = _model.meter;
         this.wcs = VectorUtils.getVec3(_model.wcs);
+        Object.keys(_model.productMaps).forEach((id) => {
+            const map = _model.productMaps[+id];
+            if (map.type === ProductType.IFCSPACE || map.type === ProductType.IFCOPENINGELEMENT) {
+                this._spaceAndOpeningSpans.push(...map.spans);
+            }
+        });
+        this._spaceAndOpeningSpans.sort((first, second) => first[0] - second[0]);
 
         // handle the case when there is actually nothing in the model
         if (_model.indices.length === 0) {
@@ -448,6 +458,75 @@ export class ModelHandle {
             return;
         }
 
+        if (this._spaceRenderingMode === SpaceRenderingMode.SOLID
+            && (mode === DrawMode.SOLID || mode === DrawMode.TRANSPARENT)) {
+            const divider = this._model.transparentIndex;
+            const solidEnd = percent == null || percent === 100 || this._model.breaks[percent] == null
+                ? divider
+                : this._model.breaks[percent][0] + 1;
+            const transparentStart = percent == null || percent === 100 || this._model.breaks[percent] == null
+                ? divider
+                : this._model.breaks[percent][1];
+            const drawingTransparent = mode === DrawMode.TRANSPARENT;
+
+            if (drawingTransparent) {
+                gl.depthMask(false);
+            }
+
+            if (maps != null) {
+                maps.forEach((map) => {
+                    const isSpaceOrOpening = map.type === ProductType.IFCSPACE || map.type === ProductType.IFCOPENINGELEMENT;
+                    map.spans.forEach((span) => {
+                        if (drawingTransparent) {
+                            if (!isSpaceOrOpening && span[0] >= divider) {
+                                drawArrays(span[0], span[1] - span[0]);
+                            }
+                        } else if (isSpaceOrOpening || span[1] <= divider) {
+                            drawArrays(span[0], span[1] - span[0]);
+                        }
+                    });
+                });
+            } else if (drawingTransparent) {
+                const spansToExclude = this._spaceAndOpeningSpans
+                    .filter((span) => span[0] >= divider);
+                let cursor = transparentStart;
+
+                spansToExclude.forEach((span) => {
+                    const start = Math.max(span[0], transparentStart);
+                    const end = Math.min(span[1], this._numberOfIndices);
+                    if (end <= cursor || start >= this._numberOfIndices) {
+                        return;
+                    }
+                    if (start > cursor) {
+                        drawArrays(cursor, start - cursor);
+                    }
+                    cursor = Math.max(cursor, end);
+                });
+                if (cursor < this._numberOfIndices) {
+                    drawArrays(cursor, this._numberOfIndices - cursor);
+                }
+            } else {
+                if (solidEnd > 0) {
+                    drawArrays(0, solidEnd);
+                }
+                this._spaceAndOpeningSpans.forEach((span) => {
+                    if (span[0] < divider) {
+                        return;
+                    }
+                    const start = Math.max(span[0], transparentStart);
+                    const end = Math.min(span[1], this._numberOfIndices);
+                    if (end > start) {
+                        drawArrays(start, end - start);
+                    }
+                });
+            }
+
+            if (drawingTransparent) {
+                gl.depthMask(true);
+            }
+            return;
+        }
+
         if (mode === DrawMode.SOLID && this._model.transparentIndex > 0) {
             // make sure depth testing is on for solid rendering
             if (maps == null) {
@@ -500,6 +579,14 @@ export class ModelHandle {
 
             return;
         }
+    }
+
+    public setSpaceRenderingMode(mode: SpaceRenderingMode): void {
+        if (mode !== SpaceRenderingMode.TRANSPARENT && mode !== SpaceRenderingMode.SOLID) {
+            throw new Error("Unsupported space rendering mode.");
+        }
+        this._spaceRenderingMode = mode;
+        this._changed = true;
     }
 
     public getProductId(renderId: number): number {

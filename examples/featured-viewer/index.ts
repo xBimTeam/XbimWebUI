@@ -357,11 +357,23 @@ document['zoomToSelection'] = () => {
     viewer.zoomTo(elements);
 };
 
-document['playSpaces'] = () =>
-{
-    const player = new PlaySpaces(viewer);
-    player.play();
-}
+const spacesPlayer = new PlaySpaces(viewer);
+document['playSpaces'] = () => {
+    if (spacesPlayer.playing) {
+        spacesPlayer.stop();
+    } else {
+        spacesPlayer.play();
+    }
+
+    const button = document.getElementById('playSpacesButton');
+    const icon = document.getElementById('playSpacesIcon');
+    const label = button ? button.querySelector('.icon-caption') : null;
+    if (button && icon && label) {
+        button.title = spacesPlayer.playing ? 'Stop space animation' : 'Start space animation';
+        icon.className = spacesPlayer.playing ? 'fas fa-stop-circle' : 'fas fa-play-circle';
+        label.textContent = spacesPlayer.playing ? 'Stop' : 'Play';
+    }
+};
 
 viewer.on("pick", (args) => {
     viewer.stopRotation();

@@ -1,13 +1,22 @@
-import { Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube, Grid, EasingType, MessageProgress, InteractiveClippingPlane } from '../..';
+import { Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube, Grid, EasingType, MessageProgress, InteractiveClippingPlane, SpaceRenderingMode } from '../..';
 
 export class PlaySpaces {
-    /**
-     *
-     */
+    private intervalId: number = null;
+
     constructor(private viewer: Viewer) {
     }
 
+    public get playing(): boolean {
+        return this.intervalId != null;
+    }
+
     public play(): void {
+        if (this.playing) {
+            return;
+        }
+
+        this.viewer.spaceRenderingMode = SpaceRenderingMode.SOLID;
+
         const steps = 50;
         const start = [255, 0, 0, 255];
         const end = [0, 255, 0, 255];
@@ -26,7 +35,7 @@ export class PlaySpaces {
             spaces.map(s => {return { id: s.id, model: s.model, state: Math.floor(Math.random() * steps), increment: true}});
         states.forEach(s => this.viewer.setStyle(s.state, [s.id], s.model));
 
-        setInterval(() => {
+        this.intervalId = window.setInterval(() => {
             states.forEach(s => {
                 const {state, increment} = this.getNextState(steps, s.state, s.increment);
                 s.state = state;
@@ -34,6 +43,19 @@ export class PlaySpaces {
                 this.viewer.setStyle(s.state, [s.id], s.model)
             });
         }, 100);
+    }
+
+    public stop(): void {
+        if (!this.playing) {
+            return;
+        }
+
+        window.clearInterval(this.intervalId);
+        this.intervalId = null;
+        this.viewer.setStyle(State.UNSTYLED, ProductType.IFCSPACE);
+        this.viewer.resetState(ProductType.IFCPRODUCT);
+        this.viewer.resetState(ProductType.IFCSPACE);
+        this.viewer.spaceRenderingMode = SpaceRenderingMode.TRANSPARENT;
     }
 
     private getNextState(steps: number, state: number, increment: boolean): {state: number, increment: boolean} {

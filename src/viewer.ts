@@ -1,5 +1,6 @@
 ﻿import { State } from './common/state';
 import { ModelGeometry, ReaderOptions, Region } from './reader/model-geometry';
+import { SpaceRenderingMode } from './common/space-rendering-mode';
 import { ModelHandle, DrawMode } from './model-handle';
 import { Framebuffer } from './framebuffer';
 import { ModelPointers } from './model-pointers';
@@ -311,6 +312,25 @@ export class Viewer {
     public get readerOptions(): ReaderOptions {
         return this._readerOptions
     };
+
+    private _spaceRenderingMode = SpaceRenderingMode.TRANSPARENT;
+
+    /**
+     * Gets or sets the render pass used for IFCSPACE and IFCOPENINGELEMENT geometry.
+     * SOLID writes depth; it does not change the geometry's material alpha.
+     */
+    public get spaceRenderingMode(): SpaceRenderingMode {
+        return this._spaceRenderingMode;
+    }
+
+    public set spaceRenderingMode(mode: SpaceRenderingMode) {
+        if (mode !== SpaceRenderingMode.TRANSPARENT && mode !== SpaceRenderingMode.SOLID) {
+            throw new Error("Unsupported space rendering mode.");
+        }
+        this._spaceRenderingMode = mode;
+        this._handles.forEach((handle) => handle.setSpaceRenderingMode(mode));
+        this.changed = true;
+    }
 
     /**
      * Holds reference to Depth Texture extension needed for WebGL2 implementations to get 3D coordinate of
@@ -839,7 +859,7 @@ export class Viewer {
             this._stateStyles[style * 4 + 2],
             this._stateStyles[style * 4 + 3]
         ];
-        if (c[0] === 0 && c[1] === 0 && c[2] === 0 && c[3] === 0) {
+        if (style !== State.UNSTYLED && c[0] === 0 && c[1] === 0 && c[2] === 0 && c[3] === 0) {
             console.warn('You have used undefined colour for restyling. Elements with this style will have transparent black colour and hence will be invisible.');
         }
 
@@ -1178,6 +1198,7 @@ export class Viewer {
     private addHandle(geometry: ModelGeometry, tag: any, progress: (message: Message) => void): number {
         var gl = this.setActive();
         var handle = new ModelHandle(gl, geometry, progress);
+        handle.setSpaceRenderingMode(this.spaceRenderingMode);
 
         //assign handle used to identify the model
         handle.tag = tag;

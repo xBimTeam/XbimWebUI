@@ -156,8 +156,8 @@ export class ModelGeometry {
 
         // default space and opening style
         iStyle++;
-        this.styles.set([0, 255, 255, 100], iStyle * 4);
-        this._styleMap.Add({ id: -2, index: iStyle, transparent: false });
+        this.styles.set([0, 255, 255, 63], iStyle * 4);
+        this._styleMap.Add({ id: -2, index: iStyle, transparent: true });
 
         for (let i = 0; i < numProducts; i++) {
             let productLabel = br.readInt32();
