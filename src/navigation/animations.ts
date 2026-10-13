@@ -222,16 +222,19 @@ export class Animations {
      * where the camera drifts sideways relative to where it is looking or traveling.
      *
      * The staged path divides the transition into up to three stages:
-     * 1. **Pivot**: The camera rotates in-place around its starting eye position to face either the target
+     * 1. **Planar / Parallel Mode** (when start and destination view directions match, e.g. plan/ceiling views):
+     *    Directly pans and zooms the camera along the view plane. If orientations are axis-aligned, no roll
+     *    or rotation occurs; if unaligned, orientation smoothly rotates concurrently with translation.
+     * 2. **Pivot**: The camera rotates in-place around its starting eye position to face either the target
      *    or its direction of travel.
-     * 2. **Travel**: The camera eye translates to its destination position:
-     *    - **Orbit Mode** (when `end.target` is present): The eye traces an arc on a sphere around the target,
-     *      interpolating azimuth and elevation separately so the trajectory does not flip over the poles.
-     *      The camera actively re-aims at the target throughout the arc, keeping the object centered in view.
+     * 3. **Travel**: The camera eye translates to its destination position:
+     *    - **Orbit Mode** (when `end.target` is present and views are non-parallel): The eye traces an arc
+     *      on a sphere around the target, interpolating azimuth and elevation separately so the trajectory
+     *      does not flip over the poles. The camera actively re-aims at the target throughout the arc.
      *    - **Linear Mode** (when no target is provided): The eye translates in a straight line while facing
      *      the destination position.
      *    - Orthographic camera `height` (zoom level) is smoothly transitioned during this travel stage.
-     * 3. **Settle**: The camera rotates in-place at its destination eye position from its travel orientation
+     * 4. **Settle**: The camera rotates in-place at its destination eye position from its travel orientation
      *    into the exact target orientation (e.g. final view roll or top-down alignment).
      *
      * Stages are dynamically collapsed or omitted if their angular or spatial distance is below threshold,
@@ -251,17 +254,34 @@ export class Animations {
         const stages: Stage[] = [];
         const angleWeight = (angle: number) => 0.1 + 0.2 * Math.min(angle / Math.PI, 1);
 
+        const startForward = vec3.transformQuat(vec3.create(), vec3.fromValues(0, 0, -1), startPose.orientation);
+        const endForward = vec3.transformQuat(vec3.create(), vec3.fromValues(0, 0, -1), endPose.orientation);
+        const isParallelView = vec3.dot(startForward, endForward) > 0.999;
+
         const target = end.target;
         const startOffset = target ? vec3.subtract(vec3.create(), startPose.eye, target) : null;
         const endOffset = target ? vec3.subtract(vec3.create(), endPose.eye, target) : null;
-        const orbit = target != null && vec3.length(startOffset) > EPS && vec3.length(endOffset) > EPS;
+        const orbit = !isParallelView && target != null && vec3.length(startOffset) > EPS && vec3.length(endOffset) > EPS;
         const distance = vec3.distance(startPose.eye, endPose.eye);
 
         let travelStartOrientation: quat = endPose.orientation;
         let travelEndOrientation: quat = endPose.orientation;
         let travel: Stage = null;
 
-        if (orbit) {
+        if (isParallelView && distance > EPS) {
+            // Planar pan and zoom: keep view direction without tilting or arcing.
+            // Concurrently slerps orientation only if start and end are not aligned.
+            travelStartOrientation = startPose.orientation;
+            travelEndOrientation = endPose.orientation;
+            travel = {
+                weight: 1.0,
+                travels: true,
+                at: (t) => ({
+                    eye: vec3.lerp(vec3.create(), startPose.eye, endPose.eye, t),
+                    orientation: quat.slerp(quat.create(), startPose.orientation, endPose.orientation, t)
+                })
+            };
+        } else if (orbit) {
             const r0 = vec3.length(startOffset);
             const r1 = vec3.length(endOffset);
             const startDir = vec3.scale(vec3.create(), startOffset, 1 / r0);

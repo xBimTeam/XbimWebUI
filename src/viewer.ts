@@ -1825,23 +1825,32 @@ export class Viewer {
         }
 
         const origin = vec3.fromValues(bBox[0] + bBox[3] / 2.0, bBox[1] + bBox[4] / 2.0, bBox[2] + bBox[5] / 2.0);
-        const eye = this.getCameraPosition();
-        let dir = vec3.subtract(vec3.create(), eye, origin);
-        dir = vec3.normalize(vec3.create(), dir);
+        let dir: vec3;
+        let heading: vec3;
 
-        const angle = vec3.angle(dir, [0, 0, 1]);
-        let heading = vec3.fromValues(0, 0, 1);
-        if (Math.abs(angle) < 1e-6 || Math.abs(angle - Math.PI) < 1e-6) {
+        if (this.camera === CameraType.ORTHOGONAL) {
+            // in orthogonal mode preserve the current view angle (e.g. plan view stays plan view)
+            const camDir = this.getCameraDirection();
+            dir = vec3.negate(vec3.create(), camDir);
             heading = this.getCameraHeading();
+        } else {
+            const eye = this.getCameraPosition();
+            dir = vec3.subtract(vec3.create(), eye, origin);
+            dir = vec3.normalize(vec3.create(), dir);
+
+            const angle = vec3.angle(dir, [0, 0, 1]);
+            heading = vec3.fromValues(0, 0, 1);
+            if (Math.abs(angle) < 1e-6 || Math.abs(angle - Math.PI) < 1e-6) {
+                heading = this.getCameraHeading();
+            }
         }
 
         const distAndWidth = this.getDistanceAndHeight(bBox, dir, heading);
 
-        var translation = vec3.create();
-        vec3.scale(translation, dir, distAndWidth.distance);
-        vec3.add(eye, translation, origin);
+        const translation = vec3.scale(vec3.create(), dir, distAndWidth.distance);
+        const eye = vec3.add(vec3.create(), origin, translation);
 
-        var mv = mat4.lookAt(mat4.create(), eye, origin, heading);
+        const mv = mat4.lookAt(mat4.create(), eye, origin, heading);
         return this.animations.viewTo({ mv: mv, height: distAndWidth.height, target: origin }, duration);
     }
 
