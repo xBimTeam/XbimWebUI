@@ -26,6 +26,18 @@ export abstract class IconData{
             scale: 1.1;
         }
 
+        .icon-explode-hub {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            box-sizing: border-box;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            background: rgba(35, 87, 110, 0.9);
+            cursor: pointer;
+            pointer-events: auto;
+        }
+
         .icon-cluster {
             position: absolute;
             cursor: pointer;

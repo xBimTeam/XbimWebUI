@@ -36,12 +36,12 @@ function createHeatMapSourceAndIcons(products: {id: number, model: number}[][], 
         const name = `Sensor ${i+1}`;
         const description = `${channelLabel} sensor ${i+1}`;
         const onIconSelected = () => {
-            viewer.zoomTo(e, 1)
+         //   viewer.zoomTo(e, 1)
         };
 
         const onIconDeselected = () => {
             console.log(`Icon deselected for ${name}`);
-            viewer.show(ViewType.DEFAULT);
+            //viewer.show(ViewType.DEFAULT);
         };
         return clusterable
             ? new ClusterIcon(name, description, initialValue.toString(), e, iconData, null, null, null, onIconSelected, displayValue, initialValue, channelId, onIconDeselected)
@@ -122,6 +122,8 @@ viewer.on('loaded', args => {
 
         var spaceZones = [zone1, zone2];
         var individualElements = elements.map(e => [e])
+        var duplicatedIndividualElements = individualElements.concat(individualElements).concat(individualElements.slice(0,7))
+            .concat(Array.from({ length: 50 }, () => individualElements[0]));
         var individualSpaces = spaces.map(e => [e])
         
         createHeatMapSourceAndIcons(individualSpaces, temperatureChannelId, "Temperature sensor", IconsData.temperatureIcon, true, 20, true);
@@ -129,7 +131,7 @@ viewer.on('loaded', args => {
         createHeatMapSourceAndIcons(individualSpaces, humidityChannelId, "Humidity sensor", IconsData.successIcon, true, 50, true);
         createHeatMapSourceAndIcons(spaceZones, presenceChannelId, "Occupancy sensor", IconsData.defaultIcon, false, "Vacant");
         createHeatMapSourceAndIcons(individualElements, alarmChannelId, "Alarm", IconsData.errorIcon, true, "OK", false);
-        createHeatMapSourceAndIcons(individualElements, alertClusteredChannelId, "Alert", IconsData.errorIcon, true, "OK", true);
+        createHeatMapSourceAndIcons(duplicatedIndividualElements, alertClusteredChannelId, "Alert", IconsData.errorIcon, true, "OK", true);
 
         Object.keys(sources).map(k => 
             sources[k].map(h => 
@@ -248,7 +250,7 @@ function getSources(selectedChannel: IHeatmapChannel) : HeatmapSource[] {
 
 function updateIcon(icon: Icon, channel: IHeatmapChannel, source: HeatmapSource) {
     if(icon == null) return;
-    icon.description = `<b>Room</b> ${channel.name}: ${source.value}<sup>${channel.unit}</super>`;
+    icon.description = `<b>Room</b> ${channel.name}: ${source.value}<sup>${channel.unit}</sup> (# ${icon.products[0].id})`;
     if (icon instanceof ClusterIcon) {
         icon.categoryColor = channel instanceof DiscreteHeatmapChannel || channel instanceof ValueRangesHeatmapChannel
             ? channel.getColor(source.value) || null
@@ -351,7 +353,7 @@ function setSelectedChannel() {
 
     }
 
-    if(selectedChannel.channelId === temperatureChannelId) {
+    if (selectedChannel.channelId === alertClusteredChannelId) {
         icons.minimumIconsToCluster = 2;
     }
     else {

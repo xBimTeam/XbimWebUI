@@ -6,6 +6,7 @@ import { IconData } from "./icons-data";
 import { VectorUtils } from "../../../common/vector-utils";
 import { throttle } from "lodash";
 import { PerformanceRating } from "../../../performance-rating";
+import { computeRadialOffsets } from "./radial-layout";
 
 
 export class Icons implements IPlugin {
@@ -17,7 +18,10 @@ export class Icons implements IPlugin {
     public useClusterCellCenter = true;
     /** Minimum depth-based scale factor applied to icons and cluster badges when simulating depth with z-order. */
     public minimumIconImageScale = 0.6;
-
+    /** Minimum radius in pixels used to lay out the icons of an exploded cluster around its centre. */
+    public explodeRadius = 48;
+    /** Maximum number of icons shown when a cluster is exploded; any others are hidden. Lower this for small screens. */
+    public maximumExplodedIcons = 20;
 
     private _viewer: Viewer;
     private _icons: HTMLDivElement;
@@ -33,7 +37,13 @@ export class Icons implements IPlugin {
     private _iconsCount = 0;
     private _renderedValueContents = new WeakMap<HTMLElement, string>();
     
-    private _clusterElements: { element: HTMLDivElement, count: HTMLSpanElement, summary: HTMLSpanElement, products: { id: number, model: number }[] }[] = [];
+    private _clusterElements: { element: HTMLDivElement, count: HTMLSpanElement, summary: HTMLSpanElement, products: { id: number, model: number }[], key: string }[] = [];
+    private _explodedKey: string | null = null;
+    private _explodedSignature: number[] | null = null;
+    private _explodedPositions = new Map<Icon, number[]>();
+    private _lastZoomedKey: string | null = null;
+    private _clusterClickTimer: ReturnType<typeof setTimeout> | undefined;
+    private _hub: HTMLDivElement;
     private _renderedIconElements: { element: HTMLElement, depth: number }[] = [];
 
     init(viewer: Viewer): void {
@@ -44,7 +54,7 @@ export class Icons implements IPlugin {
         this._icons = iconsDiv;
         iconsDiv.addEventListener('mousedown', event => {
             const target = event.target;
-            if (!(target instanceof Element) || !target.closest('.icon-image, .icon-cluster')) return;
+            if (!(target instanceof Element) || !target.closest('.icon-image, .icon-cluster, .icon-explode-hub')) return;
 
             const mouseEvent = new MouseEvent('mousedown', {
                 bubbles: false,
@@ -89,6 +99,20 @@ export class Icons implements IPlugin {
                 event.stopPropagation();
             }
         }, true);
+
+        const hub = document.createElement('div');
+        hub.className = 'icon-explode-hub';
+        hub.title = 'Collapse';
+        hub.style.display = 'none';
+        hub.addEventListener('click', event => {
+            event.stopPropagation();
+            this.collapseExploded();
+        });
+        iconsDiv.appendChild(hub);
+        this._hub = hub;
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && this._explodedKey) this.collapseExploded();
+        });
 
         const floatdetailsDiv = document.createElement('div');
         floatdetailsDiv.id = 'floatdetails'; 
@@ -349,13 +373,21 @@ export class Icons implements IPlugin {
             const depthRange = this.getViewDepthRange(this._viewer.getTargetBoundingBox(), modelView);
 
             this._renderedIconElements = [];
-            this.renderSingleIcons(planeA, planeB, box, modelView, viewProjection, depthRange);
+            if (this._explodedKey && this.hasViewChanged()) {
+                this.collapseExploded();
+            }
+            this._explodedPositions.clear();
 
-            this.renderClusteredIcons(planeA, planeB, box, modelView, viewProjection, depthRange);
+            const exploded = this.renderClusteredIcons(planeA, planeB, box, modelView, viewProjection, depthRange);
+            if (exploded) {
+                this.hideSingleIcons();
+            } else {
+                this.renderSingleIcons(planeA, planeB, box, modelView, viewProjection, depthRange);
+            }
             this.applyIconZOrder();
 
-            if(this._selectedIcon && this._selectedIcon.isEnabled && this._floatdetails && this._floatingDetailsEnabled) {
-                const position = this._viewer.getHtmlCoordinatesOfVector(this._selectedIcon.location);
+            if(this._selectedIcon && this._selectedIcon.isEnabled && this._floatdetails && this._floatingDetailsEnabled && (!exploded || this._explodedPositions.has(this._selectedIcon))) {
+                const position = this._explodedPositions.get(this._selectedIcon) ?? this._viewer.getHtmlCoordinatesOfVector(this._selectedIcon.location);
                 if(position.length == 2 && this.isWithinNearFrustum(this._selectedIcon.location, viewProjection)) {
                     if (this._selectedIcon !== this._displayedDetailsIcon || this._selectedIcon.isDirty) {
                         if (this._displayedDetailsName !== this._selectedIcon.name) {
@@ -383,7 +415,50 @@ export class Icons implements IPlugin {
         }
     }
 
-    private renderClusteredIcons(planeA: Float32Array | null, planeB: Float32Array | null, box: Float32Array, modelView: mat4, viewProjection: mat4, depthRange: { min: number, max: number }) {
+    private getViewSignature(): number[] {
+        const canvas = this._viewer.canvas;
+        const projection = Array.from(this._viewer.pMatrix as ArrayLike<number>);
+        // [10] and [14] only map depth (near/far planes), which the viewer re-fits after zooming; they don't move icons on screen
+        projection[10] = 0;
+        projection[14] = 0;
+        return [
+            ...Array.from(this._viewer.mvMatrix as ArrayLike<number>),
+            ...projection,
+            canvas.clientWidth,
+            canvas.clientHeight
+        ];
+    }
+
+    private hasViewChanged(): boolean {
+        if (!this._explodedSignature) return true;
+        const current = this.getViewSignature();
+        return current.some((value, i) => Math.abs(value - this._explodedSignature[i]) > 1e-6);
+    }
+
+    private explodeCluster(key: string) {
+        if (!key) return;
+        this._explodedKey = key;
+        this._explodedSignature = this.getViewSignature();
+        this.render();
+    }
+
+    private collapseExploded() {
+        this._explodedKey = null;
+        this._explodedSignature = null;
+        this._explodedPositions.clear();
+        if (this._hub) this._hub.style.display = 'none';
+    }
+
+    private hideSingleIcons() {
+        Object.keys(this._instances).forEach(k => {
+            if (this._instances[k] instanceof ClusterIcon) return;
+            const label = document.getElementById('icon' + k);
+            if (label) label.style.display = 'none';
+        });
+    }
+
+    /** Returns true when an exploded cluster was rendered, in which case all other icons are hidden. */
+    private renderClusteredIcons(planeA: Float32Array | null, planeB: Float32Array | null, box: Float32Array, modelView: mat4, viewProjection: mat4, depthRange: { min: number, max: number }): boolean {
         const canvasSize = Math.min(this._viewer.canvas.clientWidth, this._viewer.canvas.clientHeight);
         const cellSize = Math.max(48, Math.min(120, canvasSize * this.clusterCellSize / 100));
         const buckets = new Map<string, ({icon:ClusterIcon, key: string, iconLabel: HTMLElement, position: number[]})[]>();
@@ -425,6 +500,55 @@ export class Icons implements IPlugin {
 
         });
 
+        const centerOf = (clusterKey: string, icons: { position: number[] }[]) => {
+            const cellCoordinates = clusterKey.split(',');
+            return [
+                this.useClusterCellCenter
+                    ? (Number(cellCoordinates[0]) + 0.5) * cellSize
+                    : icons.reduce((sum, item) => sum + item.position[0], 0) / icons.length,
+                this.useClusterCellCenter
+                    ? (Number(cellCoordinates[1]) + 0.5) * cellSize
+                    : icons.reduce((sum, item) => sum + item.position[1], 0) / icons.length
+            ];
+        };
+        const membershipKey = (icons: { key: string }[]) => icons.map(i => i.key).sort().join('|');
+
+        if (this._explodedKey) {
+            type Item = {icon:ClusterIcon, key: string, iconLabel: HTMLElement, position: number[]};
+            let explodedBucket: { clusterKey: string, icons: Item[] } | null = null;
+            buckets.forEach((icons, clusterKey) => {
+                if (icons.length >= this.minimumIconsToCluster && membershipKey(icons) === this._explodedKey) {
+                    explodedBucket = { clusterKey, icons };
+                }
+            });
+            if (explodedBucket) {
+                const { clusterKey, icons } = explodedBucket as { clusterKey: string, icons: Item[] };
+                buckets.forEach(bucket => {
+                    if (bucket !== icons) bucket.forEach(item => item.iconLabel.style.display = 'none');
+                });
+                this._clusterElements.forEach(cluster => cluster.element.style.display = 'none');
+
+                const [centerX, centerY] = centerOf(clusterKey, icons);
+                const allSorted = icons.slice().sort((a, b) => a.key.localeCompare(b.key));
+                const limit = Math.max(1, Math.floor(this.maximumExplodedIcons));
+                const sorted = allSorted.slice(0, limit);
+                allSorted.slice(limit).forEach(item => item.iconLabel.style.display = 'none');
+                const iconSize = Math.max(...sorted.map(i => Math.max(i.icon.width ?? IconData.defaultIconWidth, i.icon.height ?? IconData.defaultIconHeight)));
+                const offsets = computeRadialOffsets(sorted.length, this.explodeRadius, iconSize);
+                sorted.forEach((item, index) => {
+                    const exploded = [centerX + offsets[index].dx, centerY + offsets[index].dy];
+                    this._explodedPositions.set(item.icon, exploded);
+                    this.renderIcon(item.icon, exploded, item.iconLabel, item.key, modelView, depthRange);
+                });
+                this._hub.style.left = (centerX - 6) + 'px';
+                this._hub.style.top = (centerY - 6) + 'px';
+                this._hub.style.display = 'block';
+                this._hub.style.zIndex = '0';
+                return true;
+            }
+            this.collapseExploded();
+        }
+
         let clusterIndex = 0;
         buckets.forEach((icons, clusterKey) => {
             if (icons.length === 1 || icons.length < this.minimumIconsToCluster) {
@@ -445,23 +569,38 @@ export class Icons implements IPlugin {
                     element.appendChild(count);
                     element.appendChild(summary);
                     this._icons.appendChild(element);
-                    cluster = { element, count, summary, products: [] };
+                    cluster = { element, count, summary, products: [], key: '' };
                     element.addEventListener('click', event => {
                         event.stopPropagation();
-                        if (cluster.products.length > 0) {
-                            this._viewer.zoomTo(cluster.products);
+                        if (this._clusterClickTimer !== undefined) {
+                            clearTimeout(this._clusterClickTimer);
+                            this._clusterClickTimer = undefined;
                         }
+                        const clickedKey = cluster.key;
+                        if (event.detail >= 2) {
+                            // double click: explode immediately, without the zoom
+                            this.explodeCluster(clickedKey);
+                            return;
+                        }
+                        // defer the single-click action so a double click can pre-empt it
+                        this._clusterClickTimer = setTimeout(() => {
+                            this._clusterClickTimer = undefined;
+                            if (clickedKey && clickedKey === this._lastZoomedKey) {
+                                // second click on the same cluster: zooming didn't separate it, so explode
+                                this.explodeCluster(clickedKey);
+                            } else {
+                                this._lastZoomedKey = clickedKey;
+                                if (cluster.products.length > 0) {
+                                    this._viewer.zoomTo(cluster.products);
+                                }
+                            }
+                        }, 250);
                     });
                     this._clusterElements.push(cluster);
                 }
+                cluster.key = membershipKey(icons);
 
-                const cellCoordinates = clusterKey.split(',');
-                const centerX = this.useClusterCellCenter
-                    ? (Number(cellCoordinates[0]) + 0.5) * cellSize
-                    : icons.reduce((sum, item) => sum + item.position[0], 0) / icons.length;
-                const centerY = this.useClusterCellCenter
-                    ? (Number(cellCoordinates[1]) + 0.5) * cellSize
-                    : icons.reduce((sum, item) => sum + item.position[1], 0) / icons.length;
+                const [centerX, centerY] = centerOf(clusterKey, icons);
                 cluster.count.textContent = icons.length.toString();
                 const summary = this.getClusterSummary(icons.map(item => item.icon));
                 cluster.element.classList.toggle('icon-cluster-categorical', summary.type === 'categorical');
@@ -508,6 +647,7 @@ export class Icons implements IPlugin {
         for (let index = clusterIndex; index < this._clusterElements.length; index++) {
             this._clusterElements[index].element.style.display = 'none';
         }
+        return false;
     }
 
     private getClusterSummary(icons: ClusterIcon[]):
