@@ -1736,6 +1736,32 @@ export class Viewer {
         this.pMatrix = this.cameraProperties.getProjectionMatrix(width, height);
     }
 
+    /**
+     * Sets near and far clipping planes relative to the current camera position so the
+     * whole model region stays inside the frustum however far the camera is from it.
+     */
+    private setNearAndFarFromCameraDistance() {
+        if (this.activeHandles.length === 0) {
+            return;
+        }
+        const { near, far } = this.getCameraDistanceFromRegion();
+        if (!(far > 0) || !isFinite(far)) {
+            this.setNearAndFarFromCurrentModels();
+            return;
+        }
+
+        // camera inside (or very close to) the region: fall back to a near plane based on the model units
+        let nearPlane = near > 0 ? near : this.meter / 4;
+        // keep the depth range sane to preserve depth precision
+        nearPlane = Math.max(nearPlane, far / 10000);
+        if (!isFinite(nearPlane) || nearPlane <= 0 || nearPlane >= far) {
+            this.setNearAndFarFromCurrentModels();
+            return;
+        }
+        this.cameraProperties.near = nearPlane;
+        this.cameraProperties.far = far;
+    }
+
     private getCameraDistanceFromRegion(): { near: number, far: number, size: number } {
         let region = this.getMergedRegion();
 
@@ -2405,32 +2431,23 @@ export class Viewer {
                 if (this.activeHandles.length > 0) {
 
                     // this will minimize z-fighting when zoomed far away from the model with thin layers
-                    var { near, far } = this.getCameraDistanceFromRegion();
-                    if (near > 0 && far > 0) {
-                        this.cameraProperties.near = near;
-                        this.cameraProperties.far = far;
-                    } else {
-                        this.setNearAndFarFromCurrentModels();
+                        this.setNearAndFarFromCameraDistance();
+                        this.draw();
                     }
-                    this.draw();
-                }
-                this._requestAnimationFrame(tick);
-                return;
+                    this._requestAnimationFrame(tick);
+                    return;
             }
 
             // we are on the move. Set the performance indicator based on the current FPS
             if (isMoving === false)
             {
-                isMoving = true;
-                var { size } = this.getCameraDistanceFromRegion();
-                const movingNear = this.meter / 4;
-                const movingFar = size * 5;
-                if (size > 0 && isFinite(movingNear) && movingNear > 0 && isFinite(movingFar) && movingFar > movingNear) {
-                    this.cameraProperties.near = movingNear;
-                    this.cameraProperties.far = movingFar;
-                }
-                this.fire('navigationStart', true);
+                    isMoving = true;
+                    this.fire('navigationStart', true);
             }
+
+            // the camera moves relative to the model so the clipping planes have to follow it,
+            // otherwise the model is clipped by a stale far plane when zooming out
+            this.setNearAndFarFromCameraDistance();
             if (fps < 10 && this.performance > PerformanceRating.VERY_LOW) {
                 this.performance = PerformanceRating.VERY_LOW;
             } else if (fps < 20 && this.performance > PerformanceRating.LOW) {
