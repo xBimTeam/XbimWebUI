@@ -1773,17 +1773,26 @@ export class Viewer {
         let viewDir = vec3.normalize(vec3.create(), this.getCameraDirection());
         let size = BBox.getDiagonalSize(region.bbox);
 
-        let regionVec = vec3.subtract(vec3.create(), region.centre, camera);
-        let regionDir = vec3.normalize(vec3.create(), regionVec);
-        let regionDist = vec3.length(regionVec);
+        // project all 8 corners of the region onto the view direction. The centre-based estimate is only
+        // valid when the camera looks at the centre, which breaks for long models or a camera inside the region.
+        const bb = region.bbox;
+        let near = Infinity;
+        let far = -Infinity;
+        const corner = vec3.create();
+        for (let x = 0; x <= 1; x++) {
+            for (let y = 0; y <= 1; y++) {
+                for (let z = 0; z <= 1; z++) {
+                    vec3.set(corner, bb[0] + x * bb[3] - camera[0], bb[1] + y * bb[4] - camera[1], bb[2] + z * bb[5] - camera[2]);
+                    const depth = vec3.dot(viewDir, corner);
+                    near = Math.min(near, depth);
+                    far = Math.max(far, depth);
+                }
+            }
+        }
 
-        let nearVec = vec3.scale(vec3.create(), regionDir, regionDist - size);
-        let farVec = vec3.scale(vec3.create(), regionDir, regionDist + size);
-
-        let near = vec3.dot(viewDir, nearVec);
-        let far = vec3.dot(viewDir, farVec);
-
-        return { near, far, size };
+        // small margin so geometry on the boundary is never clipped
+        const margin = size * 0.02;
+        return { near: near - margin, far: far + margin, size };
     }
 
 

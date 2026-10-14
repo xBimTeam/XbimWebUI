@@ -89,11 +89,11 @@ viewer.on("pick", (arg) => {
 
     var state = viewer.getState(arg.id, arg.model);
     if (state === State.HIGHLIGHTED) {
-        //viewer.removeState(State.HIGHLIGHTED, [arg.id], arg.model);
-        viewer.removeState(State.XRAYVISIBLE, [arg.id], arg.model);
+        viewer.removeState(State.HIGHLIGHTED, [arg.id], arg.model);
+        //viewer.removeState(State.XRAYVISIBLE, [arg.id], arg.model);
     } else {
-       // viewer.addState(State.HIGHLIGHTED, [arg.id], arg.model);
-        viewer.addState(State.XRAYVISIBLE, [arg.id], arg.model);
+        viewer.addState(State.HIGHLIGHTED, [arg.id], arg.model);
+        //viewer.addState(State.XRAYVISIBLE, [arg.id], arg.model);
     }
 });
 
