@@ -22,7 +22,8 @@ export class StatePriorities {
             case State.HIGHLIGHTED: return 1;
             case State.PICKING_ONLY: return 2;
             case State.HIDDEN: return 3;
-            case State.XRAYVISIBLE: return 4;
+            case State.HOVEROVER: return 4;
+            case State.XRAYVISIBLE: return 5;
             default: return 100;
         }
     }

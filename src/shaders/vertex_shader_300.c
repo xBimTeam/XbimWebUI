@@ -218,7 +218,7 @@ void main(void) {
 	//product ID colour coding
 	if (uColorCoding == -2) {
 		// exclude everything except for highlighted and xray visible in xray mode
-		if ((uRenderingMode == 2 || uRenderingMode == 4) && state != 252 && state != 253)
+		if ((uRenderingMode == 2 || uRenderingMode == 4) && state != 252 && state != 253 && state != 250)
 		{
 			vDiscard = 1.0;
 			vColor = vec4(0.0, 0.0, 0.0, 0.0);
@@ -234,7 +234,7 @@ void main(void) {
 	//model ID colour coding
 	else if (uColorCoding >= 0) {
 		// exclude everything except for highlighted and xray visible in xray mode
-		if ((uRenderingMode == 2 || uRenderingMode == 4) && state != 252 && state != 253)
+		if ((uRenderingMode == 2 || uRenderingMode == 4) && state != 252 && state != 253 && state != 250)
 		{
 			vDiscard = 1.0;
 			vColor = vec4(0.0, 0.0, 0.0, 0.0);
