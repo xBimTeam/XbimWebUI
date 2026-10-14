@@ -23,6 +23,11 @@ export class InteractiveSectionBox implements IPlugin {
      */
     public hoverPickColour: number[] = [10, 150, 112, 255];
 
+    /** Handle size as a fraction of the canvas height, clamped to the pixel range below */
+    public handleScreenFraction = 0.3;
+    public handleMinPixels = 10;
+    public handleMaxPixels = 20;
+
     private viewer: Viewer;
     private vertices: Float32Array;
     private colours: Float32Array;
@@ -47,6 +52,16 @@ export class InteractiveSectionBox implements IPlugin {
     private edge_id_buffer: WebGLBuffer;
     private edgeDashUniformPointer: WebGLUniformLocation;
     private readonly edgeVertexCount = 24;
+
+    private handle_vertex_buffer: WebGLBuffer;
+    private handle_colour_buffer: WebGLBuffer;
+    private handle_id_buffer: WebGLBuffer;
+    private handle_index_buffer: WebGLBuffer;
+    private handleIndexCount = 0;
+    // handle ids are face id + offset so they can be told apart from the faces
+    private readonly HANDLE_ID_OFFSET = 10;
+    private hoverInteraction = -1;
+
     private edgeDashPeriod = 0;
 
     
@@ -144,6 +159,10 @@ export class InteractiveSectionBox implements IPlugin {
     public get stopped(): boolean { return this._stopped; }
     public set stopped(value: boolean) {
         this._stopped = value;
+        if (value === true && this.viewer) {
+            this.hoverInteraction = -1;
+            this.viewer.canvas.style.cursor = '';
+        }
         if (value === false) {
             this.setActive();
             this.bufferGeometry();
@@ -209,6 +228,10 @@ export class InteractiveSectionBox implements IPlugin {
         this.hoverPickColourUniformPointer = gl.getUniformLocation(this.program, 'uHoverPickColour');
         this.edgeColourUniformPointer = gl.getUniformLocation(this.program, 'uEdgeColour');
         this.edgeDashUniformPointer = gl.getUniformLocation(this.program, 'uDashPeriod');
+        this.handle_vertex_buffer = gl.createBuffer();
+        this.handle_colour_buffer = gl.createBuffer();
+        this.handle_id_buffer = gl.createBuffer();
+        this.handle_index_buffer = gl.createBuffer();
         this.edge_vertex_buffer = gl.createBuffer();
         this.edge_dist_buffer = gl.createBuffer();
         this.edge_id_buffer = gl.createBuffer();
@@ -374,6 +397,162 @@ export class InteractiveSectionBox implements IPlugin {
         if (drawEdges) {
             this.drawEdges(gl);
         }
+
+        this.drawHandles(gl, !drawEdges);
+    }
+
+    private drawHandles(gl: WebGLRenderingContext, idPass: boolean): void {
+        if (this.viewer.sectionBox.boxVertices.length === 0) {
+            return;
+        }
+        // size depends on the current camera so geometry is refreshed for every pass
+        this.bufferHandles();
+        if (this.handleIndexCount === 0) {
+            return;
+        }
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.handle_vertex_buffer);
+        gl.vertexAttribPointer(this.coordinatesAttributePointer, 3, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.handle_colour_buffer);
+        gl.vertexAttribPointer(this.coloursAttributePointer, 4, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.handle_id_buffer);
+        gl.vertexAttribPointer(this.idsAttributePointer, 1, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.handle_index_buffer);
+
+        const previousDepthFunc = gl.getParameter(gl.DEPTH_FUNC);
+
+        // Handles are always shown and always pickable, regardless of what is in front of them.
+        // Using the depth of the occluding model made them flicker whenever the model was drawn at reduced
+        // detail (while navigating), so occlusion is deliberately ignored. Back-face culling provides the
+        // correct self-occlusion of each (convex) handle.
+        gl.enable(gl.CULL_FACE);
+        gl.cullFace(gl.BACK);
+        gl.frontFace(gl.CCW);
+        gl.depthFunc(gl.ALWAYS);
+
+        if (idPass) {
+            gl.drawElements(gl.TRIANGLES, this.handleIndexCount, gl.UNSIGNED_SHORT, 0);
+        } else {
+            const active = this.currentInteraction > 0 ? this.currentInteraction : this.hoverInteraction;
+            gl.uniform1f(this.idSelectedIdUniformPointer, active > 0 ? active + this.HANDLE_ID_OFFSET : -1);
+            gl.uniform1f(this.idCodingUniformPointer, -2);
+            gl.uniform4fv(this.edgeColourUniformPointer, new Float32Array([0, 0, 0, 1]));
+            gl.depthMask(false);
+            gl.drawElements(gl.TRIANGLES, this.handleIndexCount, gl.UNSIGNED_SHORT, 0);
+            gl.depthMask(true);
+            gl.uniform1f(this.idCodingUniformPointer, 0);
+        }
+
+        gl.disable(gl.CULL_FACE);
+        gl.depthFunc(previousDepthFunc);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.index_buffer);
+    }
+
+    private bufferHandles(): void {
+        const gl = this.viewer.gl;
+        const corners = this.viewer.sectionBox.boxVertices;
+        const wcs = this.viewer.getCurrentWcs();
+        const min = vec3.fromValues(Infinity, Infinity, Infinity);
+        const max = vec3.fromValues(-Infinity, -Infinity, -Infinity);
+        corners.forEach(c => {
+            for (let k = 0; k < 3; k++) {
+                min[k] = Math.min(min[k], c[k] - wcs[k]);
+                max[k] = Math.max(max[k], c[k] - wcs[k]);
+            }
+        });
+        const centre = vec3.lerp(vec3.create(), min, max, 0.5);
+        const maxExtent = Math.max(max[0] - min[0], max[1] - min[1], max[2] - min[2]);
+
+        // Handle size is defined in screen pixels so it's independent of box shape and camera distance
+        const viewerHeight = Math.max(this.viewer.height, 1);
+        const pixels = Math.min(Math.max(viewerHeight * this.handleScreenFraction, this.handleMinPixels), this.handleMaxPixels);
+        const isOrtho = this.viewer.camera === CameraType.ORTHOGONAL;
+        const fov = this.viewer.cameraProperties.fov * Math.PI / 180;
+        const worldPerPixelAt = (point: vec3): number => {
+            if (isOrtho) {
+                return this.viewer.cameraProperties.height / viewerHeight;
+            }
+            const viewDepth = Math.abs(vec3.transformMat4(vec3.create(), point, this.viewer.mvMatrix)[2]);
+            return (2 * viewDepth * Math.tan(fov / 2)) / viewerHeight;
+        };
+
+        const positions: number[] = [];
+        const colours: number[] = [];
+        const ids: number[] = [];
+        const indices: number[] = [];
+        const segments = 12;
+        const tints = [[0.2, 0.4, 0.9], [0.2, 0.4, 0.9], [0.9, 0.25, 0.25], [0.9, 0.25, 0.25], [0.2, 0.7, 0.3], [0.2, 0.7, 0.3]];
+
+        for (let face = 0; face < 6; face++) {
+            const n = this.normals[face];
+            const axis = Math.abs(n[0]) > 0.5 ? 0 : Math.abs(n[1]) > 0.5 ? 1 : 2;
+            const origin = vec3.clone(centre);
+            origin[axis] = n[axis] > 0 ? max[axis] : min[axis];
+            // never let a handle dwarf the box itself
+            const size = Math.min(pixels * worldPerPixelAt(origin), maxExtent * 0.25);
+
+            const u = vec3.fromValues(0, 0, 0);
+            const v = vec3.fromValues(0, 0, 0);
+            u[(axis + 1) % 3] = 1;
+            v[(axis + 2) % 3] = 1;
+
+            const id = face + 1 + this.HANDLE_ID_OFFSET;
+            const tint = tints[face];
+            const push = (p: vec3, shade: number) => {
+                positions.push(p[0], p[1], p[2]);
+                colours.push(tint[0] * shade, tint[1] * shade, tint[2] * shade, 0.95);
+                ids.push(id);
+                return positions.length / 3 - 1;
+            };
+            const ring = (radius: number, height: number, shade: number) => {
+                const first = positions.length / 3;
+                for (let s = 0; s < segments; s++) {
+                    const a = (s / segments) * Math.PI * 2;
+                    const p = vec3.scaleAndAdd(vec3.create(), origin, n, height);
+                    vec3.scaleAndAdd(p, p, u, Math.cos(a) * radius);
+                    vec3.scaleAndAdd(p, p, v, Math.sin(a) * radius);
+                    push(p, shade);
+                }
+                return first;
+            };
+
+            // A single closed cone pointing outwards, lifted slightly off the face
+            const coneStart = size * 0.1;
+            const coneBase = ring(size * 0.5, coneStart, 1.0);
+            const coneBaseCentre = push(vec3.scaleAndAdd(vec3.create(), origin, n, coneStart), 1.0);
+            const tip = push(vec3.scaleAndAdd(vec3.create(), origin, n, coneStart + size * 1.4), 1.0);
+            const coneRef = vec3.scaleAndAdd(vec3.create(), origin, n, coneStart + size * 0.3);
+
+            const vertexAt = (i: number) => vec3.fromValues(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]);
+            // emits the triangle wound so that it faces away from the interior reference point
+            const tri = (a: number, b: number, c: number, ref: vec3) => {
+                const pa = vertexAt(a), pb = vertexAt(b), pc = vertexAt(c);
+                const normal = vec3.cross(vec3.create(), vec3.sub(vec3.create(), pb, pa), vec3.sub(vec3.create(), pc, pa));
+                const centroid = vec3.scale(vec3.create(), vec3.add(vec3.create(), vec3.add(vec3.create(), pa, pb), pc), 1 / 3);
+                if (vec3.dot(normal, vec3.sub(vec3.create(), centroid, ref)) >= 0) {
+                    indices.push(a, b, c);
+                } else {
+                    indices.push(a, c, b);
+                }
+            };
+
+            for (let s = 0; s < segments; s++) {
+                const next = (s + 1) % segments;
+                tri(coneBaseCentre, coneBase + s, coneBase + next, coneRef);
+                tri(coneBase + s, coneBase + next, tip, coneRef);
+            }
+        }
+
+        this.handleIndexCount = indices.length;
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.handle_vertex_buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.DYNAMIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.handle_colour_buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colours), gl.DYNAMIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.handle_id_buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(ids), gl.DYNAMIC_DRAW);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.handle_index_buffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.DYNAMIC_DRAW);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.index_buffer);
     }
 
     private drawEdges(gl: WebGLRenderingContext): void {
@@ -477,15 +656,53 @@ export class InteractiveSectionBox implements IPlugin {
             lastNavigation = this.viewer.navigationMode;
             if(data.xyz) origin = data.xyz;
             this.viewer.navigationMode = 'none';
-            this.currentInteraction = data.id;
+            this.currentInteraction = data.id > this.HANDLE_ID_OFFSET ? data.id - this.HANDLE_ID_OFFSET : data.id;
+            this.hoverInteraction = -1;
+            this.viewer.canvas.style.cursor = 'grabbing';
             rotation = mat4.getRotation(quat.create(), this.transformations[this.currentInteraction - 1]); 
+        });
+
+        let hoverFrame: number = null;
+        let lastHoverEvent: PointerEvent = null;
+        this.viewer.canvas.addEventListener('pointermove', event => {
+            if (this.stopped || this.currentInteraction !== -1 || event.buttons !== 0) {
+                return;
+            }
+            lastHoverEvent = event;
+            if (hoverFrame !== null) {
+                return;
+            }
+            hoverFrame = requestAnimationFrame(() => {
+                hoverFrame = null;
+                if (this.stopped || this.currentInteraction !== -1) {
+                    return;
+                }
+                const data = this.viewer.getEventDataFromEvent(lastHoverEvent, true);
+                const hover = data.model === this.modelId && data.id > this.HANDLE_ID_OFFSET
+                    ? data.id - this.HANDLE_ID_OFFSET : -1;
+                if (hover !== this.hoverInteraction) {
+                    this.hoverInteraction = hover;
+                    this.viewer.canvas.style.cursor = hover > 0 ? 'grab' : '';
+                    this.viewer.draw();
+                }
+            });
+        });
+
+        this.viewer.canvas.addEventListener('pointerleave', () => {
+            if (this.hoverInteraction !== -1 && this.currentInteraction === -1) {
+                this.hoverInteraction = -1;
+                this.viewer.canvas.style.cursor = '';
+                this.viewer.draw();
+            }
         });
 
         window.addEventListener('pointerup', event => {
             if (this.currentInteraction === -1) return;
             this.currentInteraction = -1;
+            this.viewer.canvas.style.cursor = '';
             this.viewer.navigationMode = lastNavigation;
             origin = null;
+            this.viewer.draw();
         });
         
         window.addEventListener('pointermove', event => {

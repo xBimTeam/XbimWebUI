@@ -449,7 +449,7 @@ window['clipBox'] = () => {
 
     viewer.sectionBox.setToPlanes(planes);
     box.setClippingPlanes(planes);
-    viewer.zoomTo();
+    viewer.zoomTo(null, null, false, null);
     box.stopped = false;
 };
 

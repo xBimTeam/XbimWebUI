@@ -34,7 +34,12 @@ vec4 getTransparentColor(vec4 color, float transparency){
 
 void main(void) {
 
-	if (uColorCoding < 0.0)
+	if (uColorCoding == -2.0)
+	{
+		vColor = (uSelectedId == aId) ? vec4(uHoverPickColour.rgb, 1.0) : aColour;
+		vColor.a = vColor.a * uEdgeColour.a;
+	}
+	else if (uColorCoding < 0.0)
 	{
 		vColor = uEdgeColour;
 	}
