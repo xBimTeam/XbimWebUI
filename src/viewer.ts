@@ -2165,6 +2165,23 @@ export class Viewer {
                 const tempFar = farPoint[2] * -1.0;
                 this.cameraProperties.near = tempNear;
                 this.cameraProperties.far = tempFar;
+            } else {
+                // Depth is stored in 8 bits and is very non-linear in perspective, so everything beyond a certain
+                // distance saturates at 255 (read as "no value"). We know there is something at this pixel, so raise
+                // the near plane to the last distinguishable depth to get usable depth resolution in the second pass.
+                
+                // When the first pass is saturated but an id was found, we raise the near plane for the second pass
+                // to the last depth that still resolves, the 253/255 level. It is converted back to a view distance 
+                // with the inverse projection matrix. That gives the far part of the scene better depth resolution 
+                // in the second pass. The near plane is restored afterwards by the existing finally block
+
+                // If the second pass still saturates, which should only happen for hits very near the far plane, xyz stays null.
+                const invPmat = mat4.invert(mat4.create(), this.pMatrix);
+                const lastResolvable = vec3.fromValues(0, 0, (253 / 255 - 0.5) * 2.0);
+                const saturationDistance = -vec3.transformMat4(vec3.create(), lastResolvable, invPmat)[2];
+                if (isFinite(saturationDistance) && saturationDistance > this.cameraProperties.near && saturationDistance < this.cameraProperties.far) {
+                    this.cameraProperties.near = saturationDistance;
+                }
             }
 
 
