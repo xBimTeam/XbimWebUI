@@ -8,10 +8,24 @@ import { quat } from "gl-matrix";
 import { ClippingPlane } from "../../bcf/clipping-plane";
 
 export class InteractiveSectionBox implements IPlugin {
+    /**
+     * Set to true to render the translucent face fill in addition to the edges
+     */
+    public showFill = true;
+
+    /**
+     * The colour of the section box faces
+     */
+    public boxColour = [0.5, 0.5, 0.6, 0.05];
+
+    /**
+     * The colour used when dragging an active section box face
+     */
+    public hoverPickColour: number[] = [10, 150, 112, 255];
+
     private viewer: Viewer;
     private vertices: Float32Array;
     private colours: Float32Array;
-    private size = 2;
 
     private TOP = 1;
     private BOTTOM = 2; 
@@ -20,7 +34,7 @@ export class InteractiveSectionBox implements IPlugin {
     private RIGHT = 5;
     private LEFT = 6;
 
-    private boxColour = [0.5, 0.5, 0.6, 0.1];
+    
     private currentInteraction: number = -1;
 
     private program: WebGLProgram;
@@ -28,6 +42,22 @@ export class InteractiveSectionBox implements IPlugin {
     private colours_buffer: WebGLBuffer;
     private id_buffer: WebGLBuffer;
     private index_buffer: WebGLBuffer;
+    private edge_vertex_buffer: WebGLBuffer;
+    private edge_dist_buffer: WebGLBuffer;
+    private edge_id_buffer: WebGLBuffer;
+    private edgeDashUniformPointer: WebGLUniformLocation;
+    private readonly edgeVertexCount = 24;
+    private edgeDashPeriod = 0;
+
+    
+    private edgeColourUniformPointer: WebGLUniformLocation;
+
+    // corner index pairs of the 12 box edges (corner order as in buildBoxQuadsFromCorners)
+    private readonly edgeCorners = [
+        0, 1, 1, 3, 3, 2, 2, 0,
+        4, 5, 5, 7, 7, 6, 6, 4,
+        0, 4, 1, 5, 2, 6, 3, 7
+    ];
 
     private coordinatesAttributePointer: number;
     private coloursAttributePointer: number;
@@ -104,7 +134,7 @@ export class InteractiveSectionBox implements IPlugin {
     ]);
     
 
-    private _hoverPickColour: number[] = [10, 150, 112, 255];
+    
 
     private readonly modelId = 1000011;
 
@@ -177,6 +207,13 @@ export class InteractiveSectionBox implements IPlugin {
         this.idCodingUniformPointer = gl.getUniformLocation(this.program, "uColorCoding");
         this.idSelectedIdUniformPointer = gl.getUniformLocation(this.program, "uSelectedId");
         this.hoverPickColourUniformPointer = gl.getUniformLocation(this.program, 'uHoverPickColour');
+        this.edgeColourUniformPointer = gl.getUniformLocation(this.program, 'uEdgeColour');
+        this.edgeDashUniformPointer = gl.getUniformLocation(this.program, 'uDashPeriod');
+        this.edge_vertex_buffer = gl.createBuffer();
+        this.edge_dist_buffer = gl.createBuffer();
+        this.edge_id_buffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.edge_id_buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.edgeVertexCount), gl.STATIC_DRAW);
 
         this.bufferGeometry();
         
@@ -261,7 +298,7 @@ export class InteractiveSectionBox implements IPlugin {
 
         //set uniform for colour coding to false
         gl.uniform1f(this.idCodingUniformPointer, 0);
-        this.draw(gl);
+        this.draw(gl, true);
     }
 
     onBeforeDrawId(): void { }
@@ -288,7 +325,7 @@ export class InteractiveSectionBox implements IPlugin {
         this.draw(gl);
     }
 
-    private draw(gl: WebGLRenderingContext): void {
+    private draw(gl: WebGLRenderingContext, drawEdges = false): void {
         if (this.stopped) {
             return;
         }
@@ -308,10 +345,10 @@ export class InteractiveSectionBox implements IPlugin {
         gl.uniform4fv(this.hoverPickColourUniformPointer,
             new Float32Array(
                 [
-                    this._hoverPickColour[0] / 255.0,
-                    this._hoverPickColour[1] / 255.0,
-                    this._hoverPickColour[2] / 255.0,
-                    this._hoverPickColour[3] / 255.0
+                    this.hoverPickColour[0] / 255.0,
+                    this.hoverPickColour[1] / 255.0,
+                    this.hoverPickColour[2] / 255.0,
+                    this.hoverPickColour[3] / 255.0
                 ]));
 
         this.viewer.gl.uniform1f(this.idSelectedIdUniformPointer, this.currentInteraction);
@@ -329,11 +366,72 @@ export class InteractiveSectionBox implements IPlugin {
 
         //draw
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.index_buffer);
-        gl.drawElements(gl.TRIANGLES, this.indices.length, gl.UNSIGNED_SHORT, 0);
+        // Faces are only drawn in the picking passes unless fill is enabled
+        if (drawEdges ? this.showFill : true) {
+            gl.drawElements(gl.TRIANGLES, this.indices.length, gl.UNSIGNED_SHORT, 0);
+        }
+
+        if (drawEdges) {
+            this.drawEdges(gl);
+        }
+    }
+
+    private drawEdges(gl: WebGLRenderingContext): void {
+        gl.uniform1f(this.idCodingUniformPointer, -1);
+        gl.uniform1f(this.edgeDashUniformPointer, this.edgeDashPeriod);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.edge_vertex_buffer);
+        gl.vertexAttribPointer(this.coordinatesAttributePointer, 3, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.edge_dist_buffer);
+        gl.vertexAttribPointer(this.coloursAttributePointer, 4, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.edge_id_buffer);
+        gl.vertexAttribPointer(this.idsAttributePointer, 1, gl.FLOAT, false, 0, 0);
+
+        // occluded parts of the edges: faint
+        gl.depthFunc(gl.GREATER);
+        gl.depthMask(false);
+        gl.uniform4fv(this.edgeColourUniformPointer, new Float32Array([0.35, 0.4, 0.5, 0.25]));
+        gl.drawArrays(gl.LINES, 0, this.edgeVertexCount);
+
+        // visible parts of the edges
+        gl.depthFunc(gl.LEQUAL);
+        gl.uniform4fv(this.edgeColourUniformPointer, new Float32Array([0.35, 0.4, 0.5, 0.8]));
+        gl.drawArrays(gl.LINES, 0, this.edgeVertexCount);
+
+        gl.depthMask(true);
+        gl.depthFunc(gl.LESS);
+        gl.uniform1f(this.idCodingUniformPointer, 0);
+        gl.uniform1f(this.edgeDashUniformPointer, 0);
+    }
+
+    private bufferEdges(): void {
+        const gl = this.viewer.gl;
+        const corners = this.viewer.sectionBox.boxVertices;
+        const wcs = this.viewer.getCurrentWcs();
+        const positions: number[] = [];
+        const dists: number[] = [];
+        let totalLength = 0;
+        for (let i = 0; i < this.edgeCorners.length; i += 2) {
+            const a = corners[this.edgeCorners[i]];
+            const b = corners[this.edgeCorners[i + 1]];
+            const length = vec3.distance(a, b);
+            totalLength += length;
+            positions.push(a[0] - wcs[0], a[1] - wcs[1], a[2] - wcs[2]);
+            positions.push(b[0] - wcs[0], b[1] - wcs[1], b[2] - wcs[2]);
+            dists.push(0, 0, 0, 0, length, 0, 0, 0);
+        }
+        // dash length scales with the box so the pattern looks the same at any model scale
+        this.edgeDashPeriod = (totalLength / 12) / 40;
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.edge_vertex_buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.DYNAMIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.edge_dist_buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(dists), gl.DYNAMIC_DRAW);
     }
 
     private bufferGeometry(): void {
         if(this.viewer.sectionBox.boxVertices.length == 0) return;
+        this.bufferEdges();
          const plansVertices: number[] = this.buildBoxQuadsFromCorners(this.viewer.sectionBox.boxVertices);
         this.vertices = new Float32Array(plansVertices);
         const colours: number[] = [];

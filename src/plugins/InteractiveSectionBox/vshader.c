@@ -9,8 +9,10 @@ uniform mediump float uColorCoding;
 uniform mediump float uSelectedId;
 
 uniform vec4 uHoverPickColour;
+uniform vec4 uEdgeColour;
 
 varying vec4 vColor;
+varying float vDist;
 varying vec3 FragPos;
 varying mat4 planeTrsf;
 
@@ -32,7 +34,11 @@ vec4 getTransparentColor(vec4 color, float transparency){
 
 void main(void) {
 
-	if (uColorCoding == 1.0)
+	if (uColorCoding < 0.0)
+	{
+		vColor = uEdgeColour;
+	}
+	else if (uColorCoding == 1.0)
 	{
 		vColor = getIdColor(aId);
 	}
@@ -44,7 +50,7 @@ void main(void) {
 	{ 
 		if(uSelectedId == aId)
 		{ 
-			vColor = aColour; 
+			vColor = vec4(uHoverPickColour.rgb, 0.35);
 		}
 		else
 		{
@@ -52,5 +58,6 @@ void main(void) {
 		}
 	}
 
+	vDist = aColour.x;
 	gl_Position = uPMatrix *  uMvMatrix * (vec4(aVertex, 1.0) );
 }
