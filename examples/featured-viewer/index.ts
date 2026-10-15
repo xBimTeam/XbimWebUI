@@ -135,14 +135,14 @@ var sync = () => {
     window.requestAnimationFrame(sync);
 };
 window.requestAnimationFrame(sync);
-viewer.on('navigationEnd', () => {
-    cube.stopped = true;
-    let d = document.getElementById('snapshot');
-    let img = viewer.getCurrentImageHtml(400, 200);
-    d.innerHTML = '';
-    d.appendChild(img);
-    cube.stopped = false;
-})
+// viewer.on('navigationEnd', () => {
+//     cube.stopped = true;
+//     let d = document.getElementById('snapshot');
+//     let img = viewer.getCurrentImageHtml(800, 400);
+//     d.innerHTML = '';
+//     d.appendChild(img);
+//     cube.stopped = false;
+// })
 
 // viewer.on("loaded", () => {
 // let image = viewer.getCurrentImageHtml(2000, 1000);
@@ -314,8 +314,6 @@ document['startGrid'] = () => {
     grid.stopped = false;
 };
 document['takeSnapshot'] = () => {
-    cube.stopped = true;
-
 
     const view = Viewpoint.GetViewpoint(viewer, null);
 
@@ -329,11 +327,9 @@ document['takeSnapshot'] = () => {
     place.appendChild(img);
 
     img.onclick = () => {
-        Viewpoint.SetViewpoint(viewer, view, null, 1000);
-        place.innerHTML = "";
+        Viewpoint.SetViewpoint(viewer, view, null, 2000);
     };
 
-    cube.stopped = false;
 };
 
 document['updateGamma'] = (evt: Event) => {

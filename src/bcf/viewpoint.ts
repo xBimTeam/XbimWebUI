@@ -319,7 +319,7 @@ export class Viewpoint {
             // set camera (MV matrix)
             const target = vec3.add(vec3.create(), eye, dir);
             const mv = mat4.lookAt(mat4.create(), eye, target, up);
-            viewer.animations.viewTo({ mv: mv, height: orthCamHeight }, duration)
+            viewer.animations.viewTo({ mv: mv, height: orthCamHeight, target: target }, duration)
                 .then(() => {
 
                     // try to fix camera placement for generic orthographic views or camera height for perspective views

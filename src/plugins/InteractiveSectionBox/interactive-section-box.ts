@@ -912,8 +912,6 @@ export class InteractiveSectionBox implements IPlugin {
         const minSide = this.viewer.activeHandles[0].meter / 10;
 
         if (topZ - bottomZ <= minSide && (currentInteraction == this.TOP || currentInteraction == this.BOTTOM)) {
-            console.log("cla top", topZ, bottomZ)
-
             return false;
         }
         

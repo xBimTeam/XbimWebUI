@@ -744,26 +744,64 @@ export class Viewer {
         return this._handles.filter((h) => h != null && h.id === id).pop();
     }
 
-    public getCurrentImageHtml(width: number = this.width, height: number = this.height): HTMLImageElement {
+    public getCurrentImageHtml(width?: number, height?: number): HTMLImageElement {
         var element = document.createElement("img") as HTMLImageElement;
         element.src = this.getCurrentImageDataUrl(width, height);
         return element;
     }
 
-    public getCurrentImageDataUrl(width: number = this.width, height: number = this.height, type: 'png' | 'jpeg' = 'png'): string {
-        if (width === 0 || height === 0)
+    /**
+     * Renders the scene into a 2D canvas of the requested size. The scene is rendered at a multiple
+     * of the requested size and downscaled, which gives anti-aliased output.
+     * Defaults to the canvas size multiplied by the device pixel ratio.
+     * @param supersample Oversampling factor (default 2). Reduced automatically to fit GL limits.
+     */
+    public getCurrentImageCanvas(width?: number, height?: number, supersample: number = 2): HTMLCanvasElement | null {
+        const dpr = Math.max(window.devicePixelRatio || 1, 1);
+        width = Math.floor(width ?? this.width * dpr);
+        height = Math.floor(height ?? this.height * dpr);
+        if (!(width > 0) || !(height > 0))
             return null;
 
+        const gl = this.gl;
+        const maxSize = Math.min(
+            gl.getParameter(gl.MAX_TEXTURE_SIZE) as number,
+            gl.getParameter(gl.MAX_RENDERBUFFER_SIZE) as number);
+        const factor = Math.max(1, Math.min(supersample, maxSize / width, maxSize / height));
+        const renderWidth = Math.floor(width * factor);
+        const renderHeight = Math.floor(height * factor);
+
         //use background framebuffer
-        let frame = new Framebuffer(this.gl, width, height, false, this.glVersion);
+        const frame = new Framebuffer(gl, renderWidth, renderHeight, false, this.glVersion);
+        let source: HTMLCanvasElement;
+        try {
+            //force draw into defined framebuffer with plugins disabled
+            this.draw(frame, true);
+            source = frame.get2DCanvas();
+        } finally {
+            //free resources
+            frame.delete();
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            gl.viewport(0, 0, this.width, this.height);
+        }
 
-        //force draw into defined framebuffer
-        this.draw(frame);
+        if (renderWidth === width && renderHeight === height) {
+            return source;
+        }
 
-        let result = frame.getImageDataUrl(type);
-        //free resources
-        frame.delete();
-        return result;
+        const target = document.createElement('canvas');
+        target.width = width;
+        target.height = height;
+        const ctx = target.getContext('2d');
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(source, 0, 0, width, height);
+        return target;
+    }
+
+    public getCurrentImageDataUrl(width?: number, height?: number, type: 'png' | 'jpeg' = 'png', supersample: number = 2): string {
+        const canvas = this.getCurrentImageCanvas(width, height, supersample);
+        return canvas ? canvas.toDataURL(`image/${type}`) : null;
     }
 
     public getCurrentImageDataArray(width: number = this.width, height: number = this.height): Uint8ClampedArray {
@@ -1525,6 +1563,12 @@ export class Viewer {
         // set right size of viewport
         gl.viewport(0, 0, width, height);
         this.updatePMatrix(width, height);
+
+        if (framebuffer) {
+            // offscreen target was not cleared above because it wasn't bound yet
+            gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer.framebuffer);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        }
 
         // set blending function
         gl.enable(gl.BLEND);
