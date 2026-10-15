@@ -335,11 +335,12 @@ export class SectionBox {
             const loc = vec3.subtract(vec3.create(), this.location, wcs);
 
             // create transformation from rotation and translation
+            // inverse of the transformation in getMatrix(): translate(loc) * Rz * Ry * Rx
             let m = mat4.create();
-            m = mat4.rotateX(mat4.create(), m, this.rotationX * Math.PI / 180.0);
-            m = mat4.rotateY(mat4.create(), m, this.rotationY * Math.PI / 180.0);
-            m = mat4.rotateZ(mat4.create(), m, this.rotationZ * Math.PI / 180.0);
             m = mat4.translate(mat4.create(), m, loc);
+            m = mat4.rotateZ(mat4.create(), m, this.rotationZ * Math.PI / 180.0);
+            m = mat4.rotateY(mat4.create(), m, this.rotationY * Math.PI / 180.0);
+            m = mat4.rotateX(mat4.create(), m, this.rotationX * Math.PI / 180.0);
 
             // transform section box vertices to real placement and rotation
             const vertices = local.map(v => vec3.transformMat4(vec3.create(), VectorUtils.getVec3(v), m));

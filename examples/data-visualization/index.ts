@@ -1,4 +1,4 @@
-import { Viewer, Heatmap, InteractiveClippingPlane, ConstantColorChannel, ContinuousHeatmapChannel, ValueRange, ValueRangesHeatmapChannel, HeatmapSource, Icons, CameraType, ViewType, ClippingPlane, LoaderOverlay, ProductType, IHeatmapChannel, ChannelType, RenderingMode, DiscreteHeatmapChannel, State, } from '../..';
+import { Viewer, Heatmap, InteractiveClippingPlane, InteractiveSectionBox, ConstantColorChannel, ContinuousHeatmapChannel, ValueRange, ValueRangesHeatmapChannel, HeatmapSource, Icons, CameraType, ViewType, ClippingPlane, LoaderOverlay, ProductType, IHeatmapChannel, ChannelType, RenderingMode, DiscreteHeatmapChannel, State, } from '../..';
 import { ClusterIcon, Icon } from '../../src/plugins/DataVisualization/Icons/icon';
 import { IconsData } from './icons';
 
@@ -12,8 +12,11 @@ viewer.addPlugin(heatmap);
 viewer.addPlugin(icons);
 loading.show();
 
-// var plane = new InteractiveClippingPlane();
-// viewer.addPlugin(plane);
+var plane = new InteractiveClippingPlane();
+viewer.addPlugin(plane);
+
+var sectionBox = new InteractiveSectionBox();
+viewer.addPlugin(sectionBox);
 
 const refreshInterval = 2000;
 
@@ -376,85 +379,54 @@ function getRandomInt(max: number) {
     return Math.floor(Math.random() * max);
 }
 
+// Defaults the interactive section box to the bounding box of the loaded model(s).
+function initSectionBoxToModel() {
+    // must be read before the section box is set, as the region is cropped by an active section box
+    const bbox = viewer.getTargetBoundingBox();
+    if (!bbox) {
+        return;
+    }
 
-// let clipModel = () => {
-//     var planes: ClippingPlane[] = [
-//         {
-//             direction: [1, 0, 0],
-//             location: [10000, 0, 0]
-//         },
-//         {
-//             direction: [0, 1, 0],
-//             location: [0, 10000, 0]
-//         },
-//         {
-//             direction: [0, 0, 1],
-//             location: [0, 0, 2000]
-//         },
-//         {
-//             direction: [-1, 0, 0],
-//             location: [-10000, 0, 0]
-//         },
-//         {
-//             direction: [0, -1, 0],
-//             location: [0, -10000, 0]
-//         },
-//         {
-//             direction: [0, 0, -1],
-//             location: [0, 0, -10000]
-//         }
-//     ];
+    // bbox is relative to the current WCS, section box planes are in absolute coordinates
+    const wcs = viewer.getCurrentWcs();
+    const min = [bbox[0] + wcs[0], bbox[1] + wcs[1], bbox[2] + wcs[2]];
+    const max = [min[0] + bbox[3], min[1] + bbox[4], min[2] + bbox[5]];
+    const mid = [(min[0] + max[0]) / 2, (min[1] + max[1]) / 2, (min[2] + max[2]) / 2];
 
-//     viewer.sectionBox.setToPlanes(planes);
-// }
+    const planes = [
+        { direction: [1, 0, 0], location: [max[0], mid[1], mid[2]] },
+        { direction: [0, 1, 0], location: [mid[0], max[1], mid[2]] },
+        { direction: [0, 0, 1], location: [mid[0], mid[1], max[2]] },
+        { direction: [-1, 0, 0], location: [min[0], mid[1], mid[2]] },
+        { direction: [0, -1, 0], location: [mid[0], min[1], mid[2]] },
+        { direction: [0, 0, -1], location: [mid[0], mid[1], min[2]] }
+    ];
+    sectionBox.setClippingPlanes(planes);
+}
 
-// document['clip'] = () => {
-//     plane.stopped = false;
-// };
-// document['hideClippingControl'] = () => {
-//     plane.stopped = true;
-// };
-// document['unclip'] = () => {
-//     viewer.unclip();
-//     plane.stopped = true;
-// };
 
-// window['clipBox'] = () => {
-//     var planes: ClippingPlane[] = [
-//         {
-//             direction: [1, 0, 0],
-//             location: [5000, 0, 0]
-//         },
-//         {
-//             direction: [0, 1, 0],
-//             location: [0, 2000, 0]
-//         },
-//         {
-//             direction: [0, 0, 1],
-//             location: [0, 0, 2100]
-//         },
-//         {
-//             direction: [-1, 0, 0],
-//             location: [-100, 0, 0]
-//         },
-//         {
-//             direction: [0, -1, 0],
-//             location: [0, -2000, 0]
-//         },
-//         {
-//             direction: [0, 0, -1],
-//             location: [0, 0, -1000]
-//         }
-//     ];
+document['clip'] = () => {
+    plane.stopped = false;
+};
+document['hideClippingControl'] = () => {
+    plane.stopped = true;
+};
+document['unclip'] = () => {
+    viewer.unclip();
+    plane.stopped = true;
+};
 
-//     viewer.sectionBox.setToPlanes(planes);
-//     viewer.zoomTo();
-// };
+window['clipBox'] = () => {
+    
+    initSectionBoxToModel();
+    sectionBox.stopped = false;
+};
 
-// window['releaseClipBox'] = () => {
-//     clipModel();
-//     viewer.zoomTo();
-// };
+window['releaseClipBox'] = () => {
+    viewer.sectionBox.clear();
+    sectionBox.stopped = true;
+    viewer.zoomTo();
+};
 
 window['toggleValues'] = () => {
 

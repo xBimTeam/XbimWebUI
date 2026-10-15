@@ -252,6 +252,12 @@ export class InteractiveSectionBox implements IPlugin {
           const { direction, location } = planes[index];
            this.transformations[index] = this.getTransformationFromPlane(vec3.fromValues(direction[0], direction[1], direction[2]), vec3.fromValues(location[0], location[1], location[2]));
         }
+
+        // keep the viewer's section box in sync, using the canonical plane order
+        this.applySectionBox();
+        if (!this.stopped) {
+            this.bufferGeometry();
+        }
     }
 
     private sortPlanes(
