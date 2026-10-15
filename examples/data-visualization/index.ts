@@ -44,8 +44,8 @@ function createHeatMapSourceAndIcons(products: {id: number, model: number}[][], 
             //viewer.show(ViewType.DEFAULT);
         };
         return clusterable
-            ? new ClusterIcon(name, description, initialValue.toString(), e, iconData, null, null, null, onIconSelected, displayValue, initialValue, channelId, onIconDeselected)
-            : new Icon(name, description, initialValue.toString(), e, iconData, null, null, null, onIconSelected, displayValue, initialValue, '', onIconDeselected);
+            ? new ClusterIcon(name, description, initialValue.toString(), e, iconData, null, null, null, onIconSelected, displayValue, initialValue, channelId, onIconDeselected, false)
+            : new Icon(name, description, initialValue.toString(), e, iconData, null, null, null, onIconSelected, displayValue, initialValue, '', onIconDeselected, false);
     }); 
 }
 
@@ -92,15 +92,11 @@ const alertsClusteredChannel = new DiscreteHeatmapChannel
 let selectedChannel: IHeatmapChannel = temperatureChannel;
 
 function updateVisualization() {
-    var sources = getSources(selectedChannel);
-    
-    for(var i = 0 ; i < sources.length; i++) {
-        var source = sources[i];
-        var icon = vizIcons[source.channelId][i];
-       
-        heatmap.renderSource(source.id);
-        updateIcon(icon, selectedChannel, source);
-    }
+    const channelSources = getSources(selectedChannel);
+    heatmap.renderSources(channelSources.map(source => source.id));
+    channelSources.forEach((source, index) => {
+        updateIcon(vizIcons[source.channelId][index], selectedChannel, source);
+    });
 }
 
 viewer.on('loaded', args => {
@@ -133,22 +129,22 @@ viewer.on('loaded', args => {
         createHeatMapSourceAndIcons(individualElements, alarmChannelId, "Alarm", IconsData.errorIcon, true, "OK", false);
         createHeatMapSourceAndIcons(duplicatedIndividualElements, alertClusteredChannelId, "Alert", IconsData.errorIcon, true, "OK", true);
 
-        Object.keys(sources).map(k => 
-            sources[k].map(h => 
-                heatmap.addSource(h)));
-
-        Object.keys(vizIcons).map(k => 
-            vizIcons[k].map(i => { 
-                i.isEnabled = false;
-                icons.addIcon(i); 
-            }));   
+        const allSources = Object.keys(sources).reduce(
+            (all, channelId) => all.concat(sources[channelId]),
+            [] as HeatmapSource[]
+        );
+        const allIcons = Object.keys(vizIcons).reduce(
+            (all, channelId) => all.concat(vizIcons[channelId]),
+            [] as Icon[]
+        );
+        heatmap.addSources(allSources);
+        icons.addIcons(allIcons);
         
         viewer.camera = CameraType.PERSPECTIVE;
         viewer.resetState(ProductType.IFCSPACE)
         viewer.show(ViewType.DEFAULT);
         viewer.renderingMode = RenderingMode.XRAY_ULTRA;
 
-        heatmap.renderChannel(selectedChannel.channelId);
         setIconState(selectedChannel.channelId);
         icons.useClusterCellCenter = false;
         updateVisualization();
@@ -502,5 +498,4 @@ window['deleteIcon'] = () => {
         
     }
 }
-
 

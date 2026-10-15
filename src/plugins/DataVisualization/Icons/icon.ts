@@ -43,6 +43,7 @@ export class Icon {
      * @param [value=undefined] The raw value of the icon
      * @param [unit=''] - The unit associated with the icon's value.
      * @param {() => void} [onIconDeselected=null] - Callback function to be executed when the icon is deselected.
+     * @param {boolean} [enabled=true] - Whether the icon is enabled when created.
      * @example
      * const icon = new Icon('Sample Icon', 'This is a sample icon.', 1, 101, 'imageDataString', new Float32Array([0, 0, 0]), 100, 100, () => console.log('Icon selected'));
      */
@@ -60,6 +61,7 @@ export class Icon {
         value: any = undefined,
         unit: string = '',
         onIconDeselected: () => void = () => {},
+        enabled: boolean = true,
     ) {
         this._products = products;
         this._imageData = imageData;
@@ -74,7 +76,7 @@ export class Icon {
         this._onIconSelected = onIconSelected;
         this._onIconDeselected = onIconDeselected;
         this._displayValue = displayValue;
-        this._enabled = true;
+        this._enabled = enabled;
     }
 
     /**
@@ -381,6 +383,7 @@ export class ClusterIcon extends Icon {
         value: unknown = undefined,
         unit: string = '',
         onIconDeselected: () => void = () => {},
+        enabled: boolean = true,
     ) {
         super(
             name,
@@ -395,7 +398,8 @@ export class ClusterIcon extends Icon {
             displayValue,
             value,
             unit, 
-            onIconDeselected
+            onIconDeselected,
+            enabled
         );
     }
 }

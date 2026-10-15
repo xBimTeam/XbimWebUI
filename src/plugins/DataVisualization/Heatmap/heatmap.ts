@@ -14,13 +14,13 @@ import { State } from "../../../common";
  */
 export class Heatmap implements IPlugin {
     private _viewer: Viewer = null;
-    private _channels: IHeatmapChannel[] = [];
-    private _sources: HeatmapSource[] = [];
+    private _channels = new Map<string, IHeatmapChannel>();
+    private _sources = new Map<string, HeatmapSource>();
     private _colorStylesMap: { [colorHex: string]: number } = {};
     private _stopped = true;
     private _nextStyleId: number = 0;
 
-    public get channels(): IHeatmapChannel[] { return this._channels; }
+    public get channels(): IHeatmapChannel[] { return Array.from(this._channels.values()); }
 
     public get stopped(): boolean { return this._stopped; }
 
@@ -36,59 +36,83 @@ export class Heatmap implements IPlugin {
     }
 
     public addChannel(channel: IHeatmapChannel): void {
-        var existing = this.channels.filter(c => c.channelId === channel.channelId).pop();
-        if (existing) {
+        if (this._channels.has(channel.channelId)) {
             const msg = `A channel with this Id '${channel.channelId}' already exists.`;
             console.error(msg)
             throw new Error(msg);
         }
-        this._channels.push(channel);
+        this._channels.set(channel.channelId, channel);
     }
 
     public addSource(source: HeatmapSource): void {
-        var existing = this._sources.filter(c => c.id === source.id).pop();
-        if (existing) {
-            const msg = `A source with this Id '${source.id}' already exists.`
-            console.error(msg)
-            throw new Error(msg);
-        }
+        this.addSources([source]);
+    }
 
-        const channel = this._channels.filter(c => c.channelId === source.channelId).pop();
-        if (channel) {
-            this._sources.push(source);
-        }
-        else {
-            const msg = `No channel with Id '${source.channelId}' exists for this source '${source.id}'.`;
-            console.error(msg)
-            throw new Error(msg);
-        }
-
+    /** Register multiple sources after validating the complete batch. */
+    public addSources(sources: HeatmapSource[]): void {
+        const pendingIds = new Set<string>();
+        sources.forEach(source => {
+            if (this._sources.has(source.id) || pendingIds.has(source.id)) {
+                const msg = `A source with this Id '${source.id}' already exists.`;
+                console.error(msg);
+                throw new Error(msg);
+            }
+            if (!this._channels.has(source.channelId)) {
+                const msg = `No channel with Id '${source.channelId}' exists for this source '${source.id}'.`;
+                console.error(msg);
+                throw new Error(msg);
+            }
+            pendingIds.add(source.id);
+        });
+        sources.forEach(source => this._sources.set(source.id, source));
     }
 
     public renderChannel(channelId: string) {
-        const channel = this._channels.filter(c => c.channelId === channelId).pop();
-        this.renderChannelInternal(channel);
+        const channel = this._channels.get(channelId);
+        if (!channel) {
+            const msg = `No channel registered with this Id '${channelId}'.`;
+            console.error(msg);
+            throw new Error(msg);
+        }
+        this.renderChannelInternal(channel, null, channelId);
     }
 
     public getChannel(channelId: string): IHeatmapChannel {
-        const channel = this._channels.filter(c => c.channelId === channelId).pop();
-        return channel;
+        return this._channels.get(channelId);
     }
 
     public renderSource(sourceId: string) {
-        const source = this._sources.filter(c => c.id === sourceId).pop();
-        if (source) {
-            const channel = this._channels.filter(c => c.channelId === source.channelId).pop();
-            this.renderChannelInternal(channel, [source]);
-        }
-        else {
-            const msg = `No source registered with this Id '${source.id}'.`;
-            console.error(msg)
-            throw new Error(msg);
-        }
+        this.renderSources([sourceId]);
     }
 
-    private renderChannelInternal(channel: IHeatmapChannel, sources: HeatmapSource[] = null) {
+    /** Render selected sources in channel batches, or all registered sources when no IDs are supplied. */
+    public renderSources(ids?: string[]): void {
+        const sources = ids === undefined
+            ? Array.from(this._sources.values())
+            : Array.from(new Set(ids)).map(id => {
+                const source = this._sources.get(id);
+                if (!source) {
+                    const msg = `No source registered with this Id '${id}'.`;
+                    console.error(msg);
+                    throw new Error(msg);
+                }
+                return source;
+            });
+        const sourcesByChannel = new Map<string, HeatmapSource[]>();
+        sources.forEach(source => {
+            let channelSources = sourcesByChannel.get(source.channelId);
+            if (!channelSources) {
+                channelSources = [];
+                sourcesByChannel.set(source.channelId, channelSources);
+            }
+            channelSources.push(source);
+        });
+        sourcesByChannel.forEach((channelSources, channelId) => {
+            this.renderChannelInternal(this._channels.get(channelId), channelSources, channelId);
+        });
+    }
+
+    private renderChannelInternal(channel: IHeatmapChannel, sources: HeatmapSource[] = null, channelId?: string) {
         if (channel) {
             switch (channel.channelType) {
                 case ChannelType.Continuous: {
@@ -110,21 +134,25 @@ export class Heatmap implements IPlugin {
             }
         }
         else {
-            const msg = `No channel registered with this Id '${channel.channelId}'.`;
+            const msg = `No channel registered with this Id '${channelId || ''}'.`;
             throw new Error(msg);
         }
     }
 
+    private getSources(): HeatmapSource[] {
+        return Array.from(this._sources.values());
+    }
+
     private renderConstantColorChannel(channel: ConstantColorChannel, sources: HeatmapSource[] = null) {
         const colorHex = channel.getColor(undefined);
-        if (!this._colorStylesMap[colorHex]) {
+        if (this._colorStylesMap[colorHex] === undefined) {
             const rgba = this.hexToRgba(colorHex);
             this._viewer.defineStyle(this._nextStyleId, rgba);
             this._colorStylesMap[colorHex] = this._nextStyleId;
             this._nextStyleId++;
         }
     
-        const maps = (sources ?? this._sources).filter(s => s.channelId == channel.channelId);
+        const maps = (sources ?? this.getSources()).filter(s => s.channelId == channel.channelId);
         const groups: Record<string, number[]> = maps.map(m => m.products).flat().reduce((groups, item) => {
             const key = item.model;
             if (!groups[key]) {
@@ -145,7 +173,7 @@ export class Heatmap implements IPlugin {
     private renderDiscreteChannel(channel: DiscreteHeatmapChannel, sources: HeatmapSource[] = null) {
         const colorVals = Object.values(channel.values);
         colorVals.forEach(colorHex => {
-            if (this._colorStylesMap[colorHex])
+            if (this._colorStylesMap[colorHex] !== undefined)
                 return;
 
             const rgba = this.hexToRgba(colorHex);
@@ -153,7 +181,7 @@ export class Heatmap implements IPlugin {
             this._colorStylesMap[colorHex] = this._nextStyleId;
             this._nextStyleId++;
         });
-        const maps = (sources ?? this._sources).filter(s => s.channelId == channel.channelId);
+        const maps = (sources ?? this.getSources()).filter(s => s.channelId == channel.channelId);
         const groups: Record<string, {source:HeatmapSource, product: {id:number, model:number}}[]> = maps.flatMap(source => source.products.map(product => ({ product, source })))
         .reduce((groups, item) => {
             const key = `${item.source.value}-${item.product.model}`;
@@ -178,7 +206,7 @@ export class Heatmap implements IPlugin {
     private renderValueRangesChannel(channel: ValueRangesHeatmapChannel, sources: HeatmapSource[] = null) {
         const colorVals = channel.valueRanges.map(vr => vr.color);
         colorVals.forEach(colorHex => {
-            if (this._colorStylesMap[colorHex])
+            if (this._colorStylesMap[colorHex] !== undefined)
                 return;
 
             const rgba = this.hexToRgba(colorHex);
@@ -187,7 +215,7 @@ export class Heatmap implements IPlugin {
             this._nextStyleId++;
         });
 
-        const maps = (sources ?? this._sources).filter(s => s.channelId == channel.channelId);
+        const maps = (sources ?? this.getSources()).filter(s => s.channelId == channel.channelId);
         const groups: Record<string, Record<string, number[]>> = {};
         maps.forEach(source => {
             const colorHex = channel.getColor(source.value);
@@ -220,7 +248,7 @@ export class Heatmap implements IPlugin {
     private renderContinuousChannel(channel: ContinuousHeatmapChannel, sources: HeatmapSource[] = null) {
         // styles for edges of gradient
         channel.colorGradient.forEach(colorHex => {
-            if (this._colorStylesMap[colorHex])
+            if (this._colorStylesMap[colorHex] !== undefined)
                 return;
 
             const rgba = this.hexToRgba(colorHex);
@@ -229,7 +257,7 @@ export class Heatmap implements IPlugin {
             this._nextStyleId++;
         });
 
-        const maps = (sources ?? this._sources).filter(source => source.channelId == channel.channelId && source.products.length > 0);
+        const maps = (sources ?? this.getSources()).filter(source => source.channelId == channel.channelId && source.products.length > 0);
         const groups: Record<string, Record<string, number[]>> = {};
         maps.forEach(source => {
             const colorHex = channel.getColor(source.value);
@@ -252,7 +280,7 @@ export class Heatmap implements IPlugin {
         Object.keys(groups).forEach(colorHex => {
             const models = groups[colorHex];
             let style = this._colorStylesMap[colorHex];
-            if (!style) {
+            if (style === undefined) {
                 const rgba = this.hexToRgba(colorHex);
                 this._viewer.defineStyle(this._nextStyleId, rgba);
                 style = this._nextStyleId;
@@ -324,4 +352,3 @@ export class Heatmap implements IPlugin {
     public onAfterDrawModelId(): void { }
 
 }
-

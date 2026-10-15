@@ -28,7 +28,7 @@ export class Icons implements IPlugin {
     private _floatdetails: HTMLDivElement;
     private _floatTitle: HTMLDivElement;
     private _floatBody: HTMLDivElement;
-    private _instances : { [id: string] : Icon} = {}
+    private _instances = new Map<string, { icon: Icon, element: HTMLDivElement, image: HTMLImageElement, valueElement: HTMLDivElement }>();
     private _selectedIcon: Icon | undefined;
     private _displayedDetailsIcon: Icon | undefined;
     private _displayedDetailsName: string | undefined;
@@ -163,13 +163,20 @@ export class Icons implements IPlugin {
      * @returns 
      */
     public removeIcon(icon: Icon) {
-        const id = Object.keys(this._instances).find(key => this._instances[key] === icon);
-        if (id === undefined) {
+        let id: string | undefined;
+        let instance: { icon: Icon, element: HTMLDivElement, image: HTMLImageElement, valueElement: HTMLDivElement } | undefined;
+        this._instances.forEach((value, key) => {
+            if (id === undefined && value.icon === icon) {
+                id = key;
+                instance = value;
+            }
+        });
+        if (id === undefined || !instance) {
             return;
         }
 
-        delete this._instances[id];
-        document.getElementById('icon' + id)?.remove();
+        this._instances.delete(id);
+        instance.element.remove();
 
         if (this._selectedIcon === icon) {
             this._selectedIcon = undefined;
@@ -180,88 +187,71 @@ export class Icons implements IPlugin {
      * 
     */
     public addIcon(icon: Icon){
-        const id = this.getId(icon);
-        const iconElement = document.createElement('div');
-        const image = document.createElement('img');
-        image.classList.add('icon-image')
-        image.draggable = false;
-        image.addEventListener("click", this.onIconClicked.bind(this), false);
-        if(!icon.imageData){
-            icon.imageData = IconData.defaultIcon;
+        this.addIcons([icon]);
+    }
 
-        }
-        if(!icon.imageData.startsWith('data:image/')){
-            image.src = 'data:image/png;base64,' + icon.imageData; // assume it is png
-            image.height = icon.height ?? IconData.defaultIconHeight;
-            image.width = icon.width ?? IconData.defaultIconWidth;
-        }
-        else{
-            image.src = icon.imageData;
-            image.height = 24;
-            image.width = 18;
-        }
-        image.id = id.toString();
-        if(icon.products && icon.products.length && !icon.location) {
-            const wcs = this._viewer.getCurrentWcs();
-            let minX = Infinity, minY = Infinity, minZ = Infinity;
-            let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
-            icon.products.forEach(product => {
-                const bb = this._viewer.getProductBoundingBox(product.id, product.model);
-                if (bb && bb.length === 6) {
-                    minX = Math.min(minX, bb[0]);
-                    minY = Math.min(minY, bb[1]);
-                    minZ = Math.min(minZ, bb[2]);
-                    
-                    maxX = Math.max(maxX, bb[0] + bb[3]);
-                    maxY = Math.max(maxY, bb[1] + bb[4]);
-                    maxZ = Math.max(maxZ, bb[2] + bb[5]);
-                }
-            });
-            if (minX !== Infinity && minY !== Infinity && minZ !== Infinity) {
-                const centerX = (minX + maxX) / 2 - wcs[0];
-                const centerY = (minY + maxY) / 2 - wcs[1];
-                const centerZ = (minZ + maxZ) / 2 - wcs[2];
-                icon.location = new Float32Array([centerX, centerY, centerZ]);
+    /** Register multiple icons, appending their DOM elements in a single operation. */
+    public addIcons(icons: Icon[]): void {
+        const fragment = document.createDocumentFragment();
+        const boundingBoxes = new Map<string, Float32Array | null>();
+        const wcs = icons.some(icon => icon.products && icon.products.length > 0 && !icon.location)
+            ? this._viewer.getCurrentWcs()
+            : null;
+        const instances: [string, { icon: Icon, element: HTMLDivElement, image: HTMLImageElement, valueElement: HTMLDivElement }][] = [];
+
+        icons.forEach((icon, index) => {
+            const id = this.getIdForIcon(icon, this._iconsCount + index).toString();
+            const iconElement = document.createElement('div');
+            const image = document.createElement('img');
+            image.classList.add('icon-image');
+            image.draggable = false;
+            image.addEventListener("click", this.onIconClicked.bind(this), false);
+            if (!icon.imageData) {
+                icon.imageData = IconData.defaultIcon;
             }
-        }
-        
-        const valueDiv = document.createElement('div');
-        valueDiv.classList.add('icon-value-readout');
-        valueDiv.id = 'value-' + id;
-        valueDiv.style.display = 'none'; // Initially hidden
-        
-        this._instances[id.toString()] = icon;
-        iconElement.id = "icon" + id;
-        iconElement.appendChild(valueDiv);
-        iconElement.appendChild(image);
-        this._icons.appendChild(iconElement);
-        this._iconsCount++;
+            if (!icon.imageData.startsWith('data:image/')) {
+                image.src = 'data:image/png;base64,' + icon.imageData;
+                image.height = icon.height ?? IconData.defaultIconHeight;
+                image.width = icon.width ?? IconData.defaultIconWidth;
+            } else {
+                image.src = icon.imageData;
+                image.height = 24;
+                image.width = 18;
+            }
+            image.id = id;
+
+            if (wcs && icon.products && icon.products.length > 0 && !icon.location) {
+                const location = this.getProductsCenter(icon.products, wcs, boundingBoxes);
+                if (location) {
+                    icon.location = location;
+                }
+            }
+
+            const valueElement = document.createElement('div');
+            valueElement.classList.add('icon-value-readout');
+            valueElement.id = 'value-' + id;
+            valueElement.style.display = 'none';
+
+            iconElement.id = "icon" + id;
+            iconElement.appendChild(valueElement);
+            iconElement.appendChild(image);
+            fragment.appendChild(iconElement);
+            instances.push([id, { icon, element: iconElement, image, valueElement }]);
+        });
+
+        this._icons.appendChild(fragment);
+        instances.forEach(([id, instance]) => this._instances.set(id, instance));
+        this._iconsCount += instances.length;
     }
 
     public updateIconsLocations(){
-        Object.keys(this._instances).forEach(key => {
-            const icon = this._instances[key];
+        const boundingBoxes = new Map<string, Float32Array | null>();
+        const wcs = this._viewer.getCurrentWcs();
+        this._instances.forEach(({ icon }) => {
             if (icon.products && icon.products.length) {
-                const wcs = this._viewer.getCurrentWcs();
-                let minX = Infinity, minY = Infinity, minZ = Infinity;
-                let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
-                icon.products.forEach(product => {
-                    const bb = this._viewer.getProductBoundingBox(product.id, product.model);
-                    if (bb && bb.length === 6) {
-                        minX = Math.min(minX, bb[0]);
-                        minY = Math.min(minY, bb[1]);
-                        minZ = Math.min(minZ, bb[2]);
-                        
-                        maxX = Math.max(maxX, bb[0] + bb[3]);
-                        maxY = Math.max(maxY, bb[1] + bb[4]);
-                        maxZ = Math.max(maxZ, bb[2] + bb[5]);
-                    }
-                });
-                if (minX !== Infinity && minY !== Infinity && minZ !== Infinity) {
-                    const centerX = (minX + maxX) / 2 - wcs[0];
-                    const centerY = (minY + maxY) / 2 - wcs[1];
-                    const centerZ = (minZ + maxZ) / 2 - wcs[2];
-                    icon.location = new Float32Array([centerX, centerY, centerZ]);
+                const location = this.getProductsCenter(icon.products, wcs, boundingBoxes);
+                if (location) {
+                    icon.location = location;
                 }
             }
         });
@@ -336,8 +326,9 @@ export class Icons implements IPlugin {
 
     private onIconClicked(ev: PointerEvent ){
         ev.stopPropagation();
-        const icon: Icon = this._instances[(ev.target as Element).id];
-        if(!icon) return;
+        const instance = this._instances.get((ev.target as Element).id);
+        if (!instance) return;
+        const icon = instance.icon;
         if(this._selectedIcon && icon && icon === this._selectedIcon)
         {
             this.closeFloatingBox()
@@ -450,10 +441,9 @@ export class Icons implements IPlugin {
     }
 
     private hideSingleIcons() {
-        Object.keys(this._instances).forEach(k => {
-            if (this._instances[k] instanceof ClusterIcon) return;
-            const label = document.getElementById('icon' + k);
-            if (label) label.style.display = 'none';
+        this._instances.forEach(({ icon, element }) => {
+            if (icon instanceof ClusterIcon) return;
+            element.style.display = 'none';
         });
     }
 
@@ -461,13 +451,14 @@ export class Icons implements IPlugin {
     private renderClusteredIcons(planeA: Float32Array | null, planeB: Float32Array | null, box: Float32Array, modelView: mat4, viewProjection: mat4, depthRange: { min: number, max: number }): boolean {
         const canvasSize = Math.min(this._viewer.canvas.clientWidth, this._viewer.canvas.clientHeight);
         const cellSize = Math.max(48, Math.min(120, canvasSize * this.clusterCellSize / 100));
-        const buckets = new Map<string, ({icon:ClusterIcon, key: string, iconLabel: HTMLElement, position: number[]})[]>();
+        type IconInstance = { icon: Icon, element: HTMLDivElement, image: HTMLImageElement, valueElement: HTMLDivElement };
+        type Item = { icon: ClusterIcon, key: string, iconLabel: HTMLElement, position: number[], instance: IconInstance };
+        const buckets = new Map<string, Item[]>();
 
-        Object.keys(this._instances).forEach(k => {
-            const icon = this._instances[k];
+        this._instances.forEach((instance, k) => {
+            const icon = instance.icon;
             if (!(icon instanceof ClusterIcon)) return;
-            
-            let iconLabel = document.getElementById('icon' + k);
+            const iconLabel = instance.element;
 
             if (iconLabel && icon && icon.location && icon.isEnabled) {
                 
@@ -491,7 +482,7 @@ export class Icons implements IPlugin {
                         bucket = [];
                         buckets.set(key, bucket);
                     }
-                    bucket.push({icon, key: k, iconLabel, position});
+                    bucket.push({icon, key: k, iconLabel, position, instance});
                 }
             } else {
                 if (iconLabel)
@@ -514,7 +505,6 @@ export class Icons implements IPlugin {
         const membershipKey = (icons: { key: string }[]) => icons.map(i => i.key).sort().join('|');
 
         if (this._explodedKey) {
-            type Item = {icon:ClusterIcon, key: string, iconLabel: HTMLElement, position: number[]};
             let explodedBucket: { clusterKey: string, icons: Item[] } | null = null;
             buckets.forEach((icons, clusterKey) => {
                 if (icons.length >= this.minimumIconsToCluster && membershipKey(icons) === this._explodedKey) {
@@ -538,7 +528,7 @@ export class Icons implements IPlugin {
                 sorted.forEach((item, index) => {
                     const exploded = [centerX + offsets[index].dx, centerY + offsets[index].dy];
                     this._explodedPositions.set(item.icon, exploded);
-                    this.renderIcon(item.icon, exploded, item.iconLabel, item.key, modelView, depthRange);
+                    this.renderIcon(item.icon, exploded, item.instance, modelView, depthRange);
                 });
                 this._hub.style.left = (centerX - 6) + 'px';
                 this._hub.style.top = (centerY - 6) + 'px';
@@ -552,8 +542,8 @@ export class Icons implements IPlugin {
         let clusterIndex = 0;
         buckets.forEach((icons, clusterKey) => {
             if (icons.length === 1 || icons.length < this.minimumIconsToCluster) {
-                icons.forEach(({icon, key, iconLabel, position}) => {
-                    this.renderIcon(icon, position, iconLabel, key, modelView, depthRange);
+                icons.forEach(({icon, key, position, instance}) => {
+                    this.renderIcon(icon, position, instance, modelView, depthRange);
                 });
             } else {
                 icons.forEach(item => item.iconLabel.style.display = 'none');
@@ -696,10 +686,10 @@ export class Icons implements IPlugin {
 
 
     private renderSingleIcons(planeA: Float32Array | null, planeB: Float32Array | null, box: Float32Array, modelView: mat4, viewProjection: mat4, depthRange: { min: number, max: number }) {
-        Object.keys(this._instances).forEach(k => {
-            const icon: Icon = this._instances[k];
+        this._instances.forEach((instance, k) => {
+            const icon = instance.icon;
             if (icon instanceof ClusterIcon) return;
-            let iconLabel = document.getElementById('icon' + k);
+            const iconLabel = instance.element;
             if (iconLabel && icon && icon.location && icon.isEnabled) {
 
                 if (!this.canBeRendered(icon, planeA, planeB, box) || !this.isWithinNearFrustum(icon.location, viewProjection)) {
@@ -710,7 +700,7 @@ export class Icons implements IPlugin {
                 const position = this._viewer.getHtmlCoordinatesOfVector(icon.location);
                 if (position.length == 2) {
 
-                    this.renderIcon(icon, position, iconLabel, k, modelView, depthRange);
+                    this.renderIcon(icon, position, instance, modelView, depthRange);
                 }
 
             } else {
@@ -720,7 +710,8 @@ export class Icons implements IPlugin {
         });
     }
 
-    private renderIcon(icon: Icon, position: number[], iconLabel: HTMLElement, key: string, modelView: mat4, depthRange: { min: number, max: number }) {
+    private renderIcon(icon: Icon, position: number[], instance: { icon: Icon, element: HTMLDivElement, image: HTMLImageElement, valueElement: HTMLDivElement }, modelView: mat4, depthRange: { min: number, max: number }) {
+        const iconLabel = instance.element;
         const iconheight = icon.height ?? IconData.defaultIconHeight;
         const iconwidth = icon.width ?? IconData.defaultIconWidth;
         const posLeft = (position[0] - iconwidth / 2);
@@ -736,36 +727,28 @@ export class Icons implements IPlugin {
             ? Math.max(0, Math.min(1, (depth - depthRange.min) / depthSpan))
             : 0;
         const depthScale = 1 - normalizedDepth * (1 - this.minimumIconImageScale);
-        const image = iconLabel.querySelector<HTMLImageElement>('.icon-image');
-        if (image) {
-            image.style.transform = `scale(${depthScale})`;
-        }
+        instance.image.style.transform = `scale(${depthScale})`;
         if (!icon.isValueDisplayed) {
             if (iconLabel.title !== icon.valueReadout) {
                 iconLabel.title = icon.valueReadout;
             }
         }
         if (icon.valueReadout && icon.isValueDisplayed) {
-            const valueDiv = document.getElementById('value-' + key);
-            if (valueDiv) {
-                const valueContent = icon.overlayValue || icon.valueReadout;
-                const renderedValueContent = this._renderedValueContents.get(valueDiv);
-                if (icon.isValueDirty || renderedValueContent !== valueContent) {
-                    if (renderedValueContent !== valueContent) {
-                        valueDiv.innerHTML = valueContent;
-                        this._renderedValueContents.set(valueDiv, valueContent);
-                    }
-                    icon.clearValueDirty();
+            const valueDiv = instance.valueElement;
+            const valueContent = icon.overlayValue || icon.valueReadout;
+            const renderedValueContent = this._renderedValueContents.get(valueDiv);
+            if (icon.isValueDirty || renderedValueContent !== valueContent) {
+                if (renderedValueContent !== valueContent) {
+                    valueDiv.innerHTML = valueContent;
+                    this._renderedValueContents.set(valueDiv, valueContent);
                 }
-                valueDiv.style.display = 'block';
-                valueDiv.style.top = (iconheight + 0) + 'px';
-                valueDiv.style.transform = `translateX(-50%) scale(${depthScale})`;
+                icon.clearValueDirty();
             }
+            valueDiv.style.display = 'block';
+            valueDiv.style.top = (iconheight + 0) + 'px';
+            valueDiv.style.transform = `translateX(-50%) scale(${depthScale})`;
         } else {
-            const valueDiv = document.getElementById('value-' + key);
-            if (valueDiv) {
-                valueDiv.style.display = 'none';
-            }
+            instance.valueElement.style.display = 'none';
         }
     }
 
@@ -824,14 +807,50 @@ export class Icons implements IPlugin {
     }
       
     public getId(icon: Icon): number {
+        return this.getIdForIcon(icon, this._iconsCount);
+    }
+
+    private getIdForIcon(icon: Icon, index: number): number {
         const uniqueValue = Date.now().toString();
         if (icon.products && icon.products.length > 0) {
           const sortedProductIds = icon.products.map(p => p.id).slice().sort((a, b) => a - b);
-          const idString = sortedProductIds.join('-') + '-' + icon.name + '-' + this._iconsCount + '-' + uniqueValue;
+          const idString = sortedProductIds.join('-') + '-' + icon.name + '-' + index + '-' + uniqueValue;
           return this.hashString(idString);
         } else {
           return this.hashString(Math.random().toString());
         }
+    }
+
+    private getProductsCenter(
+        products: { id: number, model: number }[],
+        wcs: vec3,
+        boundingBoxes: Map<string, Float32Array | null>
+    ): Float32Array | null {
+        let minX = Infinity, minY = Infinity, minZ = Infinity;
+        let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+        products.forEach(product => {
+            const key = `${product.model}:${product.id}`;
+            if (!boundingBoxes.has(key)) {
+                boundingBoxes.set(key, this._viewer.getProductBoundingBox(product.id, product.model) || null);
+            }
+            const bb = boundingBoxes.get(key);
+            if (bb && bb.length === 6) {
+                minX = Math.min(minX, bb[0]);
+                minY = Math.min(minY, bb[1]);
+                minZ = Math.min(minZ, bb[2]);
+                maxX = Math.max(maxX, bb[0] + bb[3]);
+                maxY = Math.max(maxY, bb[1] + bb[4]);
+                maxZ = Math.max(maxZ, bb[2] + bb[5]);
+            }
+        });
+        if (minX === Infinity || minY === Infinity || minZ === Infinity) {
+            return null;
+        }
+        return new Float32Array([
+            (minX + maxX) / 2 - wcs[0],
+            (minY + maxY) / 2 - wcs[1],
+            (minZ + maxZ) / 2 - wcs[2]
+        ]);
     }
       
     private hashString(str: string): number {
