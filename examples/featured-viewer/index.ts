@@ -405,31 +405,29 @@ viewer.on("pick", (args) => {
 });
 
 window['clipBox'] = () => {
-    const boundingBox = viewer.getMergedRegionWcs().bbox;
-    const centre = viewer.getMergedRegionWcs().centre;
-    const minX = boundingBox[0], minY = boundingBox[1], minZ = boundingBox[2];
-    const maxX = boundingBox[3], maxY = boundingBox[4], maxZ = boundingBox[5];
-    const meter = viewer.activeHandles[0].meter;
+    const region = viewer.getMergedRegionWcs();
+    const boundingBox = region.bbox; // [x, y, z, sizeX, sizeY, sizeZ]
+    const centre = region.centre;
 
     const cx = centre[0];
     const cy = centre[1];
     const cz = centre[2];
 
-    const ex = Math.min(3 * meter, Math.abs(maxX - minX) / 5);
-    const ey = Math.min(3 * meter, Math.abs(maxY - minY) / 5);
-    const ez = Math.min(3 * meter, Math.abs(maxZ - minZ) / 5);
-
-    console.log(ex, ey ,ez)
-
+    // section box is half the size of the building in plan
+    const ex = boundingBox[3] / 2;
+    const ey = boundingBox[4] / 2;
+    // plan view: cut through the middle of the building and keep everything below it
+    const topZ = cz;
+    const bottomZ = boundingBox[2];
     const planes: ClippingPlane[] = [
         
         {
             direction: [ 0,  0,  1],
-            location:  [cx,     cy,      cz + ez ]  // top
+            location:  [cx,     cy,      topZ ]  // top
         },
         {
             direction: [ 0,  0, -1],
-            location:  [cx,     cy,      cz - ez ]  // bottom
+            location:  [cx,     cy,      bottomZ ]  // bottom
         },
         {
             direction: [ 1,  0,  0],

@@ -969,7 +969,9 @@ export class Viewer {
             width = height * viewRatio;
         }
 
-        const minDistance = this.cameraProperties.near + sizes.depth / 2.0;
+        // Use a static near distance here. The live near plane follows the camera, so using it would
+        // feed the current camera distance back into the result and push the camera away on every call.
+        const minDistance = this.meter / 4 + sizes.depth / 2.0;
         const optimalDistance = height / (Math.tan(this.cameraProperties.fov * Math.PI / 180.0 / 2.0) * 2.0) + sizes.depth / 2.0;
 
         return {
@@ -1790,8 +1792,8 @@ export class Viewer {
             }
         }
 
-        // small margin so geometry on the boundary is never clipped
-        const margin = size * 0.02;
+        // margin so geometry on or slightly beyond the boundary (e.g. section box wireframe) is not easily clipped
+        const margin = size * 0.2;
         return { near: near - margin, far: far + margin, size };
     }
 
