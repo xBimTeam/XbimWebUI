@@ -358,7 +358,7 @@ export class Viewpoint {
                     products.push(map.productId);
                     zoomGroup.push({id: map.productId, model: map.modelId});
                 });
-            Object.getOwnPropertyNames(productsByModel).forEach(mId => {
+            Object.keys(productsByModel).forEach(mId => {
                 viewer.addState(State.HIGHLIGHTED, productsByModel[mId], parseInt(mId, 10));
             });
 

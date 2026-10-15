@@ -250,7 +250,7 @@ export class ModelHandle {
     }
 
     private recomputeCompleteRegion(): Region {
-        const maps = Object.getOwnPropertyNames(this._model.productMaps).map(id => this._model.productMaps[id]);
+        const maps = Object.keys(this._model.productMaps).map(id => this._model.productMaps[id]);
 
         // aggregated bounding box
         const bb = maps.reduce((prev: Float32Array, curr: ProductMap) => {
@@ -640,7 +640,7 @@ export class ModelHandle {
         }
 
         var typeIds = Product.getAllSubTypes(type);
-        Object.getOwnPropertyNames(this._model.productMaps).forEach(id => {
+        Object.keys(this._model.productMaps).forEach(id => {
             var map: ProductMap = this._model.productMaps[id];
             if (typeIds[map.type]) {
                 result.push(map)
@@ -857,7 +857,7 @@ export class ModelHandle {
 
     public getStates(): { id: number, states: State[] }[] {
         const result: { id: number, states: State[] }[] = [];
-        var prodIds = Object.getOwnPropertyNames(this._model.productMaps);
+        var prodIds = Object.keys(this._model.productMaps);
         prodIds.forEach((id) => {
             const map = this._model.productMaps[+id];
             if (map.states == null || map.states.length === 0) {
@@ -948,7 +948,7 @@ export class ModelHandle {
     }
 
     public clearHighlighting(): void {
-        const prodIds = Object.getOwnPropertyNames(this._model.productMaps);
+        const prodIds = Object.keys(this._model.productMaps);
         prodIds.forEach((id) => {
             const map = this._model.productMaps[+id];
             ProductMap.removeState(map, State.HIGHLIGHTED);
@@ -1006,7 +1006,7 @@ export class ModelHandle {
         // no args, so reset all states of all products
         if (args == null) {
 
-            var prodIds = Object.getOwnPropertyNames(this._model.productMaps);
+            var prodIds = Object.keys(this._model.productMaps);
             prodIds.forEach((id) => {
                 const map = this._model.productMaps[+id];
                 map.states = [];
@@ -1046,7 +1046,7 @@ export class ModelHandle {
             this.isolatedProducts.forEach(i => isolated[i] = true);
         }
 
-        Object.getOwnPropertyNames(this._model.productMaps).forEach((n) => {
+        Object.keys(this._model.productMaps).forEach((n) => {
             const map: ProductMap = this._model.productMaps[n];
             if (map.states.indexOf(state) === -1) {
                 return;
@@ -1097,7 +1097,7 @@ export class ModelHandle {
             // get all non-abstract subtypes
             const subTypes = Product.getAllSubTypes(args);
 
-            Object.getOwnPropertyNames(this._model.productMaps).forEach((n) => {
+            Object.keys(this._model.productMaps).forEach((n) => {
                 const map: ProductMap = this._model.productMaps[n];
                 if (subTypes[map.type]) {
                     maps.push(map);
@@ -1189,7 +1189,7 @@ export class ModelHandle {
      */
     public getProductAnalysis(results: ProductAnalyticalResult[]): ProductAnalyticalResult[] {
         if (results == null) results = [];
-        Object.getOwnPropertyNames(this._model.productMaps).forEach((n) => {
+        Object.keys(this._model.productMaps).forEach((n) => {
             const map: ProductMap = this._model.productMaps[n];
             const indexCount = map.spans.reduce((p, c) => {
                 return p + c[1] - c[0];

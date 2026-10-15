@@ -34,7 +34,7 @@ class Snapshot {
         v.mvMatrix = this.mvMatrix;
 
         //models state
-        Object.getOwnPropertyNames(this.states).forEach(id => {
+        Object.keys(this.states).forEach(id => {
             let modelId = parseInt(id, 10);
             let state = this.states[id];
             v.restoreModelState(modelId, state);
