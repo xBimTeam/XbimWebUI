@@ -129,6 +129,12 @@ export class NavigationCube implements IPlugin {
     public trueNorth: number = 0;
 
     /**
+     * Margin factor to apply to the default zoom level of the navigation cube. Default is 1.2.
+     * @member {Number} NavigationCube#marginFactor
+     */
+    public marginFactor: number = 1.2;
+
+    /**
     * Set this to true to stop rendering of this plugin
     * @member {boolean} NavigationCube#stopped
     */
@@ -462,7 +468,7 @@ export class NavigationCube implements IPlugin {
                 heading = vec3.transformQuat(vec3.create(), heading, rotation);
             }
 
-            const widthAndDistance = viewer.getDistanceAndHeight(bbox, dir, heading);
+            const widthAndDistance = viewer.getDistanceAndHeight(bbox, dir, heading, this.marginFactor);
 
             const shift = vec3.scale(vec3.create(), dir, widthAndDistance.distance);
             const camera = vec3.add(vec3.create(), origin, shift);

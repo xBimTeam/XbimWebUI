@@ -4,7 +4,7 @@ import { VectorUtils } from "../common/vector-utils";
 import { ViewState } from "./animations";
 
 export class PreflightCheck {
-    public static findView(viewer: Viewer, elements: { id: number, model: number }[], density: number): ViewState | null {
+    public static findView(viewer: Viewer, elements: { id: number, model: number }[], density: number, marginFactor: number = 1.5): ViewState | null {
         if (elements == null || elements.length === 0)
             return null;
 
@@ -66,7 +66,7 @@ export class PreflightCheck {
             const center = vec3.fromValues(bBox[0] + bBox[3] / 2.0, bBox[1] + bBox[4] / 2.0, bBox[2] + bBox[5] / 2.0);
 
             // get optimal distances and heights
-            const optimal = directions.map(d => viewer.getDistanceAndHeight(bBox, d.dir, d.up));
+            const optimal = directions.map(d => viewer.getDistanceAndHeight(bBox, d.dir, d.up, marginFactor));
 
             const mvs = optimal.map((o, idx) => {
                 const inv = vec3.negate(vec3.create(), directions[idx].dir);

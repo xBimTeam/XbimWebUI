@@ -989,7 +989,11 @@ export class Viewer {
     }
 
     //helper function for setting of the distance based on camera field of view and size of the product's bounding box
-    public getDistanceAndHeight(bBox: number[] | Float32Array, viewDirection: vec3, upDirection: vec3): { distance: number, height: number } {
+    public getDistanceAndHeight(bBox: number[] | Float32Array, viewDirection: vec3, upDirection: vec3, marginFactor: number = 1.5): { distance: number, height: number } {
+        if(marginFactor <= 0.1 || marginFactor > 10) {
+            marginFactor = 1.5;
+        }
+        
         const sizes = BBox.getSizeInView(bBox, viewDirection, upDirection);
         const subjectRatio = sizes.width / sizes.height;
 
@@ -1013,8 +1017,8 @@ export class Viewer {
         const optimalDistance = height / (Math.tan(this.cameraProperties.fov * Math.PI / 180.0 / 2.0) * 2.0) + sizes.depth / 2.0;
 
         return {
-            distance: Math.max(optimalDistance, minDistance) * 1.5,
-            height: height * 1.5 // make it little bit more far away so there is some space around the model
+            distance: Math.max(optimalDistance, minDistance) * marginFactor,
+            height: height * marginFactor // make it little bit more far away so there is some space around the model
         };
     };
 
@@ -1896,22 +1900,23 @@ export class Viewer {
     * @param {Number} [model] Optional model ID
     * @param {boolean} withAnimation - Optional parameter, default is 'true'. When true, transition to the view is animated. When false, view is changed imediately.
     * @param {boolean} checkVisibility - Optional parameter, default is 'true'. When true, viewer attempts to fing the best view angle where the target is best visible. This is an expensive operation.
+    * @param [marginFactor=1.5] - Optional paramater, defining the margin to add to the distance when calculating zoom. The default is 1.5 (1.5 x bounding box derived size)
     * @return {boolean} True if target exists and zoom was successful, False otherwise
     */
-    public zoomTo(target?: number | { id: number, model: number }[], model?: number, withAnimation: boolean = true, checkVisibility: boolean = true): Promise<void> {
+    public zoomTo(target?: number | { id: number, model: number }[], model?: number, withAnimation: boolean = true, checkVisibility: boolean = true, marginFactor: number = 1.5): Promise<void> {
         const duration = withAnimation ? this.zoomDuration : 0;
         let bBox: number[] | Float32Array = null;
         if (target == null || typeof (target) === 'number') {
             // full extent or single product
             bBox = this.getTargetBoundingBox(target as number, model);
             if (checkVisibility === true && typeof (target) === 'number') {
-                const view = PreflightCheck.findView(this, [{ id: target, model: model || 1 }], 10);
+                const view = PreflightCheck.findView(this, [{ id: target, model: model || 1 }], 10, marginFactor);
                 if (view != null)
                     return this.animations.viewTo(view, duration);
             }
         } else {
             if (checkVisibility === true && target.length > 0) {
-                const view = PreflightCheck.findView(this, target as { id: number, model: number }[], 10);
+                const view = PreflightCheck.findView(this, target as { id: number, model: number }[], 10, marginFactor);
                 if (view != null)
                     return this.animations.viewTo(view, duration);
             }
@@ -1947,7 +1952,7 @@ export class Viewer {
             }
         }
 
-        const distAndWidth = this.getDistanceAndHeight(bBox, dir, heading);
+        const distAndWidth = this.getDistanceAndHeight(bBox, dir, heading, marginFactor);
 
         const translation = vec3.scale(vec3.create(), dir, distAndWidth.distance);
         const eye = vec3.add(vec3.create(), origin, translation);
@@ -1965,8 +1970,9 @@ export class Viewer {
     * @param {number} id - Optional parameter indicating the product ID to target the camera at
     * @param {number} model - Optional parameter indicating the model ID the product is in
     * @param {boolean} withAnimation - Optional parameter, default is 'true'. When true, transition to the view is animated. When false, view is changed imediately.
+    * @param [marginFactor=1.2] - Optional parameter indicating how much margin to apply to the default zoom level. (default = 1.2)
     */
-    public show(type: ViewType, id?: number, model?: number, withAnimation: boolean = true): Promise<void> {
+    public show(type: ViewType, id?: number, model?: number, withAnimation: boolean = true, marginFactor: number = 1.2): Promise<void> {
         var bBox = this.getTargetBoundingBox(id, model);
         if (bBox == null) {
             return new Promise<void>((a, r) => r());
@@ -2006,7 +2012,7 @@ export class Viewer {
                 break;
         }
 
-        const distAndWidth = this.getDistanceAndHeight(bBox, viewDirection, heading);
+        const distAndWidth = this.getDistanceAndHeight(bBox, viewDirection, heading, marginFactor);
         const moveDir = vec3.negate(vec3.create(), viewDirection);
         const move = vec3.scale(vec3.create(), moveDir, distAndWidth.distance);
         const camera = vec3.add(vec3.create(), origin, move);
