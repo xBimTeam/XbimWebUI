@@ -14,6 +14,7 @@ import { Visibility } from "./visibility";
 import { Component } from "./component";
 import { Coloring } from "./coloring";
 import { Argb } from "./argb";
+import { ProductType } from "../product-type";
 
 
 /**
@@ -164,10 +165,28 @@ export class Viewpoint {
         }
 
         // visibility
-        const hidden = viewer.getProductsWithState(State.HIDDEN) || [];
-        const hiddenKeys = new Set(hidden.map(p => `${p.model}_${p.id}`));
+        const allHidden = viewer.getProductsWithState(State.HIDDEN) || [];
+        const allHiddenKeys = new Set(allHidden.map(p => `${p.model}_${p.id}`));
+
+        // Spaces are hidden by default in the viewer. Rather than exporting them as exceptions,
+        // flag them with the spaces_visible hint and keep them out of the component lists
+        const spaceKeys = new Set<string>();
+        const allProducts = viewer.getAllProducts();
+        Array.from(new Set(allProducts.map(p => p.model))).forEach(model => {
+            (viewer.getProductsOfType(ProductType.IFCSPACE, model) || []).forEach(id => spaceKeys.add(`${model}_${id}`));
+        });
+        const spacesVisible = Array.from(spaceKeys).some(k => !allHiddenKeys.has(k));
+        const notSpace = (p: { id: number, model: number }) => spacesVisible || !spaceKeys.has(`${p.model}_${p.id}`);
+
+        const hiddenKeys = allHiddenKeys;
         const toComponents = (products: { id: number, model: number }[]) =>
             products.map(p => new Component(idMapper(p.id, p.model)));
+
+        // When no spaces are visible, spaces are covered by spaces_visible=false and left out of the pool.
+        // Otherwise spaces_visible follows default_visibility and spaces are treated like any other component
+        const pool = allProducts.filter(notSpace);
+        const hidden = pool.filter(p => hiddenKeys.has(`${p.model}_${p.id}`));
+        const visible = pool.filter(p => !hiddenKeys.has(`${p.model}_${p.id}`));
 
         // BCF has no X-ray concept. In X-ray ultra mode everything except the X-ray visible (and highlighted)
         // elements is rendered as a ghost, so the closest equivalent is: hide all, except these elements
@@ -178,37 +197,30 @@ export class Viewpoint {
                     all.findIndex(o => o.id === p.id && o.model === p.model) === i) :
             [];
 
-        let visibility: Visibility = null;
+        // always explicit: BCF default_visibility defaults to false (everything hidden)
+        const visibility = new Visibility();
         if (xrayVisible.length > 0) {
-            visibility = new Visibility();
             visibility.default_visibility = false;
             visibility.exceptions = toComponents(xrayVisible);
-        } else if (hidden.length > 0) {
-            visibility = new Visibility();
-            const visible = viewer.getAllProducts().filter(p => !hiddenKeys.has(`${p.model}_${p.id}`));
-
+        } else if (hidden.length <= visible.length) {
             // keep the list of exceptions as short as possible
-            if (hidden.length <= visible.length) {
-                visibility.default_visibility = true;
-                visibility.exceptions = toComponents(hidden);
-            } else {
-                visibility.default_visibility = false;
-                visibility.exceptions = toComponents(visible);
-            }
+            visibility.default_visibility = true;
+            visibility.exceptions = toComponents(hidden);
+        } else {
+            visibility.default_visibility = false;
+            visibility.exceptions = toComponents(visible);
         }
 
-        if (visibility != null) {
-            if (visibility.exceptions.length > Viewpoint.maxComponents) {
-                console.warn(`Visibility exceptions (${visibility.exceptions.length} components) exceed the recommended maximum of ${Viewpoint.maxComponents}. Alter the visibility to allow efficient encoding.`);
-            }
-            // viewer doesn't show spaces and openings unless explicitly requested
-            visibility.view_setup_hints = {
-                spaces_visible: false,
-                space_boundaries_visible: false,
-                openings_visible: false
-            };
-            components.visibility = visibility;
+        if (visibility.exceptions.length > Viewpoint.maxComponents) {
+            console.warn(`Visibility exceptions (${visibility.exceptions.length} components) exceed the recommended maximum of ${Viewpoint.maxComponents}. Alter the visibility to allow efficient encoding.`);
         }
+        // spaces_visible: false when no spaces are visible (or in x-ray mode, where spaces are exceptions), otherwise same as default_visibility
+        visibility.view_setup_hints = {
+            spaces_visible: xrayVisible.length > 0 ? false : (spacesVisible && visibility.default_visibility),
+            space_boundaries_visible: false,
+            openings_visible: false
+        };
+        components.visibility = visibility;
 
         // coloring
         const styled = viewer.getProductsWithStyle();
@@ -467,28 +479,57 @@ export class Viewpoint {
         // un-hide everything first
         viewer.getProductsWithState(State.HIDDEN).forEach(p => viewer.removeState(State.HIDDEN, [p.id], p.model));
 
+        // no visibility defined: viewer default (everything visible, spaces hidden)
+        const defaultVisibility = visibility == null ? true : !!visibility.default_visibility;
+        const spacesVisible = visibility == null ? false : !!visibility.view_setup_hints?.spaces_visible;
         const exceptions = visibility?.exceptions || [];
-        // legacy viewpoints: default 'hidden' without exceptions would hide the whole model
-        if (visibility == null || (!visibility.default_visibility && exceptions.length === 0)) {
+
+        // legacy viewpoints without hints: default 'hidden' without exceptions would hide the whole model
+        if (visibility != null && visibility.view_setup_hints == null && !defaultVisibility && exceptions.length === 0) {
             return;
         }
 
-        const exceptionKeys = new Set<string>();
+        const spaceKeys = new Set<string>();
+        const allProducts = viewer.getAllProducts();
+        Array.from(new Set(allProducts.map(p => p.model))).forEach(model => {
+            (viewer.getProductsOfType(ProductType.IFCSPACE, model) || []).forEach(id => spaceKeys.add(`${model}_${id}`));
+        });
+
+        // 1) default visibility, 2) view setup hints, 3) exceptions invert the result
+        const hiddenKeys = new Set<string>();
+        allProducts.forEach(p => {
+            const key = `${p.model}_${p.id}`;
+            const isHidden = spaceKeys.has(key) ? !spacesVisible : !defaultVisibility;
+            if (isHidden) {
+                hiddenKeys.add(key);
+            }
+        });
+        const seen = new Set<string>();
         exceptions.forEach(c => {
             const map = idMapper(c.ifc_guid);
-            if (map != null && !isNaN(map.productId) && !isNaN(map.modelId)) {
-                exceptionKeys.add(`${map.modelId}_${map.productId}`);
+            if (map == null || isNaN(map.productId) || isNaN(map.modelId)) {
+                return;
+            }
+            const key = `${map.modelId}_${map.productId}`;
+            if (seen.has(key) || !viewer.isModelLoaded(map.modelId)) {
+                return;
+            }
+            seen.add(key);
+            if (hiddenKeys.has(key)) {
+                hiddenKeys.delete(key);
+            } else {
+                hiddenKeys.add(key);
             }
         });
 
-        const toHide = visibility.default_visibility ?
-            Array.from(exceptionKeys).map(k => k.split('_').map(n => parseInt(n, 10))).map(p => ({ model: p[0], id: p[1] })) :
-            viewer.getAllProducts().filter(p => !exceptionKeys.has(`${p.model}_${p.id}`));
-
         const byModel: { [model: number]: number[] } = {};
-        toHide.forEach(p => (byModel[p.model] || (byModel[p.model] = [])).push(p.id));
+        hiddenKeys.forEach(k => {
+            const [model, id] = k.split('_').map(n => parseInt(n, 10));
+            (byModel[model] || (byModel[model] = [])).push(id);
+        });
         Object.keys(byModel).forEach(m => viewer.addState(State.HIDDEN, byModel[+m], +m));
     }
+
 
     private static restoreColoring(viewer: Viewer, coloring: Coloring[], idMapper: (guid: string) => { productId: number, modelId: number }): void {
         viewer.resetStyles();

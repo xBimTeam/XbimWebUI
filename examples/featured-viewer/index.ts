@@ -332,6 +332,19 @@ document['takeSnapshot'] = () => {
 
 };
 
+document['downloadViewpoint'] = () => {
+    const view = Viewpoint.GetViewpoint(viewer, null);
+    const blob = new Blob([JSON.stringify(view, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `viewpoint-${view.guid || Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+};
+
 document['updateGamma'] = (evt: Event) => {
     const input = evt.target as HTMLInputElement;
     const value = parseFloat(input.value);
