@@ -480,8 +480,15 @@ export class Viewpoint {
     }
 
     private static restoreVisibility(viewer: Viewer, visibility: Visibility, resolve: (c: ComponentIdentity) => ViewerIdentity | null): void {
-        // un-hide everything first
-        viewer.getProductsWithState(State.HIDDEN).forEach(p => viewer.removeState(State.HIDDEN, [p.id], p.model));
+        // Batch by model because removing each product separately re-buffers the model's full state array.
+        const previouslyHiddenByModel: { [model: number]: number[] } = {};
+        viewer.getProductsWithState(State.HIDDEN).forEach(p => {
+            (previouslyHiddenByModel[p.model] || (previouslyHiddenByModel[p.model] = [])).push(p.id);
+        });
+        Object.keys(previouslyHiddenByModel).forEach(model => {
+            const modelId = +model;
+            viewer.removeState(State.HIDDEN, previouslyHiddenByModel[modelId], modelId);
+        });
 
         // no visibility defined: viewer default (everything visible, spaces hidden)
         const defaultVisibility = visibility == null ? true : !!visibility.default_visibility;
@@ -561,7 +568,7 @@ export class Viewpoint {
             const byModel: { [model: number]: number[] } = {};
             group.components.forEach(c => {
                 const map = resolve(c);
-                if (map != null && !isNaN(map.productId) && !isNaN(map.modelId)) {
+                if (map != null && !isNaN(map.productId) && !isNaN(map.modelId) && viewer.isModelLoaded(map.modelId)) {
                     (byModel[map.modelId] || (byModel[map.modelId] = [])).push(map.productId);
                 }
             });
