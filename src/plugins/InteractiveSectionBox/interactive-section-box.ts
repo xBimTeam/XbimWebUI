@@ -6,6 +6,8 @@ import { vshader } from "./vshader";
 import { CameraType } from "../../camera";
 import { quat } from "gl-matrix";
 import { ClippingPlane } from "../../bcf/clipping-plane";
+import { SectionBox } from "../../section-box";
+import { sortAxisAlignedPlanes } from "./plane-sorting";
 
 export class InteractiveSectionBox implements IPlugin {
     /**
@@ -162,17 +164,31 @@ export class InteractiveSectionBox implements IPlugin {
         if (value === true && this.viewer) {
             this.hoverInteraction = -1;
             this.viewer.canvas.style.cursor = '';
+            if (this.unsubscribe) {
+                this.unsubscribe();
+                this.unsubscribe = null;
+            }
         }
         if (value === false) {
+            if (this.viewer && !this.unsubscribe) {
+                this.unsubscribe = this.viewer.sectionBox.addChangeListener(() => this.onSectionBoxChanged());
+            }
+            try {
+                this.setSectionBox();
+            } catch (e) {
+                console.warn((e as Error).message);
+            }
             this.setActive();
             this.bufferGeometry();
-            // this.setClippingPlanes()
         }
         if (this.viewer) {
             this.viewer.draw();
         }
     }
     private _stopped = true;
+    private hasBox = false;
+    private syncing = false;
+    private unsubscribe: () => void = null;
 
     init(viewer: Viewer): void {
         this.viewer = viewer;
@@ -244,69 +260,89 @@ export class InteractiveSectionBox implements IPlugin {
         this.initialized = true;
     }
 
+    /**
+     * Sets the viewer's section box from 6 axis-aligned clipping planes and binds this tool to it.
+     * Convenience wrapper; the tool otherwise follows `viewer.sectionBox` automatically.
+     */
     public setClippingPlanes(planes: ClippingPlane[]): void {
+        const sorted = sortAxisAlignedPlanes(planes);
+        this.syncing = true;
+        try {
+            if (!this.viewer.sectionBox.setToPlanes(sorted)) {
+                throw new Error('The supplied clipping planes do not form a box.');
+            }
+        } finally {
+            this.syncing = false;
+        }
+        this.setSectionBox();
+    }
 
-        planes = this.sortPlanes(planes);
-        for (let index = 0; index < this.transformations.length; index++) {
-   
-          const { direction, location } = planes[index];
-           this.transformations[index] = this.getTransformationFromPlane(vec3.fromValues(direction[0], direction[1], direction[2]), vec3.fromValues(location[0], location[1], location[2]));
+    /**
+     * Binds the tool to the viewer's section box (or sets it from the supplied box first).
+     * Clears the tool's box when the section box is not set.
+     * @throws when the section box is rotated; only axis-aligned boxes can be edited
+     */
+    public setSectionBox(box?: SectionBox): void {
+        if (box && box !== this.viewer.sectionBox) {
+            this.syncing = true;
+            try {
+                this.viewer.sectionBox.setToBox(box);
+            } finally {
+                this.syncing = false;
+            }
         }
 
-        // keep the viewer's section box in sync, using the canonical plane order
-        this.applySectionBox();
-        if (!this.stopped) {
+        const current = this.viewer.sectionBox;
+        if (!current.isSet) {
+            this.hasBox = false;
+        } else {
+            if (!current.isAxisAligned) {
+                this.hasBox = false;
+                throw new Error('The section box is rotated. Only axis-aligned section boxes can be edited interactively.');
+            }
+            const planes = sortAxisAlignedPlanes(current.toClippingPlanes());
+            planes.forEach((p, i) => {
+                this.transformations[i] = this.getTransformationFromPlane(this.normals[i], vec3.fromValues(p.location[0], p.location[1], p.location[2]));
+            });
+            this.hasBox = true;
+        }
+
+        if (!this.stopped && this.initialized) {
             this.bufferGeometry();
         }
+        this.viewer.draw();
     }
 
-    private sortPlanes(
-        planes: ClippingPlane[]
-      ): ClippingPlane[] {
-        if (planes.length !== 6) {
-          throw new Error('Expected exactly 6 planes.');
+    private onSectionBoxChanged(): void {
+        if (this.syncing) {
+            return;
         }
-      
-        let top: ClippingPlane | undefined;
-        let bottom: ClippingPlane | undefined;
-        let front: ClippingPlane | undefined;
-        let back: ClippingPlane | undefined;
-        let left: ClippingPlane | undefined;
-        let right: ClippingPlane | undefined;
-      
-        for (const plane of planes) {
-          const [dx, dy, dz] = plane.direction;
-      
-          if (dx === 0 && dy === 0 && dz === 1) {
-            // +Z => top
-            top = plane;
-          } else if (dx === 0 && dy === 0 && dz === -1) {
-            // -Z => bottom
-            bottom = plane;
-          } else if (dx === 1 && dy === 0 && dz === 0) {
-            // +X => front (as per your mapping)
-            front = plane;
-          } else if (dx === -1 && dy === 0 && dz === 0) {
-            // -X => back
-            back = plane;
-          } else if (dx === 0 && dy === -1 && dz === 0) {
-            // -Y => left
-            left = plane;
-          } else if (dx === 0 && dy === 1 && dz === 0) {
-            // +Y => right
-            right = plane;
-          } else {
-            console.warn('Unrecognized plane direction:', plane.direction);
-          }
+        try {
+            this.setSectionBox();
+        } catch (e) {
+            console.warn((e as Error).message);
         }
-      
-        if (!top || !bottom || !front || !back || !left || !right) {
-          throw new Error('One or more planes could not be classified.');
-        }
-      
-        return [top, bottom, front, back, left, right];
     }
-      
+
+    // the 8 corners of the box in the order expected by buildBoxQuadsFromCorners/edgeCorners
+    private getCorners(): vec3[] {
+        if (!this.hasBox) {
+            return [];
+        }
+        const t = this.transformations;
+        const corners: vec3[] = [];
+        for (let bottom = 0; bottom < 2; bottom++) {
+            for (let back = 0; back < 2; back++) {
+                for (let right = 0; right < 2; right++) {
+                    corners.push(vec3.fromValues(
+                        t[back ? 3 : 2][12],
+                        t[right ? 5 : 4][13],
+                        t[bottom ? 1 : 0][14]));
+                }
+            }
+        }
+        return corners;
+    }
 
     private getNormal(face: number) : vec3 {
        return this.normals[face];
@@ -359,7 +395,7 @@ export class InteractiveSectionBox implements IPlugin {
             return;
         }
 
-        if (!this.initialized) {
+        if (!this.initialized || !this.hasBox) {
             return;
         }
 
@@ -408,7 +444,7 @@ export class InteractiveSectionBox implements IPlugin {
     }
 
     private drawHandles(gl: WebGLRenderingContext, idPass: boolean): void {
-        if (this.viewer.sectionBox.boxVertices.length === 0) {
+        if (this.getCorners().length === 0) {
             return;
         }
         // size depends on the current camera so geometry is refreshed for every pass
@@ -456,7 +492,7 @@ export class InteractiveSectionBox implements IPlugin {
 
     private bufferHandles(): void {
         const gl = this.viewer.gl;
-        const corners = this.viewer.sectionBox.boxVertices;
+        const corners = this.getCorners();
         const wcs = this.viewer.getCurrentWcs();
         const min = vec3.fromValues(Infinity, Infinity, Infinity);
         const max = vec3.fromValues(-Infinity, -Infinity, -Infinity);
@@ -591,7 +627,7 @@ export class InteractiveSectionBox implements IPlugin {
 
     private bufferEdges(): void {
         const gl = this.viewer.gl;
-        const corners = this.viewer.sectionBox.boxVertices;
+        const corners = this.getCorners();
         const wcs = this.viewer.getCurrentWcs();
         const positions: number[] = [];
         const dists: number[] = [];
@@ -615,9 +651,9 @@ export class InteractiveSectionBox implements IPlugin {
     }
 
     private bufferGeometry(): void {
-        if(this.viewer.sectionBox.boxVertices.length == 0) return;
+        if (!this.hasBox) return;
         this.bufferEdges();
-         const plansVertices: number[] = this.buildBoxQuadsFromCorners(this.viewer.sectionBox.boxVertices);
+        const plansVertices: number[] = this.buildBoxQuadsFromCorners(this.getCorners());
         this.vertices = new Float32Array(plansVertices);
         const colours: number[] = [];
         colours.push(...plansVertices.filter((_, i) => i % 3 === 0).flatMap(() => this.boxColour));
@@ -820,9 +856,14 @@ export class InteractiveSectionBox implements IPlugin {
             plane.location = [t[12], t[13], t[14]];
             return plane;
         });
-        planes = this.sortPlanes(planes);
+        planes = sortAxisAlignedPlanes(planes);
         
-        this.viewer.sectionBox.setToPlanes(planes);
+        this.syncing = true;
+        try {
+            this.viewer.sectionBox.setToPlanes(planes);
+        } finally {
+            this.syncing = false;
+        }
     }
  
     private initShader(): void {

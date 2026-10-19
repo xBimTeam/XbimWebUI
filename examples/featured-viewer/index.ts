@@ -431,51 +431,52 @@ viewer.on("pick", (args) => {
 });
 
 window['clipBox'] = () => {
-    const region = viewer.getMergedRegionWcs();
-    const boundingBox = region.bbox; // [x, y, z, sizeX, sizeY, sizeZ]
-    const centre = region.centre;
+    if(!viewer.sectionBox.isSet) {
+        const region = viewer.getMergedRegionWcs();
+        const boundingBox = region.bbox; // [x, y, z, sizeX, sizeY, sizeZ]
+        const centre = region.centre;
 
-    const cx = centre[0];
-    const cy = centre[1];
-    const cz = centre[2];
+        const cx = centre[0];
+        const cy = centre[1];
+        const cz = centre[2];
+        const buffer = 0.0001;
+        // section box is half the size of the building in plan
+        const ex = boundingBox[3] / 2 + buffer;
+        const ey = boundingBox[4] / 2 + buffer;
+        // plan view: cut through the middle of the building and keep everything below it
+        const topZ = cz;
+        const bottomZ = boundingBox[2] - buffer;
+        const planes: ClippingPlane[] = [
+            
+            {
+                direction: [ 0,  0,  1],
+                location:  [cx,     cy,      topZ ]  // top
+            },
+            {
+                direction: [ 0,  0, -1],
+                location:  [cx,     cy,      bottomZ ]  // bottom
+            },
+            {
+                direction: [ 1,  0,  0],
+                location:  [cx + ex, cy,      cz     ]  // front
+            },
+            {
+                direction: [-1,  0,  0],
+                location:  [cx - ex, cy,      cz     ]  // back
+            },
+            {
+                direction: [ 0, -1,  0],
+                location:  [cx,     cy - ey, cz      ]  // left
+            },
+            {
+                direction: [ 0,  1,  0],
+                location:  [cx,     cy + ey, cz      ]  // right
+            }
+        ];
 
-    // section box is half the size of the building in plan
-    const ex = boundingBox[3] / 2;
-    const ey = boundingBox[4] / 2;
-    // plan view: cut through the middle of the building and keep everything below it
-    const topZ = cz;
-    const bottomZ = boundingBox[2];
-    const planes: ClippingPlane[] = [
-        
-        {
-            direction: [ 0,  0,  1],
-            location:  [cx,     cy,      topZ ]  // top
-        },
-        {
-            direction: [ 0,  0, -1],
-            location:  [cx,     cy,      bottomZ ]  // bottom
-        },
-        {
-            direction: [ 1,  0,  0],
-            location:  [cx + ex, cy,      cz     ]  // front
-        },
-        {
-            direction: [-1,  0,  0],
-            location:  [cx - ex, cy,      cz     ]  // back
-        },
-        {
-            direction: [ 0, -1,  0],
-            location:  [cx,     cy - ey, cz      ]  // left
-        },
-        {
-            direction: [ 0,  1,  0],
-            location:  [cx,     cy + ey, cz      ]  // right
-        }
-    ];
-
-    viewer.sectionBox.setToPlanes(planes);
-    box.setClippingPlanes(planes);
-    viewer.zoomTo(null, null, false, null);
+        viewer.sectionBox.setToPlanes(planes);
+        viewer.zoomTo(null, null, false, null);
+    }
     box.stopped = false;
 };
 

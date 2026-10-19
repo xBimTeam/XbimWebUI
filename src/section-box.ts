@@ -15,6 +15,7 @@ export class SectionBox {
     private _rotationY: number;
     private _rotationZ: number;
     private _onChange: () => void;
+    private _listeners: (() => void)[] = [];
 
     constructor(onChange: () => void) {
         this.setToInfinity();
@@ -26,7 +27,34 @@ export class SectionBox {
             if (onChange) {
                 onChange();
             }
+            this._listeners.slice().forEach(l => l());
         };
+    }
+
+    /**
+     * Subscribes to changes of the section box (in addition to the callback supplied by the owner).
+     * @returns function which removes the subscription
+     */
+    public addChangeListener(listener: () => void): () => void {
+        this._listeners.push(listener);
+        return () => {
+            const i = this._listeners.indexOf(listener);
+            if (i >= 0) this._listeners.splice(i, 1);
+        };
+    }
+
+    /**
+     * True when the box is set and its axes coincide with the world axes (rotations by multiples of 90 degrees included).
+     */
+    public get isAxisAligned(): boolean {
+        if (!this.isSet) return false;
+        const planes = this.toClippingPlanes();
+        return planes.every(p => {
+            const d = p.direction;
+            const ones = d.filter(c => Math.abs(Math.abs(c) - 1) < 1e-6).length;
+            const zeros = d.filter(c => Math.abs(c) < 1e-6).length;
+            return ones === 1 && zeros === 2;
+        });
     }
 
     public get boxVertices(): vec3[] { return this._boxVertices; }
@@ -145,7 +173,7 @@ export class SectionBox {
 
         var results: { plane: ClippingPlane, points: vec3[] }[] = [];
         const points: vec3[] = [];
-        this.boxVertices = [];
+        this._boxVertices = [];
         for (let i = 0; i < 6; i++) {
             const planeA = planes[i];
             for (let j = i + 1; j < 6; j++) {
@@ -186,7 +214,7 @@ export class SectionBox {
                     this.addPointToResults(results, planeA, X);
                     this.addPointToResults(results, planeB, X);
                     this.addPointToResults(results, planeC, X);
-                    this.boxVertices.push(X);
+                    this._boxVertices.push(X);
                 }
             }
         }
@@ -271,6 +299,11 @@ export class SectionBox {
             const axis = vec3.transformMat4(vec3.create(), a.dir, m);
             [1, -1].forEach(sign => {
                 const direction = vec3.scale(vec3.create(), axis, sign);
+                // remove floating point noise (e.g. 6e-17) and negative zeros
+                for (let n = 0; n < 3; n++) {
+                    const snapped = Math.round(direction[n]);
+                    direction[n] = Math.abs(direction[n] - snapped) < 1e-9 ? snapped + 0 : direction[n];
+                }
                 const location = vec3.scaleAndAdd(vec3.create(), this.location, direction, a.half);
                 const plane = new ClippingPlane();
                 plane.direction = Array.prototype.slice.call(direction);
