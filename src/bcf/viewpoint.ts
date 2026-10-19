@@ -414,10 +414,13 @@ export class Viewpoint {
                 }
             }
 
-            // set camera (MV matrix)
-            const target = vec3.add(vec3.create(), eye, dir);
-            const mv = mat4.lookAt(mat4.create(), eye, target, up);
-            viewer.animations.viewTo({ mv: mv, height: orthCamHeight, target: target }, duration)
+            // Keep the viewpoint's direction separate from the orbit target used during animation.
+            const lookAt = vec3.add(vec3.create(), eye, dir);
+            const animationTarget = region && region.bbox && region.population > 0 && region.centre ?
+                toVec3(region.centre) :
+                undefined;
+            const mv = mat4.lookAt(mat4.create(), eye, lookAt, up);
+            viewer.animations.viewTo({ mv: mv, height: orthCamHeight, target: animationTarget }, duration)
                 .then(() => {
 
                     // try to fix camera placement for generic orthographic views or camera height for perspective views
