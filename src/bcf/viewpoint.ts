@@ -10,6 +10,7 @@ import { RenderingMode, ViewType, Viewer } from "../viewer";
 import { vec3, mat4 } from "gl-matrix";
 import { CameraType } from "../camera";
 import { State } from "../common/state";
+import { SpaceRenderingMode } from "../common/space-rendering-mode";
 import { Visibility } from "./visibility";
 import { Component } from "./component";
 import { Coloring } from "./coloring";
@@ -524,6 +525,15 @@ export class Viewpoint {
                 hiddenKeys.add(key);
             }
         });
+
+        const spacesAreVisible = Array.from(spaceKeys).some(key => !hiddenKeys.has(key));
+        const otherProductsAreVisible = allProducts.some(p => {
+            const key = `${p.model}_${p.id}`;
+            return !spaceKeys.has(key) && !hiddenKeys.has(key);
+        });
+        if (spacesAreVisible && !otherProductsAreVisible) {
+            viewer.spaceRenderingMode = SpaceRenderingMode.SOLID;
+        }
 
         const byModel: { [model: number]: number[] } = {};
         hiddenKeys.forEach(k => {
