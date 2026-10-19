@@ -2,6 +2,7 @@ export * from './bitmap';
 export * from './clipping-plane';
 export * from './coloring';
 export * from './component';
+export * from './component-identity';
 export * from './components';
 export * from './line';
 export * from './orthogonal-camera';

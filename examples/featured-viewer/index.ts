@@ -1,12 +1,29 @@
 ﻿import { Viewer, Product, State, ViewType, RenderingMode, ProductType, NavigationCube, InteractiveSectionBox, Grid, EasingType, MessageProgress, InteractiveClippingPlane } from '../..';
 import { CameraType } from '../../src/camera';
 import { Viewpoint } from '../../src/bcf/viewpoint';
+import { ComponentIdentity, ViewpointIdentityResolver } from '../../src/bcf/component-identity';
 import { vec3, mat4 } from 'gl-matrix';
 import { PerformanceRating } from '../../src/performance-rating';
 import { ClippingPlane, Component } from '../../src/bcf';
 import { LoaderOverlay } from '../../src/plugins/LoaderOverlay/loader-overlay';
 import { ProductAnalyticalResult } from '../../src/common/product-analytical-result';
 import { PlaySpaces } from './play-spaces';
+
+const exampleOriginatingSystem = 'Featured Viewer Example';
+const exampleIdentityResolver: ViewpointIdentityResolver = {
+    originatingSystem: exampleOriginatingSystem,
+    toComponent: (productId, modelId): ComponentIdentity => ({
+        originating_system: exampleOriginatingSystem,
+        authoring_tool_id: `${modelId}:${productId}`
+    }),
+    fromComponent: component => {
+        if (component.originating_system !== exampleOriginatingSystem) {
+            return null;
+        }
+        const match = /^(\d+):(\d+)$/.exec(component.authoring_tool_id || '');
+        return match ? { modelId: parseInt(match[1], 10), productId: parseInt(match[2], 10) } : null;
+    }
+};
 
 // tslint:disable-next-line: only-arrow-functions
 var QueryString = function () {
@@ -315,7 +332,7 @@ document['startGrid'] = () => {
 };
 document['takeSnapshot'] = () => {
 
-    const view = Viewpoint.GetViewpoint(viewer, null);
+    const view = Viewpoint.GetViewpoint(viewer, exampleIdentityResolver);
 
     var img = document.createElement('img');
     img.src = 'data:image/png;base64,' + view.snapshot.snapshot_data;
@@ -327,13 +344,13 @@ document['takeSnapshot'] = () => {
     place.appendChild(img);
 
     img.onclick = () => {
-        Viewpoint.SetViewpoint(viewer, view, null, 2000);
+        Viewpoint.SetViewpoint(viewer, view, exampleIdentityResolver, 2000);
     };
 
 };
 
 document['downloadViewpoint'] = () => {
-    const view = Viewpoint.GetViewpoint(viewer, null);
+    const view = Viewpoint.GetViewpoint(viewer, exampleIdentityResolver);
     const blob = new Blob([JSON.stringify(view, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

@@ -14,6 +14,7 @@ import { Visibility } from "./visibility";
 import { Component } from "./component";
 import { Coloring } from "./coloring";
 import { Argb } from "./argb";
+import { ComponentIdentity, FromComponentMapper, ToComponentMapper, ViewerIdentity, ViewpointIdentityResolver, createComponentFactory, createComponentResolver } from "./component-identity";
 import { ProductType } from "../product-type";
 
 
@@ -87,10 +88,10 @@ export class Viewpoint {
      * Creates BCF viewpoint from the current view
      * 
      * @param viewer viewer instance
-     * @param idMapper function to be used to transform viewer identity into external identity. Typically to GUID. Viewer operates on local identity where combination of productID and modelID is unique within the current scope.
+     * @param idMapper either a {@link ViewpointIdentityResolver} or (legacy) function transforming viewer identity into external identity. A returned string is used as ifc_guid only if it is a valid IfcGuid, otherwise as authoring_tool_id. Viewer operates on local identity where combination of productID and modelID is unique within the current scope.
      * @param width  Optional width of the generated thumbnail in pixels. This is the current width of the viewer by default. Current aspect ratio is preserved.
      */
-    public static GetViewpoint(viewer: Viewer, idMapper: (productId: number, modelId: number) => string, width = viewer.width / 2.0): Viewpoint {
+    public static GetViewpoint(viewer: Viewer, idMapper: ToComponentMapper | ViewpointIdentityResolver, width = viewer.width / 2.0): Viewpoint {
         const view = new Viewpoint();
         const aspect = viewer.width / viewer.height;
         const height = width / aspect;
@@ -148,9 +149,9 @@ export class Viewpoint {
 
         // capture component styling (selection, overriden colours, visibility etc.) We should use IFC guids for this which is not in the scope of the viewer
         if (idMapper == null) {
-            console.warn('ID mapping function should be used to persist global identity of selected elements');
-            idMapper = (id, model) => `${model}_${id}`;
+            console.warn('An identity resolver should be used to persist global identity of selected elements. Falling back to viewer specific identity which is not suitable for exchange.');
         }
+        const toComponent = createComponentFactory(idMapper);
         const components = new Components();
         components.coloring = [];
         components.selection = [];
@@ -161,7 +162,7 @@ export class Viewpoint {
             if (highlighted.length > Viewpoint.maxComponents) {
                 console.warn(`Selection of ${highlighted.length} components exceeds the recommended maximum of ${Viewpoint.maxComponents}. Reduce the number of selected components.`);
             }
-            highlighted.forEach(s => components.selection.push(new Component(idMapper(s.id, s.model))));
+            highlighted.forEach(s => components.selection.push(toComponent(s.id, s.model)));
         }
 
         // visibility
@@ -180,7 +181,7 @@ export class Viewpoint {
 
         const hiddenKeys = allHiddenKeys;
         const toComponents = (products: { id: number, model: number }[]) =>
-            products.map(p => new Component(idMapper(p.id, p.model)));
+            products.map(p => toComponent(p.id, p.model));
 
         // When no spaces are visible, spaces are covered by spaces_visible=false and left out of the pool.
         // Otherwise spaces_visible follows default_visibility and spaces are treated like any other component
@@ -237,7 +238,7 @@ export class Viewpoint {
                     group.color = Argb.fromRgba(colour);
                     group.components = [];
                 }
-                group.components.push(new Component(idMapper(p.id, p.model)));
+                group.components.push(toComponent(p.id, p.model));
             });
             Object.keys(groups).forEach(k => components.coloring.push(groups[+k]));
             if (styled.length > Viewpoint.maxComponents) {
@@ -274,7 +275,11 @@ export class Viewpoint {
         view.clipping_planes.push(plane);
     }
 
-    public static SetViewpoint(viewer: Viewer, viewpoint: Viewpoint, idMapper: (guid: string) => { productId: number, modelId: number }, duration: number = 0): void {
+    /**
+     * Applies the viewpoint to the viewer
+     * @param idMapper either a {@link ViewpointIdentityResolver} or (legacy) function mapping an ifc_guid to viewer identity. Components without ifc_guid are resolved using originating_system and authoring_tool_id when supported by a resolver.
+     */
+    public static SetViewpoint(viewer: Viewer, viewpoint: Viewpoint, idMapper: FromComponentMapper | ViewpointIdentityResolver, duration: number = 0): void {
         // threashold for distance and size of the view
         const threasholdCoeficient = 4.0;
 
@@ -429,19 +434,14 @@ export class Viewpoint {
         viewer.clearHighlighting();
 
         if (idMapper == null) {
-            console.warn('No function defined to map between global IDs and local product and model IDs');
-            idMapper = (id: string) => {
-                const parts = id.split('_');
-                const modelId = parseInt(parts[0], 10);
-                const productId = parseInt(parts[1], 10);
-                return { productId, modelId };
-            };
+            console.warn('No identity resolver defined to map between global IDs and local product and model IDs');
         }
+        const resolve = createComponentResolver(idMapper);
 
         // restore visibility and colouring
         if (viewpoint.components != null) {
-            Viewpoint.restoreVisibility(viewer, viewpoint.components.visibility, idMapper);
-            Viewpoint.restoreColoring(viewer, viewpoint.components.coloring, idMapper);
+            Viewpoint.restoreVisibility(viewer, viewpoint.components.visibility, resolve);
+            Viewpoint.restoreColoring(viewer, viewpoint.components.coloring, resolve);
         }
 
         // restore selection
@@ -451,7 +451,7 @@ export class Viewpoint {
             const productsByModel: { [id: number]: number[] } = {};
             const zoomGroup: {id: number, model: number}[] = [];
             selection
-                .map(c => idMapper(c.ifc_guid))
+                .map(c => resolve(c))
                 .forEach(map => {
                     // skip unmapped or invalid entries rather than failing the whole viewpoint
                     if (map == null || isNaN(map.productId) || isNaN(map.modelId) || !viewer.isModelLoaded(map.modelId)) {
@@ -475,7 +475,7 @@ export class Viewpoint {
         }
     }
 
-    private static restoreVisibility(viewer: Viewer, visibility: Visibility, idMapper: (guid: string) => { productId: number, modelId: number }): void {
+    private static restoreVisibility(viewer: Viewer, visibility: Visibility, resolve: (c: ComponentIdentity) => ViewerIdentity | null): void {
         // un-hide everything first
         viewer.getProductsWithState(State.HIDDEN).forEach(p => viewer.removeState(State.HIDDEN, [p.id], p.model));
 
@@ -506,7 +506,7 @@ export class Viewpoint {
         });
         const seen = new Set<string>();
         exceptions.forEach(c => {
-            const map = idMapper(c.ifc_guid);
+            const map = resolve(c);
             if (map == null || isNaN(map.productId) || isNaN(map.modelId)) {
                 return;
             }
@@ -531,7 +531,7 @@ export class Viewpoint {
     }
 
 
-    private static restoreColoring(viewer: Viewer, coloring: Coloring[], idMapper: (guid: string) => { productId: number, modelId: number }): void {
+    private static restoreColoring(viewer: Viewer, coloring: Coloring[], resolve: (c: ComponentIdentity) => ViewerIdentity | null): void {
         viewer.resetStyles();
         if (coloring == null || coloring.length === 0) {
             return;
@@ -547,7 +547,7 @@ export class Viewpoint {
             viewer.defineStyle(index, colour);
             const byModel: { [model: number]: number[] } = {};
             group.components.forEach(c => {
-                const map = idMapper(c.ifc_guid);
+                const map = resolve(c);
                 if (map != null && !isNaN(map.productId) && !isNaN(map.modelId)) {
                     (byModel[map.modelId] || (byModel[map.modelId] = [])).push(map.productId);
                 }
