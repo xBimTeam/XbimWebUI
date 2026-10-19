@@ -8,6 +8,7 @@ import { quat } from "gl-matrix";
 import { ClippingPlane } from "../../bcf/clipping-plane";
 import { SectionBox } from "../../section-box";
 import { sortAxisAlignedPlanes } from "./plane-sorting";
+import { BoxFrame, facePlane, faceAxis, frameCorners, frameFromSectionBox, localToWorld, moveFace, rotatedYaw, worldDirection } from "./box-frame";
 
 export class InteractiveSectionBox implements IPlugin {
     /**
@@ -29,6 +30,19 @@ export class InteractiveSectionBox implements IPlugin {
     public handleScreenFraction = 0.3;
     public handleMinPixels = 10;
     public handleMaxPixels = 20;
+
+    /**
+     * Set to false to hide the rotation handles (rotation about the vertical axis)
+     */
+    public rotationEnabled = true;
+
+    /**
+     * Colour of the rotation handles
+     */
+    public rotationHandleColour = [0.95, 0.6, 0.1];
+
+    /** Rotation snaps to this many degrees unless Shift is held */
+    public rotationSnapDegrees = 5;
 
     private viewer: Viewer;
     private vertices: Float32Array;
@@ -62,6 +76,8 @@ export class InteractiveSectionBox implements IPlugin {
     private handleIndexCount = 0;
     // handle ids are face id + offset so they can be told apart from the faces
     private readonly HANDLE_ID_OFFSET = 10;
+    // rotation handle ids (one per vertical edge) are ROTATE_ID_BASE + 1..4
+    private readonly ROTATE_ID_BASE = 20;
     private hoverInteraction = -1;
 
     private edgeDashPeriod = 0;
@@ -187,6 +203,7 @@ export class InteractiveSectionBox implements IPlugin {
     }
     private _stopped = true;
     private hasBox = false;
+    private frame: BoxFrame = { centre: [0, 0, 0], half: [1, 1, 1], yaw: 0 };
     private syncing = false;
     private unsubscribe: () => void = null;
 
@@ -261,14 +278,19 @@ export class InteractiveSectionBox implements IPlugin {
     }
 
     /**
-     * Sets the viewer's section box from 6 axis-aligned clipping planes and binds this tool to it.
-     * Convenience wrapper; the tool otherwise follows `viewer.sectionBox` automatically.
+     * Sets the viewer's section box from 6 clipping planes forming a box (axis-aligned, or rotated about Z only)
+     * and binds this tool to it. Convenience wrapper; the tool otherwise follows `viewer.sectionBox` automatically.
      */
     public setClippingPlanes(planes: ClippingPlane[]): void {
-        const sorted = sortAxisAlignedPlanes(planes);
+        let toSet = planes;
+        try {
+            toSet = sortAxisAlignedPlanes(planes);
+        } catch (e) {
+            // not axis-aligned: pass as is, setToPlanes validates it and setSectionBox checks it is Z-rotated only
+        }
         this.syncing = true;
         try {
-            if (!this.viewer.sectionBox.setToPlanes(sorted)) {
+            if (!this.viewer.sectionBox.setToPlanes(toSet)) {
                 throw new Error('The supplied clipping planes do not form a box.');
             }
         } finally {
@@ -280,7 +302,7 @@ export class InteractiveSectionBox implements IPlugin {
     /**
      * Binds the tool to the viewer's section box (or sets it from the supplied box first).
      * Clears the tool's box when the section box is not set.
-     * @throws when the section box is rotated; only axis-aligned boxes can be edited
+     * @throws when the section box is tilted about the X or Y axis; only boxes rotated about Z can be edited
      */
     public setSectionBox(box?: SectionBox): void {
         if (box && box !== this.viewer.sectionBox) {
@@ -295,22 +317,38 @@ export class InteractiveSectionBox implements IPlugin {
         const current = this.viewer.sectionBox;
         if (!current.isSet) {
             this.hasBox = false;
-        } else {
-            if (!current.isAxisAligned) {
-                this.hasBox = false;
-                throw new Error('The section box is rotated. Only axis-aligned section boxes can be edited interactively.');
-            }
-            const planes = sortAxisAlignedPlanes(current.toClippingPlanes());
-            planes.forEach((p, i) => {
-                this.transformations[i] = this.getTransformationFromPlane(this.normals[i], vec3.fromValues(p.location[0], p.location[1], p.location[2]));
-            });
+        } else if (current.isZRotationOnly) {
+            this.frame = frameFromSectionBox(current.location, current.lengthX, current.lengthY, current.lengthZ, current.rotationZ);
             this.hasBox = true;
+        } else if (current.isAxisAligned) {
+            // e.g. rotated by 90 degrees about X: the box is upright in the world frame with permuted extents
+            const planes = sortAxisAlignedPlanes(current.toClippingPlanes());
+            const loc = (i: number) => planes[i].location;
+            this.frame = {
+                centre: [(loc(2)[0] + loc(3)[0]) / 2, (loc(4)[1] + loc(5)[1]) / 2, (loc(0)[2] + loc(1)[2]) / 2],
+                half: [(loc(2)[0] - loc(3)[0]) / 2, (loc(5)[1] - loc(4)[1]) / 2, (loc(0)[2] - loc(1)[2]) / 2],
+                yaw: 0
+            };
+            this.hasBox = true;
+        } else {
+            this.hasBox = false;
+            throw new Error('The section box is tilted. Only section boxes rotated about the vertical (Z) axis can be edited interactively.');
         }
 
+        this.updateTransformations();
         if (!this.stopped && this.initialized) {
             this.bufferGeometry();
         }
         this.viewer.draw();
+    }
+
+    private updateTransformations(): void {
+        for (let i = 0; i < 6; i++) {
+            const plane = facePlane(this.frame, i);
+            this.transformations[i] = this.getTransformationFromPlane(
+                vec3.fromValues(plane.direction[0], plane.direction[1], plane.direction[2]),
+                vec3.fromValues(plane.location[0], plane.location[1], plane.location[2]));
+        }
     }
 
     private onSectionBoxChanged(): void {
@@ -329,19 +367,7 @@ export class InteractiveSectionBox implements IPlugin {
         if (!this.hasBox) {
             return [];
         }
-        const t = this.transformations;
-        const corners: vec3[] = [];
-        for (let bottom = 0; bottom < 2; bottom++) {
-            for (let back = 0; back < 2; back++) {
-                for (let right = 0; right < 2; right++) {
-                    corners.push(vec3.fromValues(
-                        t[back ? 3 : 2][12],
-                        t[right ? 5 : 4][13],
-                        t[bottom ? 1 : 0][14]));
-                }
-            }
-        }
-        return corners;
+        return frameCorners(this.frame).map(c => vec3.fromValues(c[0], c[1], c[2]));
     }
 
     private getNormal(face: number) : vec3 {
@@ -476,7 +502,8 @@ export class InteractiveSectionBox implements IPlugin {
             gl.drawElements(gl.TRIANGLES, this.handleIndexCount, gl.UNSIGNED_SHORT, 0);
         } else {
             const active = this.currentInteraction > 0 ? this.currentInteraction : this.hoverInteraction;
-            gl.uniform1f(this.idSelectedIdUniformPointer, active > 0 ? active + this.HANDLE_ID_OFFSET : -1);
+            const activeId = active > this.ROTATE_ID_BASE ? active : active + this.HANDLE_ID_OFFSET;
+            gl.uniform1f(this.idSelectedIdUniformPointer, active > 0 ? activeId : -1);
             gl.uniform1f(this.idCodingUniformPointer, -2);
             gl.uniform4fv(this.edgeColourUniformPointer, new Float32Array([0, 0, 0, 1]));
             gl.depthMask(false);
@@ -494,16 +521,14 @@ export class InteractiveSectionBox implements IPlugin {
         const gl = this.viewer.gl;
         const corners = this.getCorners();
         const wcs = this.viewer.getCurrentWcs();
-        const min = vec3.fromValues(Infinity, Infinity, Infinity);
-        const max = vec3.fromValues(-Infinity, -Infinity, -Infinity);
-        corners.forEach(c => {
-            for (let k = 0; k < 3; k++) {
-                min[k] = Math.min(min[k], c[k] - wcs[k]);
-                max[k] = Math.max(max[k], c[k] - wcs[k]);
-            }
+        const frame = this.frame;
+        const centre = vec3.fromValues(frame.centre[0] - wcs[0], frame.centre[1] - wcs[1], frame.centre[2] - wcs[2]);
+        const maxExtent = Math.max(frame.half[0], frame.half[1], frame.half[2]) * 2;
+        // local box axes in the world
+        const axes = [[1, 0, 0], [0, 1, 0], [0, 0, 1]].map(a => {
+            const w = worldDirection(frame, a);
+            return vec3.fromValues(w[0], w[1], w[2]);
         });
-        const centre = vec3.lerp(vec3.create(), min, max, 0.5);
-        const maxExtent = Math.max(max[0] - min[0], max[1] - min[1], max[2] - min[2]);
 
         // Handle size is defined in screen pixels so it's independent of box shape and camera distance
         const viewerHeight = Math.max(this.viewer.height, 1);
@@ -525,27 +550,40 @@ export class InteractiveSectionBox implements IPlugin {
         const segments = 12;
         const tints = [[0.2, 0.4, 0.9], [0.2, 0.4, 0.9], [0.9, 0.25, 0.25], [0.9, 0.25, 0.25], [0.2, 0.7, 0.3], [0.2, 0.7, 0.3]];
 
+        let id = 0;
+        let tint = tints[0];
+        const push = (p: vec3, shade: number) => {
+            positions.push(p[0], p[1], p[2]);
+            colours.push(tint[0] * shade, tint[1] * shade, tint[2] * shade, 0.95);
+            ids.push(id);
+            return positions.length / 3 - 1;
+        };
+        const vertexAt = (i: number) => vec3.fromValues(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]);
+        // emits the triangle wound so that it faces away from the interior reference point
+        const tri = (a: number, b: number, c: number, ref: vec3) => {
+            const pa = vertexAt(a), pb = vertexAt(b), pc = vertexAt(c);
+            const normal = vec3.cross(vec3.create(), vec3.sub(vec3.create(), pb, pa), vec3.sub(vec3.create(), pc, pa));
+            const centroid = vec3.scale(vec3.create(), vec3.add(vec3.create(), vec3.add(vec3.create(), pa, pb), pc), 1 / 3);
+            if (vec3.dot(normal, vec3.sub(vec3.create(), centroid, ref)) >= 0) {
+                indices.push(a, b, c);
+            } else {
+                indices.push(a, c, b);
+            }
+        };
+
         for (let face = 0; face < 6; face++) {
-            const n = this.normals[face];
-            const axis = Math.abs(n[0]) > 0.5 ? 0 : Math.abs(n[1]) > 0.5 ? 1 : 2;
-            const origin = vec3.clone(centre);
-            origin[axis] = n[axis] > 0 ? max[axis] : min[axis];
+            const axis = faceAxis(face);
+            const wn = worldDirection(frame, this.normals[face]);
+            const n = vec3.fromValues(wn[0], wn[1], wn[2]);
+            const origin = vec3.scaleAndAdd(vec3.create(), centre, n, frame.half[axis]);
             // never let a handle dwarf the box itself
             const size = Math.min(pixels * worldPerPixelAt(origin), maxExtent * 0.25);
 
-            const u = vec3.fromValues(0, 0, 0);
-            const v = vec3.fromValues(0, 0, 0);
-            u[(axis + 1) % 3] = 1;
-            v[(axis + 2) % 3] = 1;
+            const u = axes[(axis + 1) % 3];
+            const v = axes[(axis + 2) % 3];
 
-            const id = face + 1 + this.HANDLE_ID_OFFSET;
-            const tint = tints[face];
-            const push = (p: vec3, shade: number) => {
-                positions.push(p[0], p[1], p[2]);
-                colours.push(tint[0] * shade, tint[1] * shade, tint[2] * shade, 0.95);
-                ids.push(id);
-                return positions.length / 3 - 1;
-            };
+            id = face + 1 + this.HANDLE_ID_OFFSET;
+            tint = tints[face];
             const ring = (radius: number, height: number, shade: number) => {
                 const first = positions.length / 3;
                 for (let s = 0; s < segments; s++) {
@@ -565,23 +603,50 @@ export class InteractiveSectionBox implements IPlugin {
             const tip = push(vec3.scaleAndAdd(vec3.create(), origin, n, coneStart + size * 1.4), 1.0);
             const coneRef = vec3.scaleAndAdd(vec3.create(), origin, n, coneStart + size * 0.3);
 
-            const vertexAt = (i: number) => vec3.fromValues(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]);
-            // emits the triangle wound so that it faces away from the interior reference point
-            const tri = (a: number, b: number, c: number, ref: vec3) => {
-                const pa = vertexAt(a), pb = vertexAt(b), pc = vertexAt(c);
-                const normal = vec3.cross(vec3.create(), vec3.sub(vec3.create(), pb, pa), vec3.sub(vec3.create(), pc, pa));
-                const centroid = vec3.scale(vec3.create(), vec3.add(vec3.create(), vec3.add(vec3.create(), pa, pb), pc), 1 / 3);
-                if (vec3.dot(normal, vec3.sub(vec3.create(), centroid, ref)) >= 0) {
-                    indices.push(a, b, c);
-                } else {
-                    indices.push(a, c, b);
-                }
-            };
-
             for (let s = 0; s < segments; s++) {
                 const next = (s + 1) % segments;
                 tri(coneBaseCentre, coneBase + s, coneBase + next, coneRef);
                 tri(coneBase + s, coneBase + next, tip, coneRef);
+            }
+        }
+
+        if (this.rotationEnabled) {
+            tint = this.rotationHandleColour;
+            // flat discs at the top end of the four vertical edges, pushed outwards from the box
+            for (let corner = 0; corner < 4; corner++) {
+                const sx = corner < 2 ? 1 : -1;
+                const sy = corner % 2 === 0 ? 1 : -1;
+                const local = [sx * frame.half[0], sy * frame.half[1], frame.half[2]];
+                const wp = localToWorld(frame, local);
+                const edgePoint = vec3.fromValues(wp[0] - wcs[0], wp[1] - wcs[1], wp[2] - wcs[2]);
+                const size = Math.min(pixels * worldPerPixelAt(edgePoint), maxExtent * 0.25);
+                const disc = edgePoint;
+                const radius = size * 0.3;
+                const half = size * 0.1;
+                id = this.ROTATE_ID_BASE + corner + 1;
+
+                const ringAt = (z: number, shade: number) => {
+                    const first = positions.length / 3;
+                    for (let s = 0; s < segments; s++) {
+                        const a = (s / segments) * Math.PI * 2;
+                        const p = vec3.scaleAndAdd(vec3.create(), disc, axes[2], z);
+                        vec3.scaleAndAdd(p, p, axes[0], Math.cos(a) * radius);
+                        vec3.scaleAndAdd(p, p, axes[1], Math.sin(a) * radius);
+                        push(p, shade);
+                    }
+                    return first;
+                };
+                const top = ringAt(half, 1.0);
+                const bottom = ringAt(-half, 0.7);
+                const topCentre = push(vec3.scaleAndAdd(vec3.create(), disc, axes[2], half), 1.0);
+                const bottomCentre = push(vec3.scaleAndAdd(vec3.create(), disc, axes[2], -half), 0.7);
+                for (let s = 0; s < segments; s++) {
+                    const next = (s + 1) % segments;
+                    tri(topCentre, top + s, top + next, disc);
+                    tri(bottomCentre, bottom + s, bottom + next, disc);
+                    tri(top + s, top + next, bottom + s, disc);
+                    tri(top + next, bottom + next, bottom + s, disc);
+                }
             }
         }
 
@@ -680,8 +745,8 @@ export class InteractiveSectionBox implements IPlugin {
         let lastMouseY: number = null;
         let lastNavigation: NavigationMode;
         let origin: vec3 = vec3.create(); 
-        let rotation: quat;
-
+        let startYaw = 0;
+        let startAngle = 0;
 
         this.viewer.canvas.addEventListener('pointerdown', event => {
             if (this.stopped || this.viewer.plugins.indexOf(this) < 0 || event.button !== 0) {
@@ -698,10 +763,14 @@ export class InteractiveSectionBox implements IPlugin {
             lastNavigation = this.viewer.navigationMode;
             if(data.xyz) origin = data.xyz;
             this.viewer.navigationMode = 'none';
-            this.currentInteraction = data.id > this.HANDLE_ID_OFFSET ? data.id - this.HANDLE_ID_OFFSET : data.id;
+            this.currentInteraction = data.id > this.ROTATE_ID_BASE ? data.id
+                : data.id > this.HANDLE_ID_OFFSET ? data.id - this.HANDLE_ID_OFFSET : data.id;
             this.hoverInteraction = -1;
             this.viewer.canvas.style.cursor = 'grabbing';
-            rotation = mat4.getRotation(quat.create(), this.transformations[this.currentInteraction - 1]); 
+            if (this.currentInteraction > this.ROTATE_ID_BASE) {
+                startYaw = this.frame.yaw;
+                startAngle = this.getPointerAngle(event);
+            }
         });
 
         let hoverFrame: number = null;
@@ -721,7 +790,7 @@ export class InteractiveSectionBox implements IPlugin {
                 }
                 const data = this.viewer.getEventDataFromEvent(lastHoverEvent, true);
                 const hover = data.model === this.modelId && data.id > this.HANDLE_ID_OFFSET
-                    ? data.id - this.HANDLE_ID_OFFSET : -1;
+                    ? (data.id > this.ROTATE_ID_BASE ? data.id : data.id - this.HANDLE_ID_OFFSET) : -1;
                 if (hover !== this.hoverInteraction) {
                     this.hoverInteraction = hover;
                     this.viewer.canvas.style.cursor = hover > 0 ? 'grab' : '';
@@ -752,6 +821,14 @@ export class InteractiveSectionBox implements IPlugin {
             if (this.currentInteraction === -1) {
                 return;
             }
+            if (this.currentInteraction > this.ROTATE_ID_BASE) {
+                const angle = this.getPointerAngle(event);
+                this.frame.yaw = rotatedYaw(startYaw, startAngle, angle, !event.shiftKey, this.rotationSnapDegrees * Math.PI / 180);
+                this.applySectionBox();
+                this.bufferGeometry();
+                return;
+            }
+
             const data = this.viewer.getEventDataFromEvent(event, true);
             if(!origin){
                 origin = data.xyz? data.xyz : vec3.create();
@@ -763,7 +840,6 @@ export class InteractiveSectionBox implements IPlugin {
             var deltaY = newY - lastMouseY;
  
             const planeIndex = this.currentInteraction - 1;
-            const oldTransform = mat4.clone(this.transformations[planeIndex]);
         
             lastMouseX = newX;
             lastMouseY = newY; 
@@ -778,16 +854,42 @@ export class InteractiveSectionBox implements IPlugin {
                 const h = 2 * distance * Math.tan(fov / 2.0);
                 c = h / this.viewer.height;
             }
-            const draggingOffset = this.getDragOffset(c, deltaX, deltaY, rotation);
-            mat4.translate(this.transformations[planeIndex], this.transformations[planeIndex], draggingOffset);
-            
-            if (!this.clampPlanes(this.currentInteraction)) {
-                this.transformations[planeIndex] = oldTransform;
-            }
+            const distanceMoved = this.getDragDistance(c, deltaX, deltaY);
+            const minSide = this.viewer.activeHandles[0].meter / 10;
+            moveFace(this.frame, planeIndex, distanceMoved, minSide);
 
             this.applySectionBox();
             this.bufferGeometry();
         });
+    }
+
+    /**
+     * Angle of the pointer around the box centre, measured on the horizontal plane through the box centre.
+     * Falls back to the angle on screen when the view ray is nearly parallel to that plane.
+     */
+    private getPointerAngle(event: PointerEvent): number {
+        const rect = this.viewer.canvas.getBoundingClientRect();
+        const ndcX = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        const ndcY = 1 - ((event.clientY - rect.top) / rect.height) * 2;
+
+        const wcs = this.viewer.getCurrentWcs();
+        const centre = vec3.fromValues(this.frame.centre[0] - wcs[0], this.frame.centre[1] - wcs[1], this.frame.centre[2] - wcs[2]);
+        const viewProjection = mat4.multiply(mat4.create(), this.viewer.pMatrix, this.viewer.mvMatrix);
+        const inverse = mat4.invert(mat4.create(), viewProjection);
+        if (inverse) {
+            const near = vec3.transformMat4(vec3.create(), vec3.fromValues(ndcX, ndcY, -1), inverse);
+            const far = vec3.transformMat4(vec3.create(), vec3.fromValues(ndcX, ndcY, 1), inverse);
+            const dir = vec3.sub(vec3.create(), far, near);
+            vec3.normalize(dir, dir);
+            if (Math.abs(dir[2]) > 1e-3) {
+                const t = (centre[2] - near[2]) / dir[2];
+                const hit = vec3.scaleAndAdd(vec3.create(), near, dir, t);
+                return Math.atan2(hit[1] - centre[1], hit[0] - centre[0]);
+            }
+        }
+
+        const projected = vec3.transformMat4(vec3.create(), centre, viewProjection);
+        return Math.atan2(ndcY - projected[1], ndcX - projected[0]);
     }
   
     private buildBoxQuadsFromCorners(corners: vec3[]): number[] {
@@ -833,34 +935,33 @@ export class InteractiveSectionBox implements IPlugin {
         return vertices;
     }
 
-    private getDragOffset(speed: number, deltaX: number, deltaY: number, rotation: quat) : vec3{
-         
-        let dragAxis = this.getNormal(this.currentInteraction - 1);
-        dragAxis = vec3.transformQuat(vec3.create(), dragAxis, rotation);
-        const modelViewRotation = mat4.getRotation(quat.create(), mat4.multiply(mat4.create(), this.viewer.mvMatrix, this.transformations[this.currentInteraction - 1]));
-        const projectedNormal = vec3.transformQuat(vec3.create(), dragAxis, modelViewRotation);
-        vec3.normalize(projectedNormal, projectedNormal)
-        const offset = (deltaX * projectedNormal[0]) - (deltaY * projectedNormal[1]);
-        vec3.scale(dragAxis, dragAxis, offset * speed);
-        return dragAxis;
+    // distance the dragged face should move along its outward normal for a pointer movement on screen
+    private getDragDistance(speed: number, deltaX: number, deltaY: number): number {
+        const normal = worldDirection(this.frame, this.normals[this.currentInteraction - 1]);
+        const mv = this.viewer.mvMatrix;
+        const projected = vec3.fromValues(
+            mv[0] * normal[0] + mv[4] * normal[1] + mv[8] * normal[2],
+            mv[1] * normal[0] + mv[5] * normal[1] + mv[9] * normal[2],
+            mv[2] * normal[0] + mv[6] * normal[1] + mv[10] * normal[2]);
+        vec3.normalize(projected, projected);
+        return ((deltaX * projected[0]) - (deltaY * projected[1])) * speed;
     }
 
     private applySectionBox() {
-    
-        let planes = this.transformations.map((t,i) => {
-            var plane = new ClippingPlane();
-            let normal = this.getNormal(i);
-            plane.direction = [normal[0], 
-                             normal[1], 
-                             normal[2]];
-            plane.location = [t[12], t[13], t[14]];
-            return plane;
-        });
-        planes = sortAxisAlignedPlanes(planes);
-        
+        this.updateTransformations();
+
+        const box = new SectionBox(null);
+        box.location = vec3.fromValues(this.frame.centre[0], this.frame.centre[1], this.frame.centre[2]);
+        box.lengthX = this.frame.half[0] * 2;
+        box.lengthY = this.frame.half[1] * 2;
+        box.lengthZ = this.frame.half[2] * 2;
+        box.rotationX = 0;
+        box.rotationY = 0;
+        box.rotationZ = this.frame.yaw * 180 / Math.PI;
+
         this.syncing = true;
         try {
-            this.viewer.sectionBox.setToPlanes(planes);
+            this.viewer.sectionBox.setToBox(box);
         } finally {
             this.syncing = false;
         }
@@ -941,32 +1042,4 @@ export class InteractiveSectionBox implements IPlugin {
     
         return tangent;
     }
-
-    private clampPlanes(currentInteraction: number): boolean {
-   
-        const topZ = this.transformations[0][14];
-        const bottomZ = this.transformations[1][14];
-        const front = this.transformations[2][12];
-        const back = this.transformations[3][12];
-        const left = this.transformations[4][13];
-        const right = this.transformations[5][13];
-        const minSide = this.viewer.activeHandles[0].meter / 10;
-
-        if (topZ - bottomZ <= minSide && (currentInteraction == this.TOP || currentInteraction == this.BOTTOM)) {
-            return false;
-        }
-        
-        if (front - back <= minSide && (currentInteraction == this.FRONT || currentInteraction == this.BACK )) {
-            return false;
-        }
-
-        if (right - left <= minSide && (currentInteraction == this.LEFT || currentInteraction == this.RIGHT)) {
-            return false;
-        }
-
-    
-        return true;
-    }
-    
-
 }

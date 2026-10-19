@@ -44,6 +44,19 @@ export class SectionBox {
     }
 
     /**
+     * True when the box is set and is only rotated about the world Z axis (rotation of 0 about X and Y).
+     * Includes boxes with no rotation at all.
+     */
+    public get isZRotationOnly(): boolean {
+        if (!this.isSet) return false;
+        const multipleOf360 = (deg: number) => {
+            const r = Math.abs(deg % 360);
+            return r < 1e-4 || 360 - r < 1e-4;
+        };
+        return multipleOf360(this._rotationX) && multipleOf360(this._rotationY);
+    }
+
+    /**
      * True when the box is set and its axes coincide with the world axes (rotations by multiples of 90 degrees included).
      */
     public get isAxisAligned(): boolean {
