@@ -1,5 +1,5 @@
 import { vec3, mat4, mat3, quat } from "gl-matrix";
-import { ClippingPlane } from "./bcf";
+import { ClippingPlane } from "./bcf/clipping-plane";
 import { VectorUtils } from "./common/vector-utils";
 
 /**
@@ -83,7 +83,8 @@ export class SectionBox {
      * True when section box is set, false otherwise
      */
     public get isSet(): boolean {
-        return Number.isFinite(this._lengthX);
+        // setToInfinity() uses MAX_SAFE_INTEGER as 'unbounded'
+        return [this._lengthX, this._lengthY, this._lengthZ].some(l => Number.isFinite(l) && l < Number.MAX_SAFE_INTEGER);
     }
 
     /**
@@ -208,21 +209,30 @@ export class SectionBox {
 
         const Xdir = vec3.normalize(vec3.create(), VectorUtils.getVec3(results[1].plane.direction));
         const Ydir = vec3.normalize(vec3.create(), VectorUtils.getVec3(results[0].plane.direction));
-        const Zdir = vec3.normalize(vec3.create(), VectorUtils.getVec3(results[2].plane.direction));
-        const rotation = quat.setAxes(quat.create(), vec3.negate(vec3.create(), Zdir), Xdir, Ydir);
+        // make the frame right-handed regardless of which side of the box the planes were defined on
+        const Zdir = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), Xdir, Ydir));
 
-        // get roll (X), pitch (Y) and yaw (Z) euler angles
-        // https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
-        const angles = this.toEulerAngles(rotation);
+        // decompose R = Rz * Ry * Rx (see getVertices()) where the columns of R are the box axes
+        const pitch = Math.asin(Math.max(-1, Math.min(1, -Xdir[2])));
+        let roll: number;
+        let yaw: number;
+        if (Math.abs(Xdir[2]) < 1 - 1e-9) {
+            roll = Math.atan2(Ydir[2], Zdir[2]);
+            yaw = Math.atan2(Xdir[1], Xdir[0]);
+        } else {
+            // gimbal lock, all the rotation goes to roll
+            roll = Math.atan2(-Zdir[1], Ydir[1]);
+            yaw = 0;
+        }
 
         // set values
         this._location = location;
         this._lengthX = sizeX;
         this._lengthY = sizeY;
         this._lengthZ = sizeZ;
-        this._rotationX = angles.roll * 180.0 / Math.PI;
-        this._rotationY = angles.pitch * 180.0 / Math.PI;
-        this._rotationZ = -angles.yaw * 180.0 / Math.PI;
+        this._rotationX = roll * 180.0 / Math.PI;
+        this._rotationY = pitch * 180.0 / Math.PI;
+        this._rotationZ = yaw * 180.0 / Math.PI;
 
         // invoke change annotation
         if (this._onChange) {
@@ -231,6 +241,44 @@ export class SectionBox {
 
         // return true when clipping planes were interpreted as a section box
         return true;
+    }
+
+    /**
+     * Converts the section box into 6 clipping planes (BCF convention: direction is the outward normal, 
+     * the part of the model on that side of the plane is clipped). Locations are in the world coordinates.
+     * Returns null if the section box is not set.
+     */
+    public toClippingPlanes(): ClippingPlane[] {
+        if (!this.isSet) {
+            return null;
+        }
+
+        // same rotation as used in getVertices()
+        let m = mat4.create();
+        m = mat4.rotateZ(mat4.create(), m, this.rotationZ * Math.PI / 180.0);
+        m = mat4.rotateY(mat4.create(), m, this.rotationY * Math.PI / 180.0);
+        m = mat4.rotateX(mat4.create(), m, this.rotationX * Math.PI / 180.0);
+
+        // plane order (Y, X, Z) is the one expected by setToPlanes()
+        const axes = [
+            { dir: vec3.fromValues(0, 1, 0), half: this.lengthY / 2.0 },
+            { dir: vec3.fromValues(1, 0, 0), half: this.lengthX / 2.0 },
+            { dir: vec3.fromValues(0, 0, 1), half: this.lengthZ / 2.0 }
+        ];
+
+        const planes: ClippingPlane[] = [];
+        axes.forEach(a => {
+            const axis = vec3.transformMat4(vec3.create(), a.dir, m);
+            [1, -1].forEach(sign => {
+                const direction = vec3.scale(vec3.create(), axis, sign);
+                const location = vec3.scaleAndAdd(vec3.create(), this.location, direction, a.half);
+                const plane = new ClippingPlane();
+                plane.direction = Array.prototype.slice.call(direction);
+                plane.location = Array.prototype.slice.call(location);
+                planes.push(plane);
+            });
+        });
+        return planes;
     }
 
     private getSize(plane: ClippingPlane, planes: ClippingPlane[]): number {

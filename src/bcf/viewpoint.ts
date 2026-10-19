@@ -12,6 +12,8 @@ import { CameraType } from "../camera";
 import { State } from "../common/state";
 import { Visibility } from "./visibility";
 import { Component } from "./component";
+import { Coloring } from "./coloring";
+import { Argb } from "./argb";
 
 
 /**
@@ -130,37 +132,116 @@ export class Viewpoint {
             snapshot_data: base64image
         };
 
-        // capture current clipping planes: We may have different clipping planes for different submodels
-        const planes = viewer.getClip();
-        if (planes != null) {
-            Viewpoint.AddClippingPlane(view, planes.PlaneA);
-            Viewpoint.AddClippingPlane(view, planes.PlaneB);
+        // capture section box as 6 clipping planes. Section box takes precedence over other clipping planes
+        const boxPlanes = viewer.sectionBox.isSet ? viewer.sectionBox.toClippingPlanes() : null;
+        if (boxPlanes != null) {
+            view.clipping_planes = boxPlanes;
+        } else {
+            // capture current clipping planes: We may have different clipping planes for different submodels
+            const planes = viewer.getClip();
+            if (planes != null) {
+                Viewpoint.AddClippingPlane(view, planes.PlaneA);
+                Viewpoint.AddClippingPlane(view, planes.PlaneB);
+            }
         }
 
-        // TODO: capture section box
-
         // capture component styling (selection, overriden colours, visibility etc.) We should use IFC guids for this which is not in the scope of the viewer
+        if (idMapper == null) {
+            console.warn('ID mapping function should be used to persist global identity of selected elements');
+            idMapper = (id, model) => `${model}_${id}`;
+        }
+        const components = new Components();
+        components.coloring = [];
+        components.selection = [];
+
+        // selection
         const highlighted = viewer.getProductsWithState(State.HIGHLIGHTED);
         if (highlighted != null && highlighted.length > 0) {
-            if (idMapper == null) {
-                console.warn('ID mapping function should be used to persist global identity of selected elements');
-                idMapper = (id, model) => `${model}_${id}`;
+            if (highlighted.length > Viewpoint.maxComponents) {
+                console.warn(`Selection of ${highlighted.length} components exceeds the recommended maximum of ${Viewpoint.maxComponents}. Reduce the number of selected components.`);
             }
-            if (view.components == null) {
-                view.components = new Components();
-                view.components.coloring = [];
-                view.components.selection = [];
-                view.components.visibility = new Visibility();
+            highlighted.forEach(s => components.selection.push(new Component(idMapper(s.id, s.model))));
+        }
+
+        // visibility
+        const hidden = viewer.getProductsWithState(State.HIDDEN) || [];
+        const hiddenKeys = new Set(hidden.map(p => `${p.model}_${p.id}`));
+        const toComponents = (products: { id: number, model: number }[]) =>
+            products.map(p => new Component(idMapper(p.id, p.model)));
+
+        // BCF has no X-ray concept. In X-ray ultra mode everything except the X-ray visible (and highlighted)
+        // elements is rendered as a ghost, so the closest equivalent is: hide all, except these elements
+        const xrayUltra = viewer.renderingMode === RenderingMode.XRAY_ULTRA;
+        const xrayVisible = xrayUltra ?
+            (viewer.getProductsWithState(State.XRAYVISIBLE) || []).concat(highlighted || [])
+                .filter((p, i, all) => !hiddenKeys.has(`${p.model}_${p.id}`) &&
+                    all.findIndex(o => o.id === p.id && o.model === p.model) === i) :
+            [];
+
+        let visibility: Visibility = null;
+        if (xrayVisible.length > 0) {
+            visibility = new Visibility();
+            visibility.default_visibility = false;
+            visibility.exceptions = toComponents(xrayVisible);
+        } else if (hidden.length > 0) {
+            visibility = new Visibility();
+            const visible = viewer.getAllProducts().filter(p => !hiddenKeys.has(`${p.model}_${p.id}`));
+
+            // keep the list of exceptions as short as possible
+            if (hidden.length <= visible.length) {
+                visibility.default_visibility = true;
+                visibility.exceptions = toComponents(hidden);
+            } else {
+                visibility.default_visibility = false;
+                visibility.exceptions = toComponents(visible);
             }
-            const selection = view.components.selection;
-            highlighted.forEach(s => {
-                const guid = idMapper(s.id, s.model);
-                selection.push(new Component(guid));
+        }
+
+        if (visibility != null) {
+            if (visibility.exceptions.length > Viewpoint.maxComponents) {
+                console.warn(`Visibility exceptions (${visibility.exceptions.length} components) exceed the recommended maximum of ${Viewpoint.maxComponents}. Alter the visibility to allow efficient encoding.`);
+            }
+            // viewer doesn't show spaces and openings unless explicitly requested
+            visibility.view_setup_hints = {
+                spaces_visible: false,
+                space_boundaries_visible: false,
+                openings_visible: false
+            };
+            components.visibility = visibility;
+        }
+
+        // coloring
+        const styled = viewer.getProductsWithStyle();
+        if (styled.length > 0) {
+            const groups: { [style: number]: Coloring } = {};
+            styled.forEach(p => {
+                let group = groups[p.style];
+                if (group == null) {
+                    const colour = viewer.getStyleColour(p.style);
+                    if (colour == null) {
+                        return;
+                    }
+                    group = groups[p.style] = new Coloring();
+                    group.color = Argb.fromRgba(colour);
+                    group.components = [];
+                }
+                group.components.push(new Component(idMapper(p.id, p.model)));
             });
+            Object.keys(groups).forEach(k => components.coloring.push(groups[+k]));
+            if (styled.length > Viewpoint.maxComponents) {
+                console.warn(`Coloring of ${styled.length} components exceeds the recommended maximum of ${Viewpoint.maxComponents}. Reduce the number of colored components.`);
+            }
+        }
+
+        if (components.selection.length > 0 || components.coloring.length > 0 || components.visibility != null) {
+            view.components = components;
         }
 
         return view;
     }
+
+    private static readonly maxComponents = 1000;
+
 
     private static AddClippingPlane(view: Viewpoint, planeEquation: number[]): void {
         if (planeEquation == null || planeEquation.length !== 4) {
@@ -335,20 +416,26 @@ export class Viewpoint {
         // clear current selection
         viewer.clearHighlighting();
 
+        if (idMapper == null) {
+            console.warn('No function defined to map between global IDs and local product and model IDs');
+            idMapper = (id: string) => {
+                const parts = id.split('_');
+                const modelId = parseInt(parts[0], 10);
+                const productId = parseInt(parts[1], 10);
+                return { productId, modelId };
+            };
+        }
+
+        // restore visibility and colouring
+        if (viewpoint.components != null) {
+            Viewpoint.restoreVisibility(viewer, viewpoint.components.visibility, idMapper);
+            Viewpoint.restoreColoring(viewer, viewpoint.components.coloring, idMapper);
+        }
+
         // restore selection
         if (viewpoint.components != null && viewpoint.components.selection != null && viewpoint.components.selection.length > 0) {
             const selection = viewpoint.components.selection;
 
-            // transform from global IDs to local ones
-            if (idMapper == null) {
-                console.warn('No function defined to map between global IDs and local product and model IDs');
-                idMapper = (id: string) => {
-                    const parts = id.split('_');
-                    const modelId = parseInt(parts[0], 10);
-                    const productId = parseInt(parts[1], 10);
-                    return { productId, modelId };
-                }
-            }
             const productsByModel: { [id: number]: number[] } = {};
             const zoomGroup: {id: number, model: number}[] = [];
             selection
@@ -372,6 +459,59 @@ export class Viewpoint {
         }
     }
 
+    private static restoreVisibility(viewer: Viewer, visibility: Visibility, idMapper: (guid: string) => { productId: number, modelId: number }): void {
+        // un-hide everything first
+        viewer.getProductsWithState(State.HIDDEN).forEach(p => viewer.removeState(State.HIDDEN, [p.id], p.model));
+
+        const exceptions = visibility?.exceptions || [];
+        // legacy viewpoints: default 'hidden' without exceptions would hide the whole model
+        if (visibility == null || (!visibility.default_visibility && exceptions.length === 0)) {
+            return;
+        }
+
+        const exceptionKeys = new Set<string>();
+        exceptions.forEach(c => {
+            const map = idMapper(c.ifc_guid);
+            if (map != null && !isNaN(map.productId) && !isNaN(map.modelId)) {
+                exceptionKeys.add(`${map.modelId}_${map.productId}`);
+            }
+        });
+
+        const toHide = visibility.default_visibility ?
+            Array.from(exceptionKeys).map(k => k.split('_').map(n => parseInt(n, 10))).map(p => ({ model: p[0], id: p[1] })) :
+            viewer.getAllProducts().filter(p => !exceptionKeys.has(`${p.model}_${p.id}`));
+
+        const byModel: { [model: number]: number[] } = {};
+        toHide.forEach(p => (byModel[p.model] || (byModel[p.model] = [])).push(p.id));
+        Object.keys(byModel).forEach(m => viewer.addState(State.HIDDEN, byModel[+m], +m));
+    }
+
+    private static restoreColoring(viewer: Viewer, coloring: Coloring[], idMapper: (guid: string) => { productId: number, modelId: number }): void {
+        viewer.resetStyles();
+        if (coloring == null || coloring.length === 0) {
+            return;
+        }
+
+        // styles are defined from index 0 upwards, the number of colours in a viewpoint is small
+        let index = 0;
+        coloring.forEach(group => {
+            const colour = Argb.toRgba(group.color);
+            if (colour == null || index > 224 || group.components == null) {
+                return;
+            }
+            viewer.defineStyle(index, colour);
+            const byModel: { [model: number]: number[] } = {};
+            group.components.forEach(c => {
+                const map = idMapper(c.ifc_guid);
+                if (map != null && !isNaN(map.productId) && !isNaN(map.modelId)) {
+                    (byModel[map.modelId] || (byModel[map.modelId] = [])).push(map.productId);
+                }
+            });
+            Object.keys(byModel).forEach(m => viewer.setStyle(index, byModel[+m], +m));
+            index++;
+        });
+    }
+
     /**
      * Applies the clipping planes for this viewpoint to the supplied viewer
      * @param viewer 
@@ -390,8 +530,11 @@ export class Viewpoint {
 
         // restore as a section box
         if (viewpoint.clipping_planes.length === 6) {
-            viewer.sectionBox.setToPlanes(viewpoint.clipping_planes);
-            return;
+            if (viewer.sectionBox.setToPlanes(viewpoint.clipping_planes)) {
+                return;
+            }
+            // not a box, use as individual planes
+            viewer.sectionBox.setToInfinity();
         }
 
         // restore first two clipping planes (we can't handle more separately)

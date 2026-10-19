@@ -1061,6 +1061,31 @@ export class ModelHandle {
         return result;
     }
 
+    public getProductsWithStyle(): { id: number, style: number }[] {
+        const result: { id: number, style: number }[] = [];
+        if (this.empty) {
+            return result;
+        }
+        Object.keys(this._model.productMaps).forEach((n) => {
+            const map: ProductMap = this._model.productMaps[n];
+            if (map.spans == null || map.spans.length === 0) {
+                return;
+            }
+            const style = this._model.states[map.spans[0][0] * 2 + 1];
+            if (style != null && style !== State.UNSTYLED) {
+                result.push({ id: map.productID, style });
+            }
+        });
+        return result;
+    }
+
+    public getAllProductIds(): number[] {
+        if (this.empty) {
+            return [];
+        }
+        return Object.keys(this._model.productMaps).map(n => this._model.productMaps[n].productID);
+    }
+
     public setStyle(styleId: number, args: number | number[]): void {
         if (this.empty) {
             return null;

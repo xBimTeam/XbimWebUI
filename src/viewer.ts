@@ -662,6 +662,43 @@ export class Viewer {
         });
     }
 
+    /**
+     * Gets colour (RGBA, 0-255) defined for the style index, or null if the style is not defined
+     */
+    public getStyleColour(index: number): number[] {
+        if (index == null || index < 0 || index > 224) {
+            return null;
+        }
+        return [
+            this._stateStyles[index * 4],
+            this._stateStyles[index * 4 + 1],
+            this._stateStyles[index * 4 + 2],
+            this._stateStyles[index * 4 + 3]
+        ];
+    }
+
+    /**
+     * Gets all products which have an overriding style, together with the style index
+     */
+    public getProductsWithStyle(): { id: number, model: number, style: number }[] {
+        let result: { id: number, model: number, style: number }[] = [];
+        this._handles.filter(h => !h.stopped && !h.empty).forEach(h => {
+            result = result.concat(h.getProductsWithStyle().map(p => ({ id: p.id, model: h.id, style: p.style })));
+        });
+        return result;
+    }
+
+    /**
+     * Gets IDs of all products of all active models
+     */
+    public getAllProducts(): { id: number, model: number }[] {
+        let result: { id: number, model: number }[] = [];
+        this._handles.filter(h => !h.stopped && !h.empty).forEach(h => {
+            result = result.concat(h.getAllProductIds().map(id => ({ id, model: h.id })));
+        });
+        return result;
+    }
+
     public getProductsWithState(state: State): { id: number, model: number }[] {
         let result: { id: number, model: number }[] = [];
         const handles = this._handles.filter(h => !h.stopped && !h.empty);
