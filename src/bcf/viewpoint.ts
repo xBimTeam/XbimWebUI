@@ -441,6 +441,10 @@ export class Viewpoint {
             selection
                 .map(c => idMapper(c.ifc_guid))
                 .forEach(map => {
+                    // skip unmapped or invalid entries rather than failing the whole viewpoint
+                    if (map == null || isNaN(map.productId) || isNaN(map.modelId) || !viewer.isModelLoaded(map.modelId)) {
+                        return;
+                    }
                     const products = productsByModel[map.modelId] || (productsByModel[map.modelId] = []);
                     products.push(map.productId);
                     zoomGroup.push({id: map.productId, model: map.modelId});
@@ -450,7 +454,7 @@ export class Viewpoint {
             });
 
             // if no camera is defined, but there is a selection defined, we shall zoom to selection
-            if (camera == null) {
+            if (camera == null && zoomGroup.length > 0) {
                 viewer.renderingMode = RenderingMode.XRAY_ULTRA;
                 viewer.show(ViewType.DEFAULT, undefined, undefined, duration > 0).then(() => {
                     viewer.zoomTo(zoomGroup, undefined, duration > 0, false);
