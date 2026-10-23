@@ -870,15 +870,10 @@ export class Icons implements IPlugin {
         let canBeRendered = true;
         const point = icon.location;
     
-        let isProductInModel = false;
         if (icon.products && icon.products.length > 0) {
-            this._viewer.activeHandles.forEach(handle => {
-                icon.products.forEach(product => {
-                    if (this._viewer.isProductInModel(product.id, handle.id)) {
-                        isProductInModel = true;
-                    }
-                });
-            });
+            const active = this._viewer.activeHandles;
+            const isProductInModel = icon.products.some(
+                p => active.some(h => h.id === p.model) && this._viewer.isProductInModel(p.id, p.model));
     
             if (!isProductInModel) {
                 return false;
