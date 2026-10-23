@@ -862,10 +862,6 @@ export class Icons implements IPlugin {
     return Math.abs(hash);
     }
     
-    private cantorPairing(x: number, y: number): number {
-        return ((x + y) * (x + y + 1)) / 2 + y;
-    }
-
     private canBeRendered(icon: Icon, planeA: Float32Array, planeB: Float32Array, box: Float32Array): boolean {
         let canBeRendered = true;
         const point = icon.location;

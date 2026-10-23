@@ -37,7 +37,7 @@ module.exports = {
         extensions: ['.ts', '.js']
     },
     performance: {
-        maxAssetSize: 300000,
-        maxEntrypointSize: 300000
+        maxAssetSize: 512000,
+        maxEntrypointSize: 512000
     }
 };
