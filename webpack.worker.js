@@ -10,6 +10,7 @@ var tsLoader = 'ts-loader?' + JSON.stringify({
 
 module.exports = {
     mode: "production",
+    target: "webworker",
     entry: {
         worker: './src/workers/geometry-loader.ts'
     },

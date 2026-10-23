@@ -22,6 +22,7 @@
     "html-webpack-plugin": "^5.5.0",
     "ts-loader": "^8.4.0",
     "tslint": "^6.1.3",
+    "tsx": "^4.23.15",
     "typedoc": "^0.23.22",
     "typescript": "^4.8.4",
     "webpack": "^5.75.0",
@@ -31,9 +32,14 @@
   },
   "scripts": {
     "docs": "typedoc --tsconfig ./tsconfig.json",
+    "build:worker": "webpack --config webpack.worker.js",
+    "ensure-worker": "node utilities/ensure-worker.js",
+    "pretest": "npm run ensure-worker",
+    "test": "node --import tsx --test \"tests/**/*.test.ts\"",
+    "prestart": "npm run ensure-worker",
     "start": "concurrently \"webpack serve --config webpack.dev.js --mode development\" \"webpack --watch --config webpack.worker.js \"",
-    "build": "webpack --config webpack.worker.js&&webpack --config webpack.prod.js&&node utilities/copy-package-json.js",
-    "build:dev": "webpack --config webpack.worker.js&&webpack --config webpack.dev.js"
+    "build": "npm run build:worker&&webpack --config webpack.prod.js&&node utilities/copy-package-json.js",
+    "build:dev": "npm run build:worker&&webpack --config webpack.dev.js"
   },
   "dependencies": {
     "gl-matrix": "^3.4.3",

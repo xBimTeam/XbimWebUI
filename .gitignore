@@ -64,6 +64,7 @@ typings/
 src/**/*.js.map
 src/**/*.d.ts
 src/**/*.js
+src/workers/worker.ts
 
 # built assets
 dist

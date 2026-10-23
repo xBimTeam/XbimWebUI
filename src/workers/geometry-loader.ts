@@ -7,7 +7,7 @@ function isImageBitmap(obj: any): boolean {
 }
 
 //only run following script if this is created as a Dedicated Worker
-if (self && self instanceof DedicatedWorkerGlobalScope) {
+if (typeof self !== 'undefined' && typeof DedicatedWorkerGlobalScope !== 'undefined' && self instanceof DedicatedWorkerGlobalScope) {
     var worker = self as DedicatedWorkerGlobalScope;
     worker.onmessage = (e: MessageEvent) => {
         let model = e.data.model;
