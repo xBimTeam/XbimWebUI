@@ -33,5 +33,5 @@ jobs:
         run: npm run build
 
       - name: Publish to npmjs
-        run: npm stage publish --access public
+        run: npm stage publish --access public --tag=latest
         working-directory: dist
