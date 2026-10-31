@@ -3,6 +3,7 @@ import { vec3 } from "gl-matrix";
 
 
 export class Framebuffer {
+    public static glContextStencilBits = 0; //class static variable
     public framebuffer: WebGLFramebuffer;
     public renderbuffer: WebGLRenderbuffer;
     public texture: WebGLTexture;
@@ -70,10 +71,19 @@ export class Framebuffer {
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
             if (this._glVersion === 1) {
+                //8bit precision
                 gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, width, height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
-            } else {
-                gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT16, width, height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
+            }
+            else if(Framebuffer.glContextStencilBits >= 8) {
+                //If the stencil bit is 8 bits or more, set to record the depth texture with DEPTH24_STENCIL8 if available (24+8 expands to a total of 32 bits to record depth => needs confirmation)
+                //DEPTH24_STENCIL8 only available at glVersion 2
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl["DEPTH24_STENCIL8"], width, height, 0, gl.DEPTH_STENCIL, gl["UNSIGNED_INT_24_8"], null);
+            }
+            else {
+                //16bit precision
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT16, width, height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
             }
         }
 
@@ -109,6 +119,23 @@ export class Framebuffer {
         return result;
     }
 
+    public getPixelAsFloat(x: number, y: number): number {
+        if (!this.isReady)
+            return null;
+        var result = new Uint8Array(4);
+        this.gl.readPixels(x, y, 1, 1, this.gl.RGBA, this.gl.UNSIGNED_BYTE, result);
+        return this.decodeFloatFromRGBA(result);
+    }
+
+    public decodeFloatFromRGBA(rgba : Uint8Array):number {
+        const rightVec4 = [1.0, 1/255.0, 1/65025.0, 1/16581375.0];
+        const dot =   (rgba[0] / 255.0) * rightVec4[0]
+                    + (rgba[1] / 255.0) * rightVec4[1]
+                    + (rgba[2] / 255.0) * rightVec4[2]
+                    + (rgba[3] / 255.0) * rightVec4[3];
+        return dot;
+    }
+
     public getDepth(x: number, y: number): number {
         if (!this.isReady)
             return null;
@@ -135,15 +162,12 @@ export class Framebuffer {
         const depths = this.getDepths(points);
 
         return depths.map((depth, i) => {
-            if (depth === 255) { // infinity (= nothing, no value)
-                return null;
-            }
 
             // convert values to clip space where x and y are [-1, 1] and z is [0, 1]
             const point = points[i];
             const xc = point.x / this.width * 2.0 - 1.0;
             const yc = point.y / this.height * 2.0 - 1.0;
-            const zc = (depth / 255.0 - 0.5) * 2.0;
+            const zc = (depth-0.5) * 2.0;
 
             return vec3.fromValues(xc, yc, zc);
         });
@@ -177,20 +201,13 @@ export class Framebuffer {
         }
 
         const depth = this.getDepth(x, y);
-        if (depth === 255) { // infinity
-            return null;
-        }
 
         // convert values to clip space where x and y are [-1, 1] and z is [0, 1]
         const xc = x / this.width * 2.0 - 1.0;
         const yc = y / this.height * 2.0 - 1.0;
-        const zc = (depth / 255.0 - 0.5) * 2.0;
-
-        const depthNear = Math.max(depth - 1, 0);
-        const zcn = (depthNear / 255.0 - 0.5) * 2.0;
-
-        const depthFar = Math.min(depth + 1, 255);
-        const zcf = (depthFar / 255.0 - 0.5) * 2.0;
+        const zc = 0.5;
+        const zcn = 0.0;
+        const zcf = 1.0;
 
         return {
             far: vec3.fromValues(xc, yc, zcf),

@@ -396,7 +396,7 @@ export class Viewer {
         WebGLUtils.setupWebGL(this.canvas, (ctx, version) => {
             this.gl = ctx;
             this.glVersion = version;
-        }, { preserveDrawingBuffer: true }, (err) => {
+        }, { preserveDrawingBuffer: true, stencil: true}, (err) => {
             this.error(err);
         });
 
@@ -406,6 +406,8 @@ export class Viewer {
             return;
         }
 
+        let stencilBits = this.gl.getParameter(this.gl.STENCIL_BITS);
+        Framebuffer.glContextStencilBits = stencilBits;
 
         // keep reference to the function in case it gets into zone. For example Angular uses
         // NgZone forked from the root Zone to refresh data content. But we make heavy use of this
