@@ -52,9 +52,9 @@ export interface IHeatmapChannel {
     isEnabled: boolean;
 
     /**
-     * Gets the hex color for a supplied channel value, if it has a mapping.
+     * Gets the hex color for a supplied channel value, including any channel-specific fallback.
      * @param value - The value to resolve.
-     * @returns The hex color, or undefined when the value has no mapping.
+     * @returns The hex color, or undefined when the value has no color.
      */
     getColor(value: any): string | undefined;
 }

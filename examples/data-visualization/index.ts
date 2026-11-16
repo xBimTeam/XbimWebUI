@@ -71,7 +71,9 @@ const humidityChannel = new ContinuousHeatmapChannel
 const energyChannel = new ConstantColorChannel
 (energyChannelId, "double", "Energy", "Energy Consumption", "energy", "kW", "#1ac603");
 
-// Discrete channels have buckets based on a string value (such as status)
+// Discrete channels have buckets based on a string value (such as status).
+// Unmapped values use #808080 by default; pass a final hex color argument or
+// set channel.fallbackColor to customize it. Null and undefined are not styled.
 const occupancyChannel = new DiscreteHeatmapChannel
 (presenceChannelId, "string", "Occupancy", "Room Occupancy", "occupancy", "", {
     "Occupied": "#ff0000",
@@ -234,7 +236,7 @@ function getSources(selectedChannel: IHeatmapChannel) : HeatmapSource[] {
             return sources[energyChannelId].map(s => { s.value = (getRandomInt(5000)/1000);  return s;});
 
         case presenceChannelId:
-            return sources[presenceChannelId].map(s => { s.value = (getRandomInt(2) % 2) == 0 ? "Vacant" : "Occupied";  return s;});
+            return sources[presenceChannelId].map(s => { s.value = (getRandomInt(2) % 2) == 0 ? "Vacant" : (getRandomInt(2) % 2) == 0 ? "Occupied" : "Unknown";  return s;});
 
         case alarmChannelId:
             return sources[alarmChannelId].map(s => { s.value = (getRandomInt(2) % 2) == 0 ? "OK" : (getRandomInt(2) % 2) == 0 ?"Alarm" : "Warning";  return s;});
@@ -470,4 +472,3 @@ window['deleteIcon'] = () => {
         
     }
 }
-

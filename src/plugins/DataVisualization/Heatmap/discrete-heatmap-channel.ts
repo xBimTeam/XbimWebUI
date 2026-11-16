@@ -15,6 +15,7 @@ export class DiscreteHeatmapChannel implements IHeatmapChannel {
     private _unit: string;
     private _enabled: boolean;
     private _values: { [value: string]: string };
+    private _fallbackColor: string;
 
     /**
      * Creates an instance of DiscreteHeatmapChannel.
@@ -26,6 +27,7 @@ export class DiscreteHeatmapChannel implements IHeatmapChannel {
      * @param {string} property - The data property represented by this channel.
      * @param {string} unit - The unit of measurement for the channel.
      * @param {{ [value: string]: string }} values - The mapping of discrete values to their hex colors.
+     * @param {string} fallbackColor - The hex color for unmapped values, defaulting to #808080.
      */
     constructor(
         channelId: string,
@@ -34,7 +36,8 @@ export class DiscreteHeatmapChannel implements IHeatmapChannel {
         description: string,
         property: string,
         unit: string,
-        values: { [value: string]: string }
+        values: { [value: string]: string },
+        fallbackColor: string = "#808080"
     ) {
         this._channelType = ChannelType.Discrete;
         this._channelId = channelId;
@@ -44,6 +47,7 @@ export class DiscreteHeatmapChannel implements IHeatmapChannel {
         this._property = property;
         this._unit = unit;
         this._values = values;
+        this._fallbackColor = fallbackColor;
         this._enabled = true;
     }
 
@@ -135,13 +139,31 @@ export class DiscreteHeatmapChannel implements IHeatmapChannel {
         return this._values;
     }
 
+    /** The hex color used for supplied values that have no matching category. */
+    public get fallbackColor(): string {
+        return this._fallbackColor;
+    }
+
+    public set fallbackColor(value: string) {
+        this._fallbackColor = value;
+    }
+
+    /**
+     * Gets the mapped color or fallback color for a supplied value.
+     * Null and undefined values have no color.
+     */
     public getColor(value: any): string | undefined {
+        if (value === null || value === undefined) {
+            return undefined;
+        }
         const stringValue = value.toString();
         if (this._dataType === "string") {
             const matchingKey = Object.keys(this._values).find(key => key.toLowerCase() === stringValue.toLowerCase());
-            return matchingKey === undefined ? undefined : this._values[matchingKey];
+            return matchingKey === undefined ? this._fallbackColor : this._values[matchingKey];
         }
-        return this._values[stringValue];
+        return Object.prototype.hasOwnProperty.call(this._values, stringValue)
+            ? this._values[stringValue]
+            : this._fallbackColor;
     }
 
     /**

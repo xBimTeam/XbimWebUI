@@ -181,7 +181,8 @@ export class Heatmap implements IPlugin {
             this._colorStylesMap[colorHex] = this._nextStyleId;
             this._nextStyleId++;
         });
-        const maps = (sources ?? this.getSources()).filter(s => s.channelId == channel.channelId);
+        const maps = (sources ?? this.getSources()).filter(s =>
+            s.channelId == channel.channelId && s.value !== null && s.value !== undefined);
         const groups: Record<string, {source:HeatmapSource, product: {id:number, model:number}}[]> = maps.flatMap(source => source.products.map(product => ({ product, source })))
         .reduce((groups, item) => {
             const key = `${item.source.value}-${item.product.model}`;
@@ -196,6 +197,12 @@ export class Heatmap implements IPlugin {
             const modelId = val[0].product.model;
             const colorHex = channel.getColor(val[0].source.value);
             if (colorHex !== undefined) {
+                if (this._colorStylesMap[colorHex] === undefined) {
+                    const rgba = this.hexToRgba(colorHex);
+                    this._viewer.defineStyle(this._nextStyleId, rgba);
+                    this._colorStylesMap[colorHex] = this._nextStyleId;
+                    this._nextStyleId++;
+                }
                 let productsIds: number[] = val.map(p => p.product.id);
                 this._viewer.setStyle(this._colorStylesMap[colorHex], productsIds, modelId);
                 this._viewer.addState(State.XRAYVISIBLE, productsIds, modelId)
