@@ -30,6 +30,7 @@ import { CameraProperties, CameraType } from './camera';
 import { SectionBox } from './section-box';
 import { BBox } from './common/bbox';
 import { ClipRange } from './common/clip-range';
+import { WalkView } from './navigation/walk-view';
 import { CameraAdjustment } from './navigation/camera-adjustment';
 import { PreflightCheck } from './navigation/preflight-check';
 import { ProductType } from './product-type';
@@ -70,12 +71,111 @@ export class Viewer {
      */
     public get navigationMode(): NavigationMode { return this._navigationMode };
     public set navigationMode(value: NavigationMode) {
+        this.setNavigationMode(value);
+    }
+
+    /**
+     * Changes the navigation mode. Switching to 'walk' from another mode moves the camera to a ground level viewpoint in front of
+     * the nearest building elevation (see {@link Viewer#enterWalkView}) unless `options.transition` is false or
+     * {@link Viewer#walkEntryTransition} is disabled. Use `transition: false` when restoring a previously saved mode.
+     */
+    public setNavigationMode(value: NavigationMode, options: { transition?: boolean } = {}): void {
+        const previous = this._navigationMode;
         this._navigationMode = value;
         if (value === 'walk' || value === 'look-around' || value === 'look-at') {
             this.adaptivePerformanceOn = false;
         } else {
             this.adaptivePerformanceOn = true;
         }
+
+        if (previous === value) {
+            return;
+        }
+
+        if (previous === 'walk') {
+            this.cancelWalkTransition();
+            if (document.pointerLockElement === this.canvas) {
+                document.exitPointerLock();
+            }
+        } else if (value === 'walk' && this.walkEntryTransition && options.transition !== false) {
+            this.enterWalkView().catch((e) => console.error(e));
+        }
+    }
+
+    /**
+     * When true (default), switching to the 'walk' navigation mode animates the camera to ground level in front of the
+     * nearest building elevation, switches to the perspective camera. The user clicks the canvas to capture the pointer for looking around.
+     */
+    public walkEntryTransition: boolean = true;
+
+    /**
+     * Height of the eyes above the lowest point of the model in meters when entering the walk mode.
+     */
+    public walkEyeHeight: number = 1.7;
+
+    /**
+     * Distance from the building face in meters when entering the walk mode.
+     */
+    public walkStandoff: number = 10;
+
+    private _walkTransition: Promise<void> = null;
+
+    /**
+     * True while the camera is animating to the walking viewpoint.
+     */
+    public get isWalkTransitioning(): boolean { return this._walkTransition != null; }
+
+    /**
+     * Stops the animation to the walking viewpoint, if any, leaving the camera where it is.
+     */
+    public cancelWalkTransition(): void {
+        if (this._walkTransition != null) {
+            this._walkTransition = null;
+            this.animations.clear();
+        }
+    }
+
+    /**
+     * Moves the camera to a ground level viewpoint in front of the building elevation nearest to the current camera, looking
+     * at the building. Switches to the perspective camera. The pointer is not captured; the user clicks the canvas to do that.
+     */
+    public enterWalkView(): Promise<void> {
+        const region = this.getMergedRegion();
+        const meter = this.unitsInMeter;
+        if (region == null || region.bbox == null || meter == null) {
+            return Promise.resolve();
+        }
+
+        this.camera = CameraType.PERSPECTIVE;
+
+        const walkView = WalkView.getViewpoint({
+            bbox: region.bbox,
+            eye: this.getCameraPosition(),
+            forward: this.getCameraDirection(),
+            meter,
+            eyeHeight: this.walkEyeHeight,
+            standoff: this.walkStandoff
+        });
+        if (walkView == null || walkView.skip) {
+            return Promise.resolve();
+        }
+
+        const up = vec3.fromValues(0, 0, 1);
+        const mv = mat4.lookAt(mat4.create(), walkView.eye, walkView.target, up);
+        let height = this.cameraProperties.height;
+        if (!(height > 0)) {
+            const forward = vec3.subtract(vec3.create(), walkView.target, walkView.eye);
+            height = this.getDistanceAndHeight(region.bbox, vec3.normalize(forward, forward), up).height;
+        }
+
+        this.animations.clear();
+        const transition = this.animations.viewTo({ mv, height, target: walkView.target }, this.zoomDuration);
+        this._walkTransition = transition;
+        return transition.then(() => {
+            if (this._walkTransition === transition) {
+                this._walkTransition = null;
+            }
+        });
     }
 
     public get cameraProperties(): CameraProperties { return this._camera; }

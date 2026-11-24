@@ -87,6 +87,11 @@ export class KeyboardNavigation {
                 pressed.add(event.code);
             }
 
+            if (isMovementKey(event.code)) {
+                // the user takes over from the entry animation
+                viewer.cancelWalkTransition();
+            }
+
             // recover when the shift release was missed (e.g. while the window didn't have focus)
             if (!event.shiftKey) {
                 pressed.delete('ShiftLeft');

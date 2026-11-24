@@ -341,7 +341,8 @@ export class NavigationCube implements IPlugin {
                     return;
                 }
 
-                if (self._drag === true) {
+                // the cube resets the view, so leaving the walk mode for orbit is kept rather than restored
+                if (self._drag === true && self._originalNavigation !== 'walk') {
                     viewer.navigationMode = self._originalNavigation;
                 }
                 self._drag = false;

@@ -296,7 +296,7 @@ export class InteractiveClippingPlane implements IPlugin {
             this.snapToMainAxes();
             this.applyCurrentPlane();
             this.currentInteraction = -1;
-            this.viewer.navigationMode = lastNavigation;
+            this.viewer.setNavigationMode(lastNavigation, { transition: false });
             origin = null;
         });
         

@@ -11,6 +11,7 @@ export class MouseNavigation {
         let startY = null;
         let button = 'L';
         let suppressPick = false;
+        let grabsPointer = false;
         let id = -1;
         let modelId = -1;
         let xyz: vec3 = null;
@@ -80,6 +81,10 @@ export class MouseNavigation {
             }
 
             viewer.disableTextSelection();
+
+            // in walk mode the click which grabs the pointer must not select anything. This is only
+            // applied if the mode is still 'walk' on release, as plugins (e.g. the navigation cube) can leave it on mousedown
+            grabsPointer = viewer.navigationMode === 'walk' && !isPointerLocked;
         };
 
         const handleMouseUp = (event: MouseEvent) => {
@@ -95,7 +100,7 @@ export class MouseNavigation {
             const deltaY = Math.abs(endY - startY);
 
             //if it was a longer movement do not perform picking
-            if (!suppressPick && deltaX < 3 && deltaY < 3 && button === 'left') {
+            if (!suppressPick && !(grabsPointer && viewer.navigationMode === 'walk') && deltaX < 3 && deltaY < 3 && button === 'left') {
 
                 /**
                 * Occurs when user click on model.
@@ -122,7 +127,8 @@ export class MouseNavigation {
 
         var handleLookAround = (event: MouseEvent) => {
             const sensitivity = 0.5;
-            if (viewer.navigationMode !== 'walk') {
+            // the camera is being moved by the walk entry animation
+            if (viewer.navigationMode !== 'walk' || viewer.isWalkTransitioning) {
                 return;
             }
 

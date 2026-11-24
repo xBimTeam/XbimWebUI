@@ -811,7 +811,7 @@ export class InteractiveSectionBox implements IPlugin {
             if (this.currentInteraction === -1) return;
             this.currentInteraction = -1;
             this.viewer.canvas.style.cursor = '';
-            this.viewer.navigationMode = lastNavigation;
+            this.viewer.setNavigationMode(lastNavigation, { transition: false });
             origin = null;
             this.viewer.draw();
         });
