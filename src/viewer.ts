@@ -29,6 +29,7 @@ import { PerformanceRating } from './performance-rating';
 import { CameraProperties, CameraType } from './camera';
 import { SectionBox } from './section-box';
 import { BBox } from './common/bbox';
+import { ClipRange } from './common/clip-range';
 import { CameraAdjustment } from './navigation/camera-adjustment';
 import { PreflightCheck } from './navigation/preflight-check';
 import { ProductType } from './product-type';
@@ -1537,8 +1538,8 @@ export class Viewer {
                 break;
 
             case 'walk':
-                // Walking is at constant pace
-                const walk = deltaY * this.meter * 0.5 / 20;
+                // Walking is at constant pace within the model, but speeds up with distance when approaching it
+                const walk = deltaY * ClipRange.getWalkPace(this.meter, this.getCameraDistanceFromRegionBox()) / 20;
                 this.animations.addZoom(walk, 0);
                 return;
             case 'zoom':
@@ -1831,55 +1832,26 @@ export class Viewer {
         if (this.activeHandles.length === 0) {
             return;
         }
-        const { near, far } = this.getCameraDistanceFromRegion();
-        if (!(far > 0) || !isFinite(far)) {
+        const planes = ClipRange.getClipPlanes(this.getCameraDistanceFromRegion(), this.meter);
+        if (planes == null) {
             this.setNearAndFarFromCurrentModels();
             return;
         }
-
-        // camera inside (or very close to) the region: fall back to a near plane based on the model units
-        let nearPlane = near > 0 ? near : this.meter / 4;
-        // keep the depth range sane to preserve depth precision
-        nearPlane = Math.max(nearPlane, far / 10000);
-        if (!isFinite(nearPlane) || nearPlane <= 0 || nearPlane >= far) {
-            this.setNearAndFarFromCurrentModels();
-            return;
+        if (planes.near !== this.cameraProperties.near || planes.far !== this.cameraProperties.far) {
+            this.cameraProperties.near = planes.near;
+            this.cameraProperties.far = planes.far;
+            this.changed = true;
         }
-        this.cameraProperties.near = nearPlane;
-        this.cameraProperties.far = far;
     }
 
     private getCameraDistanceFromRegion(): { near: number, far: number, size: number } {
-        let region = this.getMergedRegion();
+        const region = this.getMergedRegion();
+        return ClipRange.getDepthRange(region.bbox, this.getCameraPosition(), this.getCameraDirection());
+    }
 
-        if (!region.bbox || region.bbox.length === 0) {
-            return { near: 0, far: 0, size: 0 };
-        }
-
-        let camera = this.getCameraPosition();
-        let viewDir = vec3.normalize(vec3.create(), this.getCameraDirection());
-        let size = BBox.getDiagonalSize(region.bbox);
-
-        // project all 8 corners of the region onto the view direction. The centre-based estimate is only
-        // valid when the camera looks at the centre, which breaks for long models or a camera inside the region.
-        const bb = region.bbox;
-        let near = Infinity;
-        let far = -Infinity;
-        const corner = vec3.create();
-        for (let x = 0; x <= 1; x++) {
-            for (let y = 0; y <= 1; y++) {
-                for (let z = 0; z <= 1; z++) {
-                    vec3.set(corner, bb[0] + x * bb[3] - camera[0], bb[1] + y * bb[4] - camera[1], bb[2] + z * bb[5] - camera[2]);
-                    const depth = vec3.dot(viewDir, corner);
-                    near = Math.min(near, depth);
-                    far = Math.max(far, depth);
-                }
-            }
-        }
-
-        // margin so geometry on or slightly beyond the boundary (e.g. section box wireframe) is not easily clipped
-        const margin = size * 0.2;
-        return { near: near - margin, far: far + margin, size };
+    private getCameraDistanceFromRegionBox(): number {
+        const region = this.getMergedRegion();
+        return ClipRange.distanceToBBox(region.bbox, this.getCameraPosition());
     }
 
 
@@ -2518,13 +2490,21 @@ export class Viewer {
     private _watchPerformance() {
         const noMove = 2000; // number of milliseconds when we consider MV matrix to be stable
         let isMoving = false;
+        let lastClipStamp: number = null;
         const tick = () => {
             // don't do anything if performance is not to be watched
             if (!this._adaptivePerformanceOn) {
                 this.performance = PerformanceRating.HIGH;
+                // the clipping planes depend on the camera, so they must follow it even when
+                // the performance is not adapted (e.g. walk mode), otherwise they go stale
+                if (this._mvMatrixTimestamp !== lastClipStamp && this.activeHandles.length > 0) {
+                    lastClipStamp = this._mvMatrixTimestamp;
+                    this.setNearAndFarFromCameraDistance();
+                }
                 this._requestAnimationFrame(tick);
                 return;
             }
+            lastClipStamp = null;
 
             // number of milliseconds since last MV matrix change
             const age = this.mvMatrixAge;
